@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AMI — marca vetorizada</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green-900:#06210F; --green-800:#0B3018; --green-600:#1F6B3A;
+    --mint-400:#A5DCAF; --mint-100:#E6F4E9;
+    --ink-900:#14201A; --ink-600:#4B5A51; --ink-400:#657268;
+    --line:#E1E8E3; --line-strong:#C3D0C7; --canvas:#F4F7F4;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--canvas);color:var(--ink-900);
+       font:400 17px/1.65 "Source Sans 3",system-ui,sans-serif}
+  .env{max-width:1120px;margin:0 auto;padding:0 24px}
+  h1,h2{font-family:"Archivo",system-ui,sans-serif;font-weight:700;font-stretch:85%;margin:0}
+  h1{font-size:42px;line-height:1.06;letter-spacing:-.02em;color:#fff}
+  h2{font-size:29px;line-height:1.12;letter-spacing:-.01em;margin-bottom:6px}
+  .kicker{font-family:"Archivo",sans-serif;font-weight:700;font-size:12px;
+          letter-spacing:.12em;text-transform:uppercase;color:var(--mint-400)}
+  header{background:var(--green-800);padding:38px 0 44px}
+  header p{color:var(--mint-400);max-width:600px;margin:10px 0 0}
+  section{padding:42px 0;border-bottom:1px solid var(--line-strong)}
+  .nota{color:var(--ink-600);max-width:640px;margin:6px 0 22px}
+
+  table{border-collapse:collapse;width:100%;max-width:820px;background:#fff;
+        border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);font-size:15px}
+  th{font-weight:600;color:var(--ink-600);font-size:13px;letter-spacing:.04em;text-transform:uppercase}
+  tr:last-child td{border-bottom:none}
+  td.num{font-variant-numeric:tabular-nums;color:var(--ink-600)}
+
+  .grade{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);
+         border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .grade>div{padding:26px;text-align:center;background:#fff}
+  .grade img{max-width:100%;height:auto;display:block;margin:0 auto 12px}
+  .rot{font-size:12px;letter-spacing:.05em;text-transform:uppercase;font-weight:600;color:var(--ink-400)}
+  .b-xadrez{background:
+      linear-gradient(45deg,#d8ded9 25%,transparent 25%,transparent 75%,#d8ded9 75%),
+      linear-gradient(45deg,#d8ded9 25%,transparent 25%,transparent 75%,#d8ded9 75%),
+      #f4f7f4 !important;
+      background-size:22px 22px;background-position:0 0,11px 11px}
+
+  .escala{display:flex;align-items:flex-end;gap:30px;flex-wrap:wrap;background:#fff;
+          border:1px solid var(--line);border-radius:10px;padding:26px}
+  .escala figure{margin:0;text-align:center}
+  .escala img{display:block;margin:0 auto}
+  .escala figcaption{font-size:12px;color:var(--ink-400);margin-top:10px;font-variant-numeric:tabular-nums}
+
+  .barra{border-radius:10px;padding:0 22px;height:78px;display:flex;align-items:center;gap:26px}
+  .barra img{height:46px;width:auto}
+  .cab-claro{background:#fff;border:1px solid var(--line-strong)}
+  .cab-claro nav a{color:var(--green-600)}
+  .cab-placa{background:var(--green-800)}
+  .cab-placa .placa{background:#fff;border-radius:6px;padding:7px 12px;display:flex}
+  .cab-placa .placa img{height:38px}
+  .cab-placa nav a{color:var(--mint-400)}
+  .barra nav{margin-left:auto;display:flex;gap:22px;font-size:15px}
+  .barra nav a{text-decoration:none}
+
+  .aviso{border-left:3px solid var(--green-600);background:var(--mint-100);
+         padding:16px 20px;border-radius:0 6px 6px 0;max-width:680px}
+  .aviso.ruim{border-left-color:#A33232;background:#FBEDED}
+  ul.limpa{margin:0;padding-left:20px;max-width:680px;color:var(--ink-600)}
+  ul.limpa li{margin-bottom:7px}
+  ul.limpa b{color:var(--ink-900);font-weight:600}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="env">
+    <span class="kicker">Associação Médica de Imperatriz</span>
+    <h1>Marca vetorizada</h1>
+    <p>Mesmo desenho do arquivo original, agora em vetor. O contorno foi traçado sobre o bitmap, não redesenhado — as assimetrias e o caráter da marca continuam lá.</p>
+  </div>
+</header>
+
+<div class="env">
+
+  <section>
+    <h2>Como foi feito</h2>
+    <ul class="limpa">
+      <li><b>Fundo branco convertido em transparência.</b> O alfa sai do canal vermelho e a cor é desfeita da pré-multiplicação com o branco, o que devolve o verde cheio em vez de lavado nas bordas.</li>
+      <li><b>Halo de exportação cortado.</b> O JPEG tinha um borrão verde nas bordas. Em cor ele não se distingue da arte — chega a saturação 99, contra 71 a 164 do desenho — então o corte foi feito medindo as bordas reais.</li>
+      <li><b>Contorno traçado a 6× de superamostragem</b>, com ajuste de curva e detecção de canto. Superamostrar antes de traçar dá precisão de subpixel ao contorno.</li>
+      <li><b>Dois traçados separados</b>, símbolo e letreiro, para preservar os dois verdes distintos do original em vez de achatar tudo em uma cor.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Fidelidade medida</h2>
+    <p class="nota">Comparando a área de tinta do vetor com a do bitmap, renderizados no mesmo tamanho. Valores negativos significam que o vetor tem menos tinta — ou seja, não engordou o desenho.</p>
+    <table>
+      <tr><th>Parte</th><th>Bitmap</th><th>Vetor</th><th>Diferença</th></tr>
+      <tr><td>Símbolo</td><td class="num">15,64%</td><td class="num">15,58%</td><td class="num">−0,4%</td></tr>
+      <tr><td>Letreiro</td><td class="num">35,53%</td><td class="num">34,70%</td><td class="num">−2,3%</td></tr>
+    </table>
+    <div class="aviso" style="margin-top:20px">
+      Quatro décimos de por cento no símbolo é abaixo do perceptível. O vetor parece
+      mais sólido por ter borda nítida em vez de borda suavizada — é a mesma
+      quantidade de tinta com aparência mais firme.
+    </div>
+  </section>
+
+  <section>
+    <h2>O encontro da serpente com o fuste</h2>
+    <p class="nota">Onde o corpo da serpente encosta na coluna existe, no arquivo original, uma linha de <b>um pixel e meio-transparente</b>: os valores de alfa oscilam entre 28 e 239 ao longo dela, com zeros no meio. É a aresta que faz a serpente ler como contínua, e ela é frágil demais para sobreviver a um limiar alto — quebra em pedaços e a serpente parece cortada.</p>
+    <p class="nota">Não é uma fresta entre duas áreas cheias, então fechamento morfológico não resolve. O que resolve é calibrar o limiar. Testando três valores, o de 130 acabou sendo ao mesmo tempo o que preserva a aresta e o mais fiel no conjunto:</p>
+    <table style="max-width:560px">
+      <tr><th>Limiar</th><th>Símbolo</th><th>Letreiro</th><th></th></tr>
+      <tr><td class="num">105</td><td class="num">−2,9%</td><td class="num">−5,7%</td><td>aresta quebrada</td></tr>
+      <tr><td class="num"><b>130</b></td><td class="num"><b>−0,4%</b></td><td class="num"><b>−2,3%</b></td><td><b>aresta preservada</b></td></tr>
+      <tr><td class="num">155</td><td class="num">+3,8%</td><td class="num">+1,8%</td><td>desenho engordado</td></tr>
+    </table>
+    <p class="nota" style="margin-top:18px">Ampliação da ponta da volta, na ordem JPEG original, PNG limpo e vetor:</p>
+    <img src="ponta-volta.png" alt="Ampliação da ponta da volta da serpente nos três estágios" style="max-width:100%;border:1px solid var(--line);border-radius:8px">
+  </section>
+
+  <section>
+    <h2>Os vazados</h2>
+    <p class="nota">O traçador devolve os contornos internos — os furos do <b>O</b>, do <b>A</b>, do <b>Ç</b> e as voltas da serpente — como subcaminhos que só vazam sob a regra de preenchimento <code>evenodd</code>. Sem ela, todo furo é preenchido. Comparação em detalhe, original em cima e vetor embaixo:</p>
+    <div class="grade">
+      <div><img src="detalhe-letras.png" alt="Detalhe das letras: furos do A, O, Ç e Ã abertos no vetor"><span class="rot">Letreiro</span></div>
+      <div><img src="detalhe-simbolo.png" alt="Detalhe do símbolo: coroa, capitel, voltas da serpente e cauda"><span class="rot">Símbolo</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Verificação sobre xadrez</h2>
+    <p class="nota">Qualquer resto de moldura branca apareceria aqui.</p>
+    <div class="grade">
+      <div class="b-xadrez"><img src="ami-marca.svg" alt="Marca vetorizada da AMI sobre fundo xadrez"><span class="rot">ami-marca.svg</span></div>
+      <div class="b-xadrez"><img src="ami-simbolo.svg" alt="Símbolo vetorizado da AMI sobre fundo xadrez" style="max-width:72%"><span class="rot">ami-simbolo.svg</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Escala — o ganho real</h2>
+    <p class="nota">O mesmo arquivo, do favicon ao banner. Não há mais um teto de resolução.</p>
+    <div class="escala">
+      <figure><img src="ami-simbolo.svg" style="width:240px" alt="Símbolo a 240 px"><figcaption>240 px</figcaption></figure>
+      <figure><img src="ami-simbolo.svg" style="width:120px" alt="Símbolo a 120 px"><figcaption>120 px</figcaption></figure>
+      <figure><img src="ami-simbolo.svg" style="width:64px" alt="Símbolo a 64 px"><figcaption>64 px</figcaption></figure>
+      <figure><img src="ami-simbolo.svg" style="width:40px" alt="Símbolo a 40 px"><figcaption>40 px</figcaption></figure>
+      <figure><img src="ami-simbolo.svg" style="width:24px" alt="Símbolo a 24 px"><figcaption>24 px</figcaption></figure>
+    </div>
+    <div class="aviso ruim" style="margin-top:20px">
+      <b>O limite que continua existindo:</b> o vetor é fiel ao original, e o original
+      tem as bordas levemente onduladas. Em tamanho de cartaz essas ondulações aparecem.
+      Vetorizar tirou o teto de resolução, não os defeitos do desenho — só o arquivo
+      original em vetor, ou um redesenho, resolvem isso.
+    </div>
+  </section>
+
+  <section>
+    <h2>Os arquivos</h2>
+    <table>
+      <tr><th>Arquivo</th><th>Peso</th><th>Uso</th></tr>
+      <tr><td><b>ami-marca.svg</b></td><td class="num">22,7 KB<br><span style="font-size:13px">comprimido</span></td><td>Marca completa. Cabeçalho, rodapé, documentos</td></tr>
+      <tr><td><b>ami-simbolo.svg</b></td><td class="num">8,5 KB<br><span style="font-size:13px">comprimido</span></td><td>Símbolo isolado. Favicon, ícone, avatar, marca d'água</td></tr>
+      <tr><td>ami-marca-2400.png</td><td class="num">183 KB</td><td>Raster grande, para onde SVG não é aceito</td></tr>
+      <tr><td>ami-simbolo-1200.png</td><td class="num">28 KB</td><td>Idem, só o símbolo</td></tr>
+      <tr><td>ami-marca.png<br>ami-simbolo.png</td><td class="num">602 px<br>529 px</td><td>Bitmap limpo em tamanho nativo, antes da vetorização</td></tr>
+    </table>
+  </section>
+
+  <section style="border-bottom:none">
+    <h2>A decisão que ainda falta: o cabeçalho</h2>
+    <p class="nota">A marca é verde-escura, então sobre a faixa verde-800 prevista na direção de arte ela some. Vetorizar não muda isso. Duas saídas viáveis:</p>
+
+    <p class="rot" style="margin:0 0 8px">1 · Cabeçalho claro — recomendado</p>
+    <div class="barra cab-claro">
+      <img src="ami-marca.svg" alt="Marca da AMI em cabeçalho claro">
+      <nav><a href="#">Buscar médicos</a><a href="#">Clínicas</a><a href="#">A Associação</a><a href="#">Notícias</a></nav>
+    </div>
+    <p class="nota" style="margin-top:10px">O verde-escuro continua estruturando o site nas outras faixas: herói da home, bloco institucional e rodapé. Só o cabeçalho muda.</p>
+
+    <p class="rot" style="margin:26px 0 8px">2 · Cabeçalho escuro com placa branca</p>
+    <div class="barra cab-placa">
+      <span class="placa"><img src="ami-marca.svg" alt="Marca da AMI sobre placa branca em cabeçalho escuro"></span>
+      <nav><a href="#">Buscar médicos</a><a href="#">Clínicas</a><a href="#">A Associação</a><a href="#">Notícias</a></nav>
+    </div>
+    <p class="nota" style="margin-top:10px">Mantém o verde-800 do plano original, mas reintroduz o retângulo branco que a transparência tinha resolvido.</p>
+
+    <div class="aviso" style="margin-top:24px">
+      Agora que a marca é vetor, uma <b>versão vazada em branco ou menta</b> passa a ser
+      trivial — é trocar o valor de <code>fill</code>. Continua sendo alteração de cor,
+      e por isso continua sendo decisão sua, não minha.
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

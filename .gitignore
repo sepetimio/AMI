@@ -1,0 +1,43 @@
+# dependências
+node_modules/
+.pnp
+.pnp.js
+
+# build e cache
+.next/
+out/
+build/
+dist/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+
+# chaves — nunca versionar
+.env
+.env.local
+.env*.local
+
+# Sanity
+.sanity/
+
+# Supabase
+supabase/.temp/
+supabase/.branches/
+
+# sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# editores
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# logs
+npm-debug.log*
+yarn-error.log*
+*.log
+
+# arquivos de trabalho da marca que não entram no site
+marca/_estudo-restauracao-recusado/
