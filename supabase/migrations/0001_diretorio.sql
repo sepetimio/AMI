@@ -118,8 +118,17 @@ create table horario (
 
 -- Busca por nome em português: sem unaccent, "jose" não acha "José", que é
 -- exatamente o caso em que o usuário mais precisa da busca.
+--
+-- O unaccent() da extensão é STABLE, e o Postgres só indexa expressão
+-- IMMUTABLE. Daí este invólucro: mesma função, marcada corretamente, com
+-- o dicionário nomeado explicitamente para que o resultado não dependa do
+-- search_path de quem consulta.
+create function sem_acento(texto text) returns text
+  language sql immutable strict parallel safe
+  as $$ select public.unaccent('public.unaccent', texto) $$;
+
 create index profissional_nome_trgm
-  on profissional using gin (unaccent(nome) gin_trgm_ops);
+  on profissional using gin (sem_acento(nome) gin_trgm_ops);
 
 create index profissional_publicado on profissional (publicado);
 create index local_bairro on local (bairro_id);
