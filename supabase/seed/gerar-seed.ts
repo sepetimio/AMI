@@ -44,7 +44,7 @@ const NOMES = [
 ];
 
 const semAcento = (s: string) =>
-  s.normalize("NFD").replace(/[̀-ͯ]/g, "");
+  s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 const slug = (s: string) =>
   semAcento(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
