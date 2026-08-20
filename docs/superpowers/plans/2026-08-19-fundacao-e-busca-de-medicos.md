@@ -27,7 +27,9 @@ Todas as tarefas herdam estas regras. Valores copiados literalmente da spec.
 - Fundo é branco e cinza-esverdeado frio `#F4F7F4`, nunca bege
 
 **Tipografia**
-- Títulos em Archivo, comprimida pelo eixo `wdth` entre 80% e 87,5%, peso 700
+- **H1 e H2** em Archivo, comprimida pelo eixo `wdth` entre 80% e 87,5%, peso 700
+- **H3** em Archivo, peso 600, **sem compressão** — a 21px a compressão prejudica
+  a leitura em vez de ajudar, e a escala da direção de arte pede `H3 21/28 · 600`
 - Corpo em Source Sans 3, 400 e 600
 - Corpo em 17px, entrelinha 1,65. Nada abaixo de 15px em texto de leitura — parágrafo, item de lista, célula de tabela, rótulo de campo. Kicker, tag e legenda curta podem ir a 12px
 - `font-variant-numeric: tabular-nums` em telefone, CRM e contagem
