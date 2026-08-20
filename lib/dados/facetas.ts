@@ -136,7 +136,7 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
     );
   } else {
     frases.push(
-      `Nenhum deles registrou atendimento por telemedicina, então a consulta ` +
+      `Não há registro de atendimento por telemedicina, então a consulta ` +
         `é presencial.`,
     );
   }
@@ -154,14 +154,22 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
     );
   }
 
+  /* O singular não usa pronome: "ele" erraria o gênero em metade dos
+     casos, e "todos" para uma pessoa só soa errado em português. */
   if (r.associados === 0) {
     frases.push(
-      `Nenhum deles consta como associado da AMI no cadastro atual.`,
+      r.total === 1
+        ? `O profissional listado não consta como associado da AMI no ` +
+            `cadastro atual.`
+        : `Nenhum deles consta como associado da AMI no cadastro atual.`,
     );
   } else if (r.associados === r.total) {
     frases.push(
-      `Todos são associados da Associação Médica de Imperatriz, o que ` +
-        `significa cadastro conferido e mantido pela entidade.`,
+      r.total === 1
+        ? `O único profissional listado é associado da Associação Médica de ` +
+            `Imperatriz, com cadastro conferido e mantido pela entidade.`
+        : `Todos são associados da Associação Médica de Imperatriz, o que ` +
+            `significa cadastro conferido e mantido pela entidade.`,
     );
   } else {
     frases.push(
@@ -179,7 +187,9 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
     );
   } else {
     frases.push(
-      `Cada um atende em um endereço só, sem alternativa de local.`,
+      r.total === 1
+        ? `O atendimento acontece em um endereço só, sem alternativa de local.`
+        : `Cada um atende em um endereço só, sem alternativa de local.`,
     );
   }
 

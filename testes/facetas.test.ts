@@ -101,6 +101,26 @@ describe("paragrafoDeAbertura", () => {
     expect(p).toContain("1 atende aos sábados");
     expect(p).toContain("1 informa acesso");
     expect(p).toContain("1 atende em mais de um endereço");
+    expect(p).not.toContain("Todos são");
+    expect(p).not.toContain("Nenhum deles");
+  });
+
+  it("no singular sem associado, não diz 'nenhum deles'", () => {
+    const p = paragrafoDeAbertura({
+      ...base,
+      total: 1,
+      totalLocais: 1,
+      bairrosComOferta: [{ nome: "Centro", total: 1 }],
+      atendemSabado: 0,
+      comTelemedicina: 0,
+      locaisComAcessoCadeirante: 0,
+      associados: 0,
+      comMaisDeUmEndereco: 0,
+    });
+    expect(p).toContain("O profissional listado não consta como associado");
+    expect(p).toContain("O atendimento acontece em um endereço só");
+    expect(p).not.toContain("Nenhum deles");
+    expect(p).not.toContain("Cada um atende");
   });
 
   it("concorda o plural", () => {
