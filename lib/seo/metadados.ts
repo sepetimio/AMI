@@ -11,24 +11,34 @@ const MARCA = "AMI";
 
 const plural = (n: number, s: string, p: string) => (n === 1 ? s : p);
 
-/* Monta juntando as partes e, se estourar, descarta as menos importantes da
-   direita para a esquerda. Cortar no meio da palavra produziria reticências
-   no resultado de busca; descartar o sufixo da marca não perde informação. */
-function montar(partes: string[], limite: number): string {
-  for (let corte = partes.length; corte > 0; corte--) {
-    const texto = partes.slice(0, corte).join(" | ");
-    if (texto.length <= limite) return texto;
+/**
+ * Monta o título e o encurta quando não cabe, nesta ordem:
+ * primeiro descarta as partes da direita, que são as menos importantes;
+ * depois troca a cabeça por uma versão mais curta.
+ *
+ * `cabecas` vem da mais longa para a mais curta. Cortar no meio de uma
+ * palavra é o último recurso e mesmo aí o corte respeita o espaço: um título
+ * terminando em "Imperatriz - M" no resultado de busca é pior que um curto.
+ */
+function montar(cabecas: string[], resto: string[], limite: number): string {
+  for (const cabeca of cabecas) {
+    for (let corte = resto.length; corte >= 0; corte--) {
+      const texto = [cabeca, ...resto.slice(0, corte)].join(" | ");
+      if (texto.length <= limite) return texto;
+    }
   }
-  return partes[0].slice(0, limite);
+  const fatia = cabecas[cabecas.length - 1].slice(0, limite);
+  const espaco = fatia.lastIndexOf(" ");
+  return (espaco > 0 ? fatia.slice(0, espaco) : fatia).replace(
+    /[\s,;:–-]+$/,
+    "",
+  );
 }
 
 export function tituloEspecialidade(nome: string, total: number): string {
   return montar(
-    [
-      `${nome} em ${CIDADE}`,
-      `${total} ${plural(total, "médico", "médicos")}`,
-      MARCA,
-    ],
+    [`${nome} em ${CIDADE}`, `${nome} em Imperatriz`, nome],
+    [`${total} ${plural(total, "médico", "médicos")}`, MARCA],
     LIMITE_TITULO,
   );
 }
@@ -41,19 +51,30 @@ export function tituloFaceta(
   return montar(
     [
       `${especialidade} no ${bairro}, ${CIDADE}`,
-      `${total} ${plural(total, "médico", "médicos")}`,
-      MARCA,
+      `${especialidade} no ${bairro}`,
     ],
+    [`${total} ${plural(total, "médico", "médicos")}`, MARCA],
     LIMITE_TITULO,
   );
 }
 
+/**
+ * Sem especialidade registrada, o título omite o papel em vez de escrever
+ * "Médico" ou "Médica": qualquer um dos dois erra o gênero em metade dos
+ * casos, e o nome com a cidade já identifica a página.
+ */
 export function tituloMedico(
   nome: string,
   especialidade: string | null,
 ): string {
-  const papel = especialidade ?? "Médica";
-  return montar([`${nome} - ${papel} em ${CIDADE}`, MARCA], LIMITE_TITULO);
+  const cabecas = especialidade
+    ? [
+        `${nome} - ${especialidade} em ${CIDADE}`,
+        `${nome} - ${especialidade}`,
+        nome,
+      ]
+    : [`${nome} em ${CIDADE}`, nome];
+  return montar(cabecas, [MARCA], LIMITE_TITULO);
 }
 
 /* Mesmo dicionário de nomes de profissional usado nas facetas, em versão
