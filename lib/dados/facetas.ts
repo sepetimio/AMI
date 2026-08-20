@@ -18,11 +18,25 @@ export type ResumoFaceta = {
   especialidade: string;
   /** Nome do bairro, quando a faceta é de cruzamento. */
   bairro?: string;
+  /** Profissionais distintos. */
   total: number;
+  /**
+   * Profissionais distintos por bairro — não registros de local. Um médico
+   * com dois consultórios no mesmo bairro conta uma vez; um com consultórios
+   * em bairros diferentes conta em cada um, que é o que o leitor espera ao
+   * perguntar "quantos atendem no Centro".
+   */
   bairrosComOferta: { nome: string; total: number }[];
+  /** Endereços distintos, que é sempre >= total quando alguém tem dois. */
+  totalLocais: number;
   atendemSabado: number;
   comTelemedicina: number;
-  comAcessoCadeirante: number;
+  /** Conta LOCAIS, não profissionais — o nome diz isso para não derivar. */
+  locaisComAcessoCadeirante: number;
+  /** Quantos são associados da AMI. */
+  associados: number;
+  /** Quantos atendem em mais de um endereço. */
+  comMaisDeUmEndereco: number;
 };
 
 /* "Cardiologia" vira "cardiologista". Cobre os casos do catálogo; o que não
@@ -60,33 +74,41 @@ function lista(nomes: string[]): string {
 /**
  * Parágrafo de abertura da página de faceta.
  *
- * Gerado a partir dos dados reais: quantos profissionais, onde se concentram,
- * quantos atendem aos sábados, quantos fazem telemedicina, quantos locais têm
- * acesso para cadeirante. Nunca um texto-modelo com a palavra trocada — é
- * exatamente isso que o Google classifica como conteúdo raso.
+ * Gerado a partir dos dados reais: quantos profissionais, em quantos
+ * endereços, onde se concentram, quantos atendem aos sábados, quantos fazem
+ * telemedicina, quantos locais têm acesso para cadeirante. Nunca um
+ * texto-modelo com a palavra trocada — é exatamente isso que o Google
+ * classifica como conteúdo raso.
+ *
+ * Nenhuma frase começa com algarismo: em texto corrido em português isso não
+ * se faz, e é um dos sinais mais visíveis de texto gerado.
  */
 export function paragrafoDeAbertura(r: ResumoFaceta): string {
   const [sing, plur] = comoProfissional(r.especialidade);
   const nomeProf = r.total === 1 ? sing : plur;
-  const onde = r.bairro ? `no ${r.bairro}, em Imperatriz` : "em Imperatriz";
+  const onde = r.bairro ? `no ${r.bairro}` : "em Imperatriz";
 
   const frases: string[] = [];
 
   frases.push(
     `A Associação Médica de Imperatriz reúne ${r.total} ${nomeProf} ` +
-      `com atendimento ${onde}, no Maranhão.`,
+      `${onde}, no Maranhão, ` +
+      (r.totalLocais === 1
+        ? `com um único endereço de atendimento.`
+        : `somando ${r.totalLocais} endereços de atendimento.`),
   );
 
   if (!r.bairro && r.bairrosComOferta.length) {
     const principais = r.bairrosComOferta.slice(0, 3);
     if (principais.length === 1) {
       frases.push(
-        `O atendimento se concentra no bairro ${principais[0].nome}.`,
+        `Todo o atendimento se concentra no bairro ${principais[0].nome}.`,
       );
     } else {
       frases.push(
-        `A oferta se distribui pelos bairros ${lista(principais.map((b) => b.nome))}, ` +
-          `sendo ${principais[0].total} ${principais[0].total === 1 ? sing : plur} ` +
+        `A oferta se distribui pelos bairros ` +
+          `${lista(principais.map((b) => b.nome))}, sendo ` +
+          `${principais[0].total} ${principais[0].total === 1 ? sing : plur} ` +
           `no ${principais[0].nome}.`,
       );
     }
@@ -95,51 +117,79 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
   if (r.atendemSabado > 0) {
     frases.push(
       `Desses, ${r.atendemSabado} ${r.atendemSabado === 1 ? "atende" : "atendem"} ` +
-        `aos sábados, o que costuma resolver a consulta de quem trabalha ` +
-        `em horário comercial durante a semana.`,
+        `aos sábados, o que costuma resolver a consulta de quem trabalha em ` +
+        `horário comercial durante a semana.`,
     );
   } else {
     frases.push(
       `Por enquanto, os atendimentos acontecem apenas em dias úteis, de ` +
-        `segunda a sexta-feira.`,
+        `segunda a sexta-feira, o que vale considerar ao pedir dispensa no ` +
+        `trabalho para a consulta.`,
     );
   }
 
-  /* Nenhuma frase começa com algarismo: em texto corrido em português isso
-     não se faz, e é um dos sinais mais visíveis de texto gerado. */
   if (r.comTelemedicina > 0) {
     frases.push(
-      `A telemedicina é oferecida por ${r.comTelemedicina} ` +
-        `deles, alternativa para quem ` +
-        `vem de outras cidades da região sul do Maranhão e do sudeste do Pará.`,
-    );
-  }
-
-  /* O caso zero merece frase própria. "0 locais de atendimento têm acesso"
-     é a redação que denuncia geração automática — e a informação de que
-     nenhum local tem acesso é útil demais para ser omitida. */
-  if (r.comAcessoCadeirante === 0) {
-    frases.push(
-      `Nenhum dos locais de atendimento informa acesso para cadeirante no ` +
-        `cadastro da associação, o que vale confirmar por telefone antes de ir.`,
+      `A telemedicina é oferecida por ${r.comTelemedicina} deles, alternativa ` +
+        `para quem vem de outras cidades da região sul do Maranhão e do ` +
+        `sudeste do Pará.`,
     );
   } else {
     frases.push(
-      `Entre os locais de atendimento, ${r.comAcessoCadeirante} ` +
-        `${r.comAcessoCadeirante === 1 ? "informa" : "informam"} acesso para ` +
-        `cadeirante no cadastro da associação.`,
+      `Nenhum deles registrou atendimento por telemedicina, então a consulta ` +
+        `é presencial.`,
     );
   }
 
+  if (r.locaisComAcessoCadeirante === 0) {
+    frases.push(
+      `Nenhum dos endereços informa acesso para cadeirante no cadastro da ` +
+        `associação, o que vale confirmar por telefone antes de ir.`,
+    );
+  } else {
+    frases.push(
+      `Entre os endereços, ${r.locaisComAcessoCadeirante} ` +
+        `${r.locaisComAcessoCadeirante === 1 ? "informa" : "informam"} acesso ` +
+        `para cadeirante no cadastro da associação.`,
+    );
+  }
+
+  if (r.associados === 0) {
+    frases.push(
+      `Nenhum deles consta como associado da AMI no cadastro atual.`,
+    );
+  } else if (r.associados === r.total) {
+    frases.push(
+      `Todos são associados da Associação Médica de Imperatriz, o que ` +
+        `significa cadastro conferido e mantido pela entidade.`,
+    );
+  } else {
+    frases.push(
+      `Do total, ${r.associados} ` +
+        `${r.associados === 1 ? "é associado" : "são associados"} da ` +
+        `Associação Médica de Imperatriz, com cadastro conferido pela entidade.`,
+    );
+  }
+
+  if (r.comMaisDeUmEndereco > 0) {
+    frases.push(
+      `Entre eles, ${r.comMaisDeUmEndereco} ` +
+        `${r.comMaisDeUmEndereco === 1 ? "atende" : "atendem"} em mais de um ` +
+        `endereço, o que costuma ampliar as opções de dia e horário.`,
+    );
+  } else {
+    frases.push(
+      `Cada um atende em um endereço só, sem alternativa de local.`,
+    );
+  }
+
+  /* Fecho comum a toda página de faceta. É curto de propósito: informação
+     que não varia com os dados é a que faz duas facetas parecerem a mesma
+     página, e é o que o Google trata como conteúdo raso. */
   frases.push(
-    `Cada perfil abaixo traz o endereço completo, o telefone de contato e os ` +
-      `horários de atendimento por dia da semana, além do número de registro ` +
-      `no Conselho Regional de Medicina, conforme exige a Resolução CFM ` +
-      `2.336/2023. Os dados são mantidos pela Associação Médica de Imperatriz ` +
-      `e revisados a cada atualização enviada pelo profissional. Se quem você ` +
-      `procura não estiver aqui, vale olhar as especialidades relacionadas no ` +
-      `fim da página: a divisão entre algumas áreas varia conforme a formação ` +
-      `de cada médico.`,
+    `Cada perfil abaixo traz endereço, telefone, horários por dia da semana e ` +
+      `o número de registro no Conselho Regional de Medicina, como exige a ` +
+      `Resolução CFM 2.336/2023.`,
   );
 
   return frases.join(" ");
@@ -151,13 +201,24 @@ export function resumirFaceta(
   especialidade: string,
   bairro?: string,
 ): ResumoFaceta {
-  const porBairro = new Map<string, number>();
-  let comAcessoCadeirante = 0;
+  /* Conjuntos, não contadores: o mesmo profissional aparece uma vez por
+     bairro mesmo com dois consultórios lá, e o mesmo endereço compartilhado
+     por dois médicos conta como um endereço. */
+  const profissionaisPorBairro = new Map<string, Set<number>>();
+  const locais = new Set<number>();
+  const locaisComAcesso = new Set<number>();
 
   for (const m of medicos) {
     for (const l of m.locais) {
-      porBairro.set(l.bairro.nome, (porBairro.get(l.bairro.nome) ?? 0) + 1);
-      if (l.acessibilidade.includes("acesso_cadeirante")) comAcessoCadeirante++;
+      const nome = l.bairro.nome;
+      if (!profissionaisPorBairro.has(nome)) {
+        profissionaisPorBairro.set(nome, new Set());
+      }
+      profissionaisPorBairro.get(nome)!.add(m.id);
+      locais.add(l.id);
+      if (l.acessibilidade.includes("acesso_cadeirante")) {
+        locaisComAcesso.add(l.id);
+      }
     }
   }
 
@@ -165,13 +226,18 @@ export function resumirFaceta(
     especialidade,
     bairro,
     total: medicos.length,
-    bairrosComOferta: [...porBairro.entries()]
-      .map(([nome, total]) => ({ nome, total }))
-      .sort((a, b) => b.total - a.total || a.nome.localeCompare(b.nome, "pt-BR")),
+    bairrosComOferta: [...profissionaisPorBairro.entries()]
+      .map(([nome, ids]) => ({ nome, total: ids.size }))
+      .sort(
+        (a, b) => b.total - a.total || a.nome.localeCompare(b.nome, "pt-BR"),
+      ),
+    totalLocais: locais.size,
     atendemSabado: medicos.filter((m) =>
       m.locais.some((l) => l.horarios.some((h) => h.diaSemana === 6)),
     ).length,
     comTelemedicina: medicos.filter((m) => m.telemedicina).length,
-    comAcessoCadeirante,
+    locaisComAcessoCadeirante: locaisComAcesso.size,
+    associados: medicos.filter((m) => m.associadoAmi).length,
+    comMaisDeUmEndereco: medicos.filter((m) => m.locais.length > 1).length,
   };
 }
