@@ -939,8 +939,17 @@ create table horario (
 
 -- Busca por nome em português: sem unaccent, "jose" não acha "José", que é
 -- exatamente o caso em que o usuário mais precisa da busca.
+--
+-- O unaccent() da extensão é STABLE, e o Postgres só indexa expressão
+-- IMMUTABLE. Daí este invólucro: mesma função, marcada corretamente, com
+-- o dicionário nomeado explicitamente para que o resultado não dependa do
+-- search_path de quem consulta.
+create function sem_acento(texto text) returns text
+  language sql immutable strict parallel safe
+  as $$ select public.unaccent('public.unaccent', texto) $$;
+
 create index profissional_nome_trgm
-  on profissional using gin (unaccent(nome) gin_trgm_ops);
+  on profissional using gin (sem_acento(nome) gin_trgm_ops);
 
 create index profissional_publicado on profissional (publicado);
 create index local_bairro on local (bairro_id);
@@ -990,14 +999,38 @@ create policy leitura_formacao on formacao
     select 1 from profissional p
     where p.id = profissional_id and p.publicado = true));
 
+/*
+  Um local é público quando pertence a um estabelecimento publicado OU quando
+  algum profissional publicado atende nele.
+
+  A condição vive numa função porque as duas políticas abaixo precisam dela e
+  duplicá-las deixaria uma delas para trás na primeira alteração. SECURITY
+  DEFINER evita que a RLS das tabelas consultadas aqui dispare recursivamente
+  dentro da própria política, e o search_path fixo impede que alguém troque o
+  significado de "local" por um objeto homônimo.
+
+  Sem isto, o consultório próprio de um médico não publicado — que tem
+  estabelecimento_id nulo — ficaria legível para qualquer visitante, expondo
+  endereço, telefone e coordenadas de um perfil que ainda não foi ao ar.
+*/
+create function local_publicado(id_local bigint) returns boolean
+  language sql stable security definer set search_path = public
+  as $$
+    select exists (
+             select 1 from local l
+             join estabelecimento e on e.id = l.estabelecimento_id
+             where l.id = id_local and e.publicado = true)
+        or exists (
+             select 1 from atendimento a
+             join profissional p on p.id = a.profissional_id
+             where a.local_id = id_local and p.publicado = true);
+  $$;
+
 create policy leitura_local on local
-  for select using (
-    estabelecimento_id is null
-    or exists (select 1 from estabelecimento e
-               where e.id = estabelecimento_id and e.publicado = true));
+  for select using (local_publicado(id));
 
 create policy leitura_acessibilidade on local_acessibilidade
-  for select using (true);
+  for select using (local_publicado(local_id));
 
 create policy leitura_atendimento on atendimento
   for select using (exists (
@@ -1035,16 +1068,31 @@ No SQL Editor:
 
 ```sql
 insert into profissional (slug, nome, crm, publicado)
-values ('teste-rls', 'Teste RLS', '00000', false);
+values ('teste-rls', 'Teste RLS', '00000', false)
+returning id;
+
+-- use o id devolvido acima nos dois inserts seguintes
+insert into local (logradouro, bairro_id, telefone)
+values ('Rua do Teste', 1, '9999999999') returning id;
+
+insert into atendimento (profissional_id, local_id)
+values (:id_profissional, :id_local);
 
 set role anon;
-select count(*) from profissional where slug = 'teste-rls';
+select
+  (select count(*) from profissional where slug = 'teste-rls') as perfil,
+  (select count(*) from local where logradouro = 'Rua do Teste') as endereco;
 reset role;
 
 delete from profissional where slug = 'teste-rls';
+delete from local where logradouro = 'Rua do Teste';
 ```
 
-Esperado: a contagem devolve `0`. Se devolver `1`, a RLS não está ativa e é preciso rever o passo 3.
+Esperado: **as duas contagens devolvem `0`**. O endereço importa tanto quanto o
+perfil: um consultório próprio tem `estabelecimento_id` nulo, e uma política
+mal escrita ali expõe endereço, telefone e coordenadas de quem ainda não foi ao
+ar. Se qualquer uma devolver `1`, a RLS não está fechada e é preciso rever o
+passo 3 antes de seguir.
 
 - [ ] **Step 6: Commit**
 
