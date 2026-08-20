@@ -56,28 +56,18 @@ const aspas = (s: string) => "'" + s.replace(/'/g, "''") + "'";
    Assim, "Clínica Médica / Centro" fica com 3 (indexável) e
    "Cardiologia / Centro" fica com 2 (não indexável). */
 const ESPECIALIDADE_DE = [
-  0, 0, 0, 0,  // Clínica Médica: profissionais 0-3
-  1, 1,        // Cardiologia: profissionais 4-5
-  2, 2,        // Dermatologia: profissionais 6-7
-  3,           // Ginecologia: profissional 8
-  4,           // Ortopedia: profissional 9
-  5,           // Pediatria: profissional 10
-  6,           // Oftalmologia: profissional 11
-  7,           // Psiquiatria: profissional 12
-  8,           // Endocrinologia: profissional 13
-  9,           // Gastroenterologia: profissional 14
-  10,          // Neurologia: profissional 15
-  11,          // Otorrinolaringologia: profissional 16
-  12,          // Urologia: profissional 17
-  13, 13, 13, 13, 13, 13,  // Reumatologia: profissionais 18-23 (6 profissionais)
+  /* Clínica Médica 4 · Cardiologia 3 · Pediatria 3 · Dermatologia 2 ·
+     Ginecologia 2 · Ortopedia 2 · as demais 1 cada. Soma 24. */
+  0, 0, 0, 0, 1, 1, 1, 5, 5, 5, 2, 2,
+  3, 3, 4, 4, 6, 7, 8, 9, 10, 11, 12, 13,
 ];
 
 const BAIRRO_DE = [
-  0, 0, 0, 1,        // Clínica Médica: Centro(0), Centro(0), Centro(0), Nova Imperatriz(1)
-  0, 0,              // Cardiologia: Centro(0), Centro(0)
-  1, 2,              // Dermatologia: Nova Imperatriz(1), Bacuri(2)
-  3, 4, 5, 6, 7, 0,  // Ginecologia até Endocrinologia: Juçara a Centro
-  1, 2, 3, 4, 5, 6, 7, 0, 1, 2,  // Gastroenterologia até Reumatologia: cycling through bairros
+  /* Centro concentra 8 dos 24, como numa cidade de verdade. Três dos
+     quatro clínicos gerais ficam lá, o que leva o cruzamento
+     clinica-medica/centro ao corte de três e o torna indexável. */
+  0, 0, 0, 1, 0, 0, 2, 0, 3, 4, 0, 5,
+  0, 6, 1, 7, 2, 3, 4, 5, 6, 7, 1, 2,
 ];
 
 const linhas: string[] = [

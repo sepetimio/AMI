@@ -1,23 +1,23 @@
-﻿-- =====================================================================
+-- =====================================================================
 -- INSTALAÇÃO INICIAL DO BANCO — Associação Médica de Imperatriz
 --
--- Este arquivo é a junção, na ordem certa, de três outros:
+-- Junção, na ordem certa, de:
 --   supabase/migrations/0001_diretorio.sql   (as tabelas)
 --   supabase/migrations/0002_rls.sql         (quem pode ler o quê)
 --   supabase/seed/seed.sql                   (dados de demonstração)
 --
--- Existe só para a primeira instalação: cole tudo de uma vez no SQL
--- Editor do Supabase e execute. Rodar duas vezes dá erro na segunda,
--- porque as tabelas já existirão — isso é esperado e não quebra nada.
+-- Para a primeira instalação: cole tudo de uma vez no SQL Editor do
+-- Supabase e execute. Rodar duas vezes dá erro na segunda, porque as
+-- tabelas já existirão.
 --
--- Daqui em diante, toda alteração de estrutura entra como uma migração
--- nova e numerada em supabase/migrations/, nunca editando este arquivo.
+-- Para apenas recarregar os dados fictícios num banco já montado, use
+-- supabase/recarregar-dados.sql.
 -- =====================================================================
 
 -- ============ PARTE 1 de 3: as tabelas ============
 
--- DiretÃ³rio mÃ©dico da AMI.
--- ConvÃªnio, preÃ§o e avaliaÃ§Ã£o nÃ£o existem neste projeto, por decisÃ£o de escopo.
+-- Diretório médico da AMI.
+-- Convênio, preço e avaliação não existem neste projeto, por decisão de escopo.
 
 create extension if not exists unaccent;
 create extension if not exists pg_trgm;
@@ -44,7 +44,7 @@ create table profissional (
   id            bigint generated always as identity primary key,
   slug          text not null unique,
   nome          text not null,
-  -- CRM Ã© bloqueante para publicar: sem ele o perfil nÃ£o vai ao ar.
+  -- CRM é bloqueante para publicar: sem ele o perfil não vai ao ar.
   crm           text not null,
   crm_uf        text not null default 'MA',
   foto          text,
@@ -67,8 +67,8 @@ alter table especialidade
 create table profissional_especialidade (
   profissional_id  bigint not null references profissional (id) on delete cascade,
   especialidade_id bigint not null references especialidade (id) on delete cascade,
-  -- RQE sÃ³ existe quando hÃ¡ especialidade registrada no CRM.
-  -- ClÃ­nico geral sem RQE Ã© caso normal: por isso aceita nulo.
+  -- RQE só existe quando há especialidade registrada no CRM.
+  -- Clínico geral sem RQE é caso normal: por isso aceita nulo.
   rqe       text,
   principal boolean not null default false,
   primary key (profissional_id, especialidade_id)
@@ -134,12 +134,12 @@ create table horario (
   check (fecha > abre)
 );
 
--- Busca por nome em portuguÃªs: sem unaccent, "jose" nÃ£o acha "JosÃ©", que Ã©
--- exatamente o caso em que o usuÃ¡rio mais precisa da busca.
+-- Busca por nome em português: sem unaccent, "jose" não acha "José", que é
+-- exatamente o caso em que o usuário mais precisa da busca.
 --
--- O unaccent() da extensÃ£o Ã© STABLE, e o Postgres sÃ³ indexa expressÃ£o
--- IMMUTABLE. DaÃ­ este invÃ³lucro: mesma funÃ§Ã£o, marcada corretamente, com
--- o dicionÃ¡rio nomeado explicitamente para que o resultado nÃ£o dependa do
+-- O unaccent() da extensão é STABLE, e o Postgres só indexa expressão
+-- IMMUTABLE. Daí este invólucro: mesma função, marcada corretamente, com
+-- o dicionário nomeado explicitamente para que o resultado não dependa do
 -- search_path de quem consulta.
 create function sem_acento(texto text) returns text
   language sql immutable strict parallel safe
@@ -155,7 +155,7 @@ create index horario_atendimento on horario (atendimento_id);
 
 -- ============ PARTE 2 de 3: as permissões ============
 
--- PermissÃµes vivem no banco. O visitante sÃ³ enxerga o que estÃ¡ publicado,
+-- Permissões vivem no banco. O visitante só enxerga o que está publicado,
 -- e nenhum erro de tela consegue expor rascunho.
 
 alter table especialidade               enable row level security;
@@ -169,19 +169,19 @@ alter table local_acessibilidade        enable row level security;
 alter table atendimento                 enable row level security;
 alter table horario                     enable row level security;
 
--- Tabelas de referÃªncia: leitura livre, sÃ£o catÃ¡logo pÃºblico.
+-- Tabelas de referência: leitura livre, são catálogo público.
 create policy leitura_especialidade on especialidade for select using (true);
 create policy leitura_bairro        on bairro        for select using (true);
 
--- SÃ³ perfis publicados aparecem.
+-- Só perfis publicados aparecem.
 create policy leitura_profissional on profissional
   for select using (publicado = true);
 
 create policy leitura_estabelecimento on estabelecimento
   for select using (publicado = true);
 
--- As tabelas dependentes herdam a condiÃ§Ã£o do dono. Sem isto, alguÃ©m
--- listaria os horÃ¡rios de um perfil que ainda nÃ£o foi ao ar.
+-- As tabelas dependentes herdam a condição do dono. Sem isto, alguém
+-- listaria os horários de um perfil que ainda não foi ao ar.
 create policy leitura_prof_esp on profissional_especialidade
   for select using (exists (
     select 1 from profissional p
@@ -193,18 +193,18 @@ create policy leitura_formacao on formacao
     where p.id = profissional_id and p.publicado = true));
 
 /*
-  Um local Ã© pÃºblico quando pertence a um estabelecimento publicado OU quando
+  Um local é público quando pertence a um estabelecimento publicado OU quando
   algum profissional publicado atende nele.
 
-  A condiÃ§Ã£o vive numa funÃ§Ã£o porque as duas polÃ­ticas abaixo precisam dela e
-  duplicÃ¡-las deixaria uma delas para trÃ¡s na primeira alteraÃ§Ã£o. SECURITY
+  A condição vive numa função porque as duas políticas abaixo precisam dela e
+  duplicá-las deixaria uma delas para trás na primeira alteração. SECURITY
   DEFINER evita que a RLS das tabelas consultadas aqui dispare recursivamente
-  dentro da prÃ³pria polÃ­tica, e o search_path fixo impede que alguÃ©m troque o
-  significado de "local" por um objeto homÃ´nimo.
+  dentro da própria política, e o search_path fixo impede que alguém troque o
+  significado de "local" por um objeto homônimo.
 
-  Sem isto, o consultÃ³rio prÃ³prio de um mÃ©dico nÃ£o publicado â€” que tem
-  estabelecimento_id nulo â€” ficaria legÃ­vel para qualquer visitante, expondo
-  endereÃ§o, telefone e coordenadas de um perfil que ainda nÃ£o foi ao ar.
+  Sem isto, o consultório próprio de um médico não publicado — que tem
+  estabelecimento_id nulo — ficaria legível para qualquer visitante, expondo
+  endereço, telefone e coordenadas de um perfil que ainda não foi ao ar.
 */
 create function local_publicado(id_local bigint) returns boolean
   language sql stable security definer set search_path = public
@@ -238,8 +238,8 @@ create policy leitura_horario on horario
 
 -- ============ PARTE 3 de 3: dados de demonstração ============
 
--- Dados de demonstraÃ§Ã£o. FictÃ­cios, mas verossÃ­meis para Imperatriz-MA.
--- Gerado por supabase/seed/gerar-seed.ts â€” nÃ£o edite Ã  mÃ£o.
+-- Dados de demonstração. Fictícios, mas verossímeis para Imperatriz-MA.
+-- Gerado por supabase/seed/gerar-seed.ts — não edite à mão.
 
 truncate horario, atendimento, local_acessibilidade, local,
   formacao, profissional_especialidade, profissional, estabelecimento,
@@ -249,53 +249,53 @@ insert into bairro (nome, slug) values
   ('Centro', 'centro'),
   ('Nova Imperatriz', 'nova-imperatriz'),
   ('Bacuri', 'bacuri'),
-  ('JuÃ§ara', 'jucara'),
-  ('MaranhÃ£o Novo', 'maranhao-novo'),
+  ('Juçara', 'jucara'),
+  ('Maranhão Novo', 'maranhao-novo'),
   ('Parque do Buriti', 'parque-do-buriti'),
-  ('Vila LobÃ£o', 'vila-lobao'),
+  ('Vila Lobão', 'vila-lobao'),
   ('Santa Rita', 'santa-rita');
 
 insert into especialidade (nome, slug, o_que_faz, quando_procurar) values
-  ('ClÃ­nica MÃ©dica', 'clinica-medica', '[PROVISÃ“RIO] Texto sobre a atuaÃ§Ã£o em clÃ­nica mÃ©dica, a ser escrito e revisado por mÃ©dico associado.', '[PROVISÃ“RIO] Sinais e situaÃ§Ãµes que levam Ã  consulta em clÃ­nica mÃ©dica, a ser escrito e revisado por mÃ©dico associado.'),
-  ('Cardiologia', 'cardiologia', '[PROVISÃ“RIO] Texto sobre a atuaÃ§Ã£o em cardiologia, a ser escrito e revisado por mÃ©dico associado.', '[PROVISÃ“RIO] Sinais e situaÃ§Ãµes que levam Ã  consulta em cardiologia, a ser escrito e revisado por mÃ©dico associado.'),
-  ('Dermatologia', 'dermatologia', '[PROVISÃ“RIO] Texto sobre a atuaÃ§Ã£o em dermatologia, a ser escrito e revisado por mÃ©dico associado.', '[PROVISÃ“RIO] Sinais e situaÃ§Ãµes que levam Ã  consulta em dermatologia, a ser escrito e revisado por mÃ©dico associado.'),
-  ('Ginecologia e ObstetrÃ­cia', 'ginecologia-e-obstetricia', '[PROVISÃ“RIO] Texto sobre a atuaÃ§Ã£o em ginecologia e obstetrÃ­cia, a ser escrito e revisado por mÃ©dico associado.', '[PROVISÃ“RIO] Sinais e situaÃ§Ãµes que levam Ã  consulta em ginecologia e obstetrÃ­cia, a ser escrito e revisado por mÃ©dico associado.'),
-  ('Ortopedia e Traumatologia', 'ortopedia-e-traumatologia', '[PROVISÃ“RIO] Texto sobre a atuaÃ§Ã£o em ortopedia e traumatologia, a ser escrito e revisado por mÃ©dico associado.', '[PROVISÃ“RIO] Sinais e situaÃ§Ãµes que levam Ã  consulta em ortopedia e traumatologia, a ser escrito e revisado por mÃ©dico associado.'),
-  ('Pediatria', 'pediatria', '[PROVISÃ“RIO] Texto sobre a atuaÃ§Ã£o em pediatria, a ser escrito e revisado por mÃ©dico associado.', '[PROVISÃ“RIO] Sinais e situaÃ§Ãµes que levam Ã  consulta em pediatria, a ser escrito e revisado por mÃ©dico associado.'),
-  ('Oftalmologia', 'oftalmologia', '[PROVISÃ“RIO] Texto sobre a atuaÃ§Ã£o em oftalmologia, a ser escrito e revisado por mÃ©dico associado.', '[PROVISÃ“RIO] Sinais e situaÃ§Ãµes que levam Ã  consulta em oftalmologia, a ser escrito e revisado por mÃ©dico associado.'),
-  ('Psiquiatria', 'psiquiatria', '[PROVISÃ“RIO] Texto sobre a atuaÃ§Ã£o em psiquiatria, a ser escrito e revisado por mÃ©dico associado.', '[PROVISÃ“RIO] Sinais e situaÃ§Ãµes que levam Ã  consulta em psiquiatria, a ser escrito e revisado por mÃ©dico associado.'),
-  ('Endocrinologia', 'endocrinologia', '[PROVISÃ“RIO] Texto sobre a atuaÃ§Ã£o em endocrinologia, a ser escrito e revisado por mÃ©dico associado.', '[PROVISÃ“RIO] Sinais e situaÃ§Ãµes que levam Ã  consulta em endocrinologia, a ser escrito e revisado por mÃ©dico associado.'),
-  ('Gastroenterologia', 'gastroenterologia', '[PROVISÃ“RIO] Texto sobre a atuaÃ§Ã£o em gastroenterologia, a ser escrito e revisado por mÃ©dico associado.', '[PROVISÃ“RIO] Sinais e situaÃ§Ãµes que levam Ã  consulta em gastroenterologia, a ser escrito e revisado por mÃ©dico associado.'),
-  ('Neurologia', 'neurologia', '[PROVISÃ“RIO] Texto sobre a atuaÃ§Ã£o em neurologia, a ser escrito e revisado por mÃ©dico associado.', '[PROVISÃ“RIO] Sinais e situaÃ§Ãµes que levam Ã  consulta em neurologia, a ser escrito e revisado por mÃ©dico associado.'),
-  ('Otorrinolaringologia', 'otorrinolaringologia', '[PROVISÃ“RIO] Texto sobre a atuaÃ§Ã£o em otorrinolaringologia, a ser escrito e revisado por mÃ©dico associado.', '[PROVISÃ“RIO] Sinais e situaÃ§Ãµes que levam Ã  consulta em otorrinolaringologia, a ser escrito e revisado por mÃ©dico associado.'),
-  ('Urologia', 'urologia', '[PROVISÃ“RIO] Texto sobre a atuaÃ§Ã£o em urologia, a ser escrito e revisado por mÃ©dico associado.', '[PROVISÃ“RIO] Sinais e situaÃ§Ãµes que levam Ã  consulta em urologia, a ser escrito e revisado por mÃ©dico associado.'),
-  ('Reumatologia', 'reumatologia', '[PROVISÃ“RIO] Texto sobre a atuaÃ§Ã£o em reumatologia, a ser escrito e revisado por mÃ©dico associado.', '[PROVISÃ“RIO] Sinais e situaÃ§Ãµes que levam Ã  consulta em reumatologia, a ser escrito e revisado por mÃ©dico associado.');
+  ('Clínica Médica', 'clinica-medica', '[PROVISÓRIO] Texto sobre a atuação em clínica médica, a ser escrito e revisado por médico associado.', '[PROVISÓRIO] Sinais e situações que levam à consulta em clínica médica, a ser escrito e revisado por médico associado.'),
+  ('Cardiologia', 'cardiologia', '[PROVISÓRIO] Texto sobre a atuação em cardiologia, a ser escrito e revisado por médico associado.', '[PROVISÓRIO] Sinais e situações que levam à consulta em cardiologia, a ser escrito e revisado por médico associado.'),
+  ('Dermatologia', 'dermatologia', '[PROVISÓRIO] Texto sobre a atuação em dermatologia, a ser escrito e revisado por médico associado.', '[PROVISÓRIO] Sinais e situações que levam à consulta em dermatologia, a ser escrito e revisado por médico associado.'),
+  ('Ginecologia e Obstetrícia', 'ginecologia-e-obstetricia', '[PROVISÓRIO] Texto sobre a atuação em ginecologia e obstetrícia, a ser escrito e revisado por médico associado.', '[PROVISÓRIO] Sinais e situações que levam à consulta em ginecologia e obstetrícia, a ser escrito e revisado por médico associado.'),
+  ('Ortopedia e Traumatologia', 'ortopedia-e-traumatologia', '[PROVISÓRIO] Texto sobre a atuação em ortopedia e traumatologia, a ser escrito e revisado por médico associado.', '[PROVISÓRIO] Sinais e situações que levam à consulta em ortopedia e traumatologia, a ser escrito e revisado por médico associado.'),
+  ('Pediatria', 'pediatria', '[PROVISÓRIO] Texto sobre a atuação em pediatria, a ser escrito e revisado por médico associado.', '[PROVISÓRIO] Sinais e situações que levam à consulta em pediatria, a ser escrito e revisado por médico associado.'),
+  ('Oftalmologia', 'oftalmologia', '[PROVISÓRIO] Texto sobre a atuação em oftalmologia, a ser escrito e revisado por médico associado.', '[PROVISÓRIO] Sinais e situações que levam à consulta em oftalmologia, a ser escrito e revisado por médico associado.'),
+  ('Psiquiatria', 'psiquiatria', '[PROVISÓRIO] Texto sobre a atuação em psiquiatria, a ser escrito e revisado por médico associado.', '[PROVISÓRIO] Sinais e situações que levam à consulta em psiquiatria, a ser escrito e revisado por médico associado.'),
+  ('Endocrinologia', 'endocrinologia', '[PROVISÓRIO] Texto sobre a atuação em endocrinologia, a ser escrito e revisado por médico associado.', '[PROVISÓRIO] Sinais e situações que levam à consulta em endocrinologia, a ser escrito e revisado por médico associado.'),
+  ('Gastroenterologia', 'gastroenterologia', '[PROVISÓRIO] Texto sobre a atuação em gastroenterologia, a ser escrito e revisado por médico associado.', '[PROVISÓRIO] Sinais e situações que levam à consulta em gastroenterologia, a ser escrito e revisado por médico associado.'),
+  ('Neurologia', 'neurologia', '[PROVISÓRIO] Texto sobre a atuação em neurologia, a ser escrito e revisado por médico associado.', '[PROVISÓRIO] Sinais e situações que levam à consulta em neurologia, a ser escrito e revisado por médico associado.'),
+  ('Otorrinolaringologia', 'otorrinolaringologia', '[PROVISÓRIO] Texto sobre a atuação em otorrinolaringologia, a ser escrito e revisado por médico associado.', '[PROVISÓRIO] Sinais e situações que levam à consulta em otorrinolaringologia, a ser escrito e revisado por médico associado.'),
+  ('Urologia', 'urologia', '[PROVISÓRIO] Texto sobre a atuação em urologia, a ser escrito e revisado por médico associado.', '[PROVISÓRIO] Sinais e situações que levam à consulta em urologia, a ser escrito e revisado por médico associado.'),
+  ('Reumatologia', 'reumatologia', '[PROVISÓRIO] Texto sobre a atuação em reumatologia, a ser escrito e revisado por médico associado.', '[PROVISÓRIO] Sinais e situações que levam à consulta em reumatologia, a ser escrito e revisado por médico associado.');
 
 insert into profissional (slug, nome, crm, crm_uf, bio, telemedicina, associado_ami, publicado, verificado_em) values
-  ('mayara-viana', 'Mayara Viana', '10000', 'MA', '[PROVISÃ“RIO] Biografia de Mayara Viana, a ser substituÃ­da por texto enviado pelo profissional.', true, false, true, '2026-08-19'),
-  ('rafael-coelho', 'Rafael Coelho', '10137', 'MA', '[PROVISÃ“RIO] Biografia de Rafael Coelho, a ser substituÃ­da por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
-  ('larissa-nogueira', 'Larissa Nogueira', '10274', 'MA', '[PROVISÃ“RIO] Biografia de Larissa Nogueira, a ser substituÃ­da por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
-  ('tiago-barbosa', 'Tiago Barbosa', '10411', 'MA', '[PROVISÃ“RIO] Biografia de Tiago Barbosa, a ser substituÃ­da por texto enviado pelo profissional.', true, true, true, '2026-08-19'),
-  ('camila-freitas', 'Camila Freitas', '10548', 'MA', '[PROVISÃ“RIO] Biografia de Camila Freitas, a ser substituÃ­da por texto enviado pelo profissional.', false, false, true, '2026-08-19'),
-  ('otavio-lemos', 'OtÃ¡vio Lemos', '10685', 'MA', '[PROVISÃ“RIO] Biografia de OtÃ¡vio Lemos, a ser substituÃ­da por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
-  ('beatriz-sampaio', 'Beatriz Sampaio', '10822', 'MA', '[PROVISÃ“RIO] Biografia de Beatriz Sampaio, a ser substituÃ­da por texto enviado pelo profissional.', true, true, true, '2026-08-19'),
-  ('henrique-portela', 'Henrique Portela', '10959', 'MA', '[PROVISÃ“RIO] Biografia de Henrique Portela, a ser substituÃ­da por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
-  ('juliana-marques', 'Juliana Marques', '11096', 'MA', '[PROVISÃ“RIO] Biografia de Juliana Marques, a ser substituÃ­da por texto enviado pelo profissional.', false, false, true, '2026-08-19'),
-  ('diego-aragao', 'Diego AragÃ£o', '11233', 'MA', '[PROVISÃ“RIO] Biografia de Diego AragÃ£o, a ser substituÃ­da por texto enviado pelo profissional.', true, true, true, '2026-08-19'),
-  ('patricia-cordeiro', 'PatrÃ­cia Cordeiro', '11370', 'MA', '[PROVISÃ“RIO] Biografia de PatrÃ­cia Cordeiro, a ser substituÃ­da por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
-  ('fabio-rocha', 'FÃ¡bio Rocha', '11507', 'MA', '[PROVISÃ“RIO] Biografia de FÃ¡bio Rocha, a ser substituÃ­da por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
-  ('renata-bastos', 'Renata Bastos', '11644', 'MA', '[PROVISÃ“RIO] Biografia de Renata Bastos, a ser substituÃ­da por texto enviado pelo profissional.', true, false, true, '2026-08-19'),
-  ('marcelo-tavares', 'Marcelo Tavares', '11781', 'MA', '[PROVISÃ“RIO] Biografia de Marcelo Tavares, a ser substituÃ­da por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
-  ('aline-peixoto', 'Aline Peixoto', '11918', 'MA', '[PROVISÃ“RIO] Biografia de Aline Peixoto, a ser substituÃ­da por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
-  ('gustavo-serra', 'Gustavo Serra', '12055', 'MA', '[PROVISÃ“RIO] Biografia de Gustavo Serra, a ser substituÃ­da por texto enviado pelo profissional.', true, true, true, '2026-08-19'),
-  ('vanessa-quirino', 'Vanessa Quirino', '12192', 'MA', '[PROVISÃ“RIO] Biografia de Vanessa Quirino, a ser substituÃ­da por texto enviado pelo profissional.', false, false, true, '2026-08-19'),
-  ('leonardo-prata', 'Leonardo Prata', '12329', 'MA', '[PROVISÃ“RIO] Biografia de Leonardo Prata, a ser substituÃ­da por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
-  ('simone-andrade', 'Simone Andrade', '12466', 'MA', '[PROVISÃ“RIO] Biografia de Simone Andrade, a ser substituÃ­da por texto enviado pelo profissional.', true, true, true, '2026-08-19'),
-  ('rodrigo-meireles', 'Rodrigo Meireles', '12603', 'MA', '[PROVISÃ“RIO] Biografia de Rodrigo Meireles, a ser substituÃ­da por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
-  ('cristina-bezerra', 'Cristina Bezerra', '12740', 'MA', '[PROVISÃ“RIO] Biografia de Cristina Bezerra, a ser substituÃ­da por texto enviado pelo profissional.', false, false, true, '2026-08-19'),
-  ('anderson-vilela', 'Anderson Vilela', '12877', 'MA', '[PROVISÃ“RIO] Biografia de Anderson Vilela, a ser substituÃ­da por texto enviado pelo profissional.', true, true, true, '2026-08-19'),
-  ('tatiane-furtado', 'Tatiane Furtado', '13014', 'MA', '[PROVISÃ“RIO] Biografia de Tatiane Furtado, a ser substituÃ­da por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
-  ('bruno-cavalcante', 'Bruno Cavalcante', '13151', 'MA', '[PROVISÃ“RIO] Biografia de Bruno Cavalcante, a ser substituÃ­da por texto enviado pelo profissional.', false, true, true, '2026-08-19');
+  ('mayara-viana', 'Mayara Viana', '10000', 'MA', '[PROVISÓRIO] Biografia de Mayara Viana, a ser substituída por texto enviado pelo profissional.', true, false, true, '2026-08-19'),
+  ('rafael-coelho', 'Rafael Coelho', '10137', 'MA', '[PROVISÓRIO] Biografia de Rafael Coelho, a ser substituída por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
+  ('larissa-nogueira', 'Larissa Nogueira', '10274', 'MA', '[PROVISÓRIO] Biografia de Larissa Nogueira, a ser substituída por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
+  ('tiago-barbosa', 'Tiago Barbosa', '10411', 'MA', '[PROVISÓRIO] Biografia de Tiago Barbosa, a ser substituída por texto enviado pelo profissional.', true, true, true, '2026-08-19'),
+  ('camila-freitas', 'Camila Freitas', '10548', 'MA', '[PROVISÓRIO] Biografia de Camila Freitas, a ser substituída por texto enviado pelo profissional.', false, false, true, '2026-08-19'),
+  ('otavio-lemos', 'Otávio Lemos', '10685', 'MA', '[PROVISÓRIO] Biografia de Otávio Lemos, a ser substituída por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
+  ('beatriz-sampaio', 'Beatriz Sampaio', '10822', 'MA', '[PROVISÓRIO] Biografia de Beatriz Sampaio, a ser substituída por texto enviado pelo profissional.', true, true, true, '2026-08-19'),
+  ('henrique-portela', 'Henrique Portela', '10959', 'MA', '[PROVISÓRIO] Biografia de Henrique Portela, a ser substituída por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
+  ('juliana-marques', 'Juliana Marques', '11096', 'MA', '[PROVISÓRIO] Biografia de Juliana Marques, a ser substituída por texto enviado pelo profissional.', false, false, true, '2026-08-19'),
+  ('diego-aragao', 'Diego Aragão', '11233', 'MA', '[PROVISÓRIO] Biografia de Diego Aragão, a ser substituída por texto enviado pelo profissional.', true, true, true, '2026-08-19'),
+  ('patricia-cordeiro', 'Patrícia Cordeiro', '11370', 'MA', '[PROVISÓRIO] Biografia de Patrícia Cordeiro, a ser substituída por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
+  ('fabio-rocha', 'Fábio Rocha', '11507', 'MA', '[PROVISÓRIO] Biografia de Fábio Rocha, a ser substituída por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
+  ('renata-bastos', 'Renata Bastos', '11644', 'MA', '[PROVISÓRIO] Biografia de Renata Bastos, a ser substituída por texto enviado pelo profissional.', true, false, true, '2026-08-19'),
+  ('marcelo-tavares', 'Marcelo Tavares', '11781', 'MA', '[PROVISÓRIO] Biografia de Marcelo Tavares, a ser substituída por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
+  ('aline-peixoto', 'Aline Peixoto', '11918', 'MA', '[PROVISÓRIO] Biografia de Aline Peixoto, a ser substituída por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
+  ('gustavo-serra', 'Gustavo Serra', '12055', 'MA', '[PROVISÓRIO] Biografia de Gustavo Serra, a ser substituída por texto enviado pelo profissional.', true, true, true, '2026-08-19'),
+  ('vanessa-quirino', 'Vanessa Quirino', '12192', 'MA', '[PROVISÓRIO] Biografia de Vanessa Quirino, a ser substituída por texto enviado pelo profissional.', false, false, true, '2026-08-19'),
+  ('leonardo-prata', 'Leonardo Prata', '12329', 'MA', '[PROVISÓRIO] Biografia de Leonardo Prata, a ser substituída por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
+  ('simone-andrade', 'Simone Andrade', '12466', 'MA', '[PROVISÓRIO] Biografia de Simone Andrade, a ser substituída por texto enviado pelo profissional.', true, true, true, '2026-08-19'),
+  ('rodrigo-meireles', 'Rodrigo Meireles', '12603', 'MA', '[PROVISÓRIO] Biografia de Rodrigo Meireles, a ser substituída por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
+  ('cristina-bezerra', 'Cristina Bezerra', '12740', 'MA', '[PROVISÓRIO] Biografia de Cristina Bezerra, a ser substituída por texto enviado pelo profissional.', false, false, true, '2026-08-19'),
+  ('anderson-vilela', 'Anderson Vilela', '12877', 'MA', '[PROVISÓRIO] Biografia de Anderson Vilela, a ser substituída por texto enviado pelo profissional.', true, true, true, '2026-08-19'),
+  ('tatiane-furtado', 'Tatiane Furtado', '13014', 'MA', '[PROVISÓRIO] Biografia de Tatiane Furtado, a ser substituída por texto enviado pelo profissional.', false, true, true, '2026-08-19'),
+  ('bruno-cavalcante', 'Bruno Cavalcante', '13151', 'MA', '[PROVISÓRIO] Biografia de Bruno Cavalcante, a ser substituída por texto enviado pelo profissional.', false, true, true, '2026-08-19');
 
 insert into profissional_especialidade (profissional_id, especialidade_id, rqe, principal) values
   (1, 1, null, true),
@@ -304,23 +304,23 @@ insert into profissional_especialidade (profissional_id, especialidade_id, rqe, 
   (4, 1, null, true),
   (5, 2, '20364', true),
   (6, 2, '20455', true),
-  (7, 3, '20546', true),
-  (8, 3, '20637', true),
-  (9, 4, '20728', true),
-  (10, 5, '20819', true),
-  (11, 6, '20910', true),
-  (12, 7, '21001', true),
-  (13, 8, '21092', true),
-  (14, 9, '21183', true),
-  (15, 10, '21274', true),
-  (16, 11, '21365', true),
-  (17, 12, '21456', true),
-  (18, 13, '21547', true),
-  (19, 14, '21638', true),
-  (20, 14, '21729', true),
-  (21, 14, '21820', true),
-  (22, 14, '21911', true),
-  (23, 14, '22002', true),
+  (7, 2, '20546', true),
+  (8, 6, '20637', true),
+  (9, 6, '20728', true),
+  (10, 6, '20819', true),
+  (11, 3, '20910', true),
+  (12, 3, '21001', true),
+  (13, 4, '21092', true),
+  (14, 4, '21183', true),
+  (15, 5, '21274', true),
+  (16, 5, '21365', true),
+  (17, 7, '21456', true),
+  (18, 8, '21547', true),
+  (19, 9, '21638', true),
+  (20, 10, '21729', true),
+  (21, 11, '21820', true),
+  (22, 12, '21911', true),
+  (23, 13, '22002', true),
   (24, 14, '22093', true);
 
 insert into local (logradouro, numero, bairro_id, telefone, whatsapp, estacionamento) values
@@ -330,22 +330,22 @@ insert into local (logradouro, numero, bairro_id, telefone, whatsapp, estacionam
   ('Rua Projetada 103', '121', 2, '9930040713', '9930040713', false),
   ('Rua Projetada 104', '128', 1, '9930054284', '9930054284', true),
   ('Rua Projetada 105', '135', 1, '9930067855', '9930067855', false),
-  ('Rua Projetada 106', '142', 2, '9930081426', '9930081426', true),
-  ('Rua Projetada 107', '149', 3, '9930094997', '9930094997', false),
+  ('Rua Projetada 106', '142', 3, '9930081426', '9930081426', true),
+  ('Rua Projetada 107', '149', 1, '9930094997', '9930094997', false),
   ('Rua Projetada 108', '156', 4, '9930108568', '9930108568', true),
   ('Rua Projetada 109', '163', 5, '9930122139', '9930122139', false),
-  ('Rua Projetada 110', '170', 6, '9930135710', '9930135710', true),
-  ('Rua Projetada 111', '177', 7, '9930149281', '9930149281', false),
-  ('Rua Projetada 112', '184', 8, '9930162852', '9930162852', true),
-  ('Rua Projetada 113', '191', 1, '9930176423', '9930176423', false),
+  ('Rua Projetada 110', '170', 1, '9930135710', '9930135710', true),
+  ('Rua Projetada 111', '177', 6, '9930149281', '9930149281', false),
+  ('Rua Projetada 112', '184', 1, '9930162852', '9930162852', true),
+  ('Rua Projetada 113', '191', 7, '9930176423', '9930176423', false),
   ('Rua Projetada 114', '198', 2, '9930189994', '9930189994', true),
-  ('Rua Projetada 115', '205', 3, '9930203565', '9930203565', false),
-  ('Rua Projetada 116', '212', 4, '9930217136', '9930217136', true),
-  ('Rua Projetada 117', '219', 5, '9930230707', '9930230707', false),
-  ('Rua Projetada 118', '226', 6, '9930244278', '9930244278', true),
-  ('Rua Projetada 119', '233', 7, '9930257849', '9930257849', false),
-  ('Rua Projetada 120', '240', 8, '9930271420', '9930271420', true),
-  ('Rua Projetada 121', '247', 1, '9930284991', '9930284991', false),
+  ('Rua Projetada 115', '205', 8, '9930203565', '9930203565', false),
+  ('Rua Projetada 116', '212', 3, '9930217136', '9930217136', true),
+  ('Rua Projetada 117', '219', 4, '9930230707', '9930230707', false),
+  ('Rua Projetada 118', '226', 5, '9930244278', '9930244278', true),
+  ('Rua Projetada 119', '233', 6, '9930257849', '9930257849', false),
+  ('Rua Projetada 120', '240', 7, '9930271420', '9930271420', true),
+  ('Rua Projetada 121', '247', 8, '9930284991', '9930284991', false),
   ('Rua Projetada 122', '254', 2, '9930298562', '9930298562', true),
   ('Rua Projetada 123', '261', 3, '9930312133', '9930312133', false);
 
