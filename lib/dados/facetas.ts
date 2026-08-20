@@ -88,6 +88,13 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
   const nomeProf = r.total === 1 ? sing : plur;
   const onde = r.bairro ? `no ${r.bairro}` : "em Imperatriz";
 
+  /* Com um profissional só, todo partitivo plural — "desses", "deles",
+     "entre eles" — passa a se referir a um grupo de uma pessoa, o que soa
+     errado. E "ele" resolveria o número acertando o gênero só na metade dos
+     casos. Por isso o singular reescreve a frase inteira em vez de trocar a
+     palavra. */
+  const umSo = r.total === 1;
+
   const frases: string[] = [];
 
   frases.push(
@@ -116,9 +123,13 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
 
   if (r.atendemSabado > 0) {
     frases.push(
-      `Desses, ${r.atendemSabado} ${r.atendemSabado === 1 ? "atende" : "atendem"} ` +
-        `aos sábados, o que costuma resolver a consulta de quem trabalha em ` +
-        `horário comercial durante a semana.`,
+      umSo
+        ? `O atendimento inclui os sábados, o que costuma resolver a consulta ` +
+            `de quem trabalha em horário comercial durante a semana.`
+        : `Desses, ${r.atendemSabado} ` +
+            `${r.atendemSabado === 1 ? "atende" : "atendem"} aos sábados, o ` +
+            `que costuma resolver a consulta de quem trabalha em horário ` +
+            `comercial durante a semana.`,
     );
   } else {
     frases.push(
@@ -130,9 +141,12 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
 
   if (r.comTelemedicina > 0) {
     frases.push(
-      `A telemedicina é oferecida por ${r.comTelemedicina} deles, alternativa ` +
-        `para quem vem de outras cidades da região sul do Maranhão e do ` +
-        `sudeste do Pará.`,
+      umSo
+        ? `Há atendimento por telemedicina, alternativa para quem vem de ` +
+            `outras cidades da região sul do Maranhão e do sudeste do Pará.`
+        : `A telemedicina é oferecida por ${r.comTelemedicina} deles, ` +
+            `alternativa para quem vem de outras cidades da região sul do ` +
+            `Maranhão e do sudeste do Pará.`,
     );
   } else {
     frases.push(
@@ -181,9 +195,12 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
 
   if (r.comMaisDeUmEndereco > 0) {
     frases.push(
-      `Entre eles, ${r.comMaisDeUmEndereco} ` +
-        `${r.comMaisDeUmEndereco === 1 ? "atende" : "atendem"} em mais de um ` +
-        `endereço, o que costuma ampliar as opções de dia e horário.`,
+      umSo
+        ? `O atendimento acontece em mais de um endereço, o que costuma ` +
+            `ampliar as opções de dia e horário.`
+        : `Entre eles, ${r.comMaisDeUmEndereco} ` +
+            `${r.comMaisDeUmEndereco === 1 ? "atende" : "atendem"} em mais de ` +
+            `um endereço, o que costuma ampliar as opções de dia e horário.`,
     );
   } else {
     frases.push(
@@ -214,17 +231,18 @@ export function resumirFaceta(
   /* Conjuntos, não contadores: o mesmo profissional aparece uma vez por
      bairro mesmo com dois consultórios lá, e o mesmo endereço compartilhado
      por dois médicos conta como um endereço. */
-  const profissionaisPorBairro = new Map<string, Set<number>>();
+  const profissionaisPorBairro = new Map<string, { nome: string; ids: Set<number> }>();
   const locais = new Set<number>();
   const locaisComAcesso = new Set<number>();
 
   for (const m of medicos) {
     for (const l of m.locais) {
-      const nome = l.bairro.nome;
-      if (!profissionaisPorBairro.has(nome)) {
-        profissionaisPorBairro.set(nome, new Set());
+      /* Chaveado pelo slug: dois bairros de nome igual se fundiriam. */
+      const chave = l.bairro.slug;
+      if (!profissionaisPorBairro.has(chave)) {
+        profissionaisPorBairro.set(chave, { nome: l.bairro.nome, ids: new Set() });
       }
-      profissionaisPorBairro.get(nome)!.add(m.id);
+      profissionaisPorBairro.get(chave)!.ids.add(m.id);
       locais.add(l.id);
       if (l.acessibilidade.includes("acesso_cadeirante")) {
         locaisComAcesso.add(l.id);
@@ -236,8 +254,8 @@ export function resumirFaceta(
     especialidade,
     bairro,
     total: medicos.length,
-    bairrosComOferta: [...profissionaisPorBairro.entries()]
-      .map(([nome, ids]) => ({ nome, total: ids.size }))
+    bairrosComOferta: [...profissionaisPorBairro.values()]
+      .map(({ nome, ids }) => ({ nome, total: ids.size }))
       .sort(
         (a, b) => b.total - a.total || a.nome.localeCompare(b.nome, "pt-BR"),
       ),

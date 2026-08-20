@@ -84,6 +84,9 @@ describe("paragrafoDeAbertura", () => {
   });
 
   it("concorda o singular", () => {
+    /* Dados coerentes: um profissional, um endereço — logo não pode
+       atender em mais de um. A fixture anterior dizia totalLocais 1 e
+       comMaisDeUmEndereco 1 ao mesmo tempo, o que não existe. */
     const p = paragrafoDeAbertura({
       ...base,
       total: 1,
@@ -93,16 +96,50 @@ describe("paragrafoDeAbertura", () => {
       comTelemedicina: 1,
       locaisComAcessoCadeirante: 1,
       associados: 1,
-      comMaisDeUmEndereco: 1,
+      comMaisDeUmEndereco: 0,
     });
     expect(p).toContain("1 cardiologista ");
     expect(p).not.toContain("1 cardiologistas");
-    expect(p).toContain("um único endereço");
-    expect(p).toContain("1 atende aos sábados");
+    expect(p).toContain("um único endereço de atendimento");
+    /* No singular a frase é reescrita, não tem a contagem trocada. */
+    expect(p).toContain("O atendimento inclui os sábados");
+    expect(p).toContain("Há atendimento por telemedicina");
+    expect(p).toContain("O atendimento acontece em um endereço só");
+    /* "1 informa acesso" fala de ENDEREÇOS, não de pessoas, então a
+       contagem continua certa mesmo com um profissional só. */
     expect(p).toContain("1 informa acesso");
-    expect(p).toContain("1 atende em mais de um endereço");
-    expect(p).not.toContain("Todos são");
-    expect(p).not.toContain("Nenhum deles");
+    expect(p).toContain("O único profissional listado é associado");
+  });
+
+  it("no singular, nenhuma frase usa partitivo plural", () => {
+    /* Este é o caso que escapou de duas rodadas de correção: um
+       profissional só que TEM sábado, telemedicina e mais de um endereço.
+       Os exemplos lidos à mão tinham esses campos zerados, então os ramos
+       defeituosos nunca apareciam no texto conferido. */
+    const p = paragrafoDeAbertura({
+      ...base,
+      total: 1,
+      totalLocais: 2,
+      bairrosComOferta: [{ nome: "Centro", total: 1 }],
+      atendemSabado: 1,
+      comTelemedicina: 1,
+      locaisComAcessoCadeirante: 1,
+      associados: 1,
+      comMaisDeUmEndereco: 1,
+    });
+    for (const partitivo of ["Desses,", "deles", "Entre eles", "Cada um"]) {
+      expect(p).not.toContain(partitivo);
+    }
+    expect(p).toContain("O atendimento inclui os sábados");
+    expect(p).toContain("Há atendimento por telemedicina");
+    expect(p).toContain("O atendimento acontece em mais de um endereço");
+  });
+
+  it("no plural, mantém os partitivos", () => {
+    const p = paragrafoDeAbertura(base);
+    expect(p).toContain("Desses, 2 atendem aos sábados");
+    expect(p).toContain("por 3 deles");
+    expect(p).toContain("Entre eles, 2 atendem em mais de um endereço");
   });
 
   it("no singular sem associado, não diz 'nenhum deles'", () => {
