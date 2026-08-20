@@ -737,6 +737,32 @@ export type Horario = {
   fecha: string;
 };
 
+/*
+  Distribuição de especialidade e bairro, uma posição por profissional.
+
+  Explícita em vez de `i % N` por duas razões. A primeira é realismo: uma
+  cidade tem muitos clínicos gerais e pediatras e um neurologista, não um de
+  cada. A segunda é que `i % 14` dava no máximo dois profissionais por
+  especialidade, e com isso nenhum cruzamento especialidade + bairro
+  alcançava o corte de três — o caminho da faceta indexável nunca era
+  exercitado, nem no navegador nem por quem revisa.
+
+  Aqui, Clínica Médica tem quatro profissionais e três deles atendem no
+  Centro, então /medicos/clinica-medica/centro entra no índice. Cardiologia
+  no Centro tem dois e fica de fora. Os dois lados do corte existem nos dados.
+
+  Índices seguem a ordem dos arrays acima.
+*/
+const ESPECIALIDADE_DE = [
+  0, 0, 0, 0, 1, 1, 1, 5, 5, 5, 2, 2,
+  3, 3, 4, 4, 6, 7, 8, 9, 10, 11, 12, 13,
+];
+
+const BAIRRO_DE = [
+  0, 0, 0, 1, 0, 0, 2, 0, 3, 4, 0, 5,
+  0, 6, 1, 7, 2, 3, 4, 5, 6, 7, 1, 2,
+];
+
 const NOMES = [
   "Domingo",
   "Segunda-feira",
@@ -1245,7 +1271,8 @@ linhas.push(
 );
 linhas.push(
   NOMES.map((_, i) => {
-    const esp = (i % ESPECIALIDADES.length) + 1;
+    const esp = ESPECIALIDADE_DE[i] + 1;
+    /* Clínica Médica é o caso do clínico sem especialidade registrada. */
     const rqe = esp === 1 ? "null" : aspas(String(20000 + i * 91));
     return "  (" + (i + 1) + ", " + esp + ", " + rqe + ", true)";
   }).join(",\n") + ";",
@@ -1258,7 +1285,7 @@ linhas.push(
 );
 linhas.push(
   NOMES.map((_, i) => {
-    const bairro = (i % BAIRROS.length) + 1;
+    const bairro = BAIRRO_DE[i] + 1;
     const tel = "99" + String(30000000 + i * 13571).slice(0, 8);
     return (
       "  (" + aspas("Rua Projetada " + (100 + i)) + ", " +
@@ -1312,6 +1339,29 @@ writeFileSync(
 console.log(
   "seed.sql gerado: " + NOMES.length + " profissionais, " +
     ESPECIALIDADES.length + " especialidades, " + BAIRROS.length + " bairros",
+);
+
+/* Conferência do corte de indexação: sem um cruzamento com três ou mais,
+   metade do controle de facetas fica sem dado para exercitar. */
+const porEspecialidade = new Map<string, number>();
+const porCruzamento = new Map<string, number>();
+NOMES.forEach((_, i) => {
+  const e = ESPECIALIDADES[ESPECIALIDADE_DE[i]];
+  const b = BAIRROS[BAIRRO_DE[i]];
+  porEspecialidade.set(e, (porEspecialidade.get(e) ?? 0) + 1);
+  porCruzamento.set(e + " / " + b, (porCruzamento.get(e + " / " + b) ?? 0) + 1);
+});
+const indexaveis = [...porCruzamento.entries()].filter(([, n]) => n >= 3);
+console.log(
+  "  maior especialidade: " +
+    Math.max(...porEspecialidade.values()) +
+    " profissionais",
+);
+console.log(
+  "  cruzamentos indexaveis (3+): " +
+    (indexaveis.length
+      ? indexaveis.map(([k, n]) => k + " (" + n + ")").join(", ")
+      : "NENHUM — o corte de indexacao ficaria sem dado para exercitar"),
 );
 ```
 
