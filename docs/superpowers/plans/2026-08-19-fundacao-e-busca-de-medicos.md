@@ -6,7 +6,7 @@
 
 **Architecture:** Next.js 16 com App Router e renderização no servidor. O Supabase guarda o diretório e as políticas de acesso vivem no banco, não na tela. Nenhuma página consulta o Supabase direto: tudo passa por `lib/dados/`, que separa as funções puras — filtros, horários, moldes de SEO — das que tocam o banco, para que a lógica de domínio seja testável sem infraestrutura.
 
-**Tech Stack:** Next.js 16.3.1 · React 19 · TypeScript 5 · Tailwind CSS 4.1 · Supabase (Postgres + RLS) 2.112 · Vitest 4.3
+**Tech Stack:** Next.js 16.3.1 · React 19 · TypeScript 5 · Tailwind CSS 4.1 · Supabase (Postgres + RLS) 2.112 · Vitest 4.1
 
 ## Global Constraints
 
@@ -144,11 +144,11 @@ gerar sobre um diretório ocupado. Gerar ao lado e mover é mais previsível do
 que discutir com as flags dele — e não arrisca o repositório que já existe.
 
 ```bash
-cd "C:/Users/maron/Desktop/site-ami" && npx --yes create-next-app@16.3.1 .andaime --ts --tailwind --app --no-src-dir --import-alias "@/*" --no-git --skip-install --yes
+cd "C:/Users/maron/Desktop/site-ami" && npx --yes create-next-app@16.3.1 andaime-scratch --ts --tailwind --app --no-src-dir --import-alias "@/*" --no-git --skip-install --yes
 ```
 
 ```bash
-cd "C:/Users/maron/Desktop/site-ami" && cp -r .andaime/app .andaime/public . 2>/dev/null; cp .andaime/package.json .andaime/tsconfig.json .andaime/next.config.ts .andaime/postcss.config.mjs .andaime/eslint.config.mjs .andaime/next-env.d.ts . && rm -rf .andaime && ls
+cd "C:/Users/maron/Desktop/site-ami" && cp -r andaime-scratch/app andaime-scratch/public . 2>/dev/null; cp andaime-scratch/package.json andaime-scratch/tsconfig.json andaime-scratch/next.config.ts andaime-scratch/postcss.config.mjs andaime-scratch/eslint.config.mjs andaime-scratch/next-env.d.ts . && rm -rf andaime-scratch && ls
 ```
 
 Esperado: `app/`, `public/`, `package.json`, `tsconfig.json`, `next.config.ts`,
@@ -159,7 +159,7 @@ ainda contém a linha `marca/_estudo-restauracao-recusado/`.
 - [ ] **Step 2: Instalar as dependências nas versões travadas**
 
 ```bash
-cd "C:/Users/maron/Desktop/site-ami" && npm install next@16.3.1 react@19 react-dom@19 @supabase/supabase-js@2.112.3 && npm install -D typescript@5 @types/node@20 @types/react@19 @types/react-dom@19 tailwindcss@4.1.11 @tailwindcss/postcss@4.1.11 vitest@4.3.3 eslint@9 eslint-config-next@16.3.1
+cd "C:/Users/maron/Desktop/site-ami" && npm install next@16.3.1 react@19 react-dom@19 @supabase/supabase-js@2.112.3 && npm install -D typescript@5 @types/node@20 @types/react@19 @types/react-dom@19 tailwindcss@4.1.11 @tailwindcss/postcss@4.1.11 vitest@4.1.11 eslint@9 eslint-config-next@16.3.1
 ```
 
 - [ ] **Step 3: Fixar os scripts**
