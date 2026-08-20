@@ -437,16 +437,18 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   ),
   /*
-    Sem `template`. Os títulos vêm de lib/seo/metadados.ts, que já termina
-    cada um com "| AMI" e mede o resultado contra o limite de 60 caracteres.
-    Um template acrescentando o sufixo de novo produziria "… | AMI | AMI" e
+    Título como string simples, não como objeto.
+
+    Os títulos das páginas vêm de lib/seo/metadados.ts, que já termina cada um
+    com "| AMI" e mede o resultado contra o limite de 60 caracteres. Um
+    `template` acrescentando o sufixo de novo produziria "… | AMI | AMI" e
     estouraria justamente o limite que aquele módulo existe para respeitar.
 
-    `default` continua valendo para qualquer página que não defina título.
+    E a forma `{ default }` sozinha não serve: no Next 16 o tipo exige
+    `template` ao lado de `default`, o que reintroduziria o problema. String
+    simples dá o mesmo comportamento de reserva para quem não define título.
   */
-  title: {
-    default: "Associação Médica de Imperatriz",
-  },
+  title: "Associação Médica de Imperatriz",
 };
 
 export default function LayoutRaiz({
