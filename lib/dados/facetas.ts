@@ -110,7 +110,7 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
   if (r.comTelemedicina > 0) {
     frases.push(
       `A telemedicina é oferecida por ${r.comTelemedicina} ` +
-        `${r.comTelemedicina === 1 ? "deles" : "deles"}, alternativa para quem ` +
+        `deles, alternativa para quem ` +
         `vem de outras cidades da região sul do Maranhão e do sudeste do Pará.`,
     );
   }
