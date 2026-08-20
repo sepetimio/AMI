@@ -1808,7 +1808,7 @@ export function ordenar(
 npm test -- testes/filtros.test.ts
 ```
 
-Esperado: `20 passed`.
+Esperado: `22 passed`.
 
 - [ ] **Step 5: Commit**
 
@@ -1948,9 +1948,10 @@ describe("paragrafoDeAbertura", () => {
     expect(p).toContain("O atendimento inclui os sábados");
     expect(p).toContain("Há atendimento por telemedicina");
     expect(p).toContain("O atendimento acontece em um endereço só");
-    /* "1 informa acesso" fala de ENDEREÇOS, não de pessoas, então a
-       contagem continua certa mesmo com um profissional só. */
-    expect(p).toContain("1 informa acesso");
+    /* Com um endereço só, "Entre os endereços" também é partitivo plural
+       sobre um conjunto de um. O mesmo defeito, outro antecedente. */
+    expect(p).toContain("O único endereço informa acesso");
+    expect(p).not.toContain("Entre os endereços");
     expect(p).toContain("O único profissional listado é associado");
   });
 
@@ -1978,6 +1979,35 @@ describe("paragrafoDeAbertura", () => {
     expect(p).toContain("O atendimento acontece em mais de um endereço");
   });
 
+  it("um profissional com endereços em dois bairros lê corretamente", () => {
+    const p = paragrafoDeAbertura({
+      ...base,
+      total: 1,
+      totalLocais: 2,
+      bairrosComOferta: [
+        { nome: "Centro", total: 1 },
+        { nome: "Bacuri", total: 1 },
+      ],
+      atendemSabado: 0,
+      comTelemedicina: 0,
+      locaisComAcessoCadeirante: 0,
+      associados: 1,
+      comMaisDeUmEndereco: 1,
+    });
+    expect(p).toContain("A oferta se distribui pelos bairros Centro e Bacuri");
+    expect(p).toContain("1 cardiologista no Centro");
+    expect(p).toContain("Nenhum dos endereços informa acesso");
+    for (const partitivo of ["Desses,", "deles", "Entre eles", "Cada um"]) {
+      expect(p).not.toContain(partitivo);
+    }
+  });
+
+  it("com parte dos profissionais associados, usa o ramo do meio", () => {
+    const p = paragrafoDeAbertura({ ...base, total: 7, associados: 1 });
+    expect(p).toContain("Do total, 1 é associado");
+    expect(p).not.toContain("Todos são associados");
+  });
+
   it("no plural, mantém os partitivos", () => {
     const p = paragrafoDeAbertura(base);
     expect(p).toContain("Desses, 2 atendem aos sábados");
@@ -1999,6 +2029,8 @@ describe("paragrafoDeAbertura", () => {
     });
     expect(p).toContain("O profissional listado não consta como associado");
     expect(p).toContain("O atendimento acontece em um endereço só");
+    expect(p).toContain("O único endereço não informa acesso");
+    expect(p).not.toContain("Nenhum dos endereços");
     expect(p).not.toContain("Nenhum deles");
     expect(p).not.toContain("Cada um atende");
   });
@@ -2254,6 +2286,7 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
      casos. Por isso o singular reescreve a frase inteira em vez de trocar a
      palavra. */
   const umSo = r.total === 1;
+  const umEnderecoSo = r.totalLocais === 1;
 
   const frases: string[] = [];
 
@@ -2317,14 +2350,20 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
 
   if (r.locaisComAcessoCadeirante === 0) {
     frases.push(
-      `Nenhum dos endereços informa acesso para cadeirante no cadastro da ` +
-        `associação, o que vale confirmar por telefone antes de ir.`,
+      umEnderecoSo
+        ? `O único endereço não informa acesso para cadeirante no cadastro ` +
+            `da associação, o que vale confirmar por telefone antes de ir.`
+        : `Nenhum dos endereços informa acesso para cadeirante no cadastro ` +
+            `da associação, o que vale confirmar por telefone antes de ir.`,
     );
   } else {
     frases.push(
-      `Entre os endereços, ${r.locaisComAcessoCadeirante} ` +
-        `${r.locaisComAcessoCadeirante === 1 ? "informa" : "informam"} acesso ` +
-        `para cadeirante no cadastro da associação.`,
+      umEnderecoSo
+        ? `O único endereço informa acesso para cadeirante no cadastro da ` +
+            `associação.`
+        : `Entre os endereços, ${r.locaisComAcessoCadeirante} ` +
+            `${r.locaisComAcessoCadeirante === 1 ? "informa" : "informam"} ` +
+            `acesso para cadeirante no cadastro da associação.`,
     );
   }
 
