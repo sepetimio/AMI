@@ -51,6 +51,35 @@ const slug = (s: string) =>
 
 const aspas = (s: string) => "'" + s.replace(/'/g, "''") + "'";
 
+/* Distribuição de especialidades e bairros. Clínica Médica tem 4 profissionais
+   (3 em Centro + 1 em Nova Imperatriz). Cardiologia tem 2 em Centro.
+   Assim, "Clínica Médica / Centro" fica com 3 (indexável) e
+   "Cardiologia / Centro" fica com 2 (não indexável). */
+const ESPECIALIDADE_DE = [
+  0, 0, 0, 0,  // Clínica Médica: profissionais 0-3
+  1, 1,        // Cardiologia: profissionais 4-5
+  2, 2,        // Dermatologia: profissionais 6-7
+  3,           // Ginecologia: profissional 8
+  4,           // Ortopedia: profissional 9
+  5,           // Pediatria: profissional 10
+  6,           // Oftalmologia: profissional 11
+  7,           // Psiquiatria: profissional 12
+  8,           // Endocrinologia: profissional 13
+  9,           // Gastroenterologia: profissional 14
+  10,          // Neurologia: profissional 15
+  11,          // Otorrinolaringologia: profissional 16
+  12,          // Urologia: profissional 17
+  13, 13, 13, 13, 13, 13,  // Reumatologia: profissionais 18-23 (6 profissionais)
+];
+
+const BAIRRO_DE = [
+  0, 0, 0, 1,        // Clínica Médica: Centro(0), Centro(0), Centro(0), Nova Imperatriz(1)
+  0, 0,              // Cardiologia: Centro(0), Centro(0)
+  1, 2,              // Dermatologia: Nova Imperatriz(1), Bacuri(2)
+  3, 4, 5, 6, 7, 0,  // Ginecologia até Endocrinologia: Juçara a Centro
+  1, 2, 3, 4, 5, 6, 7, 0, 1, 2,  // Gastroenterologia até Reumatologia: cycling through bairros
+];
+
 const linhas: string[] = [
   "-- Dados de demonstração. Fictícios, mas verossímeis para Imperatriz-MA.",
   "-- Gerado por supabase/seed/gerar-seed.ts — não edite à mão.",
@@ -114,7 +143,8 @@ linhas.push(
 );
 linhas.push(
   NOMES.map((_, i) => {
-    const esp = (i % ESPECIALIDADES.length) + 1;
+    const esp = ESPECIALIDADE_DE[i] + 1;
+    /* Clínica Médica é o caso do clínico sem especialidade registrada. */
     const rqe = esp === 1 ? "null" : aspas(String(20000 + i * 91));
     return "  (" + (i + 1) + ", " + esp + ", " + rqe + ", true)";
   }).join(",\n") + ";",
@@ -127,7 +157,7 @@ linhas.push(
 );
 linhas.push(
   NOMES.map((_, i) => {
-    const bairro = (i % BAIRROS.length) + 1;
+    const bairro = BAIRRO_DE[i] + 1;
     const tel = "99" + String(30000000 + i * 13571).slice(0, 8);
     return (
       "  (" + aspas("Rua Projetada " + (100 + i)) + ", " +
@@ -181,4 +211,27 @@ writeFileSync(
 console.log(
   "seed.sql gerado: " + NOMES.length + " profissionais, " +
     ESPECIALIDADES.length + " especialidades, " + BAIRROS.length + " bairros",
+);
+
+/* Conferência do corte de indexação: sem um cruzamento com três ou mais,
+   metade do controle de facetas fica sem dado para exercitar. */
+const porEspecialidade = new Map<string, number>();
+const porCruzamento = new Map<string, number>();
+NOMES.forEach((_, i) => {
+  const e = ESPECIALIDADES[ESPECIALIDADE_DE[i]];
+  const b = BAIRROS[BAIRRO_DE[i]];
+  porEspecialidade.set(e, (porEspecialidade.get(e) ?? 0) + 1);
+  porCruzamento.set(e + " / " + b, (porCruzamento.get(e + " / " + b) ?? 0) + 1);
+});
+const indexaveis = [...porCruzamento.entries()].filter(([, n]) => n >= 3);
+console.log(
+  "  maior especialidade: " +
+    Math.max(...porEspecialidade.values()) +
+    " profissionais",
+);
+console.log(
+  "  cruzamentos indexaveis (3+): " +
+    (indexaveis.length
+      ? indexaveis.map(([k, n]) => k + " (" + n + ")").join(", ")
+      : "NENHUM — o corte de indexacao ficaria sem dado para exercitar"),
 );
