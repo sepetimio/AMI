@@ -3952,9 +3952,12 @@ import { SeloAbertoAgora } from "@/components/diretorio/SeloAbertoAgora";
 import { formatarTelefone, identificacaoMedica } from "@/lib/formato";
 import { ROTULO_ACESSIBILIDADE, type Medico } from "@/lib/dados/tipos";
 
+/* Nome de uma palavra só devolvia a mesma letra duas vezes ("JJ"). */
 function iniciais(nome: string): string {
-  const partes = nome.trim().split(/\s+/);
-  return (partes[0][0] + (partes.at(-1)?.[0] ?? "")).toUpperCase();
+  const partes = nome.trim().split(/\s+/).filter(Boolean);
+  if (partes.length === 0) return "?";
+  if (partes.length === 1) return partes[0].slice(0, 2).toUpperCase();
+  return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
 }
 
 /*
@@ -4043,7 +4046,9 @@ export function LinhaMedico({ medico }: { medico: Medico }) {
                   : `e mais ${medico.locais.length - 1} endereços`}
               </Chip>
             ) : null}
-            <SeloAbertoAgora horarios={horarios} />
+            {/* Sem consultório cadastrado não há o que afirmar. "Fechado
+                agora" pareceria informação e seria chute. */}
+            {local ? <SeloAbertoAgora horarios={horarios} /> : null}
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -4082,12 +4087,23 @@ import type { Medico } from "@/lib/dados/tipos";
 export function ListaMedicos({
   medicos,
   filtroMaisRestritivo,
+  saida,
 }: {
   medicos: Medico[];
   /** Nome do filtro a sugerir remover quando não há resultado. */
   filtroMaisRestritivo?: string;
+  /**
+   * Para onde mandar quem não achou nada. Cada tela sabe qual é a saída útil
+   * dali: de uma especialidade sem resultado no bairro, o caminho é ver a
+   * especialidade inteira, não a lista de especialidades.
+   */
+  saida?: { rotulo: string; href: string };
 }) {
   if (medicos.length === 0) {
+    const destino = saida ?? {
+      rotulo: "Ver todas as especialidades",
+      href: "/medicos",
+    };
     return (
       <EstadoVazio
         titulo="Nenhum médico com esses filtros"
@@ -4098,10 +4114,10 @@ export function ListaMedicos({
         }
         acao={
           <Link
-            href="/medicos"
+            href={destino.href}
             className="inline-flex min-h-11 items-center rounded-controle bg-ami-green-600 px-4 font-semibold text-white hover:bg-ami-green-700"
           >
-            Ver todas as especialidades
+            {destino.rotulo}
           </Link>
         }
       />
