@@ -4214,6 +4214,32 @@ describe("queryDosFiltros", () => {
     ).toBe("?termo=cardio&telemedicina=1&ordem=nome");
   });
 
+  it("descarta recurso de acessibilidade inventado", () => {
+    /* A entrada vem da URL e pode ser qualquer coisa. */
+    expect(
+      filtrosDaQuery({ acessibilidade: ["elevador", "teleporte"] })
+        .acessibilidade,
+    ).toEqual(["elevador"]);
+    expect(
+      filtrosDaQuery({ acessibilidade: "inventado" }).acessibilidade,
+    ).toBeUndefined();
+  });
+
+  it("dois conjuntos iguais em ordem diferente geram a mesma URL", () => {
+    /* Marcar e desmarcar caixas reordenava os parâmetros. O mesmo filtro
+       com dois endereços é conteúdo duplicado. */
+    const a = queryDosFiltros({
+      acessibilidade: ["elevador", "acesso_cadeirante"],
+    });
+    const b = queryDosFiltros({
+      acessibilidade: ["acesso_cadeirante", "elevador"],
+    });
+    expect(a).toBe(b);
+    expect(a).toBe(
+      "?acessibilidade=acesso_cadeirante&acessibilidade=elevador",
+    );
+  });
+
   it("faz o caminho de ida e volta", () => {
     const original = {
       termo: "jose",
@@ -4297,7 +4323,18 @@ export function filtrosDaQuery(sp: Query): Filtros {
   return f;
 }
 
-/** Ordem estável das chaves: URLs iguais para filtros iguais evitam duplicata. */
+/**
+ * Serializa os filtros numa querystring.
+ *
+ * A ordem das chaves é fixa e a lista de acessibilidade é reordenada pela
+ * ordem canônica de `RECURSOS`. Sem isso, marcar e desmarcar caixas produz
+ * URLs diferentes para o mesmo conjunto de filtros — e o mesmo resultado com
+ * dois endereços é conteúdo duplicado, exatamente o que o controle de facetas
+ * existe para evitar.
+ *
+ * Toda construção de URL do painel passa por aqui, para que a garantia valha
+ * na tela e não só no teste.
+ */
 export function queryDosFiltros(f: Filtros): string {
   const p = new URLSearchParams();
 
@@ -4305,7 +4342,9 @@ export function queryDosFiltros(f: Filtros): string {
   if (f.bairro) p.set("bairro", f.bairro);
   if (f.telemedicina) p.set("telemedicina", "1");
   if (f.atendeSabado) p.set("sabado", "1");
-  for (const r of f.acessibilidade ?? []) p.append("acessibilidade", r);
+  for (const r of RECURSOS) {
+    if (f.acessibilidade?.includes(r)) p.append("acessibilidade", r);
+  }
   if (f.somenteAssociados) p.set("associados", "1");
   if (f.ordem) p.set("ordem", f.ordem);
 
@@ -4320,7 +4359,7 @@ export function queryDosFiltros(f: Filtros): string {
 npm test -- testes/urlFiltros.test.ts
 ```
 
-Esperado: `7 passed`.
+Esperado: `9 passed`.
 
 - [ ] **Step 5: O painel**
 
@@ -4331,7 +4370,12 @@ Crie `components/diretorio/PainelFiltros.tsx`:
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { ROTULO_ACESSIBILIDADE, type RecursoAcessibilidade } from "@/lib/dados/tipos";
+import { filtrosDaQuery, queryDosFiltros } from "@/lib/dados/urlFiltros";
+import {
+  ROTULO_ACESSIBILIDADE,
+  type Filtros,
+  type RecursoAcessibilidade,
+} from "@/lib/dados/tipos";
 
 type Bairro = { nome: string; slug: string };
 
@@ -4371,31 +4415,35 @@ export function PainelFiltros({
   ].filter(Boolean).length;
 
   function limpar() {
-    const preservado = new URLSearchParams();
-    const termo = sp.get("termo");
-    const ordem = sp.get("ordem");
-    if (termo) preservado.set("termo", termo);
-    if (ordem) preservado.set("ordem", ordem);
-    const q = preservado.toString();
-    router.push(q ? `${caminho}?${q}` : caminho, { scroll: false });
+    const { termo, ordem } = filtrosAtuais();
+    router.push(`${caminho}${queryDosFiltros({ termo, ordem })}`, {
+      scroll: false,
+    });
   }
 
-  function alterar(chave: string, valor: string | null) {
-    const proximo = new URLSearchParams(sp.toString());
-    if (valor === null) proximo.delete(chave);
-    else proximo.set(chave, valor);
-    const q = proximo.toString();
-    router.push(q ? `${caminho}?${q}` : caminho, { scroll: false });
+  /* Lê a URL de volta para o formato do domínio, para que toda alteração
+     saia serializada por queryDosFiltros — a função que garante ordem
+     estável e é a que os testes cobrem. */
+  function filtrosAtuais(): Filtros {
+    const q: Record<string, string | string[]> = {};
+    for (const chave of new Set(sp.keys())) {
+      const valores = sp.getAll(chave);
+      q[chave] = valores.length > 1 ? valores : valores[0];
+    }
+    return filtrosDaQuery(q);
+  }
+
+  function aplicar(mudanca: Partial<Filtros>) {
+    const q = queryDosFiltros({ ...filtrosAtuais(), ...mudanca });
+    router.push(`${caminho}${q}`, { scroll: false });
   }
 
   function alternarRecurso(recurso: RecursoAcessibilidade, marcado: boolean) {
-    const proximo = new URLSearchParams(sp.toString());
-    const atuais = proximo.getAll("acessibilidade").filter((r) => r !== recurso);
-    proximo.delete("acessibilidade");
-    for (const r of atuais) proximo.append("acessibilidade", r);
-    if (marcado) proximo.append("acessibilidade", recurso);
-    const q = proximo.toString();
-    router.push(q ? `${caminho}?${q}` : caminho, { scroll: false });
+    const atuais = filtrosAtuais().acessibilidade ?? [];
+    const lista = marcado
+      ? [...atuais.filter((r) => r !== recurso), recurso]
+      : atuais.filter((r) => r !== recurso);
+    aplicar({ acessibilidade: lista.length ? lista : undefined });
   }
 
   return (
@@ -4433,7 +4481,7 @@ export function PainelFiltros({
           <select
             id="filtro-bairro"
             value={sp.get("bairro") ?? ""}
-            onChange={(e) => alterar("bairro", e.target.value || null)}
+            onChange={(e) => aplicar({ bairro: e.target.value || undefined })}
             className="mt-1.5 min-h-11 w-full rounded-controle border border-line bg-surface px-3 text-[15px]"
           >
             <option value="">Todos os bairros</option>
@@ -4451,7 +4499,7 @@ export function PainelFiltros({
             <input
               type="checkbox"
               checked={sp.get("telemedicina") === "1"}
-              onChange={(e) => alterar("telemedicina", e.target.checked ? "1" : null)}
+              onChange={(e) => aplicar({ telemedicina: e.target.checked })}
               className="size-5 accent-ami-green-600"
             />
             Atende por telemedicina
@@ -4460,7 +4508,7 @@ export function PainelFiltros({
             <input
               type="checkbox"
               checked={sp.get("sabado") === "1"}
-              onChange={(e) => alterar("sabado", e.target.checked ? "1" : null)}
+              onChange={(e) => aplicar({ atendeSabado: e.target.checked })}
               className="size-5 accent-ami-green-600"
             />
             Atende aos sábados
@@ -4491,7 +4539,7 @@ export function PainelFiltros({
           <input
             type="checkbox"
             checked={sp.get("associados") === "1"}
-            onChange={(e) => alterar("associados", e.target.checked ? "1" : null)}
+            onChange={(e) => aplicar({ somenteAssociados: e.target.checked })}
             className="size-5 accent-ami-green-600"
           />
           Somente associados AMI
@@ -4507,7 +4555,7 @@ export function PainelFiltros({
           <select
             id="filtro-ordem"
             value={sp.get("ordem") ?? "relevancia"}
-            onChange={(e) => alterar("ordem", e.target.value)}
+            onChange={(e) => aplicar({ ordem: e.target.value as Filtros["ordem"] })}
             className="mt-1.5 min-h-11 w-full rounded-controle border border-line bg-surface px-3 text-[15px]"
           >
             <option value="relevancia">Relevância</option>
