@@ -92,24 +92,44 @@ export async function buscarMedicos(filtros: Filtros = {}): Promise<Medico[]> {
   );
 }
 
+/**
+ * Perfil por slug.
+ *
+ * Filtra por `situacao` igual à busca, de propósito: sem isso um
+ * profissional inativo sumiria da listagem e continuaria alcançável pela URL
+ * direta, o que é pior que qualquer um dos dois comportamentos inteiros.
+ *
+ * A pergunta mais funda — o que deve acontecer com a URL de quem parou de
+ * atender, já que endereço publicado não deveria desaparecer — pede uma
+ * resposta desenhada, com a página no ar dizendo que o profissional não
+ * atende mais. Isso é trabalho do Plano 2. Aqui o que importa é que os dois
+ * caminhos concordem.
+ */
 export async function medicoPorSlug(slug: string): Promise<Medico | null> {
   const { data, error } = await clienteServidor()
     .from("profissional")
     .select(SELECAO)
     .eq("slug", slug)
     .eq("publicado", true)
+    .eq("situacao", "ativo")
     .maybeSingle();
 
   if (error) throw new Error(`Falha ao buscar o perfil: ${error.message}`);
   return data ? paraDominio(data) : null;
 }
 
-/** Alimenta o sitemap e a geração estática das rotas de perfil. */
+/**
+ * Alimenta o sitemap e a geração estática das rotas de perfil.
+ *
+ * Mesmo par de condições das outras duas consultas: um slug no sitemap que
+ * devolve 404 é um convite que o site não honra.
+ */
 export async function slugsDeMedicos(): Promise<string[]> {
   const { data, error } = await clienteServidor()
     .from("profissional")
     .select("slug")
-    .eq("publicado", true);
+    .eq("publicado", true)
+    .eq("situacao", "ativo");
 
   if (error) throw new Error(`Falha ao listar slugs: ${error.message}`);
   return (data ?? []).map((l) => l.slug as string);
