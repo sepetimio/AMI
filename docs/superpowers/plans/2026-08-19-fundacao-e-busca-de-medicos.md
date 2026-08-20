@@ -2900,6 +2900,57 @@ describe("physician", () => {
   it("nunca traz nota agregada — não existem avaliações neste site", () => {
     expect(p.aggregateRating).toBeUndefined();
   });
+
+  it("declara apenas o horário do endereço que declarou", () => {
+    /* Dois consultórios: o segundo abre num dia em que o primeiro não abre.
+       Se o horário do segundo aparecer sob o endereço do primeiro, o Google
+       lê expediente que não acontece ali. */
+    const comDois = physician(
+      {
+        ...medico,
+        locais: [
+          medico.locais[0],
+          {
+            ...medico.locais[0],
+            id: 2,
+            logradouro: "Rua Segunda",
+            horarios: [{ diaSemana: 5, abre: "14:00", fecha: "18:00" }],
+          },
+        ],
+      },
+      SITE,
+    ) as Record<string, unknown>;
+
+    const dias = (comDois.openingHoursSpecification as { dayOfWeek: string }[])
+      .map((h) => h.dayOfWeek);
+    expect(dias).toEqual(["Tuesday"]);
+    expect(dias).not.toContain("Friday");
+    expect(
+      (comDois.address as Record<string, string>).streetAddress,
+    ).toContain("Rua Projetada 100");
+  });
+
+  it("descarta dia da semana fora da faixa em vez de emitir indefinido", () => {
+    const torto = physician(
+      {
+        ...medico,
+        locais: [
+          {
+            ...medico.locais[0],
+            horarios: [
+              { diaSemana: 2, abre: "08:00", fecha: "12:00" },
+              { diaSemana: 9, abre: "08:00", fecha: "12:00" },
+            ],
+          },
+        ],
+      },
+      SITE,
+    ) as Record<string, unknown>;
+
+    const horas = torto.openingHoursSpecification as { dayOfWeek: string }[];
+    expect(horas).toHaveLength(1);
+    for (const h of horas) expect(h.dayOfWeek).toBeDefined();
+  });
 });
 
 describe("organizationAmi", () => {
@@ -3007,14 +3058,24 @@ export function physician(m: Medico, siteUrl: string) {
   const principal = m.especialidades.find((e) => e.principal) ?? m.especialidades[0];
   const local = m.locais[0];
 
-  const horarios = m.locais.flatMap((l) =>
-    l.horarios.map((h) => ({
+  /*
+    Horário sai APENAS do local cujo endereço está sendo declarado.
+    Agregar os horários de todos os consultórios sob um endereço só faria o
+    Google ler expediente que não acontece naquele lugar — dado estruturado
+    errado é pior que dado estruturado ausente.
+
+    Dia fora de 0..6 é descartado em vez de virar dayOfWeek indefinido, que
+    JSON.stringify apagaria sem avisar. A coluna tem CHECK no banco, então
+    isto é cinto e suspensório.
+  */
+  const horarios = (local?.horarios ?? [])
+    .filter((h) => DIAS[h.diaSemana] !== undefined)
+    .map((h) => ({
       "@type": "OpeningHoursSpecification",
       dayOfWeek: DIAS[h.diaSemana],
       opens: h.abre,
       closes: h.fecha,
-    })),
-  );
+    }));
 
   return {
     "@context": "https://schema.org",
@@ -3134,7 +3195,7 @@ export function JsonLd({ dados }: { dados: object }) {
 npm test -- testes/jsonld.test.ts
 ```
 
-Esperado: `11 passed`.
+Esperado: `12 passed`.
 
 - [ ] **Step 6: Commit**
 
