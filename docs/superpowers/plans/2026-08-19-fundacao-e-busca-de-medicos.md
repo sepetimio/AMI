@@ -4352,6 +4352,16 @@ export function PainelFiltros({
   const sp = useSearchParams();
   const [aberto, setAberto] = useState(false);
 
+  /*
+    O contador cobre os controles deste painel, e nada mais.
+
+    `termo` fica de fora de propósito: quem digitou "cardiologia" na home vê
+    isso no H1 da página, e não veio deste painel. `ordem` também: ordenar
+    não encurta a lista, então não explica por que ela está curta.
+
+    Como consequência, "Limpar" preserva os dois — apagar o que não se conta
+    seria remover a busca do usuário sem aviso.
+  */
   const ativos = [
     sp.get("bairro"),
     sp.get("telemedicina"),
@@ -4359,6 +4369,16 @@ export function PainelFiltros({
     sp.get("associados"),
     ...sp.getAll("acessibilidade"),
   ].filter(Boolean).length;
+
+  function limpar() {
+    const preservado = new URLSearchParams();
+    const termo = sp.get("termo");
+    const ordem = sp.get("ordem");
+    if (termo) preservado.set("termo", termo);
+    if (ordem) preservado.set("ordem", ordem);
+    const q = preservado.toString();
+    router.push(q ? `${caminho}?${q}` : caminho, { scroll: false });
+  }
 
   function alterar(chave: string, valor: string | null) {
     const proximo = new URLSearchParams(sp.toString());
@@ -4498,7 +4518,7 @@ export function PainelFiltros({
         {ativos > 0 ? (
           <button
             type="button"
-            onClick={() => router.push(caminho, { scroll: false })}
+            onClick={limpar}
             className="min-h-11 text-[15px] font-semibold text-ami-green-600 underline"
           >
             Limpar todos os filtros
