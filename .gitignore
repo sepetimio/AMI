@@ -41,3 +41,6 @@ yarn-error.log*
 
 # arquivos de trabalho da marca que não entram no site
 marca/_estudo-restauracao-recusado/
+
+# rastro de execução do plano
+.superpowers/

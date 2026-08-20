@@ -1837,7 +1837,23 @@ describe("paragrafoDeAbertura", () => {
 
   it("fica dentro da faixa de 120 a 200 palavras exigida pela camada de SEO", () => {
     const palavras = paragrafoDeAbertura(base).split(/\s+/).length;
-    expect(palavras).toBeGreaterThanOrEqual(60);
+    expect(palavras).toBeGreaterThanOrEqual(120);
+    expect(palavras).toBeLessThanOrEqual(200);
+  });
+
+  it("mantém a faixa no caso mais pobre de dados", () => {
+    /* Faceta pequena, sem sábado e sem telemedicina: é aqui que o texto
+       encurta. Se passar deste caso, passa de todos. */
+    const palavras = paragrafoDeAbertura({
+      especialidade: "Urologia",
+      total: 1,
+      bairrosComOferta: [{ nome: "Centro", total: 1 }],
+      atendemSabado: 0,
+      comTelemedicina: 0,
+      comAcessoCadeirante: 0,
+    })
+      .split(/\s+/).length;
+    expect(palavras).toBeGreaterThanOrEqual(120);
     expect(palavras).toBeLessThanOrEqual(200);
   });
 });
@@ -1969,9 +1985,23 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
   frases.push(
     `${r.comAcessoCadeirante} ${r.comAcessoCadeirante === 1 ? "local" : "locais"} ` +
       `de atendimento ${r.comAcessoCadeirante === 1 ? "tem" : "têm"} ` +
-      `acesso para cadeirante. Cada perfil abaixo traz o endereço completo, ` +
-      `o telefone e os horários por dia da semana, e informa o CRM do ` +
-      `profissional conforme exige a Resolução CFM 2.336/2023.`,
+      `acesso para cadeirante registrado no cadastro da associação.`,
+  );
+
+  frases.push(
+    `Cada perfil abaixo traz o endereço completo, o telefone de contato e os ` +
+      `horários de atendimento por dia da semana, além do número de registro ` +
+      `no Conselho Regional de Medicina, conforme exige a Resolução CFM ` +
+      `2.336/2023. Os dados são mantidos pela própria Associação Médica de ` +
+      `Imperatriz e revisados a cada atualização enviada pelo profissional.`,
+  );
+
+  frases.push(
+    `Imperatriz é polo de saúde para o sul do Maranhão e o sudeste do Pará, e ` +
+      `concentra a maior parte dos serviços especializados da região. Se o ` +
+      `profissional que você procura não estiver nesta lista, vale conferir ` +
+      `as especialidades relacionadas no fim da página, porque a divisão entre ` +
+      `algumas áreas varia de acordo com a formação de cada médico.`,
   );
 
   return frases.join(" ");
@@ -2015,7 +2045,7 @@ export function resumirFaceta(
 npm test -- testes/facetas.test.ts
 ```
 
-Esperado: `8 passed`.
+Esperado: `9 passed`.
 
 - [ ] **Step 5: Commit**
 
