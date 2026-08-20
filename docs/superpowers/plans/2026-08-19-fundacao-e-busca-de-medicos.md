@@ -593,7 +593,7 @@ export function contagem(n: number, singular: string, plural: string): string {
 cd "C:/Users/maron/Desktop/site-ami" && npm test -- testes/formato.test.ts
 ```
 
-Esperado: `9 passed`.
+Esperado: `8 passed`.
 
 - [ ] **Step 5: Commit**
 
@@ -2047,7 +2047,7 @@ export function resumirFaceta(
 npm test -- testes/facetas.test.ts
 ```
 
-Esperado: `9 passed`.
+Esperado: `8 passed`.
 
 - [ ] **Step 5: Commit**
 
