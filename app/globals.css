@@ -1,26 +1,134 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* =========================================================
+   DIREÇÃO DE ARTE — ASSOCIAÇÃO MÉDICA DE IMPERATRIZ
+   Mudou aqui, muda no site inteiro. Nenhum componente
+   inventa cor fora desta lista.
+   ========================================================= */
+
+@theme {
+  /* --- VERDES: estruturais, não decorativos --- */
+  --color-ami-green-900: #06210f; /* rodapé, faixas de máxima ênfase */
+  --color-ami-green-800: #0b3018; /* faixas institucionais */
+  --color-ami-green-700: #123d24; /* superfícies escuras secundárias */
+  --color-ami-green-600: #1f6b3a; /* AÇÃO: botões e links (6,51:1 sobre branco) */
+  --color-ami-green-500: #00a457; /* verde da marca — símbolo e preenchimento, NUNCA texto */
+
+  /* --- MENTA: só sobre verde escuro, ou decorativa --- */
+  --color-ami-mint-400: #a5dcaf; /* 1,56:1 sobre branco — jamais texto em fundo claro */
+  --color-ami-mint-100: #e6f4e9; /* wash de fundo */
+
+  /* --- TINTA --- */
+  --color-ink-900: #14201a;
+  --color-ink-600: #4b5a51;
+  --color-ink-400: #657268; /* legendas (5,0:1 sobre branco) */
+  --color-ink-300: #8a968f; /* SÓ placeholder e ícone desabilitado */
+
+  /* --- SUPERFÍCIES E FIOS --- */
+  --color-line: #e1e8e3; /* separador padrão do site */
+  --color-line-strong: #c3d0c7; /* fios de seção */
+  --color-surface: #ffffff;
+  --color-canvas: #f4f7f4; /* cinza-esverdeado frio, nunca bege */
+  --color-warn: #8a6a00;
+  --color-danger: #a33232;
+
+  /* --- FONTES --- */
+  --font-titulo: var(--fonte-titulo), "Archivo Narrow", system-ui, sans-serif;
+  --font-corpo: var(--fonte-corpo), system-ui, sans-serif;
+
+  /* --- RAIOS: por função, não um valor para tudo --- */
+  --radius-controle: 6px; /* botões e campos */
+  --radius-bloco: 10px; /* cartões e tabelas */
+  --radius-chip: 999px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    /* Zoom nunca bloqueado. */
+    -webkit-text-size-adjust: 100%;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink-900);
+    font-family: var(--font-corpo);
+    font-size: 17px;
+    line-height: 1.65;
+    /* Palavra gigante sem espaço — link longo, e-mail comprido — empurraria
+       a página e criaria rolagem horizontal. */
+    overflow-wrap: break-word;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-titulo);
+    color: var(--color-ink-900);
+    text-wrap: balance;
+  }
+
+  /* O salto entre níveis é grande de propósito: título e subtítulo com
+     tamanhos próximos é uma das marcas mais visíveis de layout automático. */
+  h1 {
+    font-size: 34px;
+    line-height: 38px;
+    font-weight: 700;
+    font-stretch: 82%;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    font-size: 26px;
+    line-height: 30px;
+    font-weight: 700;
+    font-stretch: 85%;
+    letter-spacing: -0.01em;
+  }
+
+  h3 {
+    font-size: 21px;
+    line-height: 28px;
+    font-weight: 600;
+    font-stretch: 100%;
+  }
+
+  @media (min-width: 768px) {
+    h1 {
+      font-size: 48px;
+      line-height: 52px;
+    }
+    h2 {
+      font-size: 32px;
+      line-height: 36px;
+    }
+  }
+
+  /* Foco visível obrigatório em tudo que recebe foco. Nunca outline:none. */
+  :focus-visible {
+    outline: 2px solid var(--color-ami-green-600);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Movimento só comunica estado. Quem pediu menos movimento, recebe menos. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@utility numero-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Coluna de texto corrido: 580px rende cerca de 68 caracteres por linha em
+   17px. Acima de 80 caracteres a leitura cansa. */
+@utility coluna-leitura {
+  max-width: 580px;
 }
