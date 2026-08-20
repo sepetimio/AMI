@@ -52,7 +52,18 @@ export function filtrosDaQuery(sp: Query): Filtros {
   return f;
 }
 
-/** Ordem estável das chaves: URLs iguais para filtros iguais evitam duplicata. */
+/**
+ * Serializa os filtros numa querystring.
+ *
+ * A ordem das chaves é fixa e a lista de acessibilidade é reordenada pela
+ * ordem canônica de `RECURSOS`. Sem isso, marcar e desmarcar caixas produz
+ * URLs diferentes para o mesmo conjunto de filtros — e o mesmo resultado com
+ * dois endereços é conteúdo duplicado, exatamente o que o controle de facetas
+ * existe para evitar.
+ *
+ * Toda construção de URL do painel passa por aqui, para que a garantia valha
+ * na tela e não só no teste.
+ */
 export function queryDosFiltros(f: Filtros): string {
   const p = new URLSearchParams();
 
@@ -60,7 +71,9 @@ export function queryDosFiltros(f: Filtros): string {
   if (f.bairro) p.set("bairro", f.bairro);
   if (f.telemedicina) p.set("telemedicina", "1");
   if (f.atendeSabado) p.set("sabado", "1");
-  for (const r of f.acessibilidade ?? []) p.append("acessibilidade", r);
+  for (const r of RECURSOS) {
+    if (f.acessibilidade?.includes(r)) p.append("acessibilidade", r);
+  }
   if (f.somenteAssociados) p.set("associados", "1");
   if (f.ordem) p.set("ordem", f.ordem);
 

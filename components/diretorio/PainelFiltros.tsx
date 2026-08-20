@@ -2,7 +2,12 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { ROTULO_ACESSIBILIDADE, type RecursoAcessibilidade } from "@/lib/dados/tipos";
+import { filtrosDaQuery, queryDosFiltros } from "@/lib/dados/urlFiltros";
+import {
+  ROTULO_ACESSIBILIDADE,
+  type Filtros,
+  type RecursoAcessibilidade,
+} from "@/lib/dados/tipos";
 
 type Bairro = { nome: string; slug: string };
 
@@ -42,31 +47,35 @@ export function PainelFiltros({
   ].filter(Boolean).length;
 
   function limpar() {
-    const preservado = new URLSearchParams();
-    const termo = sp.get("termo");
-    const ordem = sp.get("ordem");
-    if (termo) preservado.set("termo", termo);
-    if (ordem) preservado.set("ordem", ordem);
-    const q = preservado.toString();
-    router.push(q ? `${caminho}?${q}` : caminho, { scroll: false });
+    const { termo, ordem } = filtrosAtuais();
+    router.push(`${caminho}${queryDosFiltros({ termo, ordem })}`, {
+      scroll: false,
+    });
   }
 
-  function alterar(chave: string, valor: string | null) {
-    const proximo = new URLSearchParams(sp.toString());
-    if (valor === null) proximo.delete(chave);
-    else proximo.set(chave, valor);
-    const q = proximo.toString();
-    router.push(q ? `${caminho}?${q}` : caminho, { scroll: false });
+  /* Lê a URL de volta para o formato do domínio, para que toda alteração
+     saia serializada por queryDosFiltros — a função que garante ordem
+     estável e é a que os testes cobrem. */
+  function filtrosAtuais(): Filtros {
+    const q: Record<string, string | string[]> = {};
+    for (const chave of new Set(sp.keys())) {
+      const valores = sp.getAll(chave);
+      q[chave] = valores.length > 1 ? valores : valores[0];
+    }
+    return filtrosDaQuery(q);
+  }
+
+  function aplicar(mudanca: Partial<Filtros>) {
+    const q = queryDosFiltros({ ...filtrosAtuais(), ...mudanca });
+    router.push(`${caminho}${q}`, { scroll: false });
   }
 
   function alternarRecurso(recurso: RecursoAcessibilidade, marcado: boolean) {
-    const proximo = new URLSearchParams(sp.toString());
-    const atuais = proximo.getAll("acessibilidade").filter((r) => r !== recurso);
-    proximo.delete("acessibilidade");
-    for (const r of atuais) proximo.append("acessibilidade", r);
-    if (marcado) proximo.append("acessibilidade", recurso);
-    const q = proximo.toString();
-    router.push(q ? `${caminho}?${q}` : caminho, { scroll: false });
+    const atuais = filtrosAtuais().acessibilidade ?? [];
+    const lista = marcado
+      ? [...atuais.filter((r) => r !== recurso), recurso]
+      : atuais.filter((r) => r !== recurso);
+    aplicar({ acessibilidade: lista.length ? lista : undefined });
   }
 
   return (
@@ -104,7 +113,7 @@ export function PainelFiltros({
           <select
             id="filtro-bairro"
             value={sp.get("bairro") ?? ""}
-            onChange={(e) => alterar("bairro", e.target.value || null)}
+            onChange={(e) => aplicar({ bairro: e.target.value || undefined })}
             className="mt-1.5 min-h-11 w-full rounded-controle border border-line bg-surface px-3 text-[15px]"
           >
             <option value="">Todos os bairros</option>
@@ -122,7 +131,7 @@ export function PainelFiltros({
             <input
               type="checkbox"
               checked={sp.get("telemedicina") === "1"}
-              onChange={(e) => alterar("telemedicina", e.target.checked ? "1" : null)}
+              onChange={(e) => aplicar({ telemedicina: e.target.checked })}
               className="size-5 accent-ami-green-600"
             />
             Atende por telemedicina
@@ -131,7 +140,7 @@ export function PainelFiltros({
             <input
               type="checkbox"
               checked={sp.get("sabado") === "1"}
-              onChange={(e) => alterar("sabado", e.target.checked ? "1" : null)}
+              onChange={(e) => aplicar({ atendeSabado: e.target.checked })}
               className="size-5 accent-ami-green-600"
             />
             Atende aos sábados
@@ -162,7 +171,7 @@ export function PainelFiltros({
           <input
             type="checkbox"
             checked={sp.get("associados") === "1"}
-            onChange={(e) => alterar("associados", e.target.checked ? "1" : null)}
+            onChange={(e) => aplicar({ somenteAssociados: e.target.checked })}
             className="size-5 accent-ami-green-600"
           />
           Somente associados AMI
@@ -178,7 +187,7 @@ export function PainelFiltros({
           <select
             id="filtro-ordem"
             value={sp.get("ordem") ?? "relevancia"}
-            onChange={(e) => alterar("ordem", e.target.value)}
+            onChange={(e) => aplicar({ ordem: e.target.value as Filtros["ordem"] })}
             className="mt-1.5 min-h-11 w-full rounded-controle border border-line bg-surface px-3 text-[15px]"
           >
             <option value="relevancia">Relevância</option>

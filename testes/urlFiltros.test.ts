@@ -51,6 +51,32 @@ describe("queryDosFiltros", () => {
     ).toBe("?termo=cardio&telemedicina=1&ordem=nome");
   });
 
+  it("descarta recurso de acessibilidade inventado", () => {
+    /* A entrada vem da URL e pode ser qualquer coisa. */
+    expect(
+      filtrosDaQuery({ acessibilidade: ["elevador", "teleporte"] })
+        .acessibilidade,
+    ).toEqual(["elevador"]);
+    expect(
+      filtrosDaQuery({ acessibilidade: "inventado" }).acessibilidade,
+    ).toBeUndefined();
+  });
+
+  it("dois conjuntos iguais em ordem diferente geram a mesma URL", () => {
+    /* Marcar e desmarcar caixas reordenava os parâmetros. O mesmo filtro
+       com dois endereços é conteúdo duplicado. */
+    const a = queryDosFiltros({
+      acessibilidade: ["elevador", "acesso_cadeirante"],
+    });
+    const b = queryDosFiltros({
+      acessibilidade: ["acesso_cadeirante", "elevador"],
+    });
+    expect(a).toBe(b);
+    expect(a).toBe(
+      "?acessibilidade=acesso_cadeirante&acessibilidade=elevador",
+    );
+  });
+
   it("faz o caminho de ida e volta", () => {
     const original = {
       termo: "jose",
