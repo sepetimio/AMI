@@ -593,7 +593,7 @@ export function contagem(n: number, singular: string, plural: string): string {
 cd "C:/Users/maron/Desktop/site-ami" && npm test -- testes/formato.test.ts
 ```
 
-Esperado: `8 passed`.
+Esperado: `9 passed`.
 
 - [ ] **Step 5: Commit**
 
@@ -2036,12 +2036,17 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
 
   if (!r.bairro && r.bairrosComOferta.length) {
     const principais = r.bairrosComOferta.slice(0, 3);
-    frases.push(
-      `A maior oferta está ${principais.length === 1 ? "no bairro" : "nos bairros"} ` +
-        `${lista(principais.map((b) => b.nome))}, ` +
-        `com ${principais[0].total} ${principais[0].total === 1 ? sing : plur} ` +
-        `só ${principais[0].nome === "Centro" ? "no" : "no"} ${principais[0].nome}.`,
-    );
+    if (principais.length === 1) {
+      frases.push(
+        `O atendimento se concentra no bairro ${principais[0].nome}.`,
+      );
+    } else {
+      frases.push(
+        `A oferta se distribui pelos bairros ${lista(principais.map((b) => b.nome))}, ` +
+          `sendo ${principais[0].total} ${principais[0].total === 1 ? sing : plur} ` +
+          `no ${principais[0].nome}.`,
+      );
+    }
   }
 
   if (r.atendemSabado > 0) {
@@ -2052,39 +2057,46 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
     );
   } else {
     frases.push(
-      `Nenhum deles atende aos sábados no momento; os horários se concentram ` +
-        `de segunda a sexta.`,
+      `Por enquanto, os atendimentos acontecem apenas em dias úteis, de ` +
+        `segunda a sexta-feira.`,
     );
   }
 
+  /* Nenhuma frase começa com algarismo: em texto corrido em português isso
+     não se faz, e é um dos sinais mais visíveis de texto gerado. */
   if (r.comTelemedicina > 0) {
     frases.push(
-      `${r.comTelemedicina} ${r.comTelemedicina === 1 ? "oferece" : "oferecem"} ` +
-        `consulta por telemedicina, alternativa para quem vem de outras cidades ` +
-        `da região sul do Maranhão e do sudeste do Pará.`,
+      `A telemedicina é oferecida por ${r.comTelemedicina} ` +
+        `${r.comTelemedicina === 1 ? "deles" : "deles"}, alternativa para quem ` +
+        `vem de outras cidades da região sul do Maranhão e do sudeste do Pará.`,
     );
   }
 
-  frases.push(
-    `${r.comAcessoCadeirante} ${r.comAcessoCadeirante === 1 ? "local" : "locais"} ` +
-      `de atendimento ${r.comAcessoCadeirante === 1 ? "tem" : "têm"} ` +
-      `acesso para cadeirante registrado no cadastro da associação.`,
-  );
+  /* O caso zero merece frase própria. "0 locais de atendimento têm acesso"
+     é a redação que denuncia geração automática — e a informação de que
+     nenhum local tem acesso é útil demais para ser omitida. */
+  if (r.comAcessoCadeirante === 0) {
+    frases.push(
+      `Nenhum dos locais de atendimento informa acesso para cadeirante no ` +
+        `cadastro da associação, o que vale confirmar por telefone antes de ir.`,
+    );
+  } else {
+    frases.push(
+      `Entre os locais de atendimento, ${r.comAcessoCadeirante} ` +
+        `${r.comAcessoCadeirante === 1 ? "informa" : "informam"} acesso para ` +
+        `cadeirante no cadastro da associação.`,
+    );
+  }
 
   frases.push(
     `Cada perfil abaixo traz o endereço completo, o telefone de contato e os ` +
       `horários de atendimento por dia da semana, além do número de registro ` +
       `no Conselho Regional de Medicina, conforme exige a Resolução CFM ` +
-      `2.336/2023. Os dados são mantidos pela própria Associação Médica de ` +
-      `Imperatriz e revisados a cada atualização enviada pelo profissional.`,
-  );
-
-  frases.push(
-    `Imperatriz é polo de saúde para o sul do Maranhão e o sudeste do Pará, e ` +
-      `concentra a maior parte dos serviços especializados da região. Se o ` +
-      `profissional que você procura não estiver nesta lista, vale conferir ` +
-      `as especialidades relacionadas no fim da página, porque a divisão entre ` +
-      `algumas áreas varia de acordo com a formação de cada médico.`,
+      `2.336/2023. Os dados são mantidos pela Associação Médica de Imperatriz ` +
+      `e revisados a cada atualização enviada pelo profissional. Se quem você ` +
+      `procura não estiver aqui, vale olhar as especialidades relacionadas no ` +
+      `fim da página: a divisão entre algumas áreas varia conforme a formação ` +
+      `de cada médico.`,
   );
 
   return frases.join(" ");
@@ -2128,7 +2140,7 @@ export function resumirFaceta(
 npm test -- testes/facetas.test.ts
 ```
 
-Esperado: `8 passed`.
+Esperado: `9 passed`.
 
 - [ ] **Step 5: Commit**
 
