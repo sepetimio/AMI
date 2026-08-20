@@ -18,12 +18,13 @@ type Props = {
   `follow` mantém os links de resultado rastreáveis.
 */
 export const metadata: Metadata = {
-  title: "Buscar médicos em Imperatriz - MA",
+  title: "Buscar médicos em Imperatriz - MA | AMI",
   robots: { index: false, follow: true },
 };
 
 export default async function PaginaBusca({ searchParams }: Props) {
   const filtros = filtrosDaQuery(await searchParams);
+  const temFiltro = Object.keys(filtros).some((c) => c !== "ordem");
   const [medicos, bairros] = await Promise.all([
     buscarMedicos(filtros),
     bairrosComContagem(),
@@ -46,7 +47,14 @@ export default async function PaginaBusca({ searchParams }: Props) {
             : "Buscar médicos em Imperatriz"}
         </h1>
         <p className="numero-tabular mt-3 text-ink-600">
-          {contagem(medicos.length, "profissional encontrado", "profissionais encontrados")}.
+          {contagem(
+            medicos.length,
+            "profissional encontrado",
+            "profissionais encontrados",
+          )}
+          {filtros.termo || temFiltro
+            ? "."
+            : " no diretório. Use os filtros ao lado ou escolha uma especialidade."}
         </p>
       </div>
 
@@ -57,6 +65,10 @@ export default async function PaginaBusca({ searchParams }: Props) {
           <ListaMedicos
             medicos={medicos}
             filtroMaisRestritivo={filtros.termo ? "termo digitado" : "bairro"}
+            saida={{
+              rotulo: "Ver todas as especialidades",
+              href: "/medicos",
+            }}
           />
         </div>
       </div>
