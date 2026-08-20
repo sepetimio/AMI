@@ -3964,9 +3964,19 @@ function iniciais(nome: string): string {
 export function LinhaMedico({ medico }: { medico: Medico }) {
   const principal =
     medico.especialidades.find((e) => e.principal) ?? medico.especialidades[0];
+  /*
+    Tudo nesta linha fala do MESMO consultório: o bairro, o telefone, a
+    acessibilidade e o selo de aberto. Agregar o horário de todos os
+    endereços faria a linha dizer "Aberto agora" por causa de um consultório
+    que não é o do telefone exibido — quem liga cai na secretária eletrônica.
+
+    Quem atende em mais de um lugar tem todos eles no perfil, com o horário
+    de cada um. A linha de resultado mostra um, inteiro e coerente.
+  */
   const local = medico.locais[0];
-  const horarios = medico.locais.flatMap((l) => l.horarios);
+  const horarios = local?.horarios ?? [];
   const acessibilidade = local?.acessibilidade ?? [];
+  const temOutrosLocais = medico.locais.length > 1;
 
   return (
     <li className="border-b border-line py-5 last:border-b-0">
@@ -4024,6 +4034,14 @@ export function LinhaMedico({ medico }: { medico: Medico }) {
             {medico.telemedicina ? <Chip>Telemedicina</Chip> : null}
             {acessibilidade.includes("acesso_cadeirante") ? (
               <Chip>{ROTULO_ACESSIBILIDADE.acesso_cadeirante}</Chip>
+            ) : null}
+            {/* Avisa que há mais, para o bairro exibido não parecer o único. */}
+            {temOutrosLocais ? (
+              <Chip>
+                {medico.locais.length === 2
+                  ? "e mais 1 endereço"
+                  : `e mais ${medico.locais.length - 1} endereços`}
+              </Chip>
             ) : null}
             <SeloAbertoAgora horarios={horarios} />
           </div>
