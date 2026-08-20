@@ -1603,6 +1603,39 @@ describe("aplicarFiltros", () => {
     expect(r.map((m) => m.nome)).toEqual(["Ana Bezerra"]);
   });
 
+  /* Os dois testes seguintes andam em par. Com um recurso só, uma
+     implementação errada — que aceitasse cada recurso em qualquer local —
+     passaria igual. O primeiro prova que ela recusa o caso partido; o
+     segundo prova que ainda aceita quando deve, e não apenas devolve vazio. */
+  it("não retorna médico com acessibilidades em locais diferentes", () => {
+    const marcus = medico({
+      nome: "Marcus Silva",
+      slug: "marcus-silva",
+      locais: [
+        local("centro", { acessibilidade: ["elevador"] }),
+        local("bacuri", { acessibilidade: ["acesso_cadeirante"] }),
+      ],
+    });
+    const r = aplicarFiltros([marcus], {
+      acessibilidade: ["elevador", "acesso_cadeirante"],
+    });
+    expect(r).toHaveLength(0);
+  });
+
+  it("retorna médico com múltiplas acessibilidades no mesmo local", () => {
+    const lucia = medico({
+      nome: "Lucia Costa",
+      slug: "lucia-costa",
+      locais: [
+        local("centro", { acessibilidade: ["elevador", "acesso_cadeirante"] }),
+      ],
+    });
+    const r = aplicarFiltros([lucia], {
+      acessibilidade: ["elevador", "acesso_cadeirante"],
+    });
+    expect(r.map((m) => m.nome)).toEqual(["Lucia Costa"]);
+  });
+
   it("filtra somente associados", () => {
     expect(aplicarFiltros(todos, { somenteAssociados: true })).toHaveLength(1);
   });
@@ -1775,7 +1808,7 @@ export function ordenar(
 npm test -- testes/filtros.test.ts
 ```
 
-Esperado: `14 passed`.
+Esperado: `16 passed`.
 
 - [ ] **Step 5: Commit**
 
