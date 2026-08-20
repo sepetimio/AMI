@@ -94,6 +94,7 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
      casos. Por isso o singular reescreve a frase inteira em vez de trocar a
      palavra. */
   const umSo = r.total === 1;
+  const umEnderecoSo = r.totalLocais === 1;
 
   const frases: string[] = [];
 
@@ -157,14 +158,20 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
 
   if (r.locaisComAcessoCadeirante === 0) {
     frases.push(
-      `Nenhum dos endereços informa acesso para cadeirante no cadastro da ` +
-        `associação, o que vale confirmar por telefone antes de ir.`,
+      umEnderecoSo
+        ? `O único endereço não informa acesso para cadeirante no cadastro ` +
+            `da associação, o que vale confirmar por telefone antes de ir.`
+        : `Nenhum dos endereços informa acesso para cadeirante no cadastro ` +
+            `da associação, o que vale confirmar por telefone antes de ir.`,
     );
   } else {
     frases.push(
-      `Entre os endereços, ${r.locaisComAcessoCadeirante} ` +
-        `${r.locaisComAcessoCadeirante === 1 ? "informa" : "informam"} acesso ` +
-        `para cadeirante no cadastro da associação.`,
+      umEnderecoSo
+        ? `O único endereço informa acesso para cadeirante no cadastro da ` +
+            `associação.`
+        : `Entre os endereços, ${r.locaisComAcessoCadeirante} ` +
+            `${r.locaisComAcessoCadeirante === 1 ? "informa" : "informam"} ` +
+            `acesso para cadeirante no cadastro da associação.`,
     );
   }
 
