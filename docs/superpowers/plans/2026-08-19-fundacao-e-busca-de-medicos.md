@@ -436,9 +436,16 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   ),
+  /*
+    Sem `template`. Os títulos vêm de lib/seo/metadados.ts, que já termina
+    cada um com "| AMI" e mede o resultado contra o limite de 60 caracteres.
+    Um template acrescentando o sufixo de novo produziria "… | AMI | AMI" e
+    estouraria justamente o limite que aquele módulo existe para respeitar.
+
+    `default` continua valendo para qualquer página que não defina título.
+  */
   title: {
     default: "Associação Médica de Imperatriz",
-    template: "%s | AMI",
   },
 };
 
@@ -4744,12 +4751,13 @@ type Props = {
   `follow` mantém os links de resultado rastreáveis.
 */
 export const metadata: Metadata = {
-  title: "Buscar médicos em Imperatriz - MA",
+  title: "Buscar médicos em Imperatriz - MA | AMI",
   robots: { index: false, follow: true },
 };
 
 export default async function PaginaBusca({ searchParams }: Props) {
   const filtros = filtrosDaQuery(await searchParams);
+  const temFiltro = Object.keys(filtros).some((c) => c !== "ordem");
   const [medicos, bairros] = await Promise.all([
     buscarMedicos(filtros),
     bairrosComContagem(),
@@ -4772,7 +4780,14 @@ export default async function PaginaBusca({ searchParams }: Props) {
             : "Buscar médicos em Imperatriz"}
         </h1>
         <p className="numero-tabular mt-3 text-ink-600">
-          {contagem(medicos.length, "profissional encontrado", "profissionais encontrados")}.
+          {contagem(
+            medicos.length,
+            "profissional encontrado",
+            "profissionais encontrados",
+          )}
+          {filtros.termo || temFiltro
+            ? "."
+            : " no diretório. Use os filtros ao lado ou escolha uma especialidade."}
         </p>
       </div>
 
@@ -4783,6 +4798,10 @@ export default async function PaginaBusca({ searchParams }: Props) {
           <ListaMedicos
             medicos={medicos}
             filtroMaisRestritivo={filtros.termo ? "termo digitado" : "bairro"}
+            saida={{
+              rotulo: "Ver todas as especialidades",
+              href: "/medicos",
+            }}
           />
         </div>
       </div>
