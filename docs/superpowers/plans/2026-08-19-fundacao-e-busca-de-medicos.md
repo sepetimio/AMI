@@ -1831,7 +1831,7 @@ O parágrafo de abertura existe pelo mesmo motivo: uma faceta sem texto próprio
 - Consumes: Task 7
 - Produces:
   - `const MINIMO_PARA_INDEXAR = 3`
-  - `type ResumoFaceta = { especialidade: string; bairro?: string; total: number; bairrosComOferta: { nome: string; total: number }[]; atendemSabado: number; comTelemedicina: number; comAcessoCadeirante: number }`
+  - `type ResumoFaceta = { especialidade: string; bairro?: string; total: number; bairrosComOferta: { nome: string; total: number }[]; totalLocais: number; atendemSabado: number; comTelemedicina: number; locaisComAcessoCadeirante: number; associados: number; comMaisDeUmEndereco: number }`
   - `facetaEhIndexavel(total: number): boolean`
   - `paragrafoDeAbertura(r: ResumoFaceta): string`
   - `resumirFaceta(medicos: Medico[], especialidade: string, bairro?: string): ResumoFaceta`
@@ -1846,8 +1846,10 @@ import {
   MINIMO_PARA_INDEXAR,
   facetaEhIndexavel,
   paragrafoDeAbertura,
+  resumirFaceta,
   type ResumoFaceta,
 } from "@/lib/dados/facetas";
+import type { Medico } from "@/lib/dados/tipos";
 
 const base: ResumoFaceta = {
   especialidade: "Cardiologia",
@@ -1857,9 +1859,27 @@ const base: ResumoFaceta = {
     { nome: "Bacuri", total: 2 },
     { nome: "Juçara", total: 1 },
   ],
+  totalLocais: 9,
   atendemSabado: 2,
   comTelemedicina: 3,
-  comAcessoCadeirante: 5,
+  locaisComAcessoCadeirante: 5,
+  associados: 5,
+  comMaisDeUmEndereco: 2,
+};
+
+/* A faceta mais pobre que ainda entra no índice: exatamente no corte, sem
+   sábado, sem telemedicina, sem acessibilidade, sem associado. É onde o
+   texto encolhe, então é onde o piso de palavras precisa valer. */
+const pobreIndexavel: ResumoFaceta = {
+  especialidade: "Reumatologia",
+  total: MINIMO_PARA_INDEXAR,
+  bairrosComOferta: [{ nome: "Centro", total: MINIMO_PARA_INDEXAR }],
+  totalLocais: MINIMO_PARA_INDEXAR,
+  atendemSabado: 0,
+  comTelemedicina: 0,
+  locaisComAcessoCadeirante: 0,
+  associados: 0,
+  comMaisDeUmEndereco: 0,
 };
 
 describe("facetaEhIndexavel", () => {
@@ -1882,6 +1902,7 @@ describe("paragrafoDeAbertura", () => {
   it("traz os números reais, não redondos", () => {
     const p = paragrafoDeAbertura(base);
     expect(p).toContain("7 cardiologistas");
+    expect(p).toContain("9 endereços");
     expect(p).toContain("Centro");
     expect(p).toContain("2 atendem aos sábados");
   });
@@ -1909,35 +1930,160 @@ describe("paragrafoDeAbertura", () => {
     const p = paragrafoDeAbertura({
       ...base,
       total: 1,
+      totalLocais: 1,
       bairrosComOferta: [{ nome: "Centro", total: 1 }],
       atendemSabado: 1,
       comTelemedicina: 1,
-      comAcessoCadeirante: 1,
+      locaisComAcessoCadeirante: 1,
+      associados: 1,
+      comMaisDeUmEndereco: 1,
     });
     expect(p).toContain("1 cardiologista ");
     expect(p).not.toContain("1 cardiologistas");
+    expect(p).toContain("um único endereço");
+    expect(p).toContain("1 atende aos sábados");
+    expect(p).toContain("1 informa acesso");
+    expect(p).toContain("1 atende em mais de um endereço");
   });
 
-  it("fica dentro da faixa de 120 a 200 palavras exigida pela camada de SEO", () => {
+  it("concorda o plural", () => {
+    const p = paragrafoDeAbertura(base);
+    expect(p).toContain("2 atendem aos sábados");
+    expect(p).toContain("5 informam acesso");
+    expect(p).toContain("2 atendem em mais de um endereço");
+  });
+
+  /* O piso de 120 palavras protege página indexável de ser rasa. Abaixo do
+     corte a página sai noindex, e ali o parágrafo pode ter o tamanho que a
+     verdade permitir — forçar palavras numa página que não vai ao índice
+     seria encher linguiça sem ganho nenhum. */
+  it("cumpre 120 a 200 palavras na faceta mais pobre que ainda indexa", () => {
+    const palavras = paragrafoDeAbertura(pobreIndexavel).split(/\s+/).length;
+    expect(palavras).toBeGreaterThanOrEqual(120);
+    expect(palavras).toBeLessThanOrEqual(200);
+  });
+
+  it("cumpre 120 a 200 palavras também na faceta rica", () => {
     const palavras = paragrafoDeAbertura(base).split(/\s+/).length;
     expect(palavras).toBeGreaterThanOrEqual(120);
     expect(palavras).toBeLessThanOrEqual(200);
   });
 
-  it("mantém a faixa no caso mais pobre de dados", () => {
-    /* Faceta pequena, sem sábado e sem telemedicina: é aqui que o texto
-       encurta. Se passar deste caso, passa de todos. */
-    const palavras = paragrafoDeAbertura({
-      especialidade: "Urologia",
-      total: 1,
-      bairrosComOferta: [{ nome: "Centro", total: 1 }],
-      atendemSabado: 0,
-      comTelemedicina: 0,
-      comAcessoCadeirante: 0,
-    })
-      .split(/\s+/).length;
-    expect(palavras).toBeGreaterThanOrEqual(120);
-    expect(palavras).toBeLessThanOrEqual(200);
+  /* Começar frase com algarismo é uma das marcas mais visíveis de texto
+     gerado, e em português corrido não se faz. */
+  it("nenhuma frase começa com algarismo", () => {
+    for (const resumo of [base, pobreIndexavel]) {
+      const frases = paragrafoDeAbertura(resumo).split(/(?<=\.)\s+/);
+      for (const f of frases) {
+        expect(f.trimStart()).not.toMatch(/^\d/);
+      }
+    }
+  });
+});
+
+describe("resumirFaceta", () => {
+  const local = (
+    id: number,
+    bairro: string,
+    acessibilidade: Medico["locais"][0]["acessibilidade"] = [],
+  ) => ({
+    id,
+    logradouro: "Rua A",
+    numero: "1",
+    bairro: { id: 1, nome: bairro, slug: bairro.toLowerCase() },
+    telefone: null,
+    whatsapp: null,
+    estacionamento: false,
+    acessibilidade,
+    horarios: [{ diaSemana: 2, abre: "08:00", fecha: "12:00" }],
+  });
+
+  const medico = (over: Partial<Medico> & { id: number }): Medico => ({
+    slug: `m${over.id}`,
+    nome: `Médico ${over.id}`,
+    crm: String(over.id),
+    crmUf: "MA",
+    foto: null,
+    bio: null,
+    telemedicina: false,
+    associadoAmi: false,
+    especialidades: [],
+    locais: [],
+    ...over,
+  });
+
+  it("conta profissionais por bairro, não registros de local", () => {
+    /* Um médico com dois consultórios no mesmo bairro é UM profissional
+       atendendo ali. Contar linhas de local devolveria 2 e a frase diria
+       "2 cardiologistas no Centro", o que é falso. */
+    const r = resumirFaceta(
+      [medico({ id: 1, locais: [local(1, "Centro"), local(2, "Centro")] })],
+      "Cardiologia",
+    );
+    expect(r.bairrosComOferta).toEqual([{ nome: "Centro", total: 1 }]);
+  });
+
+  it("conta o mesmo profissional em cada bairro onde atende", () => {
+    const r = resumirFaceta(
+      [medico({ id: 1, locais: [local(1, "Centro"), local(2, "Bacuri")] })],
+      "Cardiologia",
+    );
+    expect(r.bairrosComOferta).toEqual([
+      { nome: "Bacuri", total: 1 },
+      { nome: "Centro", total: 1 },
+    ]);
+  });
+
+  it("conta endereços distintos, sem duplicar o consultório compartilhado", () => {
+    const r = resumirFaceta(
+      [
+        medico({ id: 1, locais: [local(7, "Centro")] }),
+        medico({ id: 2, locais: [local(7, "Centro")] }),
+      ],
+      "Cardiologia",
+    );
+    expect(r.total).toBe(2);
+    expect(r.totalLocais).toBe(1);
+  });
+
+  it("conta locais com acesso para cadeirante, não profissionais", () => {
+    const r = resumirFaceta(
+      [
+        medico({
+          id: 1,
+          locais: [
+            local(1, "Centro", ["acesso_cadeirante"]),
+            local(2, "Bacuri", ["acesso_cadeirante"]),
+          ],
+        }),
+      ],
+      "Cardiologia",
+    );
+    expect(r.locaisComAcessoCadeirante).toBe(2);
+  });
+
+  it("conta associados e quem atende em mais de um endereço", () => {
+    const r = resumirFaceta(
+      [
+        medico({ id: 1, associadoAmi: true, locais: [local(1, "Centro"), local(2, "Bacuri")] }),
+        medico({ id: 2, associadoAmi: false, locais: [local(3, "Centro")] }),
+      ],
+      "Cardiologia",
+    );
+    expect(r.associados).toBe(1);
+    expect(r.comMaisDeUmEndereco).toBe(1);
+  });
+
+  it("ordena os bairros do mais ofertado para o menos", () => {
+    const r = resumirFaceta(
+      [
+        medico({ id: 1, locais: [local(1, "Centro")] }),
+        medico({ id: 2, locais: [local(2, "Centro")] }),
+        medico({ id: 3, locais: [local(3, "Bacuri")] }),
+      ],
+      "Cardiologia",
+    );
+    expect(r.bairrosComOferta.map((b) => b.nome)).toEqual(["Centro", "Bacuri"]);
   });
 });
 ```
@@ -1975,11 +2121,25 @@ export type ResumoFaceta = {
   especialidade: string;
   /** Nome do bairro, quando a faceta é de cruzamento. */
   bairro?: string;
+  /** Profissionais distintos. */
   total: number;
+  /**
+   * Profissionais distintos por bairro — não registros de local. Um médico
+   * com dois consultórios no mesmo bairro conta uma vez; um com consultórios
+   * em bairros diferentes conta em cada um, que é o que o leitor espera ao
+   * perguntar "quantos atendem no Centro".
+   */
   bairrosComOferta: { nome: string; total: number }[];
+  /** Endereços distintos, que é sempre >= total quando alguém tem dois. */
+  totalLocais: number;
   atendemSabado: number;
   comTelemedicina: number;
-  comAcessoCadeirante: number;
+  /** Conta LOCAIS, não profissionais — o nome diz isso para não derivar. */
+  locaisComAcessoCadeirante: number;
+  /** Quantos são associados da AMI. */
+  associados: number;
+  /** Quantos atendem em mais de um endereço. */
+  comMaisDeUmEndereco: number;
 };
 
 /* "Cardiologia" vira "cardiologista". Cobre os casos do catálogo; o que não
@@ -2017,33 +2177,41 @@ function lista(nomes: string[]): string {
 /**
  * Parágrafo de abertura da página de faceta.
  *
- * Gerado a partir dos dados reais: quantos profissionais, onde se concentram,
- * quantos atendem aos sábados, quantos fazem telemedicina, quantos locais têm
- * acesso para cadeirante. Nunca um texto-modelo com a palavra trocada — é
- * exatamente isso que o Google classifica como conteúdo raso.
+ * Gerado a partir dos dados reais: quantos profissionais, em quantos
+ * endereços, onde se concentram, quantos atendem aos sábados, quantos fazem
+ * telemedicina, quantos locais têm acesso para cadeirante. Nunca um
+ * texto-modelo com a palavra trocada — é exatamente isso que o Google
+ * classifica como conteúdo raso.
+ *
+ * Nenhuma frase começa com algarismo: em texto corrido em português isso não
+ * se faz, e é um dos sinais mais visíveis de texto gerado.
  */
 export function paragrafoDeAbertura(r: ResumoFaceta): string {
   const [sing, plur] = comoProfissional(r.especialidade);
   const nomeProf = r.total === 1 ? sing : plur;
-  const onde = r.bairro ? `no ${r.bairro}, em Imperatriz` : "em Imperatriz";
+  const onde = r.bairro ? `no ${r.bairro}` : "em Imperatriz";
 
   const frases: string[] = [];
 
   frases.push(
     `A Associação Médica de Imperatriz reúne ${r.total} ${nomeProf} ` +
-      `com atendimento ${onde}, no Maranhão.`,
+      `${onde}, no Maranhão, ` +
+      (r.totalLocais === 1
+        ? `com um único endereço de atendimento.`
+        : `somando ${r.totalLocais} endereços de atendimento.`),
   );
 
   if (!r.bairro && r.bairrosComOferta.length) {
     const principais = r.bairrosComOferta.slice(0, 3);
     if (principais.length === 1) {
       frases.push(
-        `O atendimento se concentra no bairro ${principais[0].nome}.`,
+        `Todo o atendimento se concentra no bairro ${principais[0].nome}.`,
       );
     } else {
       frases.push(
-        `A oferta se distribui pelos bairros ${lista(principais.map((b) => b.nome))}, ` +
-          `sendo ${principais[0].total} ${principais[0].total === 1 ? sing : plur} ` +
+        `A oferta se distribui pelos bairros ` +
+          `${lista(principais.map((b) => b.nome))}, sendo ` +
+          `${principais[0].total} ${principais[0].total === 1 ? sing : plur} ` +
           `no ${principais[0].nome}.`,
       );
     }
@@ -2052,51 +2220,79 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
   if (r.atendemSabado > 0) {
     frases.push(
       `Desses, ${r.atendemSabado} ${r.atendemSabado === 1 ? "atende" : "atendem"} ` +
-        `aos sábados, o que costuma resolver a consulta de quem trabalha ` +
-        `em horário comercial durante a semana.`,
+        `aos sábados, o que costuma resolver a consulta de quem trabalha em ` +
+        `horário comercial durante a semana.`,
     );
   } else {
     frases.push(
       `Por enquanto, os atendimentos acontecem apenas em dias úteis, de ` +
-        `segunda a sexta-feira.`,
+        `segunda a sexta-feira, o que vale considerar ao pedir dispensa no ` +
+        `trabalho para a consulta.`,
     );
   }
 
-  /* Nenhuma frase começa com algarismo: em texto corrido em português isso
-     não se faz, e é um dos sinais mais visíveis de texto gerado. */
   if (r.comTelemedicina > 0) {
     frases.push(
-      `A telemedicina é oferecida por ${r.comTelemedicina} ` +
-        `deles, alternativa para quem ` +
-        `vem de outras cidades da região sul do Maranhão e do sudeste do Pará.`,
-    );
-  }
-
-  /* O caso zero merece frase própria. "0 locais de atendimento têm acesso"
-     é a redação que denuncia geração automática — e a informação de que
-     nenhum local tem acesso é útil demais para ser omitida. */
-  if (r.comAcessoCadeirante === 0) {
-    frases.push(
-      `Nenhum dos locais de atendimento informa acesso para cadeirante no ` +
-        `cadastro da associação, o que vale confirmar por telefone antes de ir.`,
+      `A telemedicina é oferecida por ${r.comTelemedicina} deles, alternativa ` +
+        `para quem vem de outras cidades da região sul do Maranhão e do ` +
+        `sudeste do Pará.`,
     );
   } else {
     frases.push(
-      `Entre os locais de atendimento, ${r.comAcessoCadeirante} ` +
-        `${r.comAcessoCadeirante === 1 ? "informa" : "informam"} acesso para ` +
-        `cadeirante no cadastro da associação.`,
+      `Nenhum deles registrou atendimento por telemedicina, então a consulta ` +
+        `é presencial.`,
     );
   }
 
+  if (r.locaisComAcessoCadeirante === 0) {
+    frases.push(
+      `Nenhum dos endereços informa acesso para cadeirante no cadastro da ` +
+        `associação, o que vale confirmar por telefone antes de ir.`,
+    );
+  } else {
+    frases.push(
+      `Entre os endereços, ${r.locaisComAcessoCadeirante} ` +
+        `${r.locaisComAcessoCadeirante === 1 ? "informa" : "informam"} acesso ` +
+        `para cadeirante no cadastro da associação.`,
+    );
+  }
+
+  if (r.associados === 0) {
+    frases.push(
+      `Nenhum deles consta como associado da AMI no cadastro atual.`,
+    );
+  } else if (r.associados === r.total) {
+    frases.push(
+      `Todos são associados da Associação Médica de Imperatriz, o que ` +
+        `significa cadastro conferido e mantido pela entidade.`,
+    );
+  } else {
+    frases.push(
+      `Do total, ${r.associados} ` +
+        `${r.associados === 1 ? "é associado" : "são associados"} da ` +
+        `Associação Médica de Imperatriz, com cadastro conferido pela entidade.`,
+    );
+  }
+
+  if (r.comMaisDeUmEndereco > 0) {
+    frases.push(
+      `Entre eles, ${r.comMaisDeUmEndereco} ` +
+        `${r.comMaisDeUmEndereco === 1 ? "atende" : "atendem"} em mais de um ` +
+        `endereço, o que costuma ampliar as opções de dia e horário.`,
+    );
+  } else {
+    frases.push(
+      `Cada um atende em um endereço só, sem alternativa de local.`,
+    );
+  }
+
+  /* Fecho comum a toda página de faceta. É curto de propósito: informação
+     que não varia com os dados é a que faz duas facetas parecerem a mesma
+     página, e é o que o Google trata como conteúdo raso. */
   frases.push(
-    `Cada perfil abaixo traz o endereço completo, o telefone de contato e os ` +
-      `horários de atendimento por dia da semana, além do número de registro ` +
-      `no Conselho Regional de Medicina, conforme exige a Resolução CFM ` +
-      `2.336/2023. Os dados são mantidos pela Associação Médica de Imperatriz ` +
-      `e revisados a cada atualização enviada pelo profissional. Se quem você ` +
-      `procura não estiver aqui, vale olhar as especialidades relacionadas no ` +
-      `fim da página: a divisão entre algumas áreas varia conforme a formação ` +
-      `de cada médico.`,
+    `Cada perfil abaixo traz endereço, telefone, horários por dia da semana e ` +
+      `o número de registro no Conselho Regional de Medicina, como exige a ` +
+      `Resolução CFM 2.336/2023.`,
   );
 
   return frases.join(" ");
@@ -2108,13 +2304,24 @@ export function resumirFaceta(
   especialidade: string,
   bairro?: string,
 ): ResumoFaceta {
-  const porBairro = new Map<string, number>();
-  let comAcessoCadeirante = 0;
+  /* Conjuntos, não contadores: o mesmo profissional aparece uma vez por
+     bairro mesmo com dois consultórios lá, e o mesmo endereço compartilhado
+     por dois médicos conta como um endereço. */
+  const profissionaisPorBairro = new Map<string, Set<number>>();
+  const locais = new Set<number>();
+  const locaisComAcesso = new Set<number>();
 
   for (const m of medicos) {
     for (const l of m.locais) {
-      porBairro.set(l.bairro.nome, (porBairro.get(l.bairro.nome) ?? 0) + 1);
-      if (l.acessibilidade.includes("acesso_cadeirante")) comAcessoCadeirante++;
+      const nome = l.bairro.nome;
+      if (!profissionaisPorBairro.has(nome)) {
+        profissionaisPorBairro.set(nome, new Set());
+      }
+      profissionaisPorBairro.get(nome)!.add(m.id);
+      locais.add(l.id);
+      if (l.acessibilidade.includes("acesso_cadeirante")) {
+        locaisComAcesso.add(l.id);
+      }
     }
   }
 
@@ -2122,14 +2329,19 @@ export function resumirFaceta(
     especialidade,
     bairro,
     total: medicos.length,
-    bairrosComOferta: [...porBairro.entries()]
-      .map(([nome, total]) => ({ nome, total }))
-      .sort((a, b) => b.total - a.total || a.nome.localeCompare(b.nome, "pt-BR")),
+    bairrosComOferta: [...profissionaisPorBairro.entries()]
+      .map(([nome, ids]) => ({ nome, total: ids.size }))
+      .sort(
+        (a, b) => b.total - a.total || a.nome.localeCompare(b.nome, "pt-BR"),
+      ),
+    totalLocais: locais.size,
     atendemSabado: medicos.filter((m) =>
       m.locais.some((l) => l.horarios.some((h) => h.diaSemana === 6)),
     ).length,
     comTelemedicina: medicos.filter((m) => m.telemedicina).length,
-    comAcessoCadeirante,
+    locaisComAcessoCadeirante: locaisComAcesso.size,
+    associados: medicos.filter((m) => m.associadoAmi).length,
+    comMaisDeUmEndereco: medicos.filter((m) => m.locais.length > 1).length,
   };
 }
 ```
@@ -2140,7 +2352,7 @@ export function resumirFaceta(
 npm test -- testes/facetas.test.ts
 ```
 
-Esperado: `9 passed`.
+Esperado: `16 passed`.
 
 - [ ] **Step 5: Commit**
 
