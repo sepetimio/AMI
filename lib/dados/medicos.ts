@@ -1,0 +1,116 @@
+import { clienteServidor } from "@/lib/dados/cliente";
+import { aplicarFiltros, ordenar } from "@/lib/dados/filtros";
+import type {
+  Filtros,
+  Medico,
+  RecursoAcessibilidade,
+} from "@/lib/dados/tipos";
+
+/* Uma seleção só, com as junções aninhadas. Trazer tudo de uma vez evita o
+   problema de N+1 consultas — 24 perfis não podem virar 97 idas ao banco. */
+const SELECAO = `
+  id, slug, nome, crm, crm_uf, foto, bio, telemedicina, associado_ami,
+  profissional_especialidade (
+    rqe, principal,
+    especialidade ( nome, slug )
+  ),
+  atendimento (
+    horario ( dia_semana, abre, fecha ),
+    local (
+      id, logradouro, numero, telefone, whatsapp, estacionamento,
+      bairro ( id, nome, slug ),
+      local_acessibilidade ( recurso )
+    )
+  )
+`;
+
+/* O Postgres devolve `time` como "08:00:00"; a interface e os testes
+   trabalham com "HH:MM". */
+const hhmm = (t: string) => t.slice(0, 5);
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function paraDominio(linha: any): Medico {
+  return {
+    id: linha.id,
+    slug: linha.slug,
+    nome: linha.nome,
+    crm: linha.crm,
+    crmUf: linha.crm_uf,
+    foto: linha.foto,
+    bio: linha.bio,
+    telemedicina: linha.telemedicina,
+    associadoAmi: linha.associado_ami,
+    especialidades: (linha.profissional_especialidade ?? []).map((pe: any) => ({
+      nome: pe.especialidade.nome,
+      slug: pe.especialidade.slug,
+      rqe: pe.rqe,
+      principal: pe.principal,
+    })),
+    locais: (linha.atendimento ?? []).map((a: any) => ({
+      id: a.local.id,
+      logradouro: a.local.logradouro,
+      numero: a.local.numero,
+      bairro: a.local.bairro,
+      telefone: a.local.telefone,
+      whatsapp: a.local.whatsapp,
+      estacionamento: a.local.estacionamento,
+      acessibilidade: (a.local.local_acessibilidade ?? []).map(
+        (r: any) => r.recurso as RecursoAcessibilidade,
+      ),
+      horarios: (a.horario ?? []).map((h: any) => ({
+        diaSemana: h.dia_semana,
+        abre: hhmm(h.abre),
+        fecha: hhmm(h.fecha),
+      })),
+    })),
+  };
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
+/**
+ * Busca com filtros.
+ *
+ * A publicação é filtrada no banco — e a RLS garante isso de novo, mesmo que
+ * alguém remova esta linha. O restante é filtrado em memória por
+ * `aplicarFiltros`, que é puro e testado. Com a ordem de 500 registros a
+ * diferença de desempenho é irrelevante, e a lógica fica testável sem banco.
+ */
+export async function buscarMedicos(filtros: Filtros = {}): Promise<Medico[]> {
+  const { data, error } = await clienteServidor()
+    .from("profissional")
+    .select(SELECAO)
+    .eq("publicado", true)
+    .eq("situacao", "ativo");
+
+  if (error) throw new Error(`Falha ao buscar médicos: ${error.message}`);
+
+  const todos = (data ?? []).map(paraDominio);
+  return ordenar(
+    aplicarFiltros(todos, filtros),
+    filtros.ordem ?? "relevancia",
+    filtros.termo,
+  );
+}
+
+export async function medicoPorSlug(slug: string): Promise<Medico | null> {
+  const { data, error } = await clienteServidor()
+    .from("profissional")
+    .select(SELECAO)
+    .eq("slug", slug)
+    .eq("publicado", true)
+    .maybeSingle();
+
+  if (error) throw new Error(`Falha ao buscar o perfil: ${error.message}`);
+  return data ? paraDominio(data) : null;
+}
+
+/** Alimenta o sitemap e a geração estática das rotas de perfil. */
+export async function slugsDeMedicos(): Promise<string[]> {
+  const { data, error } = await clienteServidor()
+    .from("profissional")
+    .select("slug")
+    .eq("publicado", true);
+
+  if (error) throw new Error(`Falha ao listar slugs: ${error.message}`);
+  return (data ?? []).map((l) => l.slug as string);
+}
