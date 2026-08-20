@@ -1808,7 +1808,7 @@ export function ordenar(
 npm test -- testes/filtros.test.ts
 ```
 
-Esperado: `16 passed`.
+Esperado: `18 passed`.
 
 - [ ] **Step 5: Commit**
 
@@ -1944,6 +1944,26 @@ describe("paragrafoDeAbertura", () => {
     expect(p).toContain("1 atende aos sábados");
     expect(p).toContain("1 informa acesso");
     expect(p).toContain("1 atende em mais de um endereço");
+    expect(p).not.toContain("Todos são");
+    expect(p).not.toContain("Nenhum deles");
+  });
+
+  it("no singular sem associado, não diz 'nenhum deles'", () => {
+    const p = paragrafoDeAbertura({
+      ...base,
+      total: 1,
+      totalLocais: 1,
+      bairrosComOferta: [{ nome: "Centro", total: 1 }],
+      atendemSabado: 0,
+      comTelemedicina: 0,
+      locaisComAcessoCadeirante: 0,
+      associados: 0,
+      comMaisDeUmEndereco: 0,
+    });
+    expect(p).toContain("O profissional listado não consta como associado");
+    expect(p).toContain("O atendimento acontece em um endereço só");
+    expect(p).not.toContain("Nenhum deles");
+    expect(p).not.toContain("Cada um atende");
   });
 
   it("concorda o plural", () => {
@@ -2239,7 +2259,7 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
     );
   } else {
     frases.push(
-      `Nenhum deles registrou atendimento por telemedicina, então a consulta ` +
+      `Não há registro de atendimento por telemedicina, então a consulta ` +
         `é presencial.`,
     );
   }
@@ -2257,14 +2277,22 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
     );
   }
 
+  /* O singular não usa pronome: "ele" erraria o gênero em metade dos
+     casos, e "todos" para uma pessoa só soa errado em português. */
   if (r.associados === 0) {
     frases.push(
-      `Nenhum deles consta como associado da AMI no cadastro atual.`,
+      r.total === 1
+        ? `O profissional listado não consta como associado da AMI no ` +
+            `cadastro atual.`
+        : `Nenhum deles consta como associado da AMI no cadastro atual.`,
     );
   } else if (r.associados === r.total) {
     frases.push(
-      `Todos são associados da Associação Médica de Imperatriz, o que ` +
-        `significa cadastro conferido e mantido pela entidade.`,
+      r.total === 1
+        ? `O único profissional listado é associado da Associação Médica de ` +
+            `Imperatriz, com cadastro conferido e mantido pela entidade.`
+        : `Todos são associados da Associação Médica de Imperatriz, o que ` +
+            `significa cadastro conferido e mantido pela entidade.`,
     );
   } else {
     frases.push(
@@ -2282,7 +2310,9 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
     );
   } else {
     frases.push(
-      `Cada um atende em um endereço só, sem alternativa de local.`,
+      r.total === 1
+        ? `O atendimento acontece em um endereço só, sem alternativa de local.`
+        : `Cada um atende em um endereço só, sem alternativa de local.`,
     );
   }
 
