@@ -26,47 +26,57 @@ export async function Rodape() {
         </p>
 
         <div className="mt-10 grid gap-10 md:grid-cols-4">
-          <nav aria-labelledby="rodape-especialidades">
-            <h2
-              id="rodape-especialidades"
-              className="font-titulo text-xs font-bold uppercase tracking-[0.12em] text-white"
-            >
-              Especialidades
-            </h2>
-            <ul className="mt-3 space-y-1.5">
-              {especialidades.slice(0, 20).map((e) => (
-                <li key={e.slug}>
-                  <Link
-                    href={`/medicos/${e.slug}`}
-                    className="text-[15px] hover:text-white hover:underline"
-                  >
-                    {e.nome}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          {/* Coluna só existe se houver o que listar: título sobre lista
+              vazia promete navegação que não está lá. Acontece de verdade
+              quando o projeto gratuito do Supabase hiberna. */}
+          {especialidades.length > 0 ? (
+            <nav aria-labelledby="rodape-especialidades">
+              <h2
+                id="rodape-especialidades"
+                className="font-titulo text-xs font-bold uppercase tracking-[0.12em] text-white"
+              >
+                Especialidades
+              </h2>
+              <ul className="mt-3">
+                {especialidades.slice(0, 20).map((e) => (
+                  <li key={e.slug}>
+                    <Link
+                      href={`/medicos/${e.slug}`}
+                      /* O alvo de 44px é regra de toque, então vale abaixo de
+                         md. No desktop a lista fica densa de propósito: vinte
+                         itens a 44px dariam quase novecentos pixels de coluna. */
+                      className="flex items-center py-1 text-[15px] hover:text-white hover:underline max-md:min-h-11 max-md:py-0"
+                    >
+                      {e.nome}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ) : null}
 
-          <nav aria-labelledby="rodape-bairros">
-            <h2
-              id="rodape-bairros"
-              className="font-titulo text-xs font-bold uppercase tracking-[0.12em] text-white"
-            >
-              Bairros
-            </h2>
-            <ul className="mt-3 space-y-1.5">
-              {bairros.map((b) => (
-                <li key={b.slug}>
-                  <Link
-                    href={`/medicos?bairro=${b.slug}`}
-                    className="text-[15px] hover:text-white hover:underline"
-                  >
-                    {b.nome}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          {bairros.length > 0 ? (
+            <nav aria-labelledby="rodape-bairros">
+              <h2
+                id="rodape-bairros"
+                className="font-titulo text-xs font-bold uppercase tracking-[0.12em] text-white"
+              >
+                Bairros
+              </h2>
+              <ul className="mt-3">
+                {bairros.map((b) => (
+                  <li key={b.slug}>
+                    <Link
+                      href={`/busca?bairro=${b.slug}`}
+                      className="flex items-center py-1 text-[15px] hover:text-white hover:underline max-md:min-h-11 max-md:py-0"
+                    >
+                      {b.nome}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ) : null}
 
           <nav aria-labelledby="rodape-institucional">
             <h2
@@ -75,14 +85,20 @@ export async function Rodape() {
             >
               A Associação
             </h2>
-            <ul className="mt-3 space-y-1.5 text-[15px]">
+            <ul className="mt-3 text-[15px]">
               <li>
-                <Link href="/associacao" className="hover:text-white hover:underline">
+                <Link
+                  href="/associacao"
+                  className="flex items-center py-1 hover:text-white hover:underline max-md:min-h-11 max-md:py-0"
+                >
                   Quem somos
                 </Link>
               </li>
               <li>
-                <Link href="/medicos" className="hover:text-white hover:underline">
+                <Link
+                  href="/medicos"
+                  className="flex items-center py-1 hover:text-white hover:underline max-md:min-h-11 max-md:py-0"
+                >
                   Buscar médicos
                 </Link>
               </li>
