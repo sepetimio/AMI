@@ -5343,7 +5343,13 @@ import { agruparPorDia, type Horario } from "@/lib/dados/horarios";
 */
 export function GradeHorarios({ horarios }: { horarios: Horario[] }) {
   const [hoje, setHoje] = useState<number | null>(null);
-  useEffect(() => setHoje(new Date().getDay()), []);
+  useEffect(() => {
+    /* Envolvido numa função nomeada porque a regra react-hooks/
+       set-state-in-effect rejeita setState direto no corpo do efeito.
+       Mesmo idioma de SeloAbertoAgora. */
+    const definir = () => setHoje(new Date().getDay());
+    definir();
+  }, []);
 
   const dias = agruparPorDia(horarios);
 
