@@ -4,6 +4,7 @@ import { CartaoDiretor } from "@/components/diretorio/CartaoDiretor";
 import { EstadoVazio } from "@/components/base/EstadoVazio";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbList } from "@/lib/seo/jsonld";
+import { tituloDePagina } from "@/lib/seo/metadados";
 import { listarDiretoria } from "@/lib/dados/diretoria";
 
 export const revalidate = 3600;
@@ -11,7 +12,7 @@ export const revalidate = 3600;
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "Diretoria | Associação Médica de Imperatriz",
+  title: tituloDePagina("Diretoria da Associação Médica de Imperatriz"),
   description:
     "Quem responde pela Associação Médica de Imperatriz, com cargo, nome e " +
     "número de inscrição no CRM.",

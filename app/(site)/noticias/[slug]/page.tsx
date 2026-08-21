@@ -5,6 +5,7 @@ import { Cabeceira } from "@/components/layout/Cabeceira";
 import { TextoRico } from "@/components/editorial/TextoRico";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbList, newsArticle } from "@/lib/seo/jsonld";
+import { tituloDePagina } from "@/lib/seo/metadados";
 import { noticiaPorSlug, slugsDeNoticias } from "@/lib/sanity/consultas";
 import { dimensoesDoRef, urlDaImagem } from "@/lib/sanity/imagem";
 import { dataPorExtenso, identificacaoMedica } from "@/lib/formato";
@@ -44,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!n) return {};
 
   return {
-    title: `${n.titulo} | AMI`,
+    title: tituloDePagina(n.titulo),
     description: n.resumo,
     alternates: { canonical: `/noticias/${slug}` },
   };

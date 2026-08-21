@@ -5,6 +5,7 @@ import {
   descricaoEspecialidade,
   descricaoFaceta,
   descricaoMedico,
+  tituloDePagina,
   tituloEspecialidade,
   tituloFaceta,
   tituloMedico,
@@ -171,5 +172,42 @@ describe("descricaoMedico", () => {
     ]);
     expect(d).toContain("no bairro Nova Imperatriz");
     expect(d).not.toMatch(/\bem Nova Imperatriz\b/);
+  });
+});
+
+describe("tituloDePagina", () => {
+  it("usa o sufixo que a spec fixa, e só ele", () => {
+    /* O ramo chegou à revisão final com três convenções concorrentes:
+       "| Associação Médica de Imperatriz", "| AMI" e sufixo nenhum. A spec,
+       seção 7, fixa "| AMI". */
+    expect(tituloDePagina("Estatuto")).toBe("Estatuto | AMI");
+  });
+
+  it("descarta o sufixo antes de estourar o limite", () => {
+    /* Título de matéria vem do Studio e pode ser longo. Concatenado à mão,
+       ele passa dos 60 e o Google corta onde quiser, às vezes no meio do
+       "| AMI". Perder o sufixo é melhor que perdê-lo pela metade. */
+    const longo =
+      "Campanha de vacinação contra a gripe começa nas unidades de Imperatriz";
+    const titulo = tituloDePagina(longo);
+    expect(titulo).not.toContain("| AMI");
+    expect(titulo.length).toBeLessThanOrEqual(LIMITE_TITULO);
+  });
+
+  it("corta no espaço quando nem a cabeça sozinha cabe", () => {
+    const titulo = tituloDePagina(
+      "Assembleia geral extraordinária da Associação Médica de Imperatriz convocada",
+    );
+    expect(titulo.length).toBeLessThanOrEqual(LIMITE_TITULO);
+    expect(titulo.endsWith(" ")).toBe(false);
+    /* Sem corte no meio de palavra: cada pedaço do resultado é uma palavra
+       inteira do original. */
+    for (const palavra of titulo.split(" ")) {
+      expect(
+        "Assembleia geral extraordinária da Associação Médica de Imperatriz convocada".split(
+          " ",
+        ),
+      ).toContain(palavra);
+    }
   });
 });

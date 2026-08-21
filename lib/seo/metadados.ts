@@ -37,6 +37,24 @@ function montar(cabecas: string[], resto: string[], limite: number): string {
   );
 }
 
+/**
+ * Título das páginas cujo assunto já vem escrito: as institucionais, as
+ * legais e as notícias, onde o texto da cabeça vem do Sanity ou de uma
+ * constante e não de uma contagem do banco.
+ *
+ * Existe para que o sufixo seja um só no site inteiro. A spec, seção 7, fixa
+ * o molde com "| AMI", e o ramo chegou à revisão final com três convenções
+ * concorrentes: duas páginas escreviam o nome da associação por extenso,
+ * cinco escreviam "AMI" e uma não tinha sufixo nenhum.
+ *
+ * E não é só cosmético: concatenado à mão, um título de matéria longo passa
+ * dos 60 caracteres e o Google corta onde quiser, às vezes no meio do "|
+ * AMI". Aqui o `montar` descarta o sufixo antes de deixar isso acontecer.
+ */
+export function tituloDePagina(cabeca: string): string {
+  return montar([cabeca], [MARCA], LIMITE_TITULO);
+}
+
 export function tituloEspecialidade(nome: string, total: number): string {
   return montar(
     [`${nome} em ${CIDADE}`, `${nome} em Imperatriz`, nome],

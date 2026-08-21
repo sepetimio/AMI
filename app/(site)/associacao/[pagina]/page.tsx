@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { PaginaDeTexto } from "@/components/editorial/PaginaDeTexto";
 import { paginaPorSlug } from "@/lib/sanity/consultas";
 import { slugsDePaginasSobAssociacao } from "@/lib/sanity/paginas";
+import { tituloDePagina } from "@/lib/seo/metadados";
 
 export const revalidate = 3600;
 
@@ -39,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!conteudo) return {};
 
   return {
-    title: `${conteudo.titulo} | AMI`,
+    title: tituloDePagina(conteudo.titulo),
     description: conteudo.resumo,
     alternates: { canonical: `/associacao/${pagina}` },
   };

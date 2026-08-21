@@ -4,6 +4,7 @@ import { EstadoVazio } from "@/components/base/EstadoVazio";
 import { LinhaNoticia } from "@/components/editorial/LinhaNoticia";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbList } from "@/lib/seo/jsonld";
+import { tituloDePagina } from "@/lib/seo/metadados";
 import { listarNoticias } from "@/lib/sanity/consultas";
 
 export const revalidate = 3600;
@@ -11,7 +12,7 @@ export const revalidate = 3600;
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "Notícias da AMI | Associação Médica de Imperatriz",
+  title: tituloDePagina("Notícias da Associação Médica de Imperatriz"),
   description:
     "Comunicados, eventos e notas da Associação Médica de Imperatriz, " +
     "assinados por médicos com CRM.",

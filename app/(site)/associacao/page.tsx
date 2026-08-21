@@ -4,6 +4,7 @@ import { Cabeceira } from "@/components/layout/Cabeceira";
 import { TextoRico } from "@/components/editorial/TextoRico";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbList } from "@/lib/seo/jsonld";
+import { tituloDePagina } from "@/lib/seo/metadados";
 import { paginaPorSlug } from "@/lib/sanity/consultas";
 import { dataPorExtenso } from "@/lib/formato";
 
@@ -52,7 +53,7 @@ const CAMINHOS = [
 export async function generateMetadata(): Promise<Metadata> {
   const conteudo = await paginaPorSlug("associacao");
   return {
-    title: TITULO,
+    title: tituloDePagina(TITULO),
     description: conteudo?.resumo ?? RESUMO_PADRAO,
     alternates: { canonical: "/associacao" },
   };
