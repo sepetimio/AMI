@@ -1,0 +1,100 @@
+import Link from "next/link";
+import { PortableText, type PortableTextComponents } from "@portabletext/react";
+import type { PortableTextBlock } from "@portabletext/react";
+import { urlDaImagem } from "@/lib/sanity/imagem";
+import type { ImagemSanity } from "@/lib/sanity/tipos";
+
+/*
+  O texto que a AMI escreve no Studio, desenhado no sistema visual do site.
+
+  Sem este mapeamento o PortableText emite `<h2>`, `<p>` e `<ul>` crus, que
+  herdam só o que a camada base do `globals.css` define. Os cabeçalhos até
+  saem certos, mas listas, citações e o respiro entre parágrafos ficam com o
+  padrão do navegador, e o texto editorial passa a parecer colado de outro
+  site. Aqui cada nó recebe as classes do projeto.
+*/
+const componentes: PortableTextComponents = {
+  block: {
+    normal: ({ children }) => (
+      <p className="coluna-leitura mt-5 text-[18px] text-ink-600">{children}</p>
+    ),
+    h2: ({ children }) => (
+      <h2 className="mt-12 border-b border-line-strong pb-3">{children}</h2>
+    ),
+    h3: ({ children }) => <h3 className="mt-9">{children}</h3>,
+    blockquote: ({ children }) => (
+      /* Fio à esquerda em vez de aspas grandes: a citação num site
+         institucional é fonte, não ornamento. */
+      <blockquote className="coluna-leitura mt-7 border-l-2 border-ami-green-600 py-1 pl-5 text-[19px] text-ink-600">
+        {children}
+      </blockquote>
+    ),
+  },
+
+  list: {
+    bullet: ({ children }) => (
+      <ul className="coluna-leitura mt-5 list-disc space-y-2 pl-6 text-[18px] text-ink-600">
+        {children}
+      </ul>
+    ),
+    number: ({ children }) => (
+      <ol className="coluna-leitura mt-5 list-decimal space-y-2 pl-6 text-[18px] text-ink-600">
+        {children}
+      </ol>
+    ),
+  },
+
+  marks: {
+    strong: ({ children }) => (
+      <strong className="font-semibold text-ink-900">{children}</strong>
+    ),
+    link: ({ value, children }) => {
+      const href: string = value?.href ?? "#";
+      /* Link externo abre na mesma aba. Abrir em aba nova sem avisar rouba do
+         leitor o controle do próprio navegador, e o botão voltar deixa de
+         funcionar, que é a queixa mais comum de quem usa leitor de tela. */
+      const externo = /^https?:\/\//.test(href);
+      const classe =
+        "font-semibold text-ami-green-600 underline underline-offset-2 hover:text-ami-green-700";
+
+      return externo ? (
+        <a href={href} className={classe} rel="noopener">
+          {children}
+        </a>
+      ) : (
+        <Link href={href} className={classe}>
+          {children}
+        </Link>
+      );
+    },
+  },
+
+  types: {
+    image: ({ value }: { value: ImagemSanity }) => (
+      <figure className="mt-9">
+        {/* Moldura concêntrica, a mesma do bloco institucional da home. */}
+        <div className="rounded-bloco border border-line bg-surface p-2 shadow-erguido">
+          {/* eslint-disable-next-line @next/next/no-img-element --
+              o CDN do Sanity já redimensiona e converte formato; ver o
+              comentário em lib/sanity/imagem.ts. */}
+          <img
+            src={urlDaImagem(value, 1200)}
+            alt={value.alt}
+            width={1200}
+            height={800}
+            className="h-auto w-full rounded-[6px]"
+          />
+        </div>
+        {value.legenda ? (
+          <figcaption className="coluna-leitura mt-3 text-[15px] text-ink-400">
+            {value.legenda}
+          </figcaption>
+        ) : null}
+      </figure>
+    ),
+  },
+};
+
+export function TextoRico({ blocos }: { blocos: PortableTextBlock[] }) {
+  return <PortableText value={blocos} components={componentes} />;
+}
