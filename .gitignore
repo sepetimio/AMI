@@ -44,3 +44,6 @@ marca/_estudo-restauracao-recusado/
 
 # rastro de execução do plano
 .superpowers/
+
+# Direções de design recusadas e artefatos do canvas.
+design/
