@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PortableText, type PortableTextComponents } from "@portabletext/react";
 import type { PortableTextBlock } from "@portabletext/react";
 import { dimensoesDoRef, urlDaImagem } from "@/lib/sanity/imagem";
+import { ehLinkInterno } from "@/lib/sanity/link";
 import type { ImagemSanity } from "@/lib/sanity/tipos";
 
 /*
@@ -53,22 +54,25 @@ const componentes: PortableTextComponents = {
       const href: string = value?.href ?? "#";
       /* Link externo abre na mesma aba. Abrir em aba nova sem avisar rouba do
          leitor o controle do próprio navegador, e o botão voltar deixa de
-         funcionar, que é a queixa mais comum de quem usa leitor de tela. */
-      const externo = /^https?:\/\//.test(href);
+         funcionar, que é a queixa mais comum de quem usa leitor de tela.
+
+         A regra de qual é qual está em `lib/sanity/link.ts`, testada: ela
+         precisa distinguir cinco formas que a anotação do Studio aceita, e
+         a expressão regular que morava aqui só reconhecia duas. */
       const classe =
         "font-semibold text-ami-green-600 underline underline-offset-2 hover:text-ami-green-700";
 
-      return externo ? (
+      return ehLinkInterno(href) ? (
+        <Link href={href} className={classe}>
+          {children}
+        </Link>
+      ) : (
         /* Sem `target="_blank"` (a mesma aba, decisão de cima), `rel`
            não tem efeito nenhum: `noopener`/`noreferrer` só existem para
            mitigar o `window.opener` de um contexto de navegação novo. */
         <a href={href} className={classe}>
           {children}
         </a>
-      ) : (
-        <Link href={href} className={classe}>
-          {children}
-        </Link>
       );
     },
   },

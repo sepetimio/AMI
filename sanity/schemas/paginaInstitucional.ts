@@ -124,7 +124,23 @@ export const paginaInstitucional = defineType({
                     name: "href",
                     title: "Endereço",
                     type: "url",
-                    validation: (r) => r.required(),
+                    /*
+                      Um `type: "url"` cru já carrega `Rule.uri()` com
+                      `scheme: ["http", "https"]` e `allowRelative: false`, e
+                      `.required()` não substitui essa regra base: acrescenta
+                      à ela. O efeito era a secretaria não conseguir linkar
+                      `/associacao/diretoria` nem o e-mail da AMI de dentro de
+                      uma página institucional, que num estatuto e numa
+                      política editorial é justamente o que mais se linka.
+                      Esta lista é a mesma da anotação de link padrão do
+                      próprio Sanity, escrita aqui porque só declarando
+                      `uri()` explicitamente ela troca a base.
+                    */
+                    validation: (r) =>
+                      r.required().uri({
+                        scheme: ["http", "https", "tel", "mailto"],
+                        allowRelative: true,
+                      }),
                   }),
                 ],
               },

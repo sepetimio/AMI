@@ -1,6 +1,52 @@
 import { describe, expect, it } from "vitest";
 import { tipos } from "@/sanity/schemas";
 
+/*
+  A anotação de link é a única regra dos dois schemas que precisa ser
+  declarada por extenso: um `type: "url"` cru carrega `Rule.uri()` com
+  `scheme: ["http", "https"]` e `allowRelative: false` embutidos, e
+  `.required()` não desfaz isso.
+*/
+type Espiao = {
+  chamou: string[];
+  uri?: { scheme?: string[]; allowRelative?: boolean };
+};
+
+function espiarValidacaoDoLink(nomeDoTipo: string): Espiao {
+  const tipo = porNome(nomeDoTipo) as unknown as {
+    fields: { name: string; of?: unknown[] }[];
+  };
+  const corpo = tipo.fields.find((c) => c.name === "corpo");
+  const blocos = (corpo?.of ?? []) as {
+    marks?: {
+      annotations?: {
+        name: string;
+        fields: { name: string; validation?: (r: unknown) => unknown }[];
+      }[];
+    };
+  }[];
+  const link = blocos
+    .flatMap((b) => b.marks?.annotations ?? [])
+    .find((a) => a.name === "link");
+  const href = link?.fields.find((c) => c.name === "href");
+  if (!href?.validation) throw new Error(`${nomeDoTipo}: link sem validação`);
+
+  const espiao: Espiao = { chamou: [] };
+  const regra = {
+    required() {
+      espiao.chamou.push("required");
+      return regra;
+    },
+    uri(opcoes: { scheme?: string[]; allowRelative?: boolean }) {
+      espiao.chamou.push("uri");
+      espiao.uri = opcoes;
+      return regra;
+    },
+  };
+  href.validation(regra);
+  return espiao;
+}
+
 function porNome(nome: string) {
   const t = tipos.find((t) => t.name === nome);
   if (!t) throw new Error(`schema "${nome}" não registrado`);
@@ -53,4 +99,21 @@ describe("schemas do Sanity", () => {
       expect.arrayContaining(["titulo", "slug", "resumo", "corpo", "atualizadoEm"]),
     );
   });
+});
+
+describe("anotação de link do texto rico", () => {
+  /* A anotação de link padrão do próprio Sanity usa estes quatro esquemas e
+     aceita endereço relativo. Sem declarar, a secretaria não consegue linkar
+     /associacao/diretoria nem o e-mail da AMI de dentro de uma página
+     institucional, e o ramo de link interno de TextoRico fica inalcançável. */
+  for (const nome of ["noticia", "paginaInstitucional"]) {
+    it(`${nome} aceita endereço interno, e-mail e telefone`, () => {
+      const espiao = espiarValidacaoDoLink(nome);
+      expect(espiao.chamou).toContain("required");
+      expect(espiao.uri).toEqual({
+        scheme: ["http", "https", "tel", "mailto"],
+        allowRelative: true,
+      });
+    });
+  }
 });
