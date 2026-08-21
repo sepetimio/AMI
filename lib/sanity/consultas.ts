@@ -118,6 +118,37 @@ export const CAMINHO_DAS_PAGINAS: Readonly<Record<string, string>> = {
   "politica-de-cookies": "/politica-de-cookies",
 };
 
+/*
+  Achado da rodada 1 de revisão: `CAMINHO_DAS_PAGINAS` não era, de fato, a
+  fonte única. `app/(site)/associacao/[pagina]/page.tsx` mantinha seu próprio
+  array `PAGINAS`, escrito à mão, com os mesmos três slugs. Nada impedia as
+  duas listas de divergirem: alguém acrescenta uma sétima página sob
+  `/associacao` aqui e esquece de tocar `PAGINAS`, e a página nunca aparece
+  no sitemap, em silêncio, para sempre. É a mesma classe de defeito que esta
+  tarefa corrigiu no sitemap, um nível abaixo.
+
+  A correção deriva `PAGINAS` DESTA função, não o contrário. Função pura
+  aqui, em vez de o `page.tsx` decidir e este arquivo importar de lá, por
+  duas razões: `lib/` é a camada que `app/` consulta, nunca o inverso (o
+  `sitemap.ts` já depende deste módulo; se este módulo passasse a depender
+  de um arquivo de rota, o sentido da dependência viraria bagunça e abriria
+  caminho para import circular); e as três chaves de `/associacao/*` já
+  precisam ficar decididas aqui mesmo, porque `CAMINHO_DAS_PAGINAS` é onde
+  o endereço completo de qualquer página nova (sob `/associacao` ou raiz)
+  é escolhido primeiro. `PAGINAS`, ao contrário, é só um recorte que
+  interessa a uma rota específica.
+
+  Função pura, sem `obterCliente`: `generateStaticParams` do `page.tsx`
+  chama isto em tempo de build, de forma síncrona, e puxar o cliente do
+  Sanity para dentro de um módulo que hoje é seguro de importar sem
+  `.env.local` foi exatamente o defeito Crítico da tarefa 3.
+*/
+export function slugsDePaginasSobAssociacao(): string[] {
+  return Object.entries(CAMINHO_DAS_PAGINAS)
+    .filter(([, caminho]) => caminho.startsWith("/associacao/"))
+    .map(([slug]) => slug);
+}
+
 export const GROQ_SLUGS_PAGINAS = defineQuery(`
   *[_type == "paginaInstitucional" && slug.current in $slugs].slug.current
 `);

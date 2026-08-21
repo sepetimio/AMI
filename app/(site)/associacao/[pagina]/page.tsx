@@ -1,23 +1,32 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PaginaDeTexto } from "@/components/editorial/PaginaDeTexto";
-import { paginaPorSlug } from "@/lib/sanity/consultas";
+import {
+  paginaPorSlug,
+  slugsDePaginasSobAssociacao,
+} from "@/lib/sanity/consultas";
 
 export const revalidate = 3600;
 
 /*
-  Lista fechada, espelhando as opções do campo `slug` no schema. Sem ela, um
-  slug qualquer no endereço faria uma consulta ao Sanity que volta vazia e cai
-  em 404 mesmo, só que depois de uma ida à rede. Com ela, o 404 é imediato e
-  o `generateStaticParams` sabe o que pré-renderizar.
+  Derivada de `CAMINHO_DAS_PAGINAS`, em `lib/sanity/consultas.ts`, e não mais
+  escrita à mão aqui. Antes desta rodada de revisão, este array e aquele
+  mapeamento eram duas listas independentes com o mesmo conteúdo, e nada
+  impedia que divergissem: quem acrescentasse uma sétima página sob
+  `/associacao` e esquecesse de mexer aqui teria uma página que renderiza
+  normalmente e nunca aparece no sitemap. Ver o comentário completo sobre a
+  direção da correção em `slugsDePaginasSobAssociacao`.
 
   "diretoria" e "associacao" não entram aqui: a primeira é a rota estática de
   `app/(site)/associacao/diretoria/page.tsx` (o Next resolve segmento
   estático antes de dinâmico, então esta rota nunca a vê), e a segunda é
   `app/(site)/associacao/page.tsx`, o índice, que não é prosa pura e por isso
-  não usa `PaginaDeTexto`.
+  não usa `PaginaDeTexto`. Nenhuma das duas está em `CAMINHO_DAS_PAGINAS`.
 */
-const PAGINAS = ["beneficios", "estatuto", "politica-editorial"] as const;
+/* Exportada só para o teste que cruza esta lista com `CAMINHO_DAS_PAGINAS`
+   (ver `testes/sanity-consultas.test.ts`): é o jeito de o teste verificar a
+   rota de verdade, e não uma cópia do cálculo escrita de novo ali. */
+export const PAGINAS = slugsDePaginasSobAssociacao();
 
 type Props = { params: Promise<{ pagina: string }> };
 
@@ -39,7 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function SubpaginaDaAssociacao({ params }: Props) {
   const { pagina } = await params;
-  if (!PAGINAS.includes(pagina as (typeof PAGINAS)[number])) notFound();
+  if (!PAGINAS.includes(pagina)) notFound();
 
   const conteudo = await paginaPorSlug(pagina);
   if (!conteudo) notFound();
