@@ -16,6 +16,9 @@ export default function LayoutSite({
       >
         Pular para o conteúdo
       </a>
+      {/* Camada de grão: fixa, sem eventos de ponteiro, uma única vez no
+          site inteiro. Ver o comentário em globals.css. */}
+      <div className="grao" aria-hidden="true" />
       <Cabecalho />
       <main id="conteudo">{children}</main>
       <Rodape />

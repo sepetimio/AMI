@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { Cabeceira } from "@/components/layout/Cabeceira";
 import { ListaMedicos } from "@/components/diretorio/ListaMedicos";
+import { LadrilhosBairros } from "@/components/diretorio/LadrilhosBairros";
 import { PainelFiltros } from "@/components/diretorio/PainelFiltros";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbList, itemList } from "@/lib/seo/jsonld";
@@ -104,20 +105,38 @@ export default async function PaginaEspecialidade({
   ];
 
   return (
-    <div className="mx-auto max-w-[1200px] px-4 md:px-6">
+    <>
       <JsonLd dados={breadcrumbList(trilha, SITE)} />
       <JsonLd dados={itemList(medicos, SITE)} />
-      <Breadcrumb itens={trilha} />
 
-      <div className="pb-8 pt-4">
-        <h1>{esp.nome} em Imperatriz - MA</h1>
+      {/*
+        Cabeceira própria, sangrando de borda a borda.
+
+        Esta é a página que o Google traz tráfego, e era um h1 solto sobre o
+        cinza da página, indistinguível do resultado de busca livre logo ao
+        lado. A faixa branca com o símbolo em máscara dá a ela a mesma
+        gramática do herói da home, uma oitava abaixo: lá o símbolo é verde
+        sobre verde escuro, aqui é verde claríssimo sobre branco.
+
+        A contagem sai grande, em monoespaçada de registro. É a informação que
+        a pessoa veio buscar antes de qualquer outra: quantos existem.
+      */}
+      <Cabeceira
+        trilha={trilha}
+        titulo={`${esp.nome} em Imperatriz - MA`}
+        contagem={todosDaEspecialidade.length}
+        rotuloContagem={
+          todosDaEspecialidade.length === 1
+            ? "profissional publicado"
+            : "profissionais publicados"
+        }
+      >
         {/* Gerado dos dados reais, nunca texto-modelo com a palavra trocada. */}
-        <p className="coluna-leitura mt-4 text-ink-600">
-          {paragrafoDeAbertura(resumo)}
-        </p>
-      </div>
+        {paragrafoDeAbertura(resumo)}
+      </Cabeceira>
 
-      <div className="grid gap-8 pb-14 md:grid-cols-[260px_1fr]">
+      <div className="mx-auto max-w-[1200px] px-4 md:px-6">
+      <div className="grid gap-8 py-10 md:grid-cols-[260px_1fr]">
         <PainelFiltros bairros={bairros} total={medicos.length} />
         <div>
           <h2 className="sr-only">Resultados</h2>
@@ -158,15 +177,20 @@ export default async function PaginaEspecialidade({
             {/* Conteúdo de saúde é avaliado sob critério YMYL: sem autoria
                 creditada e data de revisão, não ranqueia por melhor feito
                 que seja. Os valores entram quando a AMI indicar o revisor. */}
-            <p className="text-[15px] text-ink-400">
-              <strong className="font-semibold text-ink-600">
-                Revisado por
-              </strong>{" "}
-              [PROVISÓRIO — nome do médico revisor] · CRM/MA [PROVISÓRIO] ·
-              revisão em [PROVISÓRIO — data]. Conteúdo informativo; não
-              substitui a consulta médica.
-            </p>
-          </div>
+            <div className="border-t border-line pt-5 text-[15px] text-ink-400">
+              <p>
+                <strong className="font-semibold text-ink-600">
+                  Revisado por
+                </strong>{" "}
+                [PROVISÓRIO: nome do médico revisor]
+              </p>
+              <p className="registro mt-1">
+                CRM/MA [PROVISÓRIO], revisão em [PROVISÓRIO: data]
+              </p>
+              <p className="mt-2">
+                Conteúdo informativo; não substitui a consulta médica.
+              </p>
+            </div>       </div>
         </section>
       ) : null}
 
@@ -179,27 +203,19 @@ export default async function PaginaEspecialidade({
         </h2>
 
         <h3>{esp.nome} por bairro</h3>
-        <ul className="mt-3 flex flex-wrap gap-2">
-          {bairros.map((b) => (
-            <li key={b.slug}>
-              <Link
-                href={`/medicos/${especialidade}/${b.slug}`}
-                className="numero-tabular inline-flex min-h-11 items-center rounded-chip border border-line bg-surface px-4 text-[15px] font-semibold text-ami-green-600 hover:bg-ami-mint-100"
-              >
-                {b.nome} · {b.total}
-                {/* O usuário merece saber que a página existe mesmo quando é
-                    pequena demais para entrar no índice. */}
-                {!facetaEhIndexavel(b.total) ? (
-                  <span className="ml-1 text-ink-400">
-                    (menos de {MINIMO_PARA_INDEXAR})
-                  </span>
-                ) : null}
-              </Link>
-            </li>
-          ))}
-        </ul>
-
-        <h3 className="mt-10">Outras especialidades</h3>
+        <div className="mt-5">
+          <LadrilhosBairros
+            itens={bairros}
+            href={(slug) => `/medicos/${especialidade}/${slug}`}
+            /* O usuário merece saber que a página existe mesmo quando é
+               pequena demais para entrar no índice de busca. */
+            nota={(b) =>
+              facetaEhIndexavel(b.total)
+                ? null
+                : `menos de ${MINIMO_PARA_INDEXAR} profissionais`
+            }
+          />
+        </div>   <h3 className="mt-10">Outras especialidades</h3>
         <ul className="mt-3 flex flex-wrap gap-2">
           {relacionadas
             .filter((e) => e.slug !== especialidade)
@@ -216,6 +232,7 @@ export default async function PaginaEspecialidade({
             ))}
         </ul>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

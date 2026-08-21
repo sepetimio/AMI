@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { Cabeceira } from "@/components/layout/Cabeceira";
 import { ListaMedicos } from "@/components/diretorio/ListaMedicos";
 import { PainelFiltros } from "@/components/diretorio/PainelFiltros";
 import { filtrosDaQuery } from "@/lib/dados/urlFiltros";
@@ -36,28 +36,31 @@ export default async function PaginaBusca({ searchParams }: Props) {
   ];
 
   return (
-    <div className="mx-auto max-w-[1200px] px-4 md:px-6">
-      <Breadcrumb itens={trilha} />
-
-      <div className="pb-8 pt-4">
-        {/* H1 dinâmico: quem chegou por uma busca precisa ver o que buscou. */}
-        <h1>
-          {filtros.termo
+    <>
+      {/* Mesma cabeceira de /medicos e das páginas de especialidade. A busca
+          livre é a única tela do diretório que não recebia tratamento de
+          cabeça, e por isso lia como uma página de outro site. */}
+      <Cabeceira
+        trilha={trilha}
+        /* H1 dinâmico: quem chegou por uma busca precisa ver o que buscou. */
+        titulo={
+          filtros.termo
             ? `Resultados para “${filtros.termo}”`
-            : "Buscar médicos em Imperatriz"}
-        </h1>
-        <p className="numero-tabular mt-3 text-ink-600">
-          {contagem(
-            medicos.length,
-            "profissional encontrado",
-            "profissionais encontrados",
-          )}
-          {filtros.termo || temFiltro
-            ? "."
-            : " no diretório. Use os filtros ao lado ou escolha uma especialidade."}
-        </p>
-      </div>
+            : "Buscar médicos em Imperatriz"
+        }
+        contagem={medicos.length}
+        rotuloContagem={
+          medicos.length === 1
+            ? "profissional encontrado"
+            : "profissionais encontrados"
+        }
+      >
+        {!filtros.termo && !temFiltro
+          ? "Use os filtros ao lado, ou escolha uma especialidade no índice."
+          : null}
+      </Cabeceira>
 
+      <div className="mx-auto max-w-[1200px] px-4 md:px-6">
       <div className="grid gap-8 pb-16 md:grid-cols-[260px_1fr]">
         <PainelFiltros bairros={bairros} total={medicos.length} />
         <div>
@@ -92,6 +95,7 @@ export default async function PaginaBusca({ searchParams }: Props) {
           />
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

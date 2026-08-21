@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { Cabeceira } from "@/components/layout/Cabeceira";
+import { IndiceEspecialidades } from "@/components/diretorio/IndiceEspecialidades";
+import { LadrilhosBairros } from "@/components/diretorio/LadrilhosBairros";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbList } from "@/lib/seo/jsonld";
 import {
@@ -49,61 +50,50 @@ export default async function PaginaMedicos() {
   ];
 
   return (
-    <div className="mx-auto max-w-[1200px] px-4 md:px-6">
+    <>
       <JsonLd dados={breadcrumbList(trilha, SITE)} />
-      <Breadcrumb itens={trilha} />
 
-      {/* Ritmo vertical variado de propósito: bloco de abertura com respiro,
-          lista densa logo abaixo. */}
-      <div className="pb-10 pt-4">
-        <h1>Médicos em Imperatriz</h1>
-        <p className="coluna-leitura mt-4 text-ink-600">
-          {contagem(total, "profissional", "profissionais")} em{" "}
-          {contagem(especialidades.length, "especialidade", "especialidades")},
-          com endereço, telefone e horários por dia da semana. Todos os
-          registros trazem o CRM, conforme exige a Resolução CFM 2.336/2023.
-        </p>
+      {/* Mesma cabeceira das páginas de especialidade: fundo branco, símbolo
+          em máscara à direita, contagem grande em monoespaçada. É o que faz
+          /medicos e /medicos/cardiologia lerem como o mesmo sistema em vez de
+          duas páginas feitas em dias diferentes. */}
+      <Cabeceira
+        trilha={trilha}
+        titulo="Médicos em Imperatriz"
+        contagem={total}
+        rotuloContagem={
+          total === 1 ? "profissional publicado" : "profissionais publicados"
+        }
+      >
+        Em {contagem(especialidades.length, "especialidade", "especialidades")},
+        com endereço, telefone e horários por dia da semana. Todos os registros
+        trazem o CRM, conforme exige a Resolução CFM 2.336/2023.
+      </Cabeceira>
+
+      <div className="mx-auto max-w-[1200px] px-4 md:px-6">
+        <section
+          aria-labelledby="por-especialidade"
+          className="revelar pb-4 pt-12"
+        >
+          <h2 id="por-especialidade" className="border-b border-line-strong pb-4">
+            Por especialidade
+          </h2>
+          <IndiceEspecialidades itens={especialidades} />
+        </section>
+
+        <section
+          aria-labelledby="titulo-por-bairro"
+          id="por-bairro"
+          className="revelar pb-20 pt-12"
+        >
+          <h2 id="titulo-por-bairro" className="border-b border-line-strong pb-4">
+            Por bairro
+          </h2>
+          <div className="mt-8">
+            <LadrilhosBairros itens={bairros} />
+          </div>
+        </section>
       </div>
-
-      <section aria-labelledby="por-especialidade" className="pb-14">
-        <h2 id="por-especialidade" className="border-b border-line-strong pb-3">
-          Por especialidade
-        </h2>
-        {/* Lista em duas colunas, separada por fios — não grade de cartões. */}
-        <ul className="mt-1 gap-x-10 md:columns-2">
-          {especialidades.map((e) => (
-            <li key={e.slug} className="break-inside-avoid border-b border-line">
-              <Link
-                href={`/medicos/${e.slug}`}
-                className="flex min-h-11 items-center justify-between gap-4 py-2.5 text-ami-green-600 hover:bg-ami-mint-100"
-              >
-                <span className="font-semibold">{e.nome}</span>
-                <span className="numero-tabular text-[15px] text-ink-400">
-                  {e.total}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section aria-labelledby="por-bairro" className="pb-16">
-        <h2 id="por-bairro" className="border-b border-line-strong pb-3">
-          Por bairro
-        </h2>
-        <ul className="mt-4 flex flex-wrap gap-2">
-          {bairros.map((b) => (
-            <li key={b.slug}>
-              <Link
-                href={`/busca?bairro=${b.slug}`}
-                className="numero-tabular inline-flex min-h-11 items-center rounded-chip border border-line bg-surface px-4 text-[15px] font-semibold text-ami-green-600 hover:bg-ami-mint-100"
-              >
-                {b.nome} · {b.total}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-    </div>
+    </>
   );
 }

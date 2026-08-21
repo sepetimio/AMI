@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Simbolo } from "@/components/marca/Simbolo";
+import { Fotografia } from "@/components/base/Fotografia";
+import { IndiceEspecialidades } from "@/components/diretorio/IndiceEspecialidades";
+import { LadrilhosBairros } from "@/components/diretorio/LadrilhosBairros";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { organizationAmi } from "@/lib/seo/jsonld";
 import {
@@ -8,7 +10,6 @@ import {
   especialidadesComContagem,
 } from "@/lib/dados/especialidades";
 import { buscarMedicos } from "@/lib/dados/medicos";
-import { contagem } from "@/lib/formato";
 
 export const revalidate = 3600;
 
@@ -35,8 +36,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Home() {
   /* Mesmo raciocínio do `generateMetadata`: o total vem da contagem de
-     profissionais, não da soma por especialidade — que double-conta quem
-     tem mais de uma. */
+     profissionais, não da soma por especialidade, que double-conta quem tem
+     mais de uma. */
   const [especialidades, bairros, total] = await Promise.all([
     especialidadesComContagem(),
     bairrosComContagem(),
@@ -47,42 +48,82 @@ export default async function Home() {
     <>
       <JsonLd dados={organizationAmi(SITE)} />
 
-      {/* --- 1. Herói assimétrico em faixa verde-800 --- */}
-      <section className="relative overflow-hidden bg-ami-green-800 pb-24 pt-14 md:pb-32">
-        {/* Marca d'água: uso estrutural do símbolo, cortado pela borda.
-            É a primeira das no máximo duas aparições por página. */}
-        <Simbolo className="pointer-events-none absolute -right-16 top-0 h-full w-auto opacity-[0.05]" />
+      {/* =====================================================
+          1. HERÓI
+          Única faixa escura acima do rodapé. O verde deixou de ser
+          papel de parede em duas faixas e passou a marcar exatamente
+          dois momentos: a cabeceira e o colofão.
+          ===================================================== */}
+      <section className="relative isolate overflow-hidden bg-ami-green-900 pb-28 pt-16 md:pb-36 md:pt-24">
+        {/*
+          O símbolo em escala arquitetônica, cortado pela borda direita.
 
-        <div className="mx-auto grid max-w-[1200px] grid-cols-12 px-4 md:px-6">
-          <div className="col-span-12 md:col-span-7">
-            <p className="font-titulo text-xs font-bold uppercase tracking-[0.12em] text-ami-mint-400">
-              Associação Médica de Imperatriz
-            </p>
-            <h1 className="mt-3 text-white">
-              Encontre o médico certo em Imperatriz
+          Antes ele entrava como <img> a 5% de opacidade, que é a definição de
+          marca de água: presente o bastante para sujar, fraco demais para
+          compor. Aqui ele entra como MÁSCARA sobre um degradê, o que troca
+          opacidade por tonalidade. O traço deixa de ser um cinza lavado e vira
+          verde de marca embutido no verde escuro, como letra fundida em metal.
+          É a diferença entre imprimir cinza e gravar em relevo.
+
+          Some abaixo de md: num celular ele roubaria a largura do título, que
+          é o único elemento que precisa dela.
+        */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-[14%] top-1/2 hidden h-[150%] w-[62%] -translate-y-1/2 md:block"
+          style={{
+            background:
+              "linear-gradient(155deg, var(--color-ami-green-500) 0%, var(--color-ami-green-600) 42%, var(--color-ami-green-800) 100%)",
+            opacity: 0.3,
+            WebkitMaskImage: "url(/marca/ami-simbolo.svg)",
+            maskImage: "url(/marca/ami-simbolo.svg)",
+            WebkitMaskSize: "contain",
+            maskSize: "contain",
+            WebkitMaskRepeat: "no-repeat",
+            maskRepeat: "no-repeat",
+            WebkitMaskPosition: "center",
+            maskPosition: "center",
+          }}
+        />
+
+        <div className="relative mx-auto grid max-w-[1200px] grid-cols-12 px-4 md:px-6">
+          <div className="col-span-12 md:col-span-8 lg:col-span-7">
+            <h1 className="texto-placa text-white">
+              Encontre um médico em Imperatriz
             </h1>
             {/* Números contados do banco. Nunca escritos à mão. */}
-            <p className="numero-tabular mt-5 max-w-[46ch] text-[19px] text-ami-mint-400">
-              {contagem(total, "médico", "médicos")} em{" "}
-              {contagem(especialidades.length, "especialidade", "especialidades")}
-              , atendendo em {contagem(bairros.length, "bairro", "bairros")}.
-              Filtre por especialidade e bairro.
+            <p className="mt-6 max-w-[42ch] text-[19px] text-ami-mint-400 md:text-[21px]">
+              <span className="registro text-white">{total}</span>{" "}
+              {total === 1 ? "profissional" : "profissionais"} em{" "}
+              <span className="registro text-white">
+                {especialidades.length}
+              </span>{" "}
+              {especialidades.length === 1 ? "especialidade" : "especialidades"}
+              , atendendo em{" "}
+              <span className="registro text-white">{bairros.length}</span>{" "}
+              {bairros.length === 1 ? "bairro" : "bairros"} da cidade.
             </p>
           </div>
         </div>
       </section>
 
-      {/* --- 2. Cartão de busca invadindo a faixa: única sombra do site --- */}
-      <div className="mx-auto max-w-[1200px] px-4 md:px-6">
+      {/* =====================================================
+          2. BUSCA
+          Invade a faixa. É a única superfície flutuante do site, e é
+          a que carrega a ação principal.
+          ===================================================== */}
+      <div className="relative z-10 mx-auto max-w-[1200px] px-4 md:px-6">
         {/* Formulário HTML de verdade, com method GET: funciona sem
             JavaScript e o resultado vira uma URL compartilhável. */}
         <form
           action="/busca"
           method="get"
-          className="-mt-14 rounded-bloco bg-surface p-5 shadow-[0_8px_24px_rgba(6,33,15,.14)] md:p-6"
+          className="-mt-16 rounded-bloco border border-line bg-surface p-5 shadow-flutuante md:-mt-20 md:p-7"
         >
-          <h2 className="text-[21px] font-semibold">Buscar</h2>
-          <div className="mt-4 grid gap-4 md:grid-cols-[1fr_240px_auto]">
+          <h2 className="font-titulo text-[15px] font-bold uppercase tracking-[0.1em] text-ink-400 [font-stretch:88%]">
+            Buscar no diretório
+          </h2>
+          <div className="mt-4 grid gap-4 md:grid-cols-[1fr_260px_auto]">
             <div>
               <label
                 htmlFor="busca-termo"
@@ -94,8 +135,8 @@ export default async function Home() {
                 id="busca-termo"
                 name="termo"
                 type="search"
-                placeholder="Cardiologia, Mayara Viana…"
-                className="mt-1.5 min-h-11 w-full rounded-controle border border-line px-3 text-[15px] placeholder:text-ink-300"
+                placeholder="Cardiologista, Mayara Viana…"
+                className="pressiona mt-1.5 min-h-12 w-full rounded-controle border border-line-strong bg-canvas px-3.5 text-[16px] placeholder:text-ink-300 focus:border-ami-green-600 focus:bg-surface"
               />
             </div>
             <div>
@@ -108,7 +149,7 @@ export default async function Home() {
               <select
                 id="busca-bairro"
                 name="bairro"
-                className="mt-1.5 min-h-11 w-full rounded-controle border border-line bg-surface px-3 text-[15px]"
+                className="pressiona mt-1.5 min-h-12 w-full rounded-controle border border-line-strong bg-canvas px-3.5 text-[16px] focus:border-ami-green-600 focus:bg-surface"
               >
                 <option value="">Todos</option>
                 {bairros.map((b) => (
@@ -120,7 +161,7 @@ export default async function Home() {
             </div>
             <button
               type="submit"
-              className="mt-auto min-h-11 rounded-controle bg-ami-green-600 px-6 font-semibold text-white hover:bg-ami-green-700"
+              className="pressiona mt-auto min-h-12 rounded-controle bg-ami-green-600 px-8 font-semibold text-white shadow-apoio hover:bg-ami-green-700 hover:shadow-erguido"
             >
               Buscar
             </button>
@@ -128,95 +169,94 @@ export default async function Home() {
         </form>
       </div>
 
-      {/* --- 3. Chips das especialidades com mais profissionais --- */}
+      {/* =====================================================
+          3. ÍNDICE DE ESPECIALIDADES
+          Fluxo em colunas, como o índice de um anuário impresso.
+          ===================================================== */}
       <section
-        aria-labelledby="mais-buscadas"
-        className="mx-auto max-w-[1200px] px-4 py-12 md:px-6"
+        aria-labelledby="especialidades"
+        className="revelar mx-auto max-w-[1200px] px-4 pb-4 pt-16 md:px-6 md:pt-24"
       >
-        <h2 id="mais-buscadas" className="sr-only">
-          Especialidades com mais profissionais
-        </h2>
-        <ul className="flex flex-wrap gap-2">
-          {especialidades.slice(0, 8).map((e) => (
-            <li key={e.slug}>
-              <Link
-                href={`/medicos/${e.slug}`}
-                className="numero-tabular inline-flex min-h-11 items-center rounded-chip border border-line bg-surface px-4 text-[15px] font-semibold text-ami-green-600 hover:bg-ami-mint-100"
-              >
-                {e.nome} · {e.total}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <div className="flex items-baseline justify-between gap-4 border-b border-line-strong pb-4">
+          <h2 id="especialidades">Especialidades</h2>
+          <Link
+            href="/medicos"
+            className="pressiona shrink-0 text-[15px] font-semibold text-ami-green-600 hover:underline"
+          >
+            Ver todas
+          </Link>
+        </div>
+
+        <IndiceEspecialidades itens={especialidades} />
       </section>
 
-      {/* --- 4. Acesso rápido em fios, não em cartões --- */}
-      <section
-        aria-labelledby="acesso-rapido"
-        className="mx-auto max-w-[1200px] px-4 pb-14 md:px-6"
-      >
-        <h2 id="acesso-rapido" className="border-b border-line-strong pb-3">
-          Acesso rápido
-        </h2>
-        <ul className="grid md:grid-cols-3">
-          {[
-            {
-              titulo: "Por especialidade",
-              texto: `${especialidades.length} especialidades com profissional publicado.`,
-              href: "/medicos",
-            },
-            {
-              titulo: "Por bairro",
-              texto: `Atendimento em ${bairros.length} bairros de Imperatriz.`,
-              /* Âncora: /medicos abre no índice de especialidades e o bloco
-                 de bairros fica abaixo. Sem ela o leitor cai no lugar errado. */
-              href: "/medicos#por-bairro",
-            },
-            {
-              titulo: "A Associação",
-              texto: "Quem é a AMI, diretoria e como se associar.",
-              href: "/associacao",
-            },
-          ].map((item) => (
-            <li key={item.titulo} className="border-b border-line">
-              <Link
-                href={item.href}
-                className="block py-5 pr-4 hover:bg-ami-mint-100 md:pr-8"
-              >
-                <span className="block font-semibold text-ami-green-600">
-                  {item.titulo}
-                </span>
-                <span className="mt-1 block text-[15px] text-ink-600">
-                  {item.texto}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* --- 5. Faixa institucional em verde-900, respiro maior --- */}
+      {/* =====================================================
+          4. INSTITUCIONAL
+          Claro, com fotografia. Antes era uma segunda faixa verde
+          escura com texto solto dentro, o que fazia o verde virar
+          decoração em vez de estrutura.
+          ===================================================== */}
       <section
         aria-labelledby="institucional"
-        className="bg-ami-green-900 py-20 text-ami-mint-400"
+        className="revelar mx-auto max-w-[1200px] px-4 py-20 md:px-6 md:py-28"
       >
-        <div className="mx-auto max-w-[1200px] px-4 md:px-6">
-          <h2 id="institucional" className="text-white">
-            A entidade que representa os médicos de Imperatriz
-          </h2>
-          <p className="coluna-leitura mt-4">
-            A AMI reúne os profissionais que atendem em Imperatriz e na região
-            sul do Maranhão. Este diretório existe para que a população encontre
-            quem atende perto de casa, com informação correta e verificada.
+        <div className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
+          {/* Moldura concêntrica: casca externa com fio e respiro de 8px,
+              miolo com o raio descontado da espessura da casca. É o que faz a
+              foto parecer assentada numa moldura, e não colada na página. */}
+          <div className="rounded-bloco border border-line bg-surface p-2 shadow-erguido">
+            <Fotografia
+              espaco="sede"
+              sizes="(min-width: 768px) 46vw, 92vw"
+              className="h-auto w-full rounded-[6px] object-cover"
+            />
+          </div>
+
+          <div>
+            <h2 id="institucional">
+              A entidade que representa os médicos de Imperatriz
+            </h2>
+            <p className="coluna-leitura mt-5 text-ink-600">
+              A AMI reúne os profissionais que atendem em Imperatriz e na região
+              sul do Maranhão. Este diretório existe para que a população
+              encontre quem atende perto de casa, com informação correta e
+              verificada.
+            </p>
+            <p className="coluna-leitura mt-4 text-ink-600">
+              Cada perfil traz nome, número de inscrição no CRM, endereço de
+              atendimento e horário. Sem nota, sem classificação e sem destaque
+              pago: a ordem é a mesma para todo mundo.
+            </p>
+            <p className="mt-8">
+              <Link
+                href="/associacao"
+                className="pressiona inline-flex min-h-12 items-center rounded-controle bg-ami-green-600 px-6 font-semibold text-white shadow-apoio hover:bg-ami-green-700 hover:shadow-erguido"
+              >
+                Conhecer a Associação
+              </Link>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================
+          5. BAIRROS
+          Quarta família de layout da página: ladrilho, não linha, não
+          coluna, não divisão com foto.
+          ===================================================== */}
+      <section
+        aria-labelledby="bairros"
+        className="revelar border-t border-line bg-surface"
+      >
+        <div className="mx-auto max-w-[1200px] px-4 py-16 md:px-6 md:py-20">
+          <h2 id="bairros">Onde os médicos atendem</h2>
+          <p className="coluna-leitura mt-3 text-ink-600">
+            Escolha o bairro para ver quem atende perto de você.
           </p>
-          <p className="mt-6">
-            <Link
-              href="/associacao"
-              className="inline-flex min-h-11 items-center font-semibold text-white underline"
-            >
-              Conhecer a Associação
-            </Link>
-          </p>
+
+          <div className="mt-8">
+            <LadrilhosBairros itens={bairros} />
+          </div>
         </div>
       </section>
     </>

@@ -9,7 +9,7 @@ export type ItemTrilha = { nome: string; caminho: string };
 */
 export function Breadcrumb({ itens }: { itens: ItemTrilha[] }) {
   return (
-    <nav aria-label="Trilha de navegação" className="py-3">
+    <nav aria-label="Trilha de navegação" className="pb-2 pt-4">
       <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] text-ink-600">
         {itens.map((item, i) => {
           const ultimo = i === itens.length - 1;
@@ -22,7 +22,7 @@ export function Breadcrumb({ itens }: { itens: ItemTrilha[] }) {
                   <Link
                     href={item.caminho}
                     /* min-h-11 = 44px, o alvo mínimo de toque no mobile. */
-                    className="inline-flex min-h-11 items-center text-ami-green-600 hover:underline"
+                    className="inline-flex min-h-11 items-center text-ami-green-600 underline-offset-2 hover:underline"
                   >
                     {item.nome}
                   </Link>

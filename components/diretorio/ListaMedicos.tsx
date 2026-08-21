@@ -28,7 +28,7 @@ export function ListaMedicos({
         titulo="Nenhum médico com esses filtros"
         descricao={
           filtroMaisRestritivo
-            ? `Tente remover o filtro de ${filtroMaisRestritivo} — costuma ser o que mais reduz a lista.`
+            ? `Tente remover o filtro de ${filtroMaisRestritivo}. Costuma ser o que mais reduz a lista.`
             : "Tente remover um dos filtros para ampliar a busca."
         }
         acao={
@@ -44,7 +44,11 @@ export function ListaMedicos({
   }
 
   return (
-    <ul className="rounded-bloco border border-line bg-surface px-5">
+    /* `overflow-hidden` corta o realce da primeira e da última linha na
+       curva do bloco. Sem ele o retângulo do hover escapa pelo canto
+       arredondado, que é o tipo de detalhe que ninguém sabe nomear mas todo
+       mundo percebe como acabamento ruim. */
+    <ul className="overflow-hidden rounded-bloco border border-line bg-surface shadow-apoio">
       {medicos.map((m) => (
         <LinhaMedico key={m.id} medico={m} />
       ))}

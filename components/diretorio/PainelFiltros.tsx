@@ -85,11 +85,11 @@ export function PainelFiltros({
         onClick={() => setAberto((v) => !v)}
         aria-expanded={aberto}
         aria-controls="campos-filtros"
-        className="flex min-h-11 w-full items-center justify-between rounded-controle border border-line bg-surface px-4 font-semibold text-ami-green-600 md:hidden"
+        className="pressiona flex min-h-12 w-full items-center justify-between rounded-controle border border-line-strong bg-surface px-4 font-semibold text-ami-green-600 shadow-apoio md:hidden"
       >
         Filtros
         {ativos > 0 ? (
-          <span className="numero-tabular rounded-chip bg-ami-green-600 px-2 py-0.5 text-xs text-white">
+          <span className="registro rounded-chip bg-ami-green-600 px-2 py-0.5 text-xs text-white">
             {ativos}
           </span>
         ) : null}
@@ -97,9 +97,16 @@ export function PainelFiltros({
 
       <div
         id="campos-filtros"
-        className={`${aberto ? "block" : "hidden"} mt-3 space-y-6 rounded-bloco border border-line bg-surface p-5 md:mt-0 md:block`}
+        /* `sticky` a partir de md: numa especialidade com quarenta médicos
+           o painel sumia depois da terceira rolagem, e voltar a ele exigia
+           subir a lista inteira. `top-24` é a altura do cabeçalho fixo mais
+           um respiro. */
+        className={`${aberto ? "block" : "hidden"} mt-3 space-y-5 rounded-bloco border border-line bg-surface p-5 shadow-apoio md:mt-0 md:block md:sticky md:top-24`}
       >
-        <h2 id="titulo-filtros" className="text-[21px] font-semibold">
+        <h2
+          id="titulo-filtros"
+          className="border-b border-line-strong pb-3 font-titulo text-[20px] font-bold [font-stretch:88%]"
+        >
           Filtrar
         </h2>
 
@@ -114,7 +121,7 @@ export function PainelFiltros({
             id="filtro-bairro"
             value={sp.get("bairro") ?? ""}
             onChange={(e) => aplicar({ bairro: e.target.value || undefined })}
-            className="mt-1.5 min-h-11 w-full rounded-controle border border-line bg-surface px-3 text-[15px]"
+            className="pressiona mt-1.5 min-h-11 w-full rounded-controle border border-line-strong bg-canvas px-3 text-[15px] focus:border-ami-green-600 focus:bg-surface"
           >
             <option value="">Todos os bairros</option>
             {bairros.map((b) => (
@@ -126,8 +133,8 @@ export function PainelFiltros({
         </div>
 
         <fieldset>
-          <legend className="text-[15px] font-semibold">Atendimento</legend>
-          <label className="mt-2 flex min-h-11 items-center gap-2.5 text-[15px]">
+          <legend className="font-titulo text-[16px] font-bold [font-stretch:92%]">Atendimento</legend>
+          <label className="mt-2 -mx-2 flex min-h-11 cursor-pointer items-center gap-2.5 rounded-controle px-2 text-[15px] transition-colors duration-150 hover:bg-ami-mint-100">
             <input
               type="checkbox"
               checked={sp.get("telemedicina") === "1"}
@@ -136,7 +143,7 @@ export function PainelFiltros({
             />
             Atende por telemedicina
           </label>
-          <label className="flex min-h-11 items-center gap-2.5 text-[15px]">
+          <label className="-mx-2 flex min-h-11 cursor-pointer items-center gap-2.5 rounded-controle px-2 text-[15px] transition-colors duration-150 hover:bg-ami-mint-100">
             <input
               type="checkbox"
               checked={sp.get("sabado") === "1"}
@@ -148,12 +155,12 @@ export function PainelFiltros({
         </fieldset>
 
         <fieldset>
-          <legend className="text-[15px] font-semibold">Acessibilidade</legend>
+          <legend className="font-titulo text-[16px] font-bold [font-stretch:92%]">Acessibilidade</legend>
           {(Object.keys(ROTULO_ACESSIBILIDADE) as RecursoAcessibilidade[]).map(
             (r) => (
               <label
                 key={r}
-                className="flex min-h-11 items-center gap-2.5 text-[15px]"
+                className="-mx-2 flex min-h-11 cursor-pointer items-center gap-2.5 rounded-controle px-2 text-[15px] transition-colors duration-150 hover:bg-ami-mint-100"
               >
                 <input
                   type="checkbox"
@@ -167,7 +174,7 @@ export function PainelFiltros({
           )}
         </fieldset>
 
-        <label className="flex min-h-11 items-center gap-2.5 text-[15px] font-semibold">
+        <label className="-mx-2 flex min-h-11 cursor-pointer items-center gap-2.5 rounded-controle px-2 text-[15px] font-semibold transition-colors duration-150 hover:bg-ami-mint-100">
           <input
             type="checkbox"
             checked={sp.get("associados") === "1"}
@@ -188,10 +195,10 @@ export function PainelFiltros({
             id="filtro-ordem"
             value={sp.get("ordem") ?? "relevancia"}
             onChange={(e) => aplicar({ ordem: e.target.value as Filtros["ordem"] })}
-            className="mt-1.5 min-h-11 w-full rounded-controle border border-line bg-surface px-3 text-[15px]"
+            className="pressiona mt-1.5 min-h-11 w-full rounded-controle border border-line-strong bg-canvas px-3 text-[15px] focus:border-ami-green-600 focus:bg-surface"
           >
             <option value="relevancia">Relevância</option>
-            <option value="nome">Nome (A–Z)</option>
+            <option value="nome">Nome (A-Z)</option>
           </select>
         </div>
 
@@ -199,13 +206,13 @@ export function PainelFiltros({
           <button
             type="button"
             onClick={limpar}
-            className="min-h-11 text-[15px] font-semibold text-ami-green-600 underline"
+            className="pressiona min-h-11 text-[15px] font-semibold text-ami-green-600 underline underline-offset-2 hover:text-ami-green-700"
           >
             Limpar todos os filtros
           </button>
         ) : null}
 
-        <p className="numero-tabular border-t border-line pt-4 text-[15px] text-ink-600">
+        <p className="registro border-t border-line pt-4 text-[15px] text-ink-600">
           {total === 1 ? "1 resultado" : `${total} resultados`}
         </p>
       </div>

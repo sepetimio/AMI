@@ -1,0 +1,40 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 420, "h": 1000, "title": "Como ler" },
+    { "file": "DirecaoA.dc.html", "x": 500, "y": 0, "w": 900, "h": 1000, "title": "A · Guia de serviço" },
+    { "file": "DirecaoB.dc.html", "x": 1480, "y": 0, "w": 900, "h": 1000, "title": "B · Institucional contemporâneo" },
+    { "file": "DirecaoC.dc.html", "x": 2460, "y": 0, "w": 900, "h": 1000, "title": "C · Pessoa em primeiro plano" },
+    { "file": "DirecaoD.dc.html", "x": 3440, "y": 0, "w": 900, "h": 1000, "title": "D · Ferramenta de comparação" }
+  ],
+  "annotations": [
+    {
+      "id": "nota-a",
+      "x": 500,
+      "y": -150,
+      "w": 380,
+      "text": "A é o documento original executado com densidade de verdade.\nSe você acha que a ideia estava certa e a execução é que ficou rasa, é aqui que deve olhar."
+    },
+    {
+      "id": "nota-b",
+      "x": 1480,
+      "y": -150,
+      "w": 380,
+      "text": "B mantém a seriedade e traz camada, escala e serifada editorial.\nÉ a que mais se afasta do 'lista telefônica' sem virar startup."
+    },
+    {
+      "id": "nota-c",
+      "x": 2460,
+      "y": -150,
+      "w": 380,
+      "text": "C aposta que o médico é o conteúdo. Depende de foto real de todos — sem isso, vira uma grade de iniciais gigantes.\nTambém troca o fundo frio por um quente, contrariando o documento original de propósito."
+    },
+    {
+      "id": "nota-d",
+      "x": 3440,
+      "y": -150,
+      "w": 380,
+      "text": "D trata a tela como ferramenta de decisão, não como página.\nÉ a mais útil para comparar doze médicos e a menos acolhedora para quem chega perdido."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

@@ -35,11 +35,28 @@
   /* --- FONTES --- */
   --font-titulo: var(--fonte-titulo), "Archivo Narrow", system-ui, sans-serif;
   --font-corpo: var(--fonte-corpo), system-ui, sans-serif;
+  --font-registro: var(--fonte-registro), ui-monospace, "SF Mono", monospace;
 
   /* --- RAIOS: por função, não um valor para tudo --- */
   --radius-controle: 6px; /* botões e campos */
   --radius-bloco: 10px; /* cartões e tabelas */
   --radius-chip: 999px;
+
+  /* --- ELEVAÇÃO: três níveis, todos tingidos de verde --- */
+  /* Sombra preta sobre fundo verde-acinzentado lê como sujeira. Estas
+     carregam o matiz do próprio fundo (6,33,15 é o verde-900), então a
+     borda de uma superfície erguida parece luz que passou pelo papel,
+     e não uma mancha por cima dele. */
+  --shadow-apoio: 0 1px 1px rgba(6, 33, 15, 0.04), 0 1px 3px rgba(6, 33, 15, 0.05);
+  --shadow-erguido: 0 1px 2px rgba(6, 33, 15, 0.05), 0 10px 24px -10px rgba(6, 33, 15, 0.18);
+  --shadow-flutuante: 0 2px 4px rgba(6, 33, 15, 0.06), 0 28px 64px -22px rgba(6, 33, 15, 0.32);
+
+  /* --- CURVAS: nada linear, nada ease-in-out --- */
+  /* `saida` desacelera forte no fim: o elemento chega com massa, como
+     objeto que assenta, em vez de parar de repente. É a curva de tudo
+     que entra em cena. `resposta` é curta e serve ao toque. */
+  --ease-saida: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-resposta: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 @layer base {
@@ -73,7 +90,7 @@
     font-size: 34px;
     line-height: 38px;
     font-weight: 700;
-    font-stretch: 82%;
+    font-stretch: 80%;
     letter-spacing: -0.02em;
   }
 
@@ -81,7 +98,7 @@
     font-size: 26px;
     line-height: 30px;
     font-weight: 700;
-    font-stretch: 85%;
+    font-stretch: 84%;
     letter-spacing: -0.01em;
   }
 
@@ -94,8 +111,8 @@
 
   @media (min-width: 768px) {
     h1 {
-      font-size: 48px;
-      line-height: 52px;
+      font-size: 52px;
+      line-height: 54px;
     }
     h2 {
       font-size: 32px;
@@ -154,4 +171,130 @@
    17px. Acima de 80 caracteres a leitura cansa. */
 @utility coluna-leitura {
   max-width: 580px;
+}
+
+/* =========================================================
+   NÍVEL DISPLAY
+   ========================================================= */
+
+/*
+  O eixo de largura da Archivo é a coisa mais distintiva deste sistema e a
+  única que ecoa o letreiro da marca. Até aqui ele aparecia a 80% em h1 e h2
+  e em mais lugar nenhum, o que é o mesmo que não ter voz.
+
+  `texto-placa` é o nível acima do h1: 76% de largura e peso 800. A ordem
+  importa — comprimir sem engrossar produz texto espremido, não placa. A
+  contraforma do "a" e do "e" só fecha, e o conjunto só lê como letreiro
+  pintado, quando a haste acompanha a compressão.
+
+  clamp() em vw porque o tamanho tem de responder à largura real: a 360px de
+  um Android de entrada, 5rem estouraria a linha em qualquer headline.
+*/
+@utility texto-placa {
+  font-family: var(--font-titulo);
+  font-weight: 800;
+  font-stretch: 76%;
+  font-size: clamp(2.55rem, 7vw, 4.9rem);
+  line-height: 0.94;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+/*
+  O dado cartorial: CRM, RQE, telefone, CNPJ. Monoespaçada com números
+  tabulares, porque um diretório médico é um registro público e o número de
+  inscrição é o que torna aquele profissional verificável no portal do CFM.
+  Ver o comentário longo em lib/fontes.ts.
+*/
+@utility registro {
+  font-family: var(--font-registro);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.94em;
+  letter-spacing: 0.01em;
+}
+
+@layer components {
+  /* =========================================================
+     MATÉRIA
+     ========================================================= */
+
+  /*
+    Grão sobre a página inteira. Branco puro de navegador não é uma escolha
+    de cor, é a ausência de uma — e é o que faz uma página séria parecer um
+    documento não formatado. Uma trama de ruído a 3,5% devolve a superfície
+    sem que ninguém consiga apontar o que mudou.
+
+    `fixed` e `pointer-events-none` são obrigatórios: filtro de ruído em
+    contêiner que rola força repintura de GPU a cada quadro e derruba os
+    quadros por segundo no celular, que é exatamente o aparelho de quem
+    procura um médico às pressas.
+  */
+  .grao {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23r)'/%3E%3C/svg%3E");
+  }
+
+  /* =========================================================
+     MOVIMENTO
+     ========================================================= */
+
+  /*
+    Entrada por rolagem sem uma linha de JavaScript, usando a linha do tempo
+    de rolagem nativa do CSS. Isso importa por três razões, nesta ordem:
+
+    1. Não existe ouvinte de `scroll`, que roda a cada quadro e é o modo
+       mais comum de matar o desempenho de rolagem no celular.
+    2. Nada aqui precisa virar Client Component. A página inteira continua
+       sendo renderizada no servidor.
+    3. Custo de bytes zero. Nenhuma biblioteca de animação entra no pacote.
+
+    O @supports é o que torna isso seguro: só quem tem `view()` recebe o
+    estado inicial invisível. Sem a checagem, um navegador sem suporte
+    aplicaria `opacity: 0` e rodaria a animação como animação comum de
+    tempo — e conteúdo abaixo da dobra apareceria e sumiria fora de vista.
+    Com ela, quem não suporta simplesmente vê o conteúdo, parado.
+  */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .revelar {
+        animation: revelar-entrada linear both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 24%;
+      }
+    }
+  }
+
+  @keyframes revelar-entrada {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /*
+    Resposta ao toque. Um botão que só troca de cor no hover não confirma
+    nada a quem está no celular, onde hover não existe: o dedo cobre o
+    próprio botão. O afundamento de 1px é o único sinal que o toque devolve.
+  */
+  .pressiona {
+    transition:
+      background-color 180ms var(--ease-resposta),
+      color 180ms var(--ease-resposta),
+      border-color 180ms var(--ease-resposta),
+      box-shadow 240ms var(--ease-saida),
+      transform 240ms var(--ease-saida);
+  }
+
+  .pressiona:active {
+    transform: translateY(1px);
+  }
 }

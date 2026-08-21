@@ -128,14 +128,15 @@ export async function Rodape() {
             <address className="mt-3 space-y-1.5 text-[15px] not-italic">
               <p>[PROVISÓRIO] Endereço da sede</p>
               <p>Imperatriz - MA</p>
-              <p className="numero-tabular">[PROVISÓRIO] (99) 0000-0000</p>
+              <p className="registro">[PROVISÓRIO] (99) 0000-0000</p>
             </address>
           </div>
         </div>
 
         <div className="mt-12 border-t border-ami-green-700 pt-6 text-[15px]">
           <p>
-            Associação Médica de Imperatriz · CNPJ [PROVISÓRIO]
+            Associação Médica de Imperatriz{" "}
+            <span className="registro">CNPJ [PROVISÓRIO]</span>
           </p>
           <p className="mt-2">
             O conteúdo deste site é informativo e não substitui a consulta

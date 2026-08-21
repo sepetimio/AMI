@@ -13,8 +13,27 @@ export function EstadoVazio({
   acao?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-bloco border border-line bg-surface px-6 py-12 text-center">
-      <h2 className="text-[21px] font-semibold">{titulo}</h2>
+    <div className="relative isolate overflow-hidden rounded-bloco border border-line bg-surface px-6 py-16 text-center shadow-apoio">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-1/2 -z-10 h-[220%] -translate-y-1/2"
+        style={{
+          background:
+            "linear-gradient(150deg, var(--color-ami-green-500), var(--color-ami-green-700))",
+          opacity: 0.055,
+          WebkitMaskImage: "url(/marca/ami-simbolo.svg)",
+          maskImage: "url(/marca/ami-simbolo.svg)",
+          WebkitMaskSize: "contain",
+          maskSize: "contain",
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+          WebkitMaskPosition: "center",
+          maskPosition: "center",
+        }}
+      />
+      <h2 className="font-titulo text-[24px] font-bold [font-stretch:86%]">
+        {titulo}
+      </h2>
       <p className="coluna-leitura mx-auto mt-2 text-ink-600">{descricao}</p>
       {acao ? <div className="mt-5">{acao}</div> : null}
     </div>

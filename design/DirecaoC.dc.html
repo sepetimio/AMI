@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Karla:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #1F6B3A; } a:hover { color: #123D24; }
+  </style>
+</helmet>
+
+<div style="width: 900px; background: #FBFAF7; font-family: Karla, system-ui, sans-serif; font-size: 17px; line-height: 1.65; color: #1A1F1B">
+
+  <div style="display: flex; align-items: center; gap: 20px; padding: 22px 48px; border-bottom: 1px solid #E8E4DC">
+    <div style="font-family: Lora, Georgia, serif; font-size: 20px; font-weight: 600; letter-spacing: -0.01em">Associação Médica de Imperatriz</div>
+    <div style="margin-left: auto; display: flex; gap: 26px; font-size: 15px; font-weight: 500; color: #4B5147">
+      <span>Médicos</span><span>Clínicas</span><span>A Associação</span><span>Notícias</span>
+    </div>
+  </div>
+
+  <!-- abertura editorial: nome da especialidade tratado como título de matéria -->
+  <div style="padding: 46px 48px 34px; border-bottom: 1px solid #E8E4DC">
+    <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #8A7F6B">Clínica Médica · Centro</div>
+    <h1 style="margin: 12px 0 0; font-family: Lora, Georgia, serif; font-size: 54px; font-weight: 500; line-height: 1.06; letter-spacing: -0.025em; max-width: 15ch">Quem atende clínica geral no Centro</h1>
+    <p style="margin: 18px 0 0; max-width: 46ch; font-size: 19px; color: #4B5147">Três médicos, três endereços, todos a poucos quarteirões um do outro. Nenhum atende aos sábados.</p>
+  </div>
+
+  <div style="padding: 8px 48px 44px">
+
+    <!-- pessoa em primeiro plano: retrato grande, nome antes de qualquer rótulo -->
+    <div style="display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 30px; padding: 30px 0; border-bottom: 1px solid #E8E4DC; align-items: start">
+      <div>
+        <div style="width: 150px; height: 150px; background: #0B3018; color: #A5DCAF; font-family: Lora, Georgia, serif; font-size: 46px; display: flex; align-items: center; justify-content: center">MV</div>
+        <div style="font-size: 11px; color: #9A9183; padding-top: 7px; letter-spacing: 0.04em">[ FOTO REAL A SUBSTITUIR ]</div>
+      </div>
+      <div>
+        <h2 style="margin: 0; font-family: Lora, Georgia, serif; font-size: 32px; font-weight: 500; line-height: 1.15; letter-spacing: -0.02em">Mayara Viana</h2>
+        <div style="font-size: 15px; font-weight: 600; color: #6B7268; font-variant-numeric: tabular-nums; padding-top: 4px">MÉDICO · CRM/MA 10000 · Clínica Médica</div>
+        <p style="margin: 14px 0 0; max-width: 52ch; font-size: 17px; color: #3F463F">Atende na Rua Projetada 100, no Centro, de segunda a sexta pela manhã e à tarde. Faz consulta por telemedicina. O consultório tem acesso para cadeirante e elevador.</p>
+        <div style="display: flex; gap: 10px; padding-top: 18px; align-items: center">
+          <div style="background: #1F6B3A; color: #FFFFFF; font-weight: 600; font-size: 15px; padding: 12px 22px; border-radius: 4px">Ver perfil</div>
+          <div style="border: 1px solid #C9C3B6; color: #1F6B3A; font-weight: 600; font-size: 15px; padding: 12px 20px; border-radius: 4px; font-variant-numeric: tabular-nums">(99) 93000-0000</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 30px; padding: 30px 0; border-bottom: 1px solid #E8E4DC; align-items: start">
+      <div>
+        <div style="width: 150px; height: 150px; background: #0B3018; color: #A5DCAF; font-family: Lora, Georgia, serif; font-size: 46px; display: flex; align-items: center; justify-content: center">LN</div>
+        <div style="font-size: 11px; color: #9A9183; padding-top: 7px; letter-spacing: 0.04em">[ FOTO REAL A SUBSTITUIR ]</div>
+      </div>
+      <div>
+        <div style="display: flex; align-items: center; gap: 12px">
+          <h2 style="margin: 0; font-family: Lora, Georgia, serif; font-size: 32px; font-weight: 500; line-height: 1.15; letter-spacing: -0.02em">Larissa Nogueira</h2>
+          <span style="border: 1px solid #1F6B3A; color: #1F6B3A; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 9px">Associada</span>
+        </div>
+        <div style="font-size: 15px; font-weight: 600; color: #6B7268; font-variant-numeric: tabular-nums; padding-top: 4px">MÉDICO · CRM/MA 10274 · Clínica Médica</div>
+        <p style="margin: 14px 0 0; max-width: 52ch; font-size: 17px; color: #3F463F">Atende na Rua Projetada 102, no Centro, de segunda a sexta pela manhã e à tarde. O consultório tem acesso para cadeirante.</p>
+        <div style="display: flex; gap: 10px; padding-top: 18px; align-items: center">
+          <div style="background: #1F6B3A; color: #FFFFFF; font-weight: 600; font-size: 15px; padding: 12px 22px; border-radius: 4px">Ver perfil</div>
+          <div style="border: 1px solid #C9C3B6; color: #1F6B3A; font-weight: 600; font-size: 15px; padding: 12px 20px; border-radius: 4px; font-variant-numeric: tabular-nums">(99) 93002-7142</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 30px; padding: 30px 0; align-items: start">
+      <div>
+        <div style="width: 150px; height: 150px; background: #0B3018; color: #A5DCAF; font-family: Lora, Georgia, serif; font-size: 46px; display: flex; align-items: center; justify-content: center">RC</div>
+        <div style="font-size: 11px; color: #9A9183; padding-top: 7px; letter-spacing: 0.04em">[ FOTO REAL A SUBSTITUIR ]</div>
+      </div>
+      <div>
+        <div style="display: flex; align-items: center; gap: 12px">
+          <h2 style="margin: 0; font-family: Lora, Georgia, serif; font-size: 32px; font-weight: 500; line-height: 1.15; letter-spacing: -0.02em">Rafael Coelho</h2>
+          <span style="border: 1px solid #1F6B3A; color: #1F6B3A; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 9px">Associado</span>
+        </div>
+        <div style="font-size: 15px; font-weight: 600; color: #6B7268; font-variant-numeric: tabular-nums; padding-top: 4px">MÉDICO · CRM/MA 10137 · Clínica Médica</div>
+        <p style="margin: 14px 0 0; max-width: 52ch; font-size: 17px; color: #3F463F">Atende na Rua Projetada 101, no Centro, de segunda a sexta pela manhã e à tarde.</p>
+        <div style="display: flex; gap: 10px; padding-top: 18px; align-items: center">
+          <div style="background: #1F6B3A; color: #FFFFFF; font-weight: 600; font-size: 15px; padding: 12px 22px; border-radius: 4px">Ver perfil</div>
+          <div style="border: 1px solid #C9C3B6; color: #1F6B3A; font-weight: 600; font-size: 15px; padding: 12px 20px; border-radius: 4px; font-variant-numeric: tabular-nums">(99) 93001-3571</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

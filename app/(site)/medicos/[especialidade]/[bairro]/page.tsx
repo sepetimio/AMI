@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { Cabeceira } from "@/components/layout/Cabeceira";
 import { ListaMedicos } from "@/components/diretorio/ListaMedicos";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbList, itemList } from "@/lib/seo/jsonld";
@@ -97,21 +97,26 @@ export default async function PaginaFaceta({ params }: Props) {
   ];
 
   return (
-    <div className="mx-auto max-w-[1200px] px-4 md:px-6">
+    <>
       <JsonLd dados={breadcrumbList(trilha, SITE)} />
       <JsonLd dados={itemList(medicos, SITE)} />
-      <Breadcrumb itens={trilha} />
 
-      <div className="pb-8 pt-4">
-        <h1>
-          {esp.nome} no bairro {b.nome}, Imperatriz - MA
-        </h1>
-        <p className="coluna-leitura mt-4 text-ink-600">
-          {paragrafoDeAbertura(resumo)}
-        </p>
-      </div>
+      <Cabeceira
+        trilha={trilha}
+        titulo={`${esp.nome} no bairro ${b.nome}, Imperatriz - MA`}
+        contagem={medicos.length}
+        rotuloContagem={
+          medicos.length === 1
+            ? "profissional publicado"
+            : "profissionais publicados"
+        }
+      >
+        {/* Gerado dos dados reais, nunca texto-modelo com a palavra trocada. */}
+        {paragrafoDeAbertura(resumo)}
+      </Cabeceira>
 
-      <div className="pb-14">
+      <div className="mx-auto max-w-[1200px] px-4 md:px-6">
+      <div className="pt-10">
         <h2 className="sr-only">Resultados</h2>
         <ListaMedicos medicos={medicos} filtroMaisRestritivo="bairro" />
       </div>
@@ -154,6 +159,7 @@ export default async function PaginaFaceta({ params }: Props) {
           </Link>
         </p>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

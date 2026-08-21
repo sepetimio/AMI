@@ -1,0 +1,144 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=Source+Sans+3:wght@400;600;700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #1F6B3A; } a:hover { color: #123D24; }
+  </style>
+</helmet>
+
+<div style="width: 900px; background: #FFFFFF; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 17px; line-height: 1.65; color: #14201A">
+
+  <!-- cabeçalho -->
+  <div style="display: flex; align-items: baseline; gap: 20px; padding: 16px 40px; border-bottom: 2px solid #14201A">
+    <div style="font-family: Archivo, sans-serif; font-stretch: 78%; font-weight: 700; font-size: 17px; text-transform: uppercase; letter-spacing: 0.02em; line-height: 1">Associação Médica<br>de Imperatriz</div>
+    <div style="margin-left: auto; display: flex; gap: 22px; font-size: 15px; font-weight: 600; color: #1F6B3A">
+      <span>Médicos</span><span>Clínicas</span><span>A Associação</span><span>Notícias</span>
+    </div>
+  </div>
+
+  <!-- faixa de contexto: densidade como sinal de competência -->
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid #E1E8E3">
+    <div style="padding: 10px 40px; border-right: 1px solid #E1E8E3"><span style="font-variant-numeric: tabular-nums; font-weight: 700; font-size: 19px">24</span> <span style="font-size: 14px; color: #4B5A51">médicos</span></div>
+    <div style="padding: 10px 20px; border-right: 1px solid #E1E8E3"><span style="font-variant-numeric: tabular-nums; font-weight: 700; font-size: 19px">14</span> <span style="font-size: 14px; color: #4B5A51">especialidades</span></div>
+    <div style="padding: 10px 20px; border-right: 1px solid #E1E8E3"><span style="font-variant-numeric: tabular-nums; font-weight: 700; font-size: 19px">8</span> <span style="font-size: 14px; color: #4B5A51">bairros</span></div>
+    <div style="padding: 10px 20px"><span style="font-variant-numeric: tabular-nums; font-weight: 700; font-size: 19px">6</span> <span style="font-size: 14px; color: #4B5A51">atendem sábado</span></div>
+  </div>
+
+  <div style="padding: 0 40px">
+
+    <div style="font-size: 14px; color: #657268; padding: 12px 0">Início · Médicos · Clínica Médica · <span style="color: #14201A">Centro</span></div>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 44px; padding-bottom: 26px; border-bottom: 1px solid #C3D0C7">
+      <div>
+        <h1 style="margin: 0; font-family: Archivo, sans-serif; font-stretch: 82%; font-weight: 700; font-size: 46px; line-height: 0.98; letter-spacing: -0.025em">Clínica Médica<br>no bairro Centro</h1>
+        <p style="margin: 14px 0 0; color: #4B5A51; max-width: 44ch">Três clínicos gerais atendem no Centro, em três endereços. Nenhum atende aos sábados. Dois informam acesso para cadeirante.</p>
+      </div>
+      <!-- tabela de apoio: informação onde outros põem espaço vazio -->
+      <div style="align-self: end">
+        <div style="font-family: Archivo, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #657268; padding-bottom: 6px; border-bottom: 1px solid #14201A">Clínica Médica nos outros bairros</div>
+        <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #E1E8E3; font-size: 15px"><span>Nova Imperatriz</span><span style="font-variant-numeric: tabular-nums; color: #657268">1</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #E1E8E3; font-size: 15px"><span>Bacuri</span><span style="font-variant-numeric: tabular-nums; color: #657268">—</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 7px 0; font-size: 15px"><span>Juçara</span><span style="font-variant-numeric: tabular-nums; color: #657268">—</span></div>
+      </div>
+    </div>
+
+    <!-- linha de resultado: densa, tabular, sem cartão -->
+    <div style="display: grid; grid-template-columns: 64px minmax(0, 1fr) 210px 132px; gap: 22px; align-items: start; padding: 22px 0; border-bottom: 1px solid #E1E8E3">
+      <div style="width: 64px; height: 64px; background: #0B3018; color: #A5DCAF; font-family: Archivo, sans-serif; font-weight: 700; font-size: 21px; display: flex; align-items: center; justify-content: center">MV</div>
+      <div>
+        <div style="font-family: Archivo, sans-serif; font-stretch: 88%; font-weight: 700; font-size: 23px; line-height: 1.15">Mayara Viana</div>
+        <div style="font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 600; color: #4B5A51; padding-top: 2px">MÉDICO · CRM/MA 10000</div>
+        <div style="font-size: 15px; color: #4B5A51">Clínica Médica</div>
+        <div style="display: flex; gap: 14px; font-size: 14px; color: #657268; padding-top: 8px">
+          <span>Telemedicina</span><span>Acesso para cadeirante</span><span>Elevador</span>
+        </div>
+      </div>
+      <!-- grade semanal: dado estruturado à vista, o oposto do portal antigo -->
+      <div>
+        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px">
+          <div style="font-size: 11px; text-align: center; color: #657268">S</div><div style="font-size: 11px; text-align: center; color: #657268">T</div><div style="font-size: 11px; text-align: center; color: #657268">Q</div><div style="font-size: 11px; text-align: center; color: #657268">Q</div><div style="font-size: 11px; text-align: center; color: #657268">S</div><div style="font-size: 11px; text-align: center; color: #657268">S</div>
+          <div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #E1E8E3"></div>
+          <div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #E1E8E3"></div>
+        </div>
+        <div style="font-size: 13px; color: #657268; padding-top: 6px">manhã 08–12 · tarde 14–18</div>
+        <div style="font-size: 14px; padding-top: 4px">Rua Projetada 100 — Centro</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 7px">
+        <div style="border: 1px solid #1F6B3A; background: #1F6B3A; color: #FFFFFF; font-weight: 600; font-size: 15px; text-align: center; padding: 10px 0">Ver perfil</div>
+        <div style="border: 1px solid #C3D0C7; color: #1F6B3A; font-weight: 600; font-size: 15px; text-align: center; padding: 10px 0; font-variant-numeric: tabular-nums">(99) 93000-0000</div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 64px minmax(0, 1fr) 210px 132px; gap: 22px; align-items: start; padding: 22px 0; border-bottom: 1px solid #E1E8E3">
+      <div style="width: 64px; height: 64px; background: #0B3018; color: #A5DCAF; font-family: Archivo, sans-serif; font-weight: 700; font-size: 21px; display: flex; align-items: center; justify-content: center">LN</div>
+      <div>
+        <div style="font-family: Archivo, sans-serif; font-stretch: 88%; font-weight: 700; font-size: 23px; line-height: 1.15">Larissa Nogueira</div>
+        <div style="font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 600; color: #4B5A51; padding-top: 2px">MÉDICO · CRM/MA 10274</div>
+        <div style="font-size: 15px; color: #4B5A51">Clínica Médica</div>
+        <div style="display: flex; gap: 14px; font-size: 14px; color: #657268; padding-top: 8px">
+          <span style="color: #1F6B3A; font-weight: 600">Associado AMI</span><span>Acesso para cadeirante</span>
+        </div>
+      </div>
+      <div>
+        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px">
+          <div style="font-size: 11px; text-align: center; color: #657268">S</div><div style="font-size: 11px; text-align: center; color: #657268">T</div><div style="font-size: 11px; text-align: center; color: #657268">Q</div><div style="font-size: 11px; text-align: center; color: #657268">Q</div><div style="font-size: 11px; text-align: center; color: #657268">S</div><div style="font-size: 11px; text-align: center; color: #657268">S</div>
+          <div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #E1E8E3"></div>
+          <div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #E1E8E3"></div>
+        </div>
+        <div style="font-size: 13px; color: #657268; padding-top: 6px">manhã 08–12 · tarde 14–18</div>
+        <div style="font-size: 14px; padding-top: 4px">Rua Projetada 102 — Centro</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 7px">
+        <div style="border: 1px solid #1F6B3A; background: #1F6B3A; color: #FFFFFF; font-weight: 600; font-size: 15px; text-align: center; padding: 10px 0">Ver perfil</div>
+        <div style="border: 1px solid #C3D0C7; color: #1F6B3A; font-weight: 600; font-size: 15px; text-align: center; padding: 10px 0; font-variant-numeric: tabular-nums">(99) 93002-7142</div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 64px minmax(0, 1fr) 210px 132px; gap: 22px; align-items: start; padding: 22px 0 30px">
+      <div style="width: 64px; height: 64px; background: #0B3018; color: #A5DCAF; font-family: Archivo, sans-serif; font-weight: 700; font-size: 21px; display: flex; align-items: center; justify-content: center">RC</div>
+      <div>
+        <div style="font-family: Archivo, sans-serif; font-stretch: 88%; font-weight: 700; font-size: 23px; line-height: 1.15">Rafael Coelho</div>
+        <div style="font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 600; color: #4B5A51; padding-top: 2px">MÉDICO · CRM/MA 10137</div>
+        <div style="font-size: 15px; color: #4B5A51">Clínica Médica</div>
+        <div style="display: flex; gap: 14px; font-size: 14px; color: #657268; padding-top: 8px">
+          <span style="color: #1F6B3A; font-weight: 600">Associado AMI</span>
+        </div>
+      </div>
+      <div>
+        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px">
+          <div style="font-size: 11px; text-align: center; color: #657268">S</div><div style="font-size: 11px; text-align: center; color: #657268">T</div><div style="font-size: 11px; text-align: center; color: #657268">Q</div><div style="font-size: 11px; text-align: center; color: #657268">Q</div><div style="font-size: 11px; text-align: center; color: #657268">S</div><div style="font-size: 11px; text-align: center; color: #657268">S</div>
+          <div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #E1E8E3"></div>
+          <div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #1F6B3A"></div><div style="height: 7px; background: #E1E8E3"></div>
+        </div>
+        <div style="font-size: 13px; color: #657268; padding-top: 6px">manhã 08–12 · tarde 14–18</div>
+        <div style="font-size: 14px; padding-top: 4px">Rua Projetada 101 — Centro</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 7px">
+        <div style="border: 1px solid #1F6B3A; background: #1F6B3A; color: #FFFFFF; font-weight: 600; font-size: 15px; text-align: center; padding: 10px 0">Ver perfil</div>
+        <div style="border: 1px solid #C3D0C7; color: #1F6B3A; font-weight: 600; font-size: 15px; text-align: center; padding: 10px 0; font-variant-numeric: tabular-nums">(99) 93001-3571</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="background: #06210F; color: #A5DCAF; padding: 22px 40px; font-size: 14px">
+    Cada perfil traz endereço, telefone e horários por dia, e o registro no Conselho Regional de Medicina.
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
