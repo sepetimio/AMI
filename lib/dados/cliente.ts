@@ -17,7 +17,7 @@ export function clienteServidor(): SupabaseClient {
   if (!url || !chave) {
     throw new Error(
       "Faltam NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY. " +
-        "Copie .env.example para .env.local e preencha com as chaves do projeto.",
+        "Copie .env.local.exemplo para .env.local e preencha com as chaves do projeto.",
     );
   }
 
