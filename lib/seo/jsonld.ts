@@ -1,5 +1,6 @@
 import type { Medico } from "@/lib/dados/tipos";
 import type { Noticia } from "@/lib/sanity/tipos";
+import { dimensoesDoRef, urlDaImagem } from "@/lib/sanity/imagem";
 
 /*
   Construtores de JSON-LD. Puros, e testados porque erro aqui falha calado:
@@ -112,20 +113,44 @@ export function physician(m: Medico, siteUrl: string) {
 /*
   NewsArticle das publicações da AMI.
 
-  `author` sai como Person com `identifier` carregando o CRM. Não existe
-  propriedade padrão do schema.org para inscrição em conselho profissional, e
-  `identifier` é o campo genérico previsto exatamente para registro externo.
-  Inventar `crm: "10274"` produziria uma chave que nenhum consumidor lê.
+  `author` sai como Person com `identifier` carregando o CRM, na mesma forma
+  estruturada que `physician()` usa mais abaixo neste arquivo (array de
+  `PropertyValue`, e não uma string solta como `"CRM/MA 10274"`): as duas
+  formas são válidas pelo schema.org, mas ter a mesma informação em duas
+  formas diferentes no mesmo arquivo, sem explicação, é a dívida que confunde
+  quem mexer aqui depois sem saber qual é o padrão da casa. `PropertyValue`
+  também é mais preciso: separa o identificador do conselho (`propertyID:
+  "CRM"`) do valor em si, em vez de embutir os dois numa única string que um
+  consumidor teria de reanalisar.
+
+  `image` sai da capa da matéria quando ela existe, com a mesma URL e as
+  mesmas dimensões reais que a página usa para desenhar a capa na tela
+  (`urlDaImagem` e `dimensoesDoRef`, ver lib/sanity/imagem.ts). A
+  documentação de dados estruturados do Google lista `image` como necessária
+  para elegibilidade em resultados ricos (Top Stories, Discover); omiti-la
+  quando o dado está ao alcance seria abrir mão de alcance de graça. Sem
+  capa, ou com `_ref` malformado (`urlDaImagem` devolve "" nesse caso, ver o
+  mesmo módulo), a chave some do objeto, no mesmo padrão condicional de
+  `dateModified`.
 
   Nenhum `AggregateRating` em lugar nenhum: CFM 2.336/2023, Art. 11, XIII.
 */
 export function newsArticle(
   n: Pick<
     Noticia,
-    "titulo" | "slug" | "resumo" | "publicadoEm" | "atualizadoEm" | "autor"
+    | "titulo"
+    | "slug"
+    | "resumo"
+    | "publicadoEm"
+    | "atualizadoEm"
+    | "autor"
+    | "capa"
   >,
   siteUrl: string,
 ) {
+  const imagemUrl = n.capa ? urlDaImagem(n.capa, 1200) : "";
+  const imagemDimensoes = n.capa ? dimensoesDoRef(n.capa.asset._ref) : undefined;
+
   return {
     "@context": "https://schema.org",
     "@type": "NewsArticle" as const,
@@ -136,10 +161,30 @@ export function newsArticle(
     /* Espalhado condicionalmente: a chave some do objeto quando não houve
        revisão, em vez de sair como null, que o Google trata como valor. */
     ...(n.atualizadoEm ? { dateModified: n.atualizadoEm } : {}),
+    ...(imagemUrl
+      ? {
+          image: {
+            "@type": "ImageObject" as const,
+            url: imagemUrl,
+            ...(imagemDimensoes
+              ? {
+                  width: imagemDimensoes.largura,
+                  height: imagemDimensoes.altura,
+                }
+              : {}),
+          },
+        }
+      : {}),
     author: {
       "@type": "Person" as const,
       name: n.autor.nome,
-      identifier: `CRM/${n.autor.crmUf} ${n.autor.crm}`,
+      identifier: [
+        {
+          "@type": "PropertyValue" as const,
+          propertyID: "CRM",
+          value: `${n.autor.crmUf}-${n.autor.crm}`,
+        },
+      ],
     },
     publisher: {
       "@type": "Organization" as const,

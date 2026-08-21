@@ -18,10 +18,16 @@ const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
   Mesma técnica de `LinhaNoticia`, mas a caixa aqui é bem maior: a capa ocupa
   quase o contêiner inteiro (1200px), não uma miniatura de 160px. Contra o
-  cálculo de `sizes` abaixo, a caixa chega a 1136px de CSS no desktop, o que
-  pede até uns 2270px de arquivo em tela de densidade 2. O teto de 2400
-  cobre isso com folga sem pedir um arquivo maior que qualquer tela real vai
-  consumir.
+  cálculo de `sizes` abaixo, a caixa chega a 1134px de CSS no desktop, o que
+  pede uns 2270px de arquivo em densidade 2.
+
+  O teto de 2400 cobre densidade 2 com folga, e é uma decisão deliberada de
+  parar aí, não um esquecimento de densidade 3 (que pediria uns 3400px):
+  numa tela 3x a imagem sai a uns 2,1x, perceptivelmente nítida o bastante,
+  e o ganho de nitidez entre 2x e 3x numa peça deste tamanho não paga o
+  quase dobro de bytes numa rede majoritariamente 4G, que é o cenário real de
+  quem acessa este site. Para uma miniatura pequena esse cálculo pode pender
+  para o outro lado; para uma imagem deste porte, não.
 */
 const LARGURAS_CAPA = [640, 960, 1200, 1600, 2000, 2400];
 
@@ -102,12 +108,20 @@ export default async function PaginaNoticia({ params }: Props) {
       <article className="mx-auto max-w-[1200px] px-4 pb-16 md:px-6">
         {/* Assinatura e datas logo abaixo da cabeceira: num site de saúde é a
             primeira coisa que o leitor precisa poder conferir. */}
-        <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 border-b border-line py-5">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-b border-line py-5">
           <p className="text-[16px] font-semibold text-ink-900">
             {n.autor.slugDoPerfil ? (
               <Link
                 href={`/medico/${n.autor.slugDoPerfil}`}
-                className="pressiona text-ami-green-600 underline underline-offset-2 hover:text-ami-green-700"
+                /* min-h-11 = 44px, o alvo mínimo de toque no mobile; ver
+                   Breadcrumb.tsx. A linha inteira passou de items-baseline
+                   para items-center por causa deste link: um alvo de 44px de
+                   altura ao lado de texto de 15px quebraria o alinhamento
+                   por linha de base (o link ficaria "flutuando" acima dos
+                   vizinhos). Com items-center, cada peça da assinatura centra
+                   no eixo cruzado da linha, então o link cresce sem desalinhar
+                   as datas e o CRM ao lado. */
+                className="pressiona inline-flex min-h-11 items-center text-ami-green-600 underline underline-offset-2 hover:text-ami-green-700"
               >
                 {n.autor.nome}
               </Link>
@@ -140,16 +154,18 @@ export default async function PaginaNoticia({ params }: Props) {
                   Contêiner desta página: `max-w-[1200px] px-4 md:px-6`
                   (16px de preenchimento abaixo de `md`, 24px a partir dali,
                   capado em 1200px de largura total). A moldura da capa soma
-                  mais `p-2` (8px) de cada lado por dentro disso. Acima de
-                  1200px de viewport o contêiner para de crescer, então a
-                  caixa da imagem fica fixa em 1200 - 48 - 16 = 1136px.
-                  Abaixo de 1200px ela acompanha a viewport: 100vw menos 64px
-                  a partir de `md` (768px), menos 48px abaixo dali. Precisa
+                  mais `p-2` (8px, 16px nos dois lados) E `border` (1px,
+                  Tailwind: 2px nos dois lados) por dentro disso, 18px ao
+                  todo. Acima de 1200px de viewport o contêiner para de
+                  crescer, então a caixa da imagem fica fixa em
+                  1200 - 48 - 18 = 1134px. Abaixo de 1200px ela acompanha a
+                  viewport: 100vw menos 66px (48 + 18) a partir de `md`
+                  (768px), menos 50px (32 + 18) abaixo dali. Precisa
                   acompanhar estes números se o preenchimento do contêiner ou
                   da moldura mudar, senão o navegador escolhe a largura
                   errada do `srcset`.
                 */
-                sizes="(min-width: 1200px) 1136px, (min-width: 768px) calc(100vw - 64px), calc(100vw - 48px)"
+                sizes="(min-width: 1200px) 1134px, (min-width: 768px) calc(100vw - 66px), calc(100vw - 50px)"
                 alt={capa.alt}
                 width={capaLargura}
                 height={capaAltura}

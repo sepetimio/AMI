@@ -181,12 +181,45 @@ describe("newsArticle", () => {
     expect(JSON.stringify(j.author)).toContain("10274");
   });
 
+  it("declara data de publicação e de atualização, sem trocar uma pela outra", () => {
+    /* Os dois campos só têm um teste de omissão até aqui; nada travava que
+       datePublished e dateModified saíssem com os valores certos, então uma
+       inversão entre os dois passaria despercebida. */
+    const j = newsArticle(NOTICIA, "https://ami.org.br");
+    expect(j.datePublished).toBe("2026-08-21T12:00:00Z");
+    expect(j.dateModified).toBe("2026-08-22T09:00:00Z");
+  });
+
   it("omite dateModified quando não houve revisão", () => {
     /* Repetir a data de publicação em dateModified diz ao Google que a
        matéria foi revisada no mesmo instante em que saiu, o que é falso e
        gasta o sinal de frescor sem entregar nada. */
     const j = newsArticle({ ...NOTICIA, atualizadoEm: undefined }, "https://x");
     expect(j).not.toHaveProperty("dateModified");
+  });
+
+  it("inclui a capa como image, com as dimensões reais do arquivo", () => {
+    /* image é o que o Google exige para elegibilidade em Top Stories e
+       Discover; omitir a capa aqui devolveria o dado ao alcance sem usá-lo. */
+    const capa = {
+      asset: { _ref: "image-abc123def-1600x900-jpg" },
+      alt: "Mesa de inscrição do congresso da AMI",
+    };
+    const j = newsArticle({ ...NOTICIA, capa }, "https://ami.org.br") as Record<
+      string,
+      unknown
+    >;
+    const imagem = j.image as Record<string, unknown>;
+    expect(imagem["@type"]).toBe("ImageObject");
+    expect(typeof imagem.url).toBe("string");
+    expect(imagem.url).not.toBe("");
+    expect(imagem.width).toBe(1600);
+    expect(imagem.height).toBe(900);
+  });
+
+  it("omite image quando a notícia não tem capa", () => {
+    const j = newsArticle(NOTICIA, "https://ami.org.br");
+    expect(j).not.toHaveProperty("image");
   });
 
   it("não emite nota nem avaliação", () => {
