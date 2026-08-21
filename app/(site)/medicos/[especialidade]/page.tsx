@@ -48,14 +48,6 @@ export async function generateMetadata({
   const temFiltroDeQuery = Object.keys(sp).length > 0;
 
   const medicos = await buscarMedicos({ especialidade });
-  /* `especialidadePorSlug` lê a tabela `especialidade` direto, sem olhar se
-     algum profissional nela está publicado — então uma especialidade zerada
-     resolveria aqui e produziria metadados para uma página vazia. O mesmo
-     corte de `especialidadesComContagem` (que já omite isso da listagem)
-     vale para a página individual: sem profissional publicado, a rota é
-     404, não uma página com título e descrição sobre nada. */
-  if (medicos.length === 0) return {};
-
   const bairros = [
     ...new Set(medicos.flatMap((m) => m.locais.map((l) => l.bairro.nome))),
   ];
@@ -87,12 +79,6 @@ export default async function PaginaEspecialidade({
     bairrosComContagem(especialidade),
     especialidadesComContagem(),
   ]);
-  /* Mesma razão do guard em generateMetadata: uma especialidade cadastrada
-     sem nenhum profissional publicado não vira página — viraria título e
-     parágrafo gerado falando de zero médicos, o que é pior que a rota não
-     existir. */
-  if (todosDaEspecialidade.length === 0) notFound();
-
   const medicos = await buscarMedicos({ ...filtros, especialidade });
 
   const resumo = resumirFaceta(todosDaEspecialidade, esp.nome);
@@ -155,9 +141,16 @@ export default async function PaginaEspecialidade({
                 <p className="mt-2">{esp.quandoProcurar}</p>
               </div>
             ) : null}
+            {/* Conteúdo de saúde é avaliado sob critério YMYL: sem autoria
+                creditada e data de revisão, não ranqueia por melhor feito
+                que seja. Os valores entram quando a AMI indicar o revisor. */}
             <p className="text-[15px] text-ink-400">
-              Revisão médica [PROVISÓRIO — creditar nome, CRM e data da
-              revisão]. Conteúdo informativo; não substitui a consulta.
+              <strong className="font-semibold text-ink-600">
+                Revisado por
+              </strong>{" "}
+              [PROVISÓRIO — nome do médico revisor] · CRM/MA [PROVISÓRIO] ·
+              revisão em [PROVISÓRIO — data]. Conteúdo informativo; não
+              substitui a consulta médica.
             </p>
           </div>
         </section>
