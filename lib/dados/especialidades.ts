@@ -1,3 +1,4 @@
+﻿import { cache } from "react";
 import { buscarMedicos } from "@/lib/dados/medicos";
 import { clienteServidor } from "@/lib/dados/cliente";
 import type { EspecialidadeComContagem } from "@/lib/dados/tipos";
@@ -31,7 +32,10 @@ export async function especialidadesComContagem(): Promise<
   );
 }
 
-export async function especialidadePorSlug(slug: string) {
+/* Memoizada: a página chama isto no generateMetadata e de novo no corpo,
+   e sem cache seriam duas idas ao banco por requisição. O argumento é uma
+   string, então a comparação por identidade do cache funciona. */
+export const especialidadePorSlug = cache(async (slug: string) => {
   const { data, error } = await clienteServidor()
     .from("especialidade")
     .select("nome, slug, o_que_faz, quando_procurar")
@@ -47,7 +51,7 @@ export async function especialidadePorSlug(slug: string) {
     oQueFaz: data.o_que_faz as string | null,
     quandoProcurar: data.quando_procurar as string | null,
   };
-}
+});
 
 /** Bairros com oferta, opcionalmente dentro de uma especialidade. */
 export async function bairrosComContagem(especialidadeSlug?: string) {

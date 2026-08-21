@@ -1,4 +1,4 @@
-import { cache } from "react";
+﻿import { cache } from "react";
 import { clienteServidor } from "@/lib/dados/cliente";
 import { aplicarFiltros, ordenar } from "@/lib/dados/filtros";
 import type {
