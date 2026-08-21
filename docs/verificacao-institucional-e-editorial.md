@@ -16,15 +16,41 @@ relatório de verificação existe para preservar. A estrutura de passos abaixo
 política editorial), `/politica-de-privacidade`, `/termos-de-uso`,
 `/politica-de-cookies` e `/studio`.
 
-## O que não deu para medir, e por quê
+## O que ficou sem medição, e o que foi medido depois
 
-O dataset do Sanity está vazio: nenhuma notícia, nenhum autor, nenhuma
-página institucional publicada. Conferido por consulta à API e pelo estado
-das rotas. Consequências, todas registradas como não medidas em vez de
-afirmadas:
+A primeira passagem desta verificação aconteceu com o dataset do Sanity
+vazio, o que impedia medir tudo que dependesse de conteúdo real. Em
+21/08/2026 o cliente publicou um autor e uma notícia de teste, e as
+pendências abaixo foram fechadas com dado de verdade.
+
+### Fechadas em 21/08/2026
+
+| O que | Resultado |
+|---|---|
+| `/noticias` com publicação | Renderiza a contagem ("1 publicação"), a data por extenso no fuso de Imperatriz, o resumo e a assinatura com CRM. Antes só o estado vazio tinha sido visto |
+| `/noticias/[slug]` | HTTP 200. Rastro de navegação, h1, resumo, assinatura, data de publicação, corpo e o aviso de conteúdo informativo, todos no lugar |
+| Hierarquia de cabeçalhos da matéria | Um só `h1`, o título. Os `h2` da página são os do rodapé. O corpo não gerou cabeçalho porque o texto de teste é um parágrafo simples |
+| `NewsArticle` em HTML | Emitido e conferido campo a campo: `headline`, `description`, `mainEntityOfPage`, `datePublished`, `author` com o CRM em `PropertyValue`, e `publisher`. `dateModified` **ausente**, correto porque não houve revisão. `image` **ausente**, correto porque a notícia de teste não tem capa. Nenhum `AggregateRating` |
+| Rolagem horizontal a 375px | Nenhuma, em `/noticias` e na matéria. `scrollWidth` igual a `clientWidth` nas duas |
+| `ItemList` de `/noticias` | Passa a sair, agora que há publicação |
+| Bloco "Da associação" na home | Deixou de devolver nulo e passou a renderizar, entre o bloco institucional e o de bairros, como projetado |
+| Sitemap com notícia | Subiu de 44 para 45 endereços, com `/noticias/ami-abre-inscricoes-para-congresso` incluído. Nenhum 404 listado |
+| Data no fuso certo | `publicadoEm` gravado como `2026-08-21T22:19:00.000Z`, que é 19h19 em Imperatriz. A tela mostra "21 de agosto de 2026". A âncora de fuso funciona com dado real |
+
+### Ainda sem medição
+
+O dataset segue **sem nenhuma página institucional publicada**. Conferido por
+consulta à API.
 
 | O que | Situação |
 |---|---|
+| `/associacao/beneficios`, `/estatuto`, `/politica-editorial` | 404 por falta de texto no Sanity, comportamento projetado para prosa pura. Não medidas |
+| `/politica-de-privacidade`, `/termos-de-uso`, `/politica-de-cookies` | Mesma causa, mesmo estado. Não medidas |
+| `TextoRico` com estrutura rica | A notícia de teste tem só um parágrafo. Lista, citação, figura, negrito, itálico e link seguem sem verificação visual, ainda que cobertos por teste |
+| Capa de matéria | A notícia de teste não tem imagem. O `srcset`, o recorte e a proporção real extraída do `_ref` seguem sem observação em tela |
+| Link relativo salvo no Studio | Ver a seção do Passo 8 |
+
+---|---|
 | `/noticias/[slug]` | Sem matéria publicada, todo slug dá 404. Contraste, cabeçalhos e responsividade da tela de matéria seguem sem medição |
 | `/associacao/beneficios`, `/estatuto`, `/politica-editorial` | 404 por falta de texto no Sanity, que é o comportamento projetado para prosa pura. Não medidas |
 | `/politica-de-privacidade`, `/termos-de-uso`, `/politica-de-cookies` | Mesma causa, mesmo estado. Não medidas |
