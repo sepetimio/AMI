@@ -161,7 +161,7 @@ export default async function PaginaPerfil({ params }: Props) {
                 href={`/medicos/${principal!.slug}/${bairroPrincipal.slug}`}
                 className="font-semibold text-ami-green-600 underline"
               >
-                {principal!.nome} no {bairroPrincipal.nome}
+                {principal!.nome} no bairro {bairroPrincipal.nome}
               </Link>
             ) : null}
           </p>
