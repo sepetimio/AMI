@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   contagem,
+  dataPorExtenso,
   formatarTelefone,
   identificacaoMedica,
 } from "@/lib/formato";
@@ -41,5 +42,40 @@ describe("contagem", () => {
   it("usa o plural nos demais casos, inclusive zero", () => {
     expect(contagem(0, "médico", "médicos")).toBe("0 médicos");
     expect(contagem(24, "médico", "médicos")).toBe("24 médicos");
+  });
+});
+
+describe("dataPorExtenso", () => {
+  it("escreve a data em português", () => {
+    expect(dataPorExtenso("2026-08-21T14:30:00Z")).toBe("21 de agosto de 2026");
+  });
+
+  it("lê a data no fuso de Imperatriz, e não no do servidor", () => {
+    /* O Studio grava o instante correspondente ao horário local de quem
+       preencheu. Meia-noite de 1º de março em Imperatriz é 03:00 UTC, e é
+       assim que a data volta do Sanity.
+
+       Sem `timeZone` fixo, a Vercel formataria em UTC e a data sairia certa
+       por acaso neste caso, mas errada para qualquer publicação da madrugada.
+       Verificado com Intl antes de entrar no plano. */
+    expect(dataPorExtenso("2026-03-01T03:00:00Z")).toBe("1 de março de 2026");
+  });
+
+  it("um instante de meia-noite UTC cai no dia anterior, e é isso mesmo", () => {
+    /* 00:00 UTC é 21:00 do dia anterior em Imperatriz, e o leitor de lá deve
+       ver o dia dele, não o de Greenwich. Documentado como teste em vez de
+       contornado: um valor assim só aparece se alguém escrever a data direto
+       pela API, sem passar pelo Studio.
+
+       A primeira versão deste plano afirmava "1 de março" aqui, o que estava
+       errado. Pego na varredura anterior à execução. */
+    expect(dataPorExtenso("2026-03-01T00:00:00Z")).toBe("28 de fevereiro de 2026");
+  });
+
+  it("devolve string vazia para entrada inválida", () => {
+    /* Data ausente é caso real: `atualizadoEm` é opcional no schema. Melhor
+       não desenhar nada do que desenhar "Invalid Date". */
+    expect(dataPorExtenso("")).toBe("");
+    expect(dataPorExtenso("nao-e-data")).toBe("");
   });
 });
