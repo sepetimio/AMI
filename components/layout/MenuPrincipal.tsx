@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const MENU = [
   { rotulo: "Buscar médicos", href: "/medicos" },
+  { rotulo: "Notícias", href: "/noticias" },
   { rotulo: "A Associação", href: "/associacao" },
 ];
 

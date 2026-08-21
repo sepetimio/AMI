@@ -96,6 +96,32 @@ export const GROQ_PAGINA = defineQuery(`
   }
 `);
 
+/*
+  As seis páginas de prosa institucional e legal, e o endereço de cada uma.
+
+  O slug do Sanity não é o caminho da URL: três páginas vivem sob
+  `/associacao` (a mesma lista que `app/(site)/associacao/[pagina]/page.tsx`
+  aceita) e três são rotas de primeiro nível, cujo slug já é o segmento
+  inteiro. Essa correspondência é o defeito que o brief da tarefa 11 tinha:
+  ele mandava listar as seis no sitemap como entradas fixas, mas todas dão
+  404 hoje porque o dataset está vazio. A correção é derivar do que existe
+  publicado, e fazer isso a partir de UM mapeamento, aqui, em vez de espalhar
+  "estatuto vira /associacao/estatuto" pelo sitemap e por qualquer outro
+  lugar que um dia precise da mesma tradução.
+*/
+export const CAMINHO_DAS_PAGINAS: Readonly<Record<string, string>> = {
+  beneficios: "/associacao/beneficios",
+  estatuto: "/associacao/estatuto",
+  "politica-editorial": "/associacao/politica-editorial",
+  "politica-de-privacidade": "/politica-de-privacidade",
+  "termos-de-uso": "/termos-de-uso",
+  "politica-de-cookies": "/politica-de-cookies",
+};
+
+export const GROQ_SLUGS_PAGINAS = defineQuery(`
+  *[_type == "paginaInstitucional" && slug.current in $slugs].slug.current
+`);
+
 /* --- funções ---
    `next: { tags }` é o que liga a consulta à etiqueta. Sem `revalidate`
    declarado: o padrão do segmento (`export const revalidate = 3600` nas
@@ -141,4 +167,30 @@ export async function paginaPorSlug(
     { slug },
     { next: { tags: [etiquetaDePagina(slug)] } },
   );
+}
+
+/*
+  Endereços completos (não slugs) das páginas de prosa que já estão
+  publicadas no Sanity, restrito às seis que `CAMINHO_DAS_PAGINAS` conhece.
+
+  O filtro `slug.current in $slugs` acontece na própria consulta, e não
+  depois em memória: um documento `paginaInstitucional` fora da lista (um
+  rascunho de página futura, por exemplo) nunca devolve do banco, então nunca
+  arrisca aparecer aqui sem que alguém tenha decidido o endereço dele antes.
+
+  As seis etiquetas de cache, uma por página, são exatamente as que o webhook
+  da tarefa 4 já invalida por `etiquetaDePagina(slug)`. Não existe etiqueta
+  coletiva para `paginaInstitucional`, ao contrário de `ETIQUETA_NOTICIAS`;
+  então esta consulta se inscreve nas seis, e publicar qualquer uma delas
+  invalida exatamente a entrada de cache que a lista abaixo produziu.
+*/
+export async function caminhosDePaginasPublicadas(): Promise<string[]> {
+  const slugsConhecidos = Object.keys(CAMINHO_DAS_PAGINAS);
+  const cliente = await obterCliente();
+  const publicados: string[] = await cliente.fetch(
+    GROQ_SLUGS_PAGINAS,
+    { slugs: slugsConhecidos },
+    { next: { tags: slugsConhecidos.map(etiquetaDePagina) } },
+  );
+  return publicados.map((slug) => CAMINHO_DAS_PAGINAS[slug]);
 }

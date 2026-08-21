@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Fotografia } from "@/components/base/Fotografia";
 import { IndiceEspecialidades } from "@/components/diretorio/IndiceEspecialidades";
 import { LadrilhosBairros } from "@/components/diretorio/LadrilhosBairros";
+import { UltimasNoticias } from "@/components/editorial/UltimasNoticias";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { organizationAmi } from "@/lib/seo/jsonld";
 import {
@@ -238,6 +239,14 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* =====================================================
+          4B. ÚLTIMAS NOTÍCIAS
+          Some sozinha (devolve null) enquanto não há matéria publicada
+          no Sanity, então a home de hoje, sem conteúdo editorial, fica
+          idêntica à de antes desta tarefa.
+          ===================================================== */}
+      <UltimasNoticias />
 
       {/* =====================================================
           5. BAIRROS

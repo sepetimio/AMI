@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  CAMINHO_DAS_PAGINAS,
   ETIQUETA_NOTICIAS,
   etiquetaDeNoticia,
   etiquetaDePagina,
   groqListaNoticias,
   GROQ_NOTICIA,
   GROQ_PAGINA,
+  GROQ_SLUGS_PAGINAS,
 } from "@/lib/sanity/consultas";
 
 describe("etiquetas de cache", () => {
@@ -75,5 +77,37 @@ describe("consultas GROQ", () => {
 
   it("a página institucional é buscada por slug", () => {
     expect(GROQ_PAGINA).toContain("slug.current == $slug");
+  });
+
+  it("a lista de páginas publicadas filtra pelos slugs conhecidos", () => {
+    /* Sem o `in $slugs` na própria consulta, um rascunho de página futura
+       (fora das seis previstas hoje) chegaria do banco e só seria
+       descartado depois, em memória, sem que o mapeamento de endereço
+       soubesse o que fazer com ele. */
+    expect(GROQ_SLUGS_PAGINAS).toContain("slug.current in $slugs");
+  });
+});
+
+describe("endereço das seis páginas de prosa", () => {
+  it("as três subpáginas da associação levam o prefixo /associacao", () => {
+    expect(CAMINHO_DAS_PAGINAS.beneficios).toBe("/associacao/beneficios");
+    expect(CAMINHO_DAS_PAGINAS.estatuto).toBe("/associacao/estatuto");
+    expect(CAMINHO_DAS_PAGINAS["politica-editorial"]).toBe(
+      "/associacao/politica-editorial",
+    );
+  });
+
+  it("as três páginas legais são rotas de primeiro nível, o slug já é o endereço", () => {
+    expect(CAMINHO_DAS_PAGINAS["politica-de-privacidade"]).toBe(
+      "/politica-de-privacidade",
+    );
+    expect(CAMINHO_DAS_PAGINAS["termos-de-uso"]).toBe("/termos-de-uso");
+    expect(CAMINHO_DAS_PAGINAS["politica-de-cookies"]).toBe(
+      "/politica-de-cookies",
+    );
+  });
+
+  it("são exatamente seis páginas, nem a mais nem a menos", () => {
+    expect(Object.keys(CAMINHO_DAS_PAGINAS)).toHaveLength(6);
   });
 });

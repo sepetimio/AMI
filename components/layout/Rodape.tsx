@@ -118,6 +118,30 @@ export async function Rodape() {
                   Buscar médicos
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/associacao/diretoria"
+                  className="flex items-center py-1 hover:text-white hover:underline max-md:min-h-11 max-md:py-0"
+                >
+                  Diretoria
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/noticias"
+                  className="flex items-center py-1 hover:text-white hover:underline max-md:min-h-11 max-md:py-0"
+                >
+                  Notícias
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/associacao/beneficios"
+                  className="flex items-center py-1 hover:text-white hover:underline max-md:min-h-11 max-md:py-0"
+                >
+                  Benefícios
+                </Link>
+              </li>
             </ul>
           </nav>
 
@@ -134,7 +158,36 @@ export async function Rodape() {
         </div>
 
         <div className="mt-12 border-t border-ami-green-700 pt-6 text-[15px]">
-          <p>
+          {/*
+            Os três links dão 404 hoje: o Sanity ainda não tem o texto de
+            nenhuma das três páginas legais, e cada uma chama `notFound()`
+            nesse caso. É esperado, não é defeito desta tarefa. Diferente do
+            sitemap (que não pode convidar um robô para um 404), o rodapé é
+            navegação para gente, e um rodapé sem link para política de
+            privacidade e termos de uso é o problema maior num site que lida
+            com dado de saúde. O link some sozinho da lista quando a AMI
+            escrever o texto: nada aqui muda nesse dia.
+          */}
+          <nav aria-label="Informações legais">
+            <ul className="flex flex-wrap gap-x-6 gap-y-1">
+              {[
+                { rotulo: "Política de privacidade", href: "/politica-de-privacidade" },
+                { rotulo: "Termos de uso", href: "/termos-de-uso" },
+                { rotulo: "Política de cookies", href: "/politica-de-cookies" },
+              ].map((l) => (
+                <li key={l.href}>
+                  <Link
+                    href={l.href}
+                    className="flex items-center py-1 hover:text-white hover:underline max-md:min-h-11 max-md:py-0"
+                  >
+                    {l.rotulo}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <p className="mt-6">
             Associação Médica de Imperatriz{" "}
             <span className="registro">CNPJ [PROVISÓRIO]</span>
           </p>
