@@ -882,8 +882,8 @@ import {
   ETIQUETA_NOTICIAS,
   etiquetaDeNoticia,
   etiquetaDePagina,
+  groqListaNoticias,
   GROQ_NOTICIA,
-  GROQ_LISTA_NOTICIAS,
   GROQ_PAGINA,
 } from "@/lib/sanity/consultas";
 
@@ -914,15 +914,35 @@ describe("consultas GROQ", () => {
     /* Projeção a mais é banda desperdiçada em toda visita ao índice; a menos
        é campo undefined na tela. Ambos silenciosos. */
     for (const campo of ["titulo", "resumo", "publicadoEm", "capa", "autor"]) {
-      expect(GROQ_LISTA_NOTICIAS).toContain(campo);
+      expect(groqListaNoticias(20)).toContain(campo);
     }
     /* O corpo NÃO entra na lista: são vários blocos por matéria, e o índice
        não desenha um só deles. */
-    expect(GROQ_LISTA_NOTICIAS).not.toContain("corpo");
+    expect(groqListaNoticias(20)).not.toContain("corpo");
   });
 
   it("a lista ordena da mais recente para a mais antiga", () => {
-    expect(GROQ_LISTA_NOTICIAS).toContain("order(publicadoEm desc)");
+    expect(groqListaNoticias(20)).toContain("order(publicadoEm desc)");
+  });
+
+  it("o limite vira literal na fatia, porque GROQ não aceita parâmetro ali", () => {
+    /* `[0...$limite]` é recusado pelo analisador do GROQ com "slicing must
+       use constant numbers". Este teste trava o formato correto. */
+    expect(groqListaNoticias(3)).toContain("[0...3]");
+    expect(groqListaNoticias(20)).toContain("[0...20]");
+    expect(groqListaNoticias(20)).not.toContain("$limite");
+  });
+
+  it("recusa limite fora da faixa em vez de interpolar lixo", () => {
+    /* A interpolação é o que torna a validação obrigatória: sem ela, um valor
+       vindo da URL entraria no texto da consulta. */
+    expect(() => groqListaNoticias(0)).toThrow(/1 a 100/);
+    expect(() => groqListaNoticias(101)).toThrow(/1 a 100/);
+    expect(() => groqListaNoticias(Number.NaN)).toThrow();
+  });
+
+  it("corta a parte fracionária em vez de deixá-la chegar à consulta", () => {
+    expect(groqListaNoticias(20.9)).toContain("[0...20]");
   });
 
   it("a notícia traz o autor resolvido, não a referência crua", () => {
@@ -1030,9 +1050,33 @@ export const etiquetaDePagina = (slug: string) =>
 const PROJECAO_AUTOR = `autor->{nome, crm, crmUf, slugDoPerfil}`;
 const PROJECAO_CAPA = `capa{asset, alt}`;
 
-export const GROQ_LISTA_NOTICIAS = defineQuery(`
+/*
+  A fatia é interpolada no texto, e não passada como parâmetro.
+
+  GROQ NÃO aceita parâmetro em fatia. `[0...$limite]` é recusado pelo
+  analisador com "slicing must use constant numbers", porque a sintaxe de
+  fatia é ambígua com a de filtro e o analisador exige literal ali. Descoberto
+  na varredura anterior à execução; a primeira versão deste plano usava
+  parâmetro e teria quebrado só contra o banco real, porque teste de string
+  não alcança isso.
+
+  Interpolar valor em consulta é injeção quando o valor vem de fora, então o
+  limite passa por uma trava antes de virar texto: inteiro, entre 1 e 100. Hoje
+  quem chama é sempre código nosso (a home pede 3, o índice pede 20), e a trava
+  é justamente o que garante que continue assim depois que alguém acrescentar
+  uma tela nova que passe um valor vindo da URL.
+*/
+export function groqListaNoticias(limite: number): string {
+  const n = Math.trunc(limite);
+  if (!Number.isFinite(n) || n < 1 || n > 100) {
+    throw new Error(
+      `Limite de notícias fora da faixa aceita, de 1 a 100: ${limite}`,
+    );
+  }
+
+  return `
   *[_type == "noticia" && defined(slug.current)]
-  | order(publicadoEm desc)[0...$limite]{
+  | order(publicadoEm desc)[0...${n}]{
     titulo,
     "slug": slug.current,
     resumo,
@@ -1040,7 +1084,8 @@ export const GROQ_LISTA_NOTICIAS = defineQuery(`
     ${PROJECAO_CAPA},
     ${PROJECAO_AUTOR}
   }
-`);
+`;
+}
 
 export const GROQ_NOTICIA = defineQuery(`
   *[_type == "noticia" && slug.current == $slug][0]{
@@ -1077,8 +1122,8 @@ export const GROQ_PAGINA = defineQuery(`
 
 export async function listarNoticias(limite = 20): Promise<ResumoNoticia[]> {
   return cliente.fetch(
-    GROQ_LISTA_NOTICIAS,
-    { limite },
+    groqListaNoticias(limite),
+    {},
     { next: { tags: [ETIQUETA_NOTICIAS] } },
   );
 }
@@ -1575,12 +1620,26 @@ describe("dataPorExtenso", () => {
     expect(dataPorExtenso("2026-08-21T14:30:00Z")).toBe("21 de agosto de 2026");
   });
 
-  it("não desloca o dia por causa de fuso", () => {
-    /* Uma data ISO à meia-noite UTC, formatada no fuso local do servidor,
-       vira o dia anterior em qualquer fuso a oeste de Greenwich. Imperatriz
-       está em UTC-3: sem fixar o fuso, uma notícia publicada dia 1º apareceria
-       como 31 do mês anterior. */
-    expect(dataPorExtenso("2026-03-01T00:00:00Z")).toBe("1 de março de 2026");
+  it("lê a data no fuso de Imperatriz, e não no do servidor", () => {
+    /* O Studio grava o instante correspondente ao horário local de quem
+       preencheu. Meia-noite de 1º de março em Imperatriz é 03:00 UTC, e é
+       assim que a data volta do Sanity.
+
+       Sem `timeZone` fixo, a Vercel formataria em UTC e a data sairia certa
+       por acaso neste caso, mas errada para qualquer publicação da madrugada.
+       Verificado com Intl antes de entrar no plano. */
+    expect(dataPorExtenso("2026-03-01T03:00:00Z")).toBe("1 de março de 2026");
+  });
+
+  it("um instante de meia-noite UTC cai no dia anterior, e é isso mesmo", () => {
+    /* 00:00 UTC é 21:00 do dia anterior em Imperatriz, e o leitor de lá deve
+       ver o dia dele, não o de Greenwich. Documentado como teste em vez de
+       contornado: um valor assim só aparece se alguém escrever a data direto
+       pela API, sem passar pelo Studio.
+
+       A primeira versão deste plano afirmava "1 de março" aqui, o que estava
+       errado. Pego na varredura anterior à execução. */
+    expect(dataPorExtenso("2026-03-01T00:00:00Z")).toBe("28 de fevereiro de 2026");
   });
 
   it("devolve string vazia para entrada inválida", () => {
@@ -1603,11 +1662,12 @@ Esperado: FALHA com "dataPorExtenso is not a function".
 /*
   Data em português, por extenso.
 
-  `timeZone` fixo em America/Fortaleza (o mesmo horário de Imperatriz, sem
-  horário de verão) e não o fuso do servidor: a Vercel roda em UTC, e uma
-  notícia publicada à meia-noite sairia com a data do dia anterior para todo
-  leitor. Fixar o fuso da cidade é o único jeito de a data na tela ser a data
-  que a AMI quis dizer.
+  `timeZone` fixo em America/Fortaleza, que é o horário de Imperatriz e não
+  tem horário de verão. Sem ele, a formatação segue o fuso de onde o processo
+  roda: a Vercel roda em UTC, o computador de quem desenvolve roda em UTC-3, e
+  a mesma notícia mostraria dias diferentes conforme o ambiente. Fixar o fuso
+  da cidade é o que torna a data na tela igual à data que a AMI escolheu no
+  Studio, em qualquer servidor.
 */
 export function dataPorExtenso(iso: string): string {
   if (!iso) return "";
