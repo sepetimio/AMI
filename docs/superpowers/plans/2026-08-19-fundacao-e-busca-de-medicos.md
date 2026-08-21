@@ -3431,6 +3431,7 @@ export async function slugsDeMedicos(): Promise<string[]> {
 Crie `lib/dados/especialidades.ts`:
 
 ```ts
+import { cache } from "react";
 import { buscarMedicos } from "@/lib/dados/medicos";
 import { clienteServidor } from "@/lib/dados/cliente";
 import type { EspecialidadeComContagem } from "@/lib/dados/tipos";
@@ -3464,7 +3465,10 @@ export async function especialidadesComContagem(): Promise<
   );
 }
 
-export async function especialidadePorSlug(slug: string) {
+/* Memoizada: a página chama isto no generateMetadata e de novo no corpo,
+   e sem cache seriam duas idas ao banco por requisição. O argumento é uma
+   string, então a comparação por identidade do cache funciona. */
+export const especialidadePorSlug = cache(async (slug: string) => {
   const { data, error } = await clienteServidor()
     .from("especialidade")
     .select("nome, slug, o_que_faz, quando_procurar")
@@ -3480,7 +3484,7 @@ export async function especialidadePorSlug(slug: string) {
     oQueFaz: data.o_que_faz as string | null,
     quandoProcurar: data.quando_procurar as string | null,
   };
-}
+});
 
 /** Bairros com oferta, opcionalmente dentro de uma especialidade. */
 export async function bairrosComContagem(especialidadeSlug?: string) {
@@ -5184,7 +5188,7 @@ async function carregar(especialidadeSlug: string, bairroSlug: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { especialidade, bairro } = await params;
   const { esp, medicos, bairro: b } = await carregar(especialidade, bairro);
-  if (!esp || !b) return {};
+  if (!esp || !b || medicos.length === 0) return {};
 
   const indexavel = facetaEhIndexavel(medicos.length);
 
@@ -5212,7 +5216,17 @@ export default async function PaginaFaceta({ params }: Props) {
     especialidade,
     bairro,
   );
-  if (!esp || !b) notFound();
+  /*
+    A checagem de lista vazia é explícita, e não redundante.
+
+    Hoje `b` já sai indefinido para um cruzamento sem ninguém, porque
+    `bairrosComContagem` só devolve bairro com oferta. Mas isso é uma
+    propriedade daquela função, não um contrato desta página. Se um dia ela
+    passar a listar todos os bairros — como o rodapé faz —, sem esta linha a
+    página renderizaria um H1 de verdade sobre "reúne 0 cardiologistas no
+    Santa Rita, somando 0 endereços de atendimento".
+  */
+  if (!esp || !b || medicos.length === 0) notFound();
 
   const resumo = resumirFaceta(medicos, esp.nome, b.nome);
 
