@@ -16,13 +16,24 @@ import type { ResumoNoticia } from "@/lib/sanity/tipos";
   que o critério YMYL do Google penaliza.
 */
 export function LinhaNoticia({ noticia }: { noticia: ResumoNoticia }) {
+  /*
+    `urlDaImagem` devolve "" quando `asset._ref` está malformado (upload
+    ainda em andamento, referência corrompida), em vez de lançar; ver o
+    comentário em lib/sanity/imagem.ts. Resolver aqui, antes do JSX, e não só
+    checar `noticia.capa`: um `<img src="">` não fica em branco, o navegador
+    trata string vazia como "recarregar a página atual" e dispara uma
+    segunda requisição indesejada. Sem URL, a linha cai no mesmo layout de
+    quem nunca teve capa, que já é um caso real (comunicado curto).
+  */
+  const capaUrl = noticia.capa ? urlDaImagem(noticia.capa, 320) : "";
+
   return (
     <li className="group border-b border-line transition-colors duration-200 last:border-b-0 hover:bg-ami-mint-100/40">
       <Link
         href={`/noticias/${noticia.slug}`}
         className="flex flex-col gap-4 px-5 py-6 sm:flex-row sm:gap-6 md:px-6"
       >
-        {noticia.capa ? (
+        {noticia.capa && capaUrl ? (
           /*
             width={160} height={112} aqui NÃO é o defeito de CLS da tarefa 5.
             Lá (TextoRico) a imagem só tinha a largura fixada por CSS
@@ -49,7 +60,7 @@ export function LinhaNoticia({ noticia }: { noticia: ResumoNoticia }) {
           /* eslint-disable-next-line @next/next/no-img-element --
              o CDN do Sanity já redimensiona; ver lib/sanity/imagem.ts. */
           <img
-            src={urlDaImagem(noticia.capa, 320)}
+            src={capaUrl}
             alt={noticia.capa.alt}
             width={160}
             height={112}
