@@ -25,10 +25,30 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { isValidSignature, body } = await parseBody<{
-    _type?: string;
-    slug?: { current?: string };
-  }>(req, segredo);
+  let resultado;
+  try {
+    resultado = await parseBody<{
+      _type?: string;
+      slug?: { current?: string };
+    }>(
+      req,
+      segredo,
+      /* `parseBody` espera por padrão a consistência eventual do Content
+         Lake antes de responder, útil para quem consulta o Sanity logo
+         depois do webhook. Este handler nunca consulta o Sanity, só chama
+         `revalidateTag`, então a espera de três segundos não tem função
+         aqui e só custaria tempo faturado de função a cada publicação. */
+      false,
+    );
+  } catch {
+    /* `parseBody` faz JSON.parse do corpo sem antes checar o resultado da
+       assinatura, então corpo malformado lança antes de qualquer decisão
+       nossa. Sem este cerco, qualquer pessoa que mande um cabeçalho de
+       assinatura inventado e um corpo que não seja JSON arranca um 500 de
+       uma rota pública. 400 é a resposta certa: o problema está no pedido. */
+    return NextResponse.json({ erro: "Corpo malformado" }, { status: 400 });
+  }
+  const { isValidSignature, body } = resultado;
 
   if (!isValidSignature) {
     return NextResponse.json({ erro: "Assinatura inválida" }, { status: 401 });
