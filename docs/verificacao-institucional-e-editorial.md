@@ -42,7 +42,7 @@ sem depender do Sanity, foram medidos normalmente.
 ```
 npx tsc --noEmit                      → sem erros
 npx eslint app components lib sanity  → 0 erros, 3 avisos
-npx vitest run                        → 18 arquivos, 233 testes, todos passando
+npx vitest run                        → 18 arquivos, 242 testes, todos passando
 npx next build                        → concluído, 57 páginas estáticas
 ```
 
@@ -50,7 +50,7 @@ Os 3 avisos são os mesmos `@next/next/no-img-element` já registrados na
 verificação de 20/08, em `<img>` de foto de profissional e dos SVGs da marca.
 Não são regressão deste ramo.
 
-Suíte sem `.env.local`: 233 testes passando também com o arquivo movido para
+Suíte sem `.env.local`: 242 testes passando também com o arquivo movido para
 fora. É requisito do projeto e foi reexecutado depois das correções desta
 onda, que mexeram justamente na leitura de ambiente.
 
@@ -209,14 +209,26 @@ outra é declarada, e o validador aceita caminho relativo quando
 
 ---
 
-## Estado pendente que afeta uma das telas
+## Estado do banco, e o que ele afeta
 
-`/associacao/diretoria` está, neste momento, mostrando cargo e nome sem CRM.
-A causa é conhecida e esperada: a migração `0004_diretoria_crm.sql` ainda não
-foi aplicada no banco, e a partir desta onda o cartão lê o CRM só das colunas
-próprias da linha de diretoria, que estão vazias até a migração preenchê-las.
+A migração `0004_diretoria_crm.sql` ainda não foi aplicada no banco do
+usuário. Duas afirmações separadas, porque elas já apareceram misturadas
+neste documento:
 
-Rodar o SQL da migração resolve e devolve o CRM aos quatro cartões. Enquanto
-não for rodado, a tela está fora de conformidade com o Art. 4º, I da
-Resolução CFM 2.336/2023, o que é aceitável apenas porque o `robots.txt`
-mantém o site inteiro fora do índice enquanto a trava de demonstração vale.
+**A tela está em conformidade desde já.** `/associacao/diretoria` mostra os
+quatro CRMs, conferido ao vivo com `curl` e sem nenhum SQL novo rodado. A
+exibição resolve o CRM entre duas origens: as colunas próprias da linha, que
+mandam quando têm conteúdo, e o perfil ligado como reserva. Os quatro
+diretores de demonstração apontam para perfis publicados, então a reserva
+entrega o número correto, vindo de `profissional.crm`, que é `not null`.
+
+**A 0004 continua obrigatória, como garantia de escrita.** Sem ela o banco
+aceita gravar diretor médico publicado sem inscrição própria, e aí basta o
+perfil ligado estar despublicado, ou não existir, para a página sair com nome
+de médico sem CRM. A restrição é o que torna esse estado impossível de
+gravar. É garantia, não conserto de tela.
+
+Uma versão anterior desta seção afirmava que a página estava mostrando cargo
+e nome sem CRM e fora de conformidade. Era verdade por um intervalo, entre
+uma correção que passou do ponto e a que a desfez, e ficou escrita aqui
+depois de deixar de ser verdade.
