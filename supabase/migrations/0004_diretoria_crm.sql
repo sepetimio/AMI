@@ -59,10 +59,10 @@ alter table diretoria
   );
 
 comment on column diretoria.crm is
-  'CRM do diretor, exigido pela Resolução CFM 2.336/2023, Art. 4º, I para todo diretor médico publicado. Coluna própria, e não projeção do perfil ligado: a RLS esconde do visitante o profissional não publicado, então só o que está nesta linha chega à tela. Ver constraint diretor_medico_tem_inscricao.';
+  'CRM do diretor, exigido pela Resolução CFM 2.336/2023, Art. 4º, I para todo diretor médico publicado. Esta coluna é a fonte autoritativa, e a constraint diretor_medico_tem_inscricao a garante: o laço com profissional não serve de prova porque a RLS esconde do visitante anônimo o perfil não publicado. A tela usa o CRM do perfil ligado como reserva quando esta coluna está vazia, o que a constraint impede para diretor médico publicado.';
 
 comment on column diretoria.crm_uf is
   'UF do CRM do diretor. Ver comentário de diretoria.crm.';
 
 comment on column diretoria.profissional_id is
-  'Laço opcional com o perfil do diretório. Serve para foto e link, nunca como prova de inscrição no CRM: o perfil pode estar despublicado e invisível para o visitante anônimo.';
+  'Laço opcional com o perfil do diretório. Dá foto, link e, quando a coluna crm desta linha está vazia, o CRM de reserva que a tela exibe. Nunca serve de prova de inscrição para efeito da constraint: o perfil pode estar despublicado e invisível para o visitante anônimo.';

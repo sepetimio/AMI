@@ -171,8 +171,9 @@ create index horario_atendimento on horario (atendimento_id);
 -- justamente no mês em que mais gente a consulta.
 --
 -- Por isso `nome`, `cargo`, `crm` e `crm_uf` são colunas próprias, não
--- projeções do profissional. O laço, quando existe, dá foto e link para o
--- perfil, e só isso.
+-- projeções do profissional. O laço, quando existe, dá foto, link e o CRM de
+-- reserva que a tela exibe se a coluna própria estiver vazia. O que ele nunca
+-- faz é servir de prova de inscrição para a restrição abaixo.
 
 create table diretoria (
   id bigint generated always as identity primary key,
@@ -184,12 +185,13 @@ create table diretoria (
   ordem integer not null default 100,
   mandato_inicio date,
   mandato_fim date,
-  -- CRM do diretor, sempre na própria linha. O laço com `profissional` não
-  -- serve de inscrição: a política `leitura_profissional` da PARTE 2 esconde
-  -- do visitante anônimo todo perfil não publicado, e é assim que a planilha
-  -- entrega os 500 associados. Sem estas colunas, um diretor ligado a perfil
-  -- despublicado sairia na tela com nome de médico e nenhuma inscrição,
-  -- contra a Resolução CFM 2.336/2023, Art. 4º, I.
+  -- CRM do diretor, fonte autoritativa e garantida pela restrição abaixo. O
+  -- laço com `profissional` não serve de prova de inscrição: a política
+  -- `leitura_profissional` da PARTE 2 esconde do visitante anônimo todo
+  -- perfil não publicado, e é assim que a planilha entrega os 500 associados.
+  -- Sem estas colunas, um diretor ligado a perfil despublicado sairia na tela
+  -- com nome de médico e nenhuma inscrição, contra a Resolução CFM
+  -- 2.336/2023, Art. 4º, I.
   crm text,
   crm_uf text,
   -- Falso só para o diretor que não é médico, por exemplo um contador na
@@ -223,10 +225,10 @@ comment on column diretoria.nome is
   'Redundante em relação a profissional.nome de propósito: diretor pode não ter perfil publicado no diretório.';
 
 comment on column diretoria.profissional_id is
-  'Laço opcional com o perfil do diretório. Serve para foto e link, nunca como prova de inscrição no CRM: o perfil pode estar despublicado e invisível para o visitante anônimo.';
+  'Laço opcional com o perfil do diretório. Dá foto, link e, quando a coluna crm desta linha está vazia, o CRM de reserva que a tela exibe. Nunca serve de prova de inscrição para efeito da constraint: o perfil pode estar despublicado e invisível para o visitante anônimo.';
 
 comment on column diretoria.crm is
-  'CRM do diretor, exigido pela Resolução CFM 2.336/2023, Art. 4º, I para todo diretor médico publicado. Coluna própria, e não projeção do perfil ligado: a RLS esconde do visitante o profissional não publicado, então só o que está nesta linha chega à tela. Ver constraint diretor_medico_tem_inscricao.';
+  'CRM do diretor, exigido pela Resolução CFM 2.336/2023, Art. 4º, I para todo diretor médico publicado. Esta coluna é a fonte autoritativa, e a constraint diretor_medico_tem_inscricao a garante: o laço com profissional não serve de prova porque a RLS esconde do visitante anônimo o perfil não publicado. A tela usa o CRM do perfil ligado como reserva quando esta coluna está vazia, o que a constraint impede para diretor médico publicado.';
 
 comment on column diretoria.crm_uf is
   'UF do CRM do diretor. Ver comentário de diretoria.crm.';
