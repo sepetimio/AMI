@@ -9,8 +9,15 @@ export default defineConfig({
     environment: "node",
   },
   resolve: {
-    alias: {
-      "@": fileURLToPath(new URL(".", import.meta.url)),
+    /* Forma de array, com `find` em regex de correspondência exata (`^...$`),
+       de propósito: a forma de objeto do Vite casa por prefixo, então
+       `sanity: "@sanity/types"` também reescreveria "sanity/structure" para
+       "@sanity/types/structure", um subcaminho que não existe nesse pacote.
+       O erro resultante ("./structure" is not exported... from package
+       @sanity/types) aponta para o pacote errado. Não trocar de volta para a
+       forma de objeto sem preservar essa correspondência exata. */
+    alias: [
+      { find: /^@\//, replacement: fileURLToPath(new URL("./", import.meta.url)) },
       /* `sanity` reexporta `defineField`/`defineType`/`defineArrayMember` de
          `@sanity/types` (ver `export * from "@sanity/types"` em
          node_modules/sanity/lib/index.js), mas o próprio módulo principal
@@ -20,7 +27,7 @@ export default defineConfig({
          resolve isso porque compila `sanity.config.ts` com seu próprio
          pipeline. Aqui, para testar só a definição dos schemas, aponta
          direto para o pacote de onde essas funções realmente vêm. */
-      sanity: "@sanity/types",
-    },
+      { find: /^sanity$/, replacement: "@sanity/types" },
+    ],
   },
 });
