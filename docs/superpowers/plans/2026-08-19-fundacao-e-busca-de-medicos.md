@@ -3286,6 +3286,7 @@ A única camada que fala com o Supabase. Traz os dados no formato de tabela e de
 Crie `lib/dados/medicos.ts`:
 
 ```ts
+import { cache } from "react";
 import { clienteServidor } from "@/lib/dados/cliente";
 import { aplicarFiltros, ordenar } from "@/lib/dados/filtros";
 import type {
@@ -3356,14 +3357,19 @@ function paraDominio(linha: any): Medico {
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 /**
- * Busca com filtros.
+ * Todos os profissionais visíveis, uma vez por requisição.
  *
- * A publicação é filtrada no banco — e a RLS garante isso de novo, mesmo que
- * alguém remova esta linha. O restante é filtrado em memória por
- * `aplicarFiltros`, que é puro e testado. Com a ordem de 500 registros a
- * diferença de desempenho é irrelevante, e a lógica fica testável sem banco.
+ * Envolvido em `cache` do React de propósito. Uma página de faceta chama a
+ * camada de dados cinco vezes — para o título, para o resumo, para a lista
+ * filtrada, para os bairros e para as especialidades relacionadas. Sem isto,
+ * seriam cinco varreduras da tabela inteira e cinco mapeamentos completos na
+ * mesma renderização. Com `cache`, é uma só, e as outras quatro reaproveitam.
+ *
+ * Sem argumento de propósito: `cache` compara argumentos por identidade, e
+ * dois objetos de filtro iguais mas distintos furariam a memoização. Filtrar
+ * é barato e acontece em memória; buscar é que custa.
  */
-export async function buscarMedicos(filtros: Filtros = {}): Promise<Medico[]> {
+const todosVisiveis = cache(async (): Promise<Medico[]> => {
   const { data, error } = await clienteServidor()
     .from("profissional")
     .select(SELECAO)
@@ -3371,10 +3377,20 @@ export async function buscarMedicos(filtros: Filtros = {}): Promise<Medico[]> {
     .eq("situacao", "ativo");
 
   if (error) throw new Error(`Falha ao buscar médicos: ${error.message}`);
+  return (data ?? []).map(paraDominio);
+});
 
-  const todos = (data ?? []).map(paraDominio);
+/**
+ * Busca com filtros.
+ *
+ * A publicação é filtrada no banco — e a RLS garante isso de novo, mesmo que
+ * alguém remova aquela linha. O restante é filtrado em memória por
+ * `aplicarFiltros`, que é puro e testado. Com a ordem de 500 registros a
+ * diferença de desempenho é irrelevante, e a lógica fica testável sem banco.
+ */
+export async function buscarMedicos(filtros: Filtros = {}): Promise<Medico[]> {
   return ordenar(
-    aplicarFiltros(todos, filtros),
+    aplicarFiltros(await todosVisiveis(), filtros),
     filtros.ordem ?? "relevancia",
     filtros.termo,
   );
@@ -3394,16 +3410,9 @@ export async function buscarMedicos(filtros: Filtros = {}): Promise<Medico[]> {
  * caminhos concordem.
  */
 export async function medicoPorSlug(slug: string): Promise<Medico | null> {
-  const { data, error } = await clienteServidor()
-    .from("profissional")
-    .select(SELECAO)
-    .eq("slug", slug)
-    .eq("publicado", true)
-    .eq("situacao", "ativo")
-    .maybeSingle();
-
-  if (error) throw new Error(`Falha ao buscar o perfil: ${error.message}`);
-  return data ? paraDominio(data) : null;
+  /* Sai da mesma lista memoizada: numa página de perfil que também mostra
+     profissionais relacionados, isto economiza a segunda ida ao banco. */
+  return (await todosVisiveis()).find((m) => m.slug === slug) ?? null;
 }
 
 /**
@@ -3413,14 +3422,7 @@ export async function medicoPorSlug(slug: string): Promise<Medico | null> {
  * devolve 404 é um convite que o site não honra.
  */
 export async function slugsDeMedicos(): Promise<string[]> {
-  const { data, error } = await clienteServidor()
-    .from("profissional")
-    .select("slug")
-    .eq("publicado", true)
-    .eq("situacao", "ativo");
-
-  if (error) throw new Error(`Falha ao listar slugs: ${error.message}`);
-  return (data ?? []).map((l) => l.slug as string);
+  return (await todosVisiveis()).map((m) => m.slug);
 }
 ```
 
@@ -5039,9 +5041,16 @@ export default async function PaginaEspecialidade({
                 <p className="mt-2">{esp.quandoProcurar}</p>
               </div>
             ) : null}
+            {/* Conteúdo de saúde é avaliado sob critério YMYL: sem autoria
+                creditada e data de revisão, não ranqueia por melhor feito
+                que seja. Os valores entram quando a AMI indicar o revisor. */}
             <p className="text-[15px] text-ink-400">
-              Revisão médica [PROVISÓRIO — creditar nome, CRM e data da
-              revisão]. Conteúdo informativo; não substitui a consulta.
+              <strong className="font-semibold text-ink-600">
+                Revisado por
+              </strong>{" "}
+              [PROVISÓRIO — nome do médico revisor] · CRM/MA [PROVISÓRIO] ·
+              revisão em [PROVISÓRIO — data]. Conteúdo informativo; não
+              substitui a consulta médica.
             </p>
           </div>
         </section>
