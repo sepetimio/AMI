@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Cabeceira } from "@/components/layout/Cabeceira";
 import { ListaMedicos } from "@/components/diretorio/ListaMedicos";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { breadcrumbList, itemList } from "@/lib/seo/jsonld";
+import { breadcrumbList, comoItensDeLista, itemList } from "@/lib/seo/jsonld";
 import {
   MINIMO_PARA_INDEXAR,
   facetaEhIndexavel,
@@ -99,7 +99,7 @@ export default async function PaginaFaceta({ params }: Props) {
   return (
     <>
       <JsonLd dados={breadcrumbList(trilha, SITE)} />
-      <JsonLd dados={itemList(medicos, SITE)} />
+      <JsonLd dados={itemList(comoItensDeLista(medicos), SITE)} />
 
       <Cabeceira
         trilha={trilha}

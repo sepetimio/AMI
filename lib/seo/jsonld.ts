@@ -194,19 +194,35 @@ export function newsArticle(
   };
 }
 
-/** Entra em toda página de listagem, com a ordem exata dos resultados. */
-export function itemList(medicos: Medico[], siteUrl: string) {
+/**
+ * Entra em toda página de listagem, com a ordem exata dos resultados.
+ *
+ * Recebe nome e caminho, e não `Medico[]`: enquanto o tipo era o do
+ * diretório, o índice de notícias não tinha como reusar e ficou sem o
+ * `ItemList` que a spec, seção 7, pede em toda listagem. A forma
+ * `{ nome, caminho }` é a mesma de `breadcrumbList`, logo abaixo, para que
+ * quem escreve uma listagem nova não precise decidir nada.
+ */
+export function itemList(
+  itens: { nome: string; caminho: string }[],
+  siteUrl: string,
+) {
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    numberOfItems: medicos.length,
-    itemListElement: medicos.map((m, i) => ({
+    numberOfItems: itens.length,
+    itemListElement: itens.map((it, i) => ({
       "@type": "ListItem",
       position: i + 1,
-      name: m.nome,
-      url: `${siteUrl}/medico/${m.slug}`,
+      name: it.nome,
+      url: `${siteUrl}${it.caminho}`,
     })),
   };
+}
+
+/** Adapta a lista do diretório à forma que `itemList` recebe. */
+export function comoItensDeLista(medicos: Medico[]) {
+  return medicos.map((m) => ({ nome: m.nome, caminho: `/medico/${m.slug}` }));
 }
 
 /** Sempre acompanhado de um breadcrumb visível na tela, nunca sozinho. */

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   breadcrumbList,
+  comoItensDeLista,
   faqPage,
   itemList,
   newsArticle,
@@ -133,12 +134,42 @@ describe("organizationAmi", () => {
 });
 
 describe("itemList", () => {
-  it("preserva a ordem dos resultados", () => {
-    const l = itemList([medico, { ...medico, slug: "outro" }], SITE) as {
-      itemListElement: { position: number; url: string }[];
-    };
+  it("preserva a ordem dos resultados do diretório", () => {
+    const l = itemList(
+      comoItensDeLista([medico, { ...medico, slug: "outro" }]),
+      SITE,
+    ) as { itemListElement: { position: number; url: string }[] };
     expect(l.itemListElement[0].position).toBe(1);
     expect(l.itemListElement[1].url).toBe(`${SITE}/medico/outro`);
+  });
+
+  it("serve uma listagem editorial com a mesma função", () => {
+    /* Enquanto `itemList` recebia `Medico[]`, o índice de notícias não tinha
+       como reusar e ficou sem o ItemList que a spec, seção 7, pede em toda
+       listagem. */
+    const l = itemList(
+      [
+        { nome: "Primeira nota", caminho: "/noticias/primeira-nota" },
+        { nome: "Segunda nota", caminho: "/noticias/segunda-nota" },
+      ],
+      SITE,
+    ) as {
+      numberOfItems: number;
+      itemListElement: { position: number; name: string; url: string }[];
+    };
+    expect(l.numberOfItems).toBe(2);
+    expect(l.itemListElement[1].position).toBe(2);
+    expect(l.itemListElement[1].name).toBe("Segunda nota");
+    expect(l.itemListElement[1].url).toBe(`${SITE}/noticias/segunda-nota`);
+  });
+
+  it("monta endereço absoluto, nunca caminho solto", () => {
+    /* O Google resolve URL relativa em JSON-LD contra a página, mas o
+       schema.org pede endereço absoluto, e um erro aqui falha calado. */
+    const l = itemList([{ nome: "Estatuto", caminho: "/associacao/estatuto" }], SITE) as {
+      itemListElement: { url: string }[];
+    };
+    expect(l.itemListElement[0].url.startsWith("https://")).toBe(true);
   });
 });
 

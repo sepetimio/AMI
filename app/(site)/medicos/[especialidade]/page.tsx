@@ -6,7 +6,7 @@ import { ListaMedicos } from "@/components/diretorio/ListaMedicos";
 import { LadrilhosBairros } from "@/components/diretorio/LadrilhosBairros";
 import { PainelFiltros } from "@/components/diretorio/PainelFiltros";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { breadcrumbList, itemList } from "@/lib/seo/jsonld";
+import { breadcrumbList, comoItensDeLista, itemList } from "@/lib/seo/jsonld";
 import {
   MINIMO_PARA_INDEXAR,
   facetaEhIndexavel,
@@ -107,7 +107,7 @@ export default async function PaginaEspecialidade({
   return (
     <>
       <JsonLd dados={breadcrumbList(trilha, SITE)} />
-      <JsonLd dados={itemList(medicos, SITE)} />
+      <JsonLd dados={itemList(comoItensDeLista(medicos), SITE)} />
 
       {/*
         Cabeceira própria, sangrando de borda a borda.

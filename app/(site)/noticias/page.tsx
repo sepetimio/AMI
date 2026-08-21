@@ -3,7 +3,7 @@ import { Cabeceira } from "@/components/layout/Cabeceira";
 import { EstadoVazio } from "@/components/base/EstadoVazio";
 import { LinhaNoticia } from "@/components/editorial/LinhaNoticia";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { breadcrumbList } from "@/lib/seo/jsonld";
+import { breadcrumbList, itemList } from "@/lib/seo/jsonld";
 import { tituloDePagina } from "@/lib/seo/metadados";
 import { listarNoticias } from "@/lib/sanity/consultas";
 
@@ -30,6 +30,20 @@ export default async function PaginaNoticias() {
   return (
     <>
       <JsonLd dados={breadcrumbList(trilha, SITE)} />
+      {/* A spec, seção 7, pede ItemList em toda listagem. Só sai quando há o
+          que listar: um ItemList de zero itens não informa nada ao Google e
+          ainda por cima descreve uma página vazia. */}
+      {noticias.length > 0 ? (
+        <JsonLd
+          dados={itemList(
+            noticias.map((n) => ({
+              nome: n.titulo,
+              caminho: `/noticias/${n.slug}`,
+            })),
+            SITE,
+          )}
+        />
+      ) : null}
 
       <Cabeceira
         trilha={trilha}
