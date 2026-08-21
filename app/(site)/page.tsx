@@ -60,8 +60,16 @@ export default async function Home() {
           em volta. Sem isso sobraria uma tira do cinza da página
           entre os dois, e a cabeceira pareceria descolada por
           acidente em vez de por decisão.
+
+          A margem negativa é MAIOR que o cabeçalho de propósito, e o
+          respiro no topo compensa. A primeira versão usava o número exato
+          da altura dele, e bastou eu errar por 2px para sobrar uma faixa do
+          cinza da página acima do verde: uma linha clara no topo da tela,
+          onde não deveria haver nada. Com folga, a faixa escura sempre
+          começa acima da borda de cima e nenhum ajuste futuro de respiro,
+          de tamanho da marca ou de fonte pode reabrir a fresta.
           ===================================================== */}
-      <section className="relative isolate -mt-[76px] overflow-hidden bg-ami-green-950 pb-40 pt-[136px] md:-mt-[84px] md:pb-48 md:pt-[184px]">
+      <section className="relative isolate -mt-32 overflow-hidden bg-ami-green-950 pb-40 pt-[188px] md:pb-48 md:pt-[236px]">
         {/*
           Duas camadas de luz, e é o que separa campo de retângulo pintado. A
           primeira é um foco radial largo no alto à esquerda, atrás do título,

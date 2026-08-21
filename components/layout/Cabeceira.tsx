@@ -35,7 +35,7 @@ export function Cabeceira({
   children?: React.ReactNode;
 }) {
   return (
-    <header className="relative isolate -mt-[76px] overflow-hidden bg-surface pt-[104px] md:-mt-[84px] md:pt-[128px]">
+    <header className="relative isolate -mt-32 overflow-hidden bg-surface pt-[156px] md:pt-[172px]">
       {/* Some abaixo de md: num celular a marca disputaria largura com o
           título, que é o único elemento que precisa dela. */}
       <div
