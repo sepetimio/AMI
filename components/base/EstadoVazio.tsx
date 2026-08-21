@@ -13,7 +13,7 @@ export function EstadoVazio({
   acao?: React.ReactNode;
 }) {
   return (
-    <div className="relative isolate overflow-hidden rounded-bloco border border-line bg-surface px-6 py-16 text-center shadow-apoio">
+    <div className="relative isolate overflow-hidden rounded-painel border border-line bg-surface px-6 py-20 text-center shadow-erguido">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-1/2 -z-10 h-[220%] -translate-y-1/2"
@@ -31,7 +31,7 @@ export function EstadoVazio({
           maskPosition: "center",
         }}
       />
-      <h2 className="font-titulo text-[24px] font-bold [font-stretch:86%]">
+      <h2 className="text-[24px] font-semibold tracking-[-0.02em]">
         {titulo}
       </h2>
       <p className="coluna-leitura mx-auto mt-2 text-ink-600">{descricao}</p>

@@ -15,10 +15,10 @@ export function CartaoDiretor({ diretor }: { diretor: Diretor }) {
     <>
       <Placa nome={diretor.nome} foto={diretor.foto} tamanho={88} />
       <div className="min-w-0">
-        <p className="font-titulo text-[13px] font-bold uppercase tracking-[0.1em] text-ami-green-600 [font-stretch:90%]">
+        <p className="text-[13px] font-medium uppercase tracking-[0.09em] text-ami-green-600">
           {diretor.cargo}
         </p>
-        <p className="mt-1.5 font-titulo text-[21px] font-bold leading-tight [font-stretch:88%]">
+        <p className="mt-2 text-[21px] font-semibold leading-tight tracking-[-0.02em]">
           {diretor.nome}
         </p>
         {/* `diretor.crm`/`crmUf` já vêm resolvidos por `lib/dados/diretoria`
@@ -48,7 +48,7 @@ export function CartaoDiretor({ diretor }: { diretor: Diretor }) {
   return diretor.slugDoPerfil ? (
     <Link
       href={`/medico/${diretor.slugDoPerfil}`}
-      className={`pressiona ${classe} hover:border-ami-green-600 hover:bg-ami-mint-100 hover:shadow-erguido`}
+      className={`pressiona eleva ${classe} hover:border-line-strong`}
     >
       {miolo}
     </Link>

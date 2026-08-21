@@ -30,7 +30,7 @@ export function Chip({
   /* Sobre fundo claro a ação e o destaque usam verde-600. A menta só entra
      como preenchimento, nunca como cor de texto. */
   const cores = {
-    neutro: "bg-canvas text-ink-600 border-line",
+    neutro: "bg-canvas text-ink-600 border-transparent",
     associado: "bg-ami-mint-100 text-ami-green-700 border-ami-green-600/30",
     estado: vivo
       ? "bg-ami-mint-100 text-ami-green-700 border-ami-green-600/30"
@@ -39,7 +39,7 @@ export function Chip({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-chip border px-2.5 py-1 text-xs font-semibold ${cores}`}
+      className={`inline-flex items-center gap-1.5 rounded-chip border px-3 py-1.5 text-[13px] font-medium ${cores}`}
     >
       {tom === "estado" ? (
         <span

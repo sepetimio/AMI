@@ -75,7 +75,7 @@ export default async function PaginaMedicos() {
           aria-labelledby="por-especialidade"
           className="revelar pb-4 pt-12"
         >
-          <h2 id="por-especialidade" className="border-b border-line-strong pb-4">
+          <h2 id="por-especialidade" className="pb-1">
             Por especialidade
           </h2>
           <IndiceEspecialidades itens={especialidades} />
@@ -86,7 +86,7 @@ export default async function PaginaMedicos() {
           id="por-bairro"
           className="revelar pb-20 pt-12"
         >
-          <h2 id="titulo-por-bairro" className="border-b border-line-strong pb-4">
+          <h2 id="titulo-por-bairro" className="pb-1">
             Por bairro
           </h2>
           <div className="mt-8">

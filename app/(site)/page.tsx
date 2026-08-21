@@ -51,31 +51,50 @@ export default async function Home() {
 
       {/* =====================================================
           1. HERÓI
-          Única faixa escura acima do rodapé. O verde deixou de ser
-          papel de parede em duas faixas e passou a marcar exatamente
-          dois momentos: a cabeceira e o colofão.
-          ===================================================== */}
-      <section className="relative isolate overflow-hidden bg-ami-green-900 pb-28 pt-16 md:pb-36 md:pt-24">
-        {/*
-          O símbolo em escala arquitetônica, cortado pela borda direita.
+          Campo profundo, não faixa chapada. O verde deixou de
+          cobrir seções inteiras e passou a marcar dois momentos
+          no site: esta cabeceira e o rodapé.
 
-          Antes ele entrava como <img> a 5% de opacidade, que é a definição de
-          marca de água: presente o bastante para sujar, fraco demais para
-          compor. Aqui ele entra como MÁSCARA sobre um degradê, o que troca
-          opacidade por tonalidade. O traço deixa de ser um cinza lavado e vira
-          verde de marca embutido no verde escuro, como letra fundida em metal.
-          É a diferença entre imprimir cinza e gravar em relevo.
+          A margem negativa no topo puxa a faixa para trás do
+          cabeçalho flutuante, que agora é uma peça solta com ar
+          em volta. Sem isso sobraria uma tira do cinza da página
+          entre os dois, e a cabeceira pareceria descolada por
+          acidente em vez de por decisão.
+          ===================================================== */}
+      <section className="relative isolate -mt-[76px] overflow-hidden bg-ami-green-950 pb-40 pt-[136px] md:-mt-[84px] md:pb-48 md:pt-[184px]">
+        {/*
+          Duas camadas de luz, e é o que separa campo de retângulo pintado. A
+          primeira é um foco radial largo no alto à esquerda, atrás do título,
+          que levanta aquele canto sem que ninguém consiga apontar de onde vem
+          a claridade.
+        */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            background:
+              "radial-gradient(120% 80% at 12% 0%, rgba(31,107,58,0.55) 0%, rgba(11,48,24,0.35) 38%, transparent 72%)",
+          }}
+        />
+
+        {/*
+          A segunda é a marca, em escala arquitetônica, cortada pela borda.
+
+          Entra como MÁSCARA sobre um degradê, não como imagem com opacidade
+          baixa. A diferença é entre imprimir cinza e gravar em relevo: por
+          máscara o traço vira verde de marca embutido no verde profundo, com
+          o brilho caindo ao longo da própria forma.
 
           Some abaixo de md: num celular ele roubaria a largura do título, que
           é o único elemento que precisa dela.
         */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-[14%] top-1/2 hidden h-[150%] w-[62%] -translate-y-1/2 md:block"
+          className="pointer-events-none absolute -right-[10%] top-1/2 hidden h-[165%] w-[58%] -translate-y-1/2 md:block"
           style={{
             background:
-              "linear-gradient(155deg, var(--color-ami-green-500) 0%, var(--color-ami-green-600) 42%, var(--color-ami-green-800) 100%)",
-            opacity: 0.3,
+              "linear-gradient(150deg, var(--color-ami-green-500) 0%, var(--color-ami-green-600) 38%, rgba(11,48,24,0) 92%)",
+            opacity: 0.42,
             WebkitMaskImage: "url(/marca/ami-simbolo.svg)",
             maskImage: "url(/marca/ami-simbolo.svg)",
             WebkitMaskSize: "contain",
@@ -87,21 +106,23 @@ export default async function Home() {
           }}
         />
 
-        <div className="relative mx-auto grid max-w-[1200px] grid-cols-12 px-4 md:px-6">
-          <div className="col-span-12 md:col-span-8 lg:col-span-7">
+        <div className="relative mx-auto grid max-w-[1240px] grid-cols-12 px-5 md:px-8">
+          <div className="col-span-12 md:col-span-9 lg:col-span-7">
             <h1 className="texto-placa text-white">
               Encontre um médico em Imperatriz
             </h1>
             {/* Números contados do banco. Nunca escritos à mão. */}
-            <p className="mt-6 max-w-[42ch] text-[19px] text-ami-mint-400 md:text-[21px]">
-              <span className="registro text-white">{total}</span>{" "}
+            <p className="mt-7 max-w-[46ch] text-[19px] leading-relaxed text-ami-mint-400 md:text-[22px]">
+              <span className="registro font-medium text-white">{total}</span>{" "}
               {total === 1 ? "profissional" : "profissionais"} em{" "}
-              <span className="registro text-white">
+              <span className="registro font-medium text-white">
                 {especialidades.length}
               </span>{" "}
               {especialidades.length === 1 ? "especialidade" : "especialidades"}
               , atendendo em{" "}
-              <span className="registro text-white">{bairros.length}</span>{" "}
+              <span className="registro font-medium text-white">
+                {bairros.length}
+              </span>{" "}
               {bairros.length === 1 ? "bairro" : "bairros"} da cidade.
             </p>
           </div>
@@ -113,22 +134,22 @@ export default async function Home() {
           Invade a faixa. É a única superfície flutuante do site, e é
           a que carrega a ação principal.
           ===================================================== */}
-      <div className="relative z-10 mx-auto max-w-[1200px] px-4 md:px-6">
+      <div className="relative z-10 mx-auto max-w-[1240px] px-5 md:px-8">
         {/* Formulário HTML de verdade, com method GET: funciona sem
             JavaScript e o resultado vira uma URL compartilhável. */}
         <form
           action="/busca"
           method="get"
-          className="-mt-16 rounded-bloco border border-line bg-surface p-5 shadow-flutuante md:-mt-20 md:p-7"
+          className="-mt-24 rounded-painel border border-line bg-surface p-5 shadow-flutuante md:-mt-28 md:p-8"
         >
-          <h2 className="font-titulo text-[15px] font-bold uppercase tracking-[0.1em] text-ink-400 [font-stretch:88%]">
+          <h2 className="font-titulo text-[15px] font-bold uppercase tracking-[0.1em] text-ink-400">
             Buscar no diretório
           </h2>
           <div className="mt-4 grid gap-4 md:grid-cols-[1fr_260px_auto]">
             <div>
               <label
                 htmlFor="busca-termo"
-                className="block text-[15px] font-semibold"
+                className="block text-[15px] font-medium text-ink-600"
               >
                 Especialidade ou nome
               </label>
@@ -137,20 +158,20 @@ export default async function Home() {
                 name="termo"
                 type="search"
                 placeholder="Cardiologista, Mayara Viana…"
-                className="pressiona mt-1.5 min-h-12 w-full rounded-controle border border-line-strong bg-canvas px-3.5 text-[16px] placeholder:text-ink-300 focus:border-ami-green-600 focus:bg-surface"
+                className="pressiona mt-2 min-h-14 w-full rounded-controle border border-line bg-canvas px-4 text-[16px] placeholder:text-ink-300 focus:border-ami-green-600 focus:bg-surface"
               />
             </div>
             <div>
               <label
                 htmlFor="busca-bairro"
-                className="block text-[15px] font-semibold"
+                className="block text-[15px] font-medium text-ink-600"
               >
                 Bairro
               </label>
               <select
                 id="busca-bairro"
                 name="bairro"
-                className="pressiona mt-1.5 min-h-12 w-full rounded-controle border border-line-strong bg-canvas px-3.5 text-[16px] focus:border-ami-green-600 focus:bg-surface"
+                className="pressiona mt-2 min-h-14 w-full rounded-controle border border-line bg-canvas px-4 text-[16px] focus:border-ami-green-600 focus:bg-surface"
               >
                 <option value="">Todos</option>
                 {bairros.map((b) => (
@@ -162,7 +183,7 @@ export default async function Home() {
             </div>
             <button
               type="submit"
-              className="pressiona mt-auto min-h-12 rounded-controle bg-ami-green-600 px-8 font-semibold text-white shadow-apoio hover:bg-ami-green-700 hover:shadow-erguido"
+              className="pressiona mt-auto min-h-14 rounded-controle bg-ami-green-600 px-9 font-semibold text-white shadow-apoio hover:bg-ami-green-700 hover:shadow-erguido"
             >
               Buscar
             </button>
@@ -178,7 +199,7 @@ export default async function Home() {
         aria-labelledby="especialidades"
         className="revelar mx-auto max-w-[1200px] px-4 pb-4 pt-16 md:px-6 md:pt-24"
       >
-        <div className="flex items-baseline justify-between gap-4 border-b border-line-strong pb-4">
+        <div className="flex items-baseline justify-between gap-4 pb-1">
           <h2 id="especialidades">Especialidades</h2>
           <Link
             href="/medicos"
@@ -209,7 +230,7 @@ export default async function Home() {
             <Fotografia
               espaco="sede"
               sizes="(min-width: 768px) 46vw, 92vw"
-              className="h-auto w-full rounded-[6px] object-cover"
+              className="h-auto w-full object-cover"
             />
           </div>
 

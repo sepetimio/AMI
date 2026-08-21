@@ -22,7 +22,7 @@ export async function UltimasNoticias() {
       aria-labelledby="ultimas-noticias"
       className="revelar mx-auto max-w-[1200px] px-4 py-16 md:px-6 md:py-20"
     >
-      <div className="flex items-baseline justify-between gap-4 border-b border-line-strong pb-4">
+      <div className="flex items-baseline justify-between gap-4 pb-1">
         <h2 id="ultimas-noticias">Da associação</h2>
         <Link
           href="/noticias"
@@ -32,7 +32,7 @@ export async function UltimasNoticias() {
         </Link>
       </div>
 
-      <ul className="mt-6 overflow-hidden rounded-bloco border border-line bg-surface shadow-apoio">
+      <ul className="mt-6 grid gap-3">
         {noticias.map((n) => (
           <LinhaNoticia key={n.slug} noticia={n} />
         ))}

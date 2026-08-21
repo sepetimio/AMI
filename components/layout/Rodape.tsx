@@ -3,7 +3,13 @@ import { bairrosComContagem, especialidadesComContagem } from "@/lib/dados/espec
 import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
 
 /*
-  Rodapé em verde-900. A marca não entra aqui: sendo verde-escura sobre fundo
+  Rodapé em verde-950, o tom mais profundo da escala, com o topo arredondado.
+
+  O canto arredondado no alto é o que faz o rodapé pousar sobre o cinza da
+  página em vez de fechar a tela com um bloco retangular de borda a borda. É o
+  mesmo princípio do cabeçalho flutuante, na outra ponta.
+
+  Antes era verde-900. A marca não entra aqui: sendo verde-escura sobre fundo
   verde-escuro, ela sumiria. No lugar, o nome da associação em texto, na
   Archivo condensada — que é legível e acessível, o que uma imagem não seria.
 
@@ -18,9 +24,9 @@ export async function Rodape() {
   ]);
 
   return (
-    <footer className="mt-20 bg-ami-green-900 text-ami-mint-400">
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:px-6">
-        <p className="font-titulo text-[22px] font-bold uppercase leading-[1.05] tracking-[0.01em] text-white [font-stretch:80%]">
+    <footer className="mt-24 rounded-t-painel bg-ami-green-950 text-ami-mint-400">
+      <div className="mx-auto max-w-[1240px] px-5 py-16 md:px-8 md:py-20">
+        <p className="text-[24px] font-semibold leading-[1.15] tracking-[-0.02em] text-white">
           Associação Médica
           <br />
           de Imperatriz
@@ -34,7 +40,7 @@ export async function Rodape() {
             <nav aria-labelledby="rodape-especialidades">
               <h2
                 id="rodape-especialidades"
-                className="font-titulo text-xs font-bold uppercase tracking-[0.12em] text-white"
+                className="text-[13px] font-medium uppercase tracking-[0.09em] text-white/70"
               >
                 Especialidades
               </h2>
@@ -76,7 +82,7 @@ export async function Rodape() {
             <nav aria-labelledby="rodape-bairros">
               <h2
                 id="rodape-bairros"
-                className="font-titulo text-xs font-bold uppercase tracking-[0.12em] text-white"
+                className="text-[13px] font-medium uppercase tracking-[0.09em] text-white/70"
               >
                 Bairros
               </h2>
@@ -98,7 +104,7 @@ export async function Rodape() {
           <nav aria-labelledby="rodape-institucional">
             <h2
               id="rodape-institucional"
-              className="font-titulo text-xs font-bold uppercase tracking-[0.12em] text-white"
+              className="text-[13px] font-medium uppercase tracking-[0.09em] text-white/70"
             >
               A Associação
             </h2>
@@ -147,7 +153,7 @@ export async function Rodape() {
           </nav>
 
           <div>
-            <h2 className="font-titulo text-xs font-bold uppercase tracking-[0.12em] text-white">
+            <h2 className="text-[13px] font-medium uppercase tracking-[0.09em] text-white/70">
               Contato
             </h2>
             <address className="mt-3 space-y-1.5 text-[15px] not-italic">
@@ -158,7 +164,7 @@ export async function Rodape() {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-ami-green-700 pt-6 text-[15px]">
+        <div className="mt-14 border-t border-white/10 pt-8 text-[15px]">
           {/*
             Os três links dão 404 hoje: o Sanity ainda não tem o texto de
             nenhuma das três páginas legais, e cada uma chama `notFound()`

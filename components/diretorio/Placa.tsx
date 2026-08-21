@@ -38,7 +38,7 @@ export function Placa({
         width={tamanho}
         height={tamanho}
         style={{ width: tamanho, height: tamanho }}
-        className="shrink-0 rounded-bloco object-cover shadow-apoio"
+        className="shrink-0 rounded-controle object-cover shadow-apoio"
       />
     );
   }
@@ -53,7 +53,7 @@ export function Placa({
            placa, em vez de nadar dentro dela no tamanho grande. */
         fontSize: Math.round(tamanho * 0.34),
       }}
-      className="flex shrink-0 items-center justify-center rounded-bloco bg-ami-green-800 font-titulo font-bold text-ami-mint-400 shadow-[inset_0_1px_0_rgba(165,220,175,0.22)] [font-stretch:84%]"
+      className="flex shrink-0 items-center justify-center rounded-controle bg-ami-green-800 font-titulo font-bold text-ami-mint-400 shadow-[inset_0_1px_0_rgba(165,220,175,0.22)]"
     >
       {iniciais(nome)}
     </span>

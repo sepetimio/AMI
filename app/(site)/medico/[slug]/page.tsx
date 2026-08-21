@@ -118,7 +118,7 @@ export default async function PaginaPerfil({ params }: Props) {
       </header>
 
       <section aria-labelledby="locais" className="revelar pt-14">
-        <h2 id="locais" className="border-b border-line-strong pb-4">
+        <h2 id="locais" className="pb-1">
           Onde atende
         </h2>
 
@@ -181,7 +181,7 @@ export default async function PaginaPerfil({ params }: Props) {
 
       {m.bio ? (
         <section aria-labelledby="sobre" className="revelar pt-14">
-          <h2 id="sobre" className="border-b border-line-strong pb-4">
+          <h2 id="sobre" className="pb-1">
             Sobre
           </h2>
           <p className="coluna-leitura mt-5 text-[18px] text-ink-600">
@@ -192,10 +192,10 @@ export default async function PaginaPerfil({ params }: Props) {
 
       {relacionados.length ? (
         <section aria-labelledby="relacionados" className="revelar pt-14">
-          <h2 id="relacionados" className="border-b border-line-strong pb-4">
+          <h2 id="relacionados" className="pb-1">
             Outros profissionais de {principal!.nome.toLowerCase()}
           </h2>
-          <ul className="mt-6 overflow-hidden rounded-bloco border border-line bg-surface shadow-apoio">
+          <ul className="mt-6 grid gap-3">
             {relacionados.map((outro) => (
               <LinhaMedico key={outro.id} medico={outro} />
             ))}

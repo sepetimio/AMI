@@ -62,10 +62,13 @@ export function LinhaNoticia({ noticia }: { noticia: ResumoNoticia }) {
     : "";
 
   return (
-    <li className="group border-b border-line transition-colors duration-200 last:border-b-0 hover:bg-ami-mint-100/40">
+    /* `min-w-0`: ver o comentário equivalente em LinhaMedico. Item de grade
+        não encolhe abaixo do conteúdo sem isto, e uma palavra longa sem
+        espaço no resumo vira rolagem lateral da página. */
+    <li className="pressiona eleva group min-w-0 rounded-bloco border border-line bg-surface shadow-apoio hover:border-line-strong">
       <Link
         href={`/noticias/${noticia.slug}`}
-        className="flex flex-col gap-4 px-5 py-6 sm:flex-row sm:gap-6 md:px-6"
+        className="flex flex-col gap-5 p-5 sm:flex-row sm:gap-6 md:p-6"
       >
         {capa && capaSrc ? (
           /*
@@ -120,7 +123,7 @@ export function LinhaNoticia({ noticia }: { noticia: ResumoNoticia }) {
             {dataPorExtenso(noticia.publicadoEm)}
           </p>
 
-          <h3 className="mt-1.5 font-titulo text-[23px] font-bold leading-[1.2] text-ink-900 transition-colors duration-200 [font-stretch:86%] group-hover:text-ami-green-600">
+          <h3 className="mt-2 text-[22px] font-semibold leading-[1.25] tracking-[-0.02em] text-ink-900 transition-colors duration-200 group-hover:text-ami-green-600">
             {noticia.titulo}
           </h3>
 

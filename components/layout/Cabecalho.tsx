@@ -3,30 +3,35 @@ import { Marca } from "@/components/marca/Marca";
 import { MenuPrincipal } from "@/components/layout/MenuPrincipal";
 
 /*
-  Cabeçalho claro. A marca da AMI é verde-escura e sumiria sobre a faixa
-  verde-800 do herói, que é o motivo de o verde estruturar o site por baixo do
-  cabeçalho, e não dentro dele.
+  Cabeçalho solto, não colado.
 
-  Separado do conteúdo por um fio, não por sombra. O fio ganhou um segundo
-  traço em verde-600 na base: contra o título de display do herói o cabeçalho
-  antigo ficava tímido, e um cabeçalho tímido em cima de uma cabeceira forte
-  lê como duas páginas empilhadas em vez de uma.
+  A versão anterior era a barra de borda a borda grudada no topo, separada do
+  conteúdo por um fio de 1px. É o padrão mais antigo que existe na web e é
+  exatamente o que faz uma página parecer documento com um menu em cima, em
+  vez de produto.
 
-  A altura total fica em 68px, dentro do teto de 80px que uma barra de
-  navegação pode ocupar antes de começar a comer a primeira dobra.
+  Aqui ele descola: fica preso na rolagem, mas recuado das bordas, com canto
+  generoso e sombra difusa. O efeito é o de uma peça pousada sobre a página,
+  e é o mesmo princípio que rege os cartões do resto do site.
+
+  `backdrop-blur` só aqui e no rodapé, que são fixos. Aplicado a contêiner que
+  rola, o desfoque força repintura de GPU a cada quadro e derruba os quadros
+  por segundo no celular, que é o aparelho de quem procura médico às pressas.
+
+  A altura útil fica em 64px, dentro do teto de 80px que uma barra pode ocupar
+  antes de começar a comer a primeira dobra.
 */
 export function Cabecalho() {
   return (
-    <header className="sticky top-0 z-30 border-b-2 border-ami-green-600 bg-surface shadow-apoio">
-      <div className="mx-auto flex max-w-[1200px] items-center gap-6 px-4 py-3 md:px-6">
+    <header className="sticky top-0 z-30 px-3 pt-3 md:px-5 md:pt-5">
+      <div className="mx-auto flex max-w-[1240px] items-center gap-3 rounded-painel border border-line bg-surface/80 px-3 py-2.5 md:gap-6 shadow-erguido backdrop-blur-xl md:px-6">
         <Link
           href="/"
-          /* min-h-11 = 44px, o alvo mínimo de toque no mobile. A marca tem
-             44px de altura e sozinha ficaria no limite. */
+          /* min-h-11 = 44px, o alvo mínimo de toque no celular. */
           className="pressiona flex min-h-11 shrink-0 items-center rounded-controle"
           aria-label="Ir para a página inicial da AMI"
         >
-          <Marca altura={44} />
+          <Marca altura={40} />
         </Link>
 
         <MenuPrincipal />

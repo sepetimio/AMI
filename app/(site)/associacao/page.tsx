@@ -113,7 +113,7 @@ export default async function PaginaAssociacao() {
         <nav aria-labelledby="associacao-navegacao" className="mt-16">
           <h2
             id="associacao-navegacao"
-            className="border-b border-line-strong pb-4"
+            className="pb-1"
           >
             Saiba mais
           </h2>
@@ -125,7 +125,7 @@ export default async function PaginaAssociacao() {
                   href={c.caminho}
                   className="pressiona flex min-h-[88px] flex-col justify-center rounded-bloco border border-line bg-surface px-5 py-4 hover:border-ami-green-600 hover:bg-ami-mint-100 hover:shadow-erguido"
                 >
-                  <span className="font-titulo text-[17px] font-semibold [font-stretch:90%]">
+                  <span className="font-titulo text-[17px] font-semibold">
                     {c.titulo}
                   </span>
                   <span className="mt-1 text-[14px] text-ink-400">

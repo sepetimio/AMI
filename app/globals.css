@@ -2,67 +2,129 @@
 
 /* =========================================================
    DIREÇÃO DE ARTE — ASSOCIAÇÃO MÉDICA DE IMPERATRIZ
+
    Mudou aqui, muda no site inteiro. Nenhum componente
-   inventa cor fora desta lista.
+   inventa cor, raio, sombra ou curva fora desta lista.
+
+   Segunda passagem. A primeira leu "associação médica"
+   como "documento" e entregou fio de 1px, canto quase reto
+   e um cinza esverdeado de fundo. O cliente resumiu em uma
+   frase: parecia receituário. E parecia mesmo.
+
+   A correção não é enfeitar. É trocar o material: fundo
+   neutro em vez de tingido, profundidade por sombra difusa
+   em vez de fio, canto generoso, e tipografia que ocupa
+   espaço. Seriedade continua vindo do que o site diz e da
+   ordem em que diz, não da falta de acabamento.
    ========================================================= */
 
 @theme {
-  /* --- VERDES: estruturais, não decorativos --- */
-  --color-ami-green-900: #06210f; /* rodapé, faixas de máxima ênfase */
-  --color-ami-green-800: #0b3018; /* faixas institucionais */
-  --color-ami-green-700: #123d24; /* superfícies escuras secundárias */
-  --color-ami-green-600: #1f6b3a; /* AÇÃO: botões e links (6,51:1 sobre branco) */
-  --color-ami-green-500: #00a457; /* verde da marca — símbolo e preenchimento, NUNCA texto */
+  /* --- SUPERFÍCIES: o par que faz a sombra existir ---
 
-  /* --- MENTA: só sobre verde escuro, ou decorativa --- */
-  --color-ami-mint-400: #a5dcaf; /* 1,56:1 sobre branco — jamais texto em fundo claro */
-  --color-ami-mint-100: #e6f4e9; /* wash de fundo */
+     Duas camadas neutras, e a diferença entre elas é o que
+     permite um cartão parecer solto sobre a página. Fundo
+     branco puro com cartão branco puro precisa de fio para
+     separar, e fio é justamente o que envelheceu aqui.
 
-  /* --- TINTA --- */
-  --color-ink-900: #14201a;
-  --color-ink-600: #4b5a51;
-  --color-ink-400: #657268; /* legendas (5,0:1 sobre branco) */
-  --color-ink-300: #8a968f; /* SÓ placeholder e ícone desabilitado */
-
-  /* --- SUPERFÍCIES E FIOS --- */
-  --color-line: #e1e8e3; /* separador padrão do site */
-  --color-line-strong: #c3d0c7; /* fios de seção */
+     `canvas` é cinza-prata frio, sem uma gota de verde. O
+     verde no fundo era o que fazia a página inteira parecer
+     papel timbrado de consultório. */
+  --color-canvas: #f5f6f8;
   --color-surface: #ffffff;
-  --color-canvas: #f4f7f4; /* cinza-esverdeado frio, nunca bege */
+  --color-surface-fundo: #fbfbfc; /* variação para bloco dentro de bloco */
+
+  /* --- TINTA: neutra, levemente fria ---
+
+     As razões de contraste ao lado de cada valor foram medidas
+     contra os dois fundos do sistema, branco e canvas, e não
+     estimadas. O primeiro recorte desta escala trazia números
+     que eu escrevi de memória, e a medição desmentiu dois:
+     `ink-400` estava em 3,48:1 e reprovava em AA para texto de
+     corpo, que é exatamente o uso dele (legenda, data,
+     contagem). Quem alterar qualquer tom aqui mede de novo. */
+  --color-ink-900: #0c0e12; /* 19,3:1 no branco · título e texto de peso */
+  --color-ink-600: #565c66; /* 6,7:1 no branco, 6,2:1 no canvas · corpo secundário */
+  --color-ink-400: #6b7079; /* 5,0:1 no branco, 4,6:1 no canvas · legenda e data */
+  --color-ink-300: #8d939e; /* 3,1:1 · SÓ placeholder e ícone desabilitado */
+
+  /* --- FIOS: existem, mas quase não aparecem ---
+     Passaram a ser a exceção, não o recurso principal de
+     separação. Quem separa agora é sombra e espaço. */
+  --color-line: #ebedf1;
+  --color-line-strong: #dcdfe5;
+
+  /* --- VERDE: deixou de ser papel de parede ---
+     Antes o verde escuro cobria faixas inteiras da página.
+     Agora ele marca dois momentos, a cabeceira e o rodapé,
+     e no resto do site aparece só como ação e detalhe. */
+  --color-ami-green-950: #04150c; /* campo mais profundo do herói */
+  --color-ami-green-900: #06210f;
+  --color-ami-green-800: #0b3018;
+  --color-ami-green-700: #12502c;
+  --color-ami-green-600: #1f6b3a; /* AÇÃO: 6,51:1 sobre branco */
+  --color-ami-green-500: #00a457; /* verde da marca, NUNCA texto */
+
+  --color-ami-mint-400: #a5dcaf; /* só sobre verde escuro */
+  --color-ami-mint-100: #e9f6ee; /* wash de fundo */
+
   --color-warn: #8a6a00;
   --color-danger: #a33232;
 
   /* --- FONTES --- */
-  --font-titulo: var(--fonte-titulo), "Archivo Narrow", system-ui, sans-serif;
   --font-corpo: var(--fonte-corpo), system-ui, sans-serif;
-  --font-registro: var(--fonte-registro), ui-monospace, "SF Mono", monospace;
+  --font-titulo: var(--fonte-corpo), system-ui, sans-serif;
+  --font-registro: var(--fonte-registro), ui-monospace, monospace;
 
-  /* --- RAIOS: por função, não um valor para tudo --- */
-  --radius-controle: 6px; /* botões e campos */
-  --radius-bloco: 10px; /* cartões e tabelas */
+  /* --- RAIOS: o salto mais visível desta passagem ---
+     Eram 6px e 10px. Canto quase reto com fio de 1px é a
+     assinatura de formulário, e é metade do que fazia o
+     site parecer de 1998. */
+  --radius-controle: 12px; /* botões e campos */
+  --radius-bloco: 20px; /* cartões */
+  --radius-painel: 28px; /* painéis e superfícies grandes */
   --radius-chip: 999px;
 
-  /* --- ELEVAÇÃO: três níveis, todos tingidos de verde --- */
-  /* Sombra preta sobre fundo verde-acinzentado lê como sujeira. Estas
-     carregam o matiz do próprio fundo (6,33,15 é o verde-900), então a
-     borda de uma superfície erguida parece luz que passou pelo papel,
-     e não uma mancha por cima dele. */
-  --shadow-apoio: 0 1px 1px rgba(6, 33, 15, 0.04), 0 1px 3px rgba(6, 33, 15, 0.05);
-  --shadow-erguido: 0 1px 2px rgba(6, 33, 15, 0.05), 0 10px 24px -10px rgba(6, 33, 15, 0.18);
-  --shadow-flutuante: 0 2px 4px rgba(6, 33, 15, 0.06), 0 28px 64px -22px rgba(6, 33, 15, 0.32);
+  /* --- ELEVAÇÃO: difusa, neutra, em camadas ---
 
-  /* --- CURVAS: nada linear, nada ease-in-out --- */
-  /* `saida` desacelera forte no fim: o elemento chega com massa, como
-     objeto que assenta, em vez de parar de repente. É a curva de tudo
-     que entra em cena. `resposta` é curta e serve ao toque. */
-  --ease-saida: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-resposta: cubic-bezier(0.32, 0.72, 0, 1);
+     Três camadas por sombra, de propósito: uma curta e quase
+     opaca que ancora o objeto no plano, uma média que dá o
+     volume, e uma longa e muito clara que é a luz ambiente
+     espalhada. Sombra de camada única lê como adesivo.
+
+     Neutra e não mais tingida de verde: com fundo neutro, o
+     tingimento virava sujeira em vez de coerência.
+
+     Uma linha por sombra, por legibilidade do diff quando
+     alguém ajustar uma camada. Cheguei a escrever aqui que o
+     `@theme` do Tailwind rejeitava valor em várias linhas;
+     era falso, e a suspeita nasceu de eu ter lido o
+     `box-shadow` computado truncado. A composição do Tailwind
+     põe quatro camadas transparentes antes da sombra real
+     (`inset-shadow`, `inset-ring`, `ring-offset`, `ring`), e
+     cortar a string no meio faz parecer que não há sombra
+     nenhuma. Quem for medir isso de novo: leia o valor
+     inteiro. */
+  --shadow-apoio: 0 1px 2px rgba(12, 14, 18, 0.04), 0 4px 12px -4px rgba(12, 14, 18, 0.06);
+  --shadow-erguido: 0 1px 2px rgba(12, 14, 18, 0.03), 0 8px 24px -8px rgba(12, 14, 18, 0.1), 0 24px 56px -24px rgba(12, 14, 18, 0.12);
+  --shadow-flutuante: 0 2px 4px rgba(12, 14, 18, 0.03), 0 16px 40px -12px rgba(12, 14, 18, 0.12), 0 48px 96px -32px rgba(12, 14, 18, 0.2);
+
+  /* Brilho interno de 1px no topo. É o que faz uma superfície
+     clara ter espessura em vez de ser um retângulo pintado. */
+  --shadow-lamina: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+  /* --- CURVAS: nada linear, nada ease-in-out ---
+     `saida` freia forte no fim: o elemento chega com massa,
+     como objeto que assenta. É a curva de tudo que entra em
+     cena e de toda mudança de elevação. */
+  --ease-saida: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-resposta: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @layer base {
   html {
     /* Zoom nunca bloqueado. */
     -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
   }
 
   body {
@@ -70,12 +132,24 @@
     color: var(--color-ink-900);
     font-family: var(--font-corpo);
     font-size: 17px;
-    line-height: 1.65;
-    /* Palavra gigante sem espaço — link longo, e-mail comprido — empurraria
-       a página e criaria rolagem horizontal. */
+    line-height: 1.6;
+    letter-spacing: -0.011em;
+    -webkit-font-smoothing: antialiased;
+    /* Palavra gigante sem espaço, link longo, e-mail comprido, empurraria a
+       página e criaria rolagem horizontal. */
     overflow-wrap: break-word;
   }
 
+  /*
+    A escala saltou. Antes h1 batia em 52px e o resto vinha logo atrás, o que
+    achata a página inteira: sem diferença de porte entre os níveis, tudo lê
+    com a mesma urgência e nada guia o olho. Agora o salto entre display, h1 e
+    h2 é grande o bastante para a hierarquia funcionar de relance.
+
+    `letter-spacing` negativo cresce com o tamanho: em corpo grande o espaço
+    entre letras aparenta aumentar sozinho, e sem a compensação o título
+    parece frouxo.
+  */
   h1,
   h2,
   h3 {
@@ -84,159 +158,139 @@
     text-wrap: balance;
   }
 
-  /* O salto entre níveis é grande de propósito: título e subtítulo com
-     tamanhos próximos é uma das marcas mais visíveis de layout automático. */
   h1 {
-    font-size: 34px;
-    line-height: 38px;
+    font-size: clamp(2.25rem, 5vw, 3.25rem);
+    line-height: 1.05;
     font-weight: 700;
-    font-stretch: 80%;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.035em;
   }
 
   h2 {
-    font-size: 26px;
-    line-height: 30px;
-    font-weight: 700;
-    font-stretch: 84%;
-    letter-spacing: -0.01em;
+    font-size: clamp(1.5rem, 2.6vw, 2rem);
+    line-height: 1.15;
+    font-weight: 650;
+    letter-spacing: -0.028em;
   }
 
   h3 {
-    font-size: 21px;
-    line-height: 28px;
+    font-size: 1.25rem;
+    line-height: 1.3;
     font-weight: 600;
-    font-stretch: 100%;
-  }
-
-  @media (min-width: 768px) {
-    h1 {
-      font-size: 52px;
-      line-height: 54px;
-    }
-    h2 {
-      font-size: 32px;
-      line-height: 36px;
-    }
+    letter-spacing: -0.02em;
   }
 
   /*
     Foco visível obrigatório em tudo que recebe foco. Nunca outline:none.
 
-    O raio do anel acompanha o raio que o próprio elemento já declara —
-    `rounded-chip` num chip (999px), `rounded-controle` num botão (6px) —
-    em vez de um valor fixo que teria de vencer ou perder essa disputa
-    contra a camada `utilities` do Tailwind, o que é frágil demais para
-    depender de qual `@layer` vem primeiro no arquivo. `revert-layer`
-    devolve exatamente o valor que o elemento teria sem esta regra desta
-    camada, então o anel de um chip fica redondo e o de um botão acompanha
-    a curva menor, sempre pela classe que o próprio elemento já tem.
+    O raio do anel acompanha o raio que o próprio elemento já declara, em vez
+    de um valor fixo que teria de vencer ou perder a disputa contra a camada
+    `utilities` do Tailwind, o que é frágil demais para depender de qual
+    `@layer` vem primeiro no arquivo. `revert-layer` devolve exatamente o
+    valor que o elemento teria sem esta regra desta camada.
   */
   :focus-visible {
     outline: 2px solid var(--color-ami-green-600);
-    outline-offset: 2px;
+    outline-offset: 3px;
     border-radius: revert-layer;
   }
 
   /*
-    Piso de 2px só para quem não declarou raio nenhum — um link de texto
-    corrido, por exemplo. Sem isto, `revert-layer` cairia no raio inicial
-    (zero) e o anel ficaria perfeitamente quadrado, o que lê como acidente,
-    não como decisão. A especificidade maior de `:not([class*="rounded-"])`
-    só entra em jogo quando o elemento não tem uma classe `rounded-*` —
-    quem já tem uma continua vencendo pela regra acima.
+    Piso de 4px só para quem não declarou raio nenhum, um link de texto
+    corrido por exemplo. Sem isto, `revert-layer` cairia no raio inicial de
+    zero e o anel ficaria perfeitamente quadrado, que lê como acidente.
   */
   :focus-visible:not([class*="rounded-"]) {
-    border-radius: 2px;
+    border-radius: 4px;
   }
 
   /* Movimento só comunica estado. Quem pediu menos movimento, recebe menos. */
   @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
     *,
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
     }
   }
+}
+
+/* =========================================================
+   UTILITÁRIOS
+   ========================================================= */
+
+/*
+  Nível de display, acima do h1.
+
+  Peso 700 e não 800: na Geist, 800 fecha demais a contraforma no corpo
+  grande e o título perde legibilidade justamente onde ele é maior. O peso
+  vem do tamanho, não da gordura da haste.
+*/
+@utility texto-placa {
+  font-family: var(--font-titulo);
+  font-weight: 700;
+  font-size: clamp(2.75rem, 7.5vw, 5.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+/*
+  O dado cartorial: CRM, RQE, telefone, CNPJ, horário. A razão de existir
+  está em lib/fontes.ts, no comentário de `fonteRegistro`.
+*/
+@utility registro {
+  font-family: var(--font-registro);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.92em;
+  letter-spacing: -0.01em;
 }
 
 @utility numero-tabular {
   font-variant-numeric: tabular-nums;
 }
 
-/* Coluna de texto corrido: 580px rende cerca de 68 caracteres por linha em
+/* Coluna de texto corrido: 620px rende cerca de 70 caracteres por linha em
    17px. Acima de 80 caracteres a leitura cansa. */
 @utility coluna-leitura {
-  max-width: 580px;
-}
-
-/* =========================================================
-   NÍVEL DISPLAY
-   ========================================================= */
-
-/*
-  O eixo de largura da Archivo é a coisa mais distintiva deste sistema e a
-  única que ecoa o letreiro da marca. Até aqui ele aparecia a 80% em h1 e h2
-  e em mais lugar nenhum, o que é o mesmo que não ter voz.
-
-  `texto-placa` é o nível acima do h1: 76% de largura e peso 800. A ordem
-  importa — comprimir sem engrossar produz texto espremido, não placa. A
-  contraforma do "a" e do "e" só fecha, e o conjunto só lê como letreiro
-  pintado, quando a haste acompanha a compressão.
-
-  clamp() em vw porque o tamanho tem de responder à largura real: a 360px de
-  um Android de entrada, 5rem estouraria a linha em qualquer headline.
-*/
-@utility texto-placa {
-  font-family: var(--font-titulo);
-  font-weight: 800;
-  font-stretch: 76%;
-  font-size: clamp(2.55rem, 7vw, 4.9rem);
-  line-height: 0.94;
-  letter-spacing: -0.03em;
-  text-wrap: balance;
-}
-
-/*
-  O dado cartorial: CRM, RQE, telefone, CNPJ. Monoespaçada com números
-  tabulares, porque um diretório médico é um registro público e o número de
-  inscrição é o que torna aquele profissional verificável no portal do CFM.
-  Ver o comentário longo em lib/fontes.ts.
-*/
-@utility registro {
-  font-family: var(--font-registro);
-  font-variant-numeric: tabular-nums;
-  font-size: 0.94em;
-  letter-spacing: 0.01em;
+  max-width: 620px;
 }
 
 @layer components {
   /* =========================================================
      MATÉRIA
+
+     A camada de grão saiu. Ela existia para dar textura de papel a um fundo
+     branco chapado, e junto com o cinza esverdeado era metade do efeito
+     "receituário" que o cliente apontou. Neste sistema a profundidade vem de
+     sombra difusa e de superfícies em dois níveis, não de textura impressa.
      ========================================================= */
 
   /*
-    Grão sobre a página inteira. Branco puro de navegador não é uma escolha
-    de cor, é a ausência de uma — e é o que faz uma página séria parecer um
-    documento não formatado. Uma trama de ruído a 3,5% devolve a superfície
-    sem que ninguém consiga apontar o que mudou.
+    Moldura concêntrica, ou casca dupla.
 
-    `fixed` e `pointer-events-none` são obrigatórios: filtro de ruído em
-    contêiner que rola força repintura de GPU a cada quadro e derruba os
-    quadros por segundo no celular, que é exatamente o aparelho de quem
-    procura um médico às pressas.
+    Um cartão pousado direto no fundo lê como retângulo. Envolvido por uma
+    casca de 6px com fundo um passo mais claro, ele passa a parecer peça
+    encaixada em bandeja, que é o que separa produto acabado de bloco de
+    conteúdo.
+
+    O raio do miolo é o da casca menos a espessura dela. Sem esse desconto as
+    duas curvas ficam concêntricas só por acaso, e o olho percebe o
+    desalinhamento mesmo sem saber nomear.
   */
-  .grao {
-    position: fixed;
-    inset: 0;
-    z-index: 40;
-    pointer-events: none;
-    opacity: 0.035;
-    mix-blend-mode: multiply;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23r)'/%3E%3C/svg%3E");
+  .moldura {
+    background-color: var(--color-surface-fundo);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-painel);
+    padding: 6px;
+    box-shadow: var(--shadow-erguido);
+  }
+
+  .moldura > * {
+    border-radius: calc(var(--radius-painel) - 6px);
   }
 
   /* =========================================================
@@ -244,27 +298,29 @@
      ========================================================= */
 
   /*
-    Entrada por rolagem sem uma linha de JavaScript, usando a linha do tempo
-    de rolagem nativa do CSS. Isso importa por três razões, nesta ordem:
+    Entrada por rolagem sem uma linha de JavaScript, pela linha do tempo de
+    rolagem nativa do CSS. Isso importa por três razões, nesta ordem:
 
-    1. Não existe ouvinte de `scroll`, que roda a cada quadro e é o modo
-       mais comum de matar o desempenho de rolagem no celular.
-    2. Nada aqui precisa virar Client Component. A página inteira continua
-       sendo renderizada no servidor.
+    1. Não existe ouvinte de `scroll`, que roda a cada quadro e é o modo mais
+       comum de matar o desempenho de rolagem no celular.
+    2. Nada aqui precisa virar Client Component. A página segue no servidor.
     3. Custo de bytes zero. Nenhuma biblioteca de animação entra no pacote.
 
     O @supports é o que torna isso seguro: só quem tem `view()` recebe o
     estado inicial invisível. Sem a checagem, um navegador sem suporte
-    aplicaria `opacity: 0` e rodaria a animação como animação comum de
-    tempo — e conteúdo abaixo da dobra apareceria e sumiria fora de vista.
-    Com ela, quem não suporta simplesmente vê o conteúdo, parado.
+    aplicaria `opacity: 0` e rodaria a animação como animação comum de tempo,
+    e conteúdo abaixo da dobra apareceria e sumiria fora de vista.
+
+    O desfoque de 6px na entrada é o detalhe que separa "aparecer" de
+    "chegar": o elemento entra fora de foco e assenta, como objeto que vem de
+    trás do plano.
   */
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
       .revelar {
         animation: revelar-entrada linear both;
         animation-timeline: view();
-        animation-range: entry 0% cover 24%;
+        animation-range: entry 0% cover 26%;
       }
     }
   }
@@ -272,29 +328,48 @@
   @keyframes revelar-entrada {
     from {
       opacity: 0;
-      transform: translateY(18px);
+      transform: translateY(28px);
+      filter: blur(6px);
     }
     to {
       opacity: 1;
       transform: none;
+      filter: blur(0);
     }
   }
 
   /*
-    Resposta ao toque. Um botão que só troca de cor no hover não confirma
-    nada a quem está no celular, onde hover não existe: o dedo cobre o
-    próprio botão. O afundamento de 1px é o único sinal que o toque devolve.
+    Resposta ao toque. Um botão que só troca de cor no hover não confirma nada
+    a quem está no celular, onde hover não existe: o dedo cobre o próprio
+    botão. O afundamento é o único sinal que o toque devolve.
   */
   .pressiona {
     transition:
-      background-color 180ms var(--ease-resposta),
-      color 180ms var(--ease-resposta),
-      border-color 180ms var(--ease-resposta),
-      box-shadow 240ms var(--ease-saida),
-      transform 240ms var(--ease-saida);
+      background-color 200ms var(--ease-resposta),
+      color 200ms var(--ease-resposta),
+      border-color 200ms var(--ease-resposta),
+      box-shadow 400ms var(--ease-saida),
+      transform 400ms var(--ease-saida);
   }
 
   .pressiona:active {
-    transform: translateY(1px);
+    transform: translateY(1px) scale(0.99);
+  }
+
+  /*
+    Elevação que cresce ao passar o ponteiro. O deslocamento de 2px para cima
+    junto com a sombra maior é o que faz o cartão parecer subir, em vez de só
+    ganhar uma mancha embaixo.
+  */
+  .eleva {
+    transition:
+      box-shadow 400ms var(--ease-saida),
+      transform 400ms var(--ease-saida),
+      border-color 200ms var(--ease-resposta);
+  }
+
+  .eleva:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-erguido);
   }
 }

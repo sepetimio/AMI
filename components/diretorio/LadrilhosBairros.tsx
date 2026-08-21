@@ -33,9 +33,9 @@ export function LadrilhosBairros({
         <li key={b.slug}>
           <Link
             href={href(b.slug)}
-            className="pressiona flex min-h-[68px] flex-col justify-center rounded-bloco border border-line bg-canvas px-5 py-3 hover:border-ami-green-600 hover:bg-ami-mint-100 hover:shadow-erguido"
+            className="pressiona eleva flex min-h-[80px] flex-col justify-center rounded-bloco border border-line bg-surface px-5 py-3.5 shadow-apoio hover:border-line-strong"
           >
-            <span className="font-titulo text-[17px] font-semibold [font-stretch:90%]">
+            <span className="text-[17px] font-medium text-ink-900">
               {b.nome}
             </span>
             <span className="registro mt-0.5 text-[14px] text-ink-400">

@@ -73,7 +73,7 @@ export default async function PaginaNoticias() {
             descricao="Quando a AMI publicar a primeira notícia, ela aparece aqui."
           />
         ) : (
-          <ul className="overflow-hidden rounded-bloco border border-line bg-surface shadow-apoio">
+          <ul className="grid gap-3">
             {noticias.map((n) => (
               <LinhaNoticia key={n.slug} noticia={n} />
             ))}

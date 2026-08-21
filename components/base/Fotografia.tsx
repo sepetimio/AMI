@@ -35,7 +35,7 @@ export function Fotografia({
         /* `aspect-ratio` pelo mesmo par largura/altura da foto de verdade: o
            dia em que ela entrar, nada no layout se move. */
         style={{ aspectRatio: `${largura} / ${altura}` }}
-        className={`relative isolate flex w-full items-end overflow-hidden bg-ami-green-800 ${className}`}
+        className={`relative isolate flex w-full items-end overflow-hidden bg-ami-green-900 ${className}`}
         role="img"
         aria-label={`Espaço reservado para fotografia: ${alt}`}
       >
@@ -58,7 +58,7 @@ export function Fotografia({
             maskPosition: "center",
           }}
         />
-        <p className="w-full bg-ami-green-900/70 px-4 py-3 text-[13px] font-semibold uppercase tracking-[0.1em] text-ami-mint-400">
+        <p className="w-full bg-ami-green-950/75 px-5 py-4 text-[13px] font-medium uppercase tracking-[0.09em] text-ami-mint-400 backdrop-blur-sm">
           Fotografia a entrar: {rotulo}
         </p>
       </div>

@@ -6,10 +6,15 @@ import { formatarTelefone, identificacaoMedica } from "@/lib/formato";
 import { ROTULO_ACESSIBILIDADE, type Medico } from "@/lib/dados/tipos";
 
 /*
-  Linha, não cartão: a tela existe para comparar, e comparação se faz lendo na
-  vertical. Sem sombra em repouso, o separador é um fio de 1px.
+  Cartão, e a tela existe para comparar.
 
-  O que mudou nesta passagem, e por quê:
+  Até a segunda passagem visual isto era uma linha dentro de uma caixa única,
+  separada da seguinte por um fio de 1px, pelo argumento de que comparação se
+  faz lendo na vertical. O argumento continua valendo e a forma mudou: cartão
+  solto com respiro entre um e outro separa tão bem quanto o fio, e o olho
+  para em cada resultado em vez de escorregar pela lista. Os campos seguem nas
+  mesmas posições de cartão a cartão, então nome alinha com nome e CRM com
+  CRM, que é o que a leitura vertical precisa.
 
   CRM e telefone saíram do texto corrido e entraram na monoespaçada de
   registro. Um diretório médico é um registro público, e a inscrição no CRM é
@@ -40,12 +45,18 @@ export function LinhaMedico({ medico }: { medico: Medico }) {
   const outros = medico.locais.length - 1;
 
   return (
-    <li className="group border-b border-line transition-colors duration-200 last:border-b-0 hover:bg-ami-mint-100/40">
-      <div className="flex gap-4 px-5 py-5 md:gap-5 md:px-6">
+    /* `min-w-0`: item de grade nasce com `min-width: auto` e não encolhe
+        abaixo da largura do conteúdo. Uma palavra longa sem espaço, um
+        endereço colado ou um termo médico comprido, faria o navegador
+        alargar a faixa em vez de quebrar a palavra, e o excesso viraria
+        rolagem lateral da página inteira. Com zero, o `overflow-wrap` do
+        body volta a agir. */
+    <li className="pressiona eleva group min-w-0 rounded-bloco border border-line bg-surface shadow-apoio hover:border-line-strong">
+      <div className="flex gap-4 p-5 md:gap-6 md:p-6">
         <Placa nome={medico.nome} foto={medico.foto} tamanho={76} />
 
         <div className="min-w-0 flex-1">
-          <h3 className="font-titulo text-[23px] font-bold leading-[1.15] [font-stretch:86%]">
+          <h3 className="text-[22px] font-semibold leading-[1.2] tracking-[-0.02em]">
             <Link
               href={`/medico/${medico.slug}`}
               /* `after:absolute inset-0` não é usado aqui de propósito: a
@@ -103,14 +114,14 @@ export function LinhaMedico({ medico }: { medico: Medico }) {
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
               href={`/medico/${medico.slug}`}
-              className="pressiona inline-flex min-h-11 items-center rounded-controle bg-ami-green-600 px-5 text-[15px] font-semibold text-white hover:bg-ami-green-700 hover:shadow-erguido"
+              className="pressiona inline-flex min-h-12 items-center rounded-controle bg-ami-green-600 px-6 text-[15px] font-semibold text-white shadow-apoio hover:bg-ami-green-700 hover:shadow-erguido"
             >
               Ver perfil
             </Link>
             {local?.telefone ? (
               <a
                 href={`tel:+55${local.telefone.replace(/\D/g, "")}`}
-                className="pressiona inline-flex min-h-11 items-center rounded-controle border border-line-strong bg-surface px-5 text-[15px] font-semibold text-ami-green-600 hover:border-ami-green-600 hover:bg-ami-mint-100"
+                className="pressiona inline-flex min-h-12 items-center rounded-controle border border-line bg-canvas px-6 text-[15px] font-semibold text-ami-green-600 hover:border-ami-green-600 hover:bg-ami-mint-100"
               >
                 Ligar&nbsp;
                 <span className="registro">

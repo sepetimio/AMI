@@ -85,7 +85,7 @@ export function PainelFiltros({
         onClick={() => setAberto((v) => !v)}
         aria-expanded={aberto}
         aria-controls="campos-filtros"
-        className="pressiona flex min-h-12 w-full items-center justify-between rounded-controle border border-line-strong bg-surface px-4 font-semibold text-ami-green-600 shadow-apoio md:hidden"
+        className="pressiona flex min-h-13 w-full items-center justify-between rounded-controle border border-line bg-surface px-5 font-medium text-ink-900 shadow-apoio md:hidden"
       >
         Filtros
         {ativos > 0 ? (
@@ -101,11 +101,11 @@ export function PainelFiltros({
            o painel sumia depois da terceira rolagem, e voltar a ele exigia
            subir a lista inteira. `top-24` é a altura do cabeçalho fixo mais
            um respiro. */
-        className={`${aberto ? "block" : "hidden"} mt-3 space-y-5 rounded-bloco border border-line bg-surface p-5 shadow-apoio md:mt-0 md:block md:sticky md:top-24`}
+        className={`${aberto ? "block" : "hidden"} mt-3 space-y-6 rounded-painel border border-line bg-surface p-6 shadow-erguido md:mt-0 md:block md:sticky md:top-28`}
       >
         <h2
           id="titulo-filtros"
-          className="border-b border-line-strong pb-3 font-titulo text-[20px] font-bold [font-stretch:88%]"
+          className="text-[20px] font-semibold tracking-[-0.02em]"
         >
           Filtrar
         </h2>
@@ -113,7 +113,7 @@ export function PainelFiltros({
         <div>
           <label
             htmlFor="filtro-bairro"
-            className="block text-[15px] font-semibold"
+            className="block text-[15px] font-medium text-ink-600"
           >
             Bairro
           </label>
@@ -121,7 +121,7 @@ export function PainelFiltros({
             id="filtro-bairro"
             value={sp.get("bairro") ?? ""}
             onChange={(e) => aplicar({ bairro: e.target.value || undefined })}
-            className="pressiona mt-1.5 min-h-11 w-full rounded-controle border border-line-strong bg-canvas px-3 text-[15px] focus:border-ami-green-600 focus:bg-surface"
+            className="pressiona mt-2 min-h-12 w-full rounded-controle border border-line bg-canvas px-3.5 text-[15px] focus:border-ami-green-600 focus:bg-surface"
           >
             <option value="">Todos os bairros</option>
             {bairros.map((b) => (
@@ -133,7 +133,7 @@ export function PainelFiltros({
         </div>
 
         <fieldset>
-          <legend className="font-titulo text-[16px] font-bold [font-stretch:92%]">Atendimento</legend>
+          <legend className="text-[15px] font-medium text-ink-600">Atendimento</legend>
           <label className="mt-2 -mx-2 flex min-h-11 cursor-pointer items-center gap-2.5 rounded-controle px-2 text-[15px] transition-colors duration-150 hover:bg-ami-mint-100">
             <input
               type="checkbox"
@@ -155,7 +155,7 @@ export function PainelFiltros({
         </fieldset>
 
         <fieldset>
-          <legend className="font-titulo text-[16px] font-bold [font-stretch:92%]">Acessibilidade</legend>
+          <legend className="text-[15px] font-medium text-ink-600">Acessibilidade</legend>
           {(Object.keys(ROTULO_ACESSIBILIDADE) as RecursoAcessibilidade[]).map(
             (r) => (
               <label
@@ -187,7 +187,7 @@ export function PainelFiltros({
         <div>
           <label
             htmlFor="filtro-ordem"
-            className="block text-[15px] font-semibold"
+            className="block text-[15px] font-medium text-ink-600"
           >
             Ordenar por
           </label>
@@ -195,7 +195,7 @@ export function PainelFiltros({
             id="filtro-ordem"
             value={sp.get("ordem") ?? "relevancia"}
             onChange={(e) => aplicar({ ordem: e.target.value as Filtros["ordem"] })}
-            className="pressiona mt-1.5 min-h-11 w-full rounded-controle border border-line-strong bg-canvas px-3 text-[15px] focus:border-ami-green-600 focus:bg-surface"
+            className="pressiona mt-2 min-h-12 w-full rounded-controle border border-line bg-canvas px-3.5 text-[15px] focus:border-ami-green-600 focus:bg-surface"
           >
             <option value="relevancia">Relevância</option>
             <option value="nome">Nome (A-Z)</option>

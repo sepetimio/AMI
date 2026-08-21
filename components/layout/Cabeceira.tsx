@@ -35,7 +35,7 @@ export function Cabeceira({
   children?: React.ReactNode;
 }) {
   return (
-    <header className="relative isolate overflow-hidden border-b border-line-strong bg-surface">
+    <header className="relative isolate -mt-[76px] overflow-hidden bg-surface pt-[104px] md:-mt-[84px] md:pt-[128px]">
       {/* Some abaixo de md: num celular a marca disputaria largura com o
           título, que é o único elemento que precisa dela. */}
       <div
@@ -44,7 +44,7 @@ export function Cabeceira({
         style={{
           background:
             "linear-gradient(150deg, var(--color-ami-green-500), var(--color-ami-green-700))",
-          opacity: 0.07,
+          opacity: 0.05,
           WebkitMaskImage: "url(/marca/ami-simbolo.svg)",
           maskImage: "url(/marca/ami-simbolo.svg)",
           WebkitMaskSize: "contain",
@@ -62,7 +62,7 @@ export function Cabeceira({
 
         {contagem !== undefined ? (
           <p className="mt-5 flex items-baseline gap-2.5">
-            <span className="registro font-titulo text-[40px] font-bold leading-none text-ami-green-600">
+            <span className="registro text-[44px] font-medium leading-none tracking-[-0.03em] text-ami-green-600">
               {contagem}
             </span>
             <span className="text-[17px] text-ink-600">{rotuloContagem}</span>
