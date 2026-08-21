@@ -12,6 +12,9 @@ export const revalidate = 3600;
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
+/* Título de reserva. O documento "associacao" do Sanity tem campo `titulo`
+   obrigatório, e é ele que manda quando existe: sem isso a secretaria
+   preencheria um campo obrigatório e não veria efeito nenhum na tela. */
 const TITULO = "A Associação Médica de Imperatriz";
 const RESUMO_PADRAO = "Quem é a AMI, o que faz e como se associar.";
 
@@ -53,7 +56,7 @@ const CAMINHOS = [
 export async function generateMetadata(): Promise<Metadata> {
   const conteudo = await paginaPorSlug("associacao");
   return {
-    title: tituloDePagina(TITULO),
+    title: tituloDePagina(conteudo?.titulo ?? TITULO),
     description: conteudo?.resumo ?? RESUMO_PADRAO,
     alternates: { canonical: "/associacao" },
   };
@@ -80,7 +83,7 @@ export default async function PaginaAssociacao() {
     <>
       <JsonLd dados={breadcrumbList(TRILHA, SITE)} />
 
-      <Cabeceira trilha={TRILHA} titulo={TITULO}>
+      <Cabeceira trilha={TRILHA} titulo={conteudo?.titulo ?? TITULO}>
         {conteudo?.resumo ?? RESUMO_PADRAO}
       </Cabeceira>
 
