@@ -11,8 +11,11 @@ import EstudioCliente from "./estudio-cliente";
 */
 export { metadata, viewport } from "next-sanity/studio";
 
-/* O Studio é interface autenticada: não há nada a pré-renderizar, e forçar
-   estático evita que o build tente gerar uma versão dinâmica dele. */
+/* O Studio é uma aplicação inteira do lado do cliente: autenticação,
+   roteamento e dados, tudo acontece no navegador depois da hidratação. A
+   casca HTML desta página não muda por requisição, então força-se estática
+   para o Next servir a mesma casca já pronta em vez de recalculá-la a cada
+   acesso. */
 export const dynamic = "force-static";
 
 /*
