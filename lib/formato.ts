@@ -43,7 +43,26 @@ export function contagem(n: number, singular: string, plural: string): string {
 */
 export function dataPorExtenso(iso: string): string {
   if (!iso) return "";
-  const d = new Date(iso);
+
+  /*
+    Data sem hora ("2026-08-21", formato de coluna `date` pura do Postgres,
+    caso de `mandato_inicio`/`mandato_fim` em `diretoria`, tarefa 8) não pode
+    ir direto para `new Date`: o construtor lê data-só como meia-noite UTC, e
+    formatar esse instante em America/Fortaleza (UTC-3) joga a data para as
+    21h do dia anterior, um dia inteiro errado. `atualizadoEm`/`publicadoEm`
+    do Sanity não caem aqui porque o campo `datetime` do Studio sempre grava
+    timestamp completo, mas esta função não é exclusiva deles.
+
+    Ancorar em meio-dia do próprio fuso de Imperatriz (offset -03:00
+    explícito, e não `Z`) evita a virada de dia nos dois sentidos sem
+    depender de lógica de fuso própria: seis horas de folga para qualquer
+    lado do meio-dia local absorvem o deslocamento inteiro, e o
+    `Intl.DateTimeFormat` abaixo continua sendo a única fonte de verdade
+    sobre o fuso.
+  */
+  const semHora = /^\d{4}-\d{2}-\d{2}$/.test(iso) ? `${iso}T12:00:00-03:00` : iso;
+
+  const d = new Date(semHora);
   if (Number.isNaN(d.getTime())) return "";
 
   return new Intl.DateTimeFormat("pt-BR", {

@@ -43,6 +43,15 @@ export default async function PaginaNoticias() {
       </Cabeceira>
 
       <div className="mx-auto max-w-[1200px] px-4 py-12 md:px-6">
+        {/* Sem isto, quem navega por cabeçalhos pula do h1 da Cabeceira
+            direto para o h3 de cada LinhaNoticia. Mesma convenção de
+            app/(site)/busca/page.tsx e
+            app/(site)/medicos/[especialidade]/page.tsx: o h2 marca a região
+            de resultados mesmo quando ela está vazia, porque o marco
+            precisa existir para quem navega por cabeçalhos encontrar
+            "nenhuma publicação" também. */}
+        <h2 className="sr-only">Resultados</h2>
+
         {noticias.length === 0 ? (
           <EstadoVazio
             titulo="Ainda não há publicações"

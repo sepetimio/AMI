@@ -15,7 +15,31 @@ import type { ResumoNoticia } from "@/lib/sanity/tipos";
   lado do nome do médico, e conteúdo de saúde assinado sem CRM é exatamente o
   que o critério YMYL do Google penaliza.
 */
+
+/*
+  Larguras pedidas ao CDN para o `srcset` da miniatura.
+
+  A caixa não tem a mesma largura em toda tela: fixa em 160px a partir do
+  ponto de quebra `sm` (classe `sm:w-[160px]`), mas `w-full` abaixo dele, onde
+  ela ocupa a largura do cartão inteiro. Medido contra o preenchimento real da
+  página (`px-4` no contêiner) e do link (`px-5` na linha), essa largura fica
+  entre uns 300px e 570px de CSS conforme o aparelho, ver o comentário de
+  `sizes` mais abaixo.
+
+  Pedir uma largura única (o que o brief original fazia, 320px fixos) deixa a
+  miniatura nítida só num dos dois casos: em densidade 2 ou 3, padrão de
+  celular, uma caixa de até 570px de CSS pede até 1710px de arquivo para sair
+  nítida, e 320px sai visivelmente borrado bem no aparelho em que a maioria
+  de quem procura médico está. `srcset` + `sizes` deixa o navegador calcular,
+  a partir da largura real do layout e da densidade da tela dele, qual destas
+  larguras baixar. Isso também poupa banda de quem está em 4G: o celular não
+  baixa o arquivo pensado para a tela retina do desktop, e vice-versa.
+*/
+const LARGURAS_CAPA = [160, 320, 480, 640, 960, 1280];
+
 export function LinhaNoticia({ noticia }: { noticia: ResumoNoticia }) {
+  const capa = noticia.capa;
+
   /*
     `urlDaImagem` devolve "" quando `asset._ref` está malformado (upload
     ainda em andamento, referência corrompida), em vez de lançar; ver o
@@ -24,8 +48,18 @@ export function LinhaNoticia({ noticia }: { noticia: ResumoNoticia }) {
     trata string vazia como "recarregar a página atual" e dispara uma
     segunda requisição indesejada. Sem URL, a linha cai no mesmo layout de
     quem nunca teve capa, que já é um caso real (comunicado curto).
+
+    A falha de `_ref` malformado independe da largura pedida (o problema é o
+    formato do identificador, não o parâmetro de tamanho), então testar uma
+    largura basta para saber se todas as larguras do `srcset` também vão
+    falhar.
   */
-  const capaUrl = noticia.capa ? urlDaImagem(noticia.capa, 320) : "";
+  const capaSrc = capa ? urlDaImagem(capa, 640) : "";
+  const capaSrcSet = capa
+    ? LARGURAS_CAPA.map(
+        (largura) => `${urlDaImagem(capa, largura)} ${largura}w`,
+      ).join(", ")
+    : "";
 
   return (
     <li className="group border-b border-line transition-colors duration-200 last:border-b-0 hover:bg-ami-mint-100/40">
@@ -33,7 +67,7 @@ export function LinhaNoticia({ noticia }: { noticia: ResumoNoticia }) {
         href={`/noticias/${noticia.slug}`}
         className="flex flex-col gap-4 px-5 py-6 sm:flex-row sm:gap-6 md:px-6"
       >
-        {noticia.capa && capaUrl ? (
+        {capa && capaSrc ? (
           /*
             width={160} height={112} aqui NÃO é o defeito de CLS da tarefa 5.
             Lá (TextoRico) a imagem só tinha a largura fixada por CSS
@@ -49,8 +83,9 @@ export function LinhaNoticia({ noticia }: { noticia: ResumoNoticia }) {
             navegador nunca precisa da razão dos atributos para calcular a
             caixa: ela já está reservada antes do primeiro byte da imagem
             chegar, qualquer que seja a proporção real da foto que a AMI
-            enviar. Miniaturas de proporções variadas também não fazem a
-            grade dançar, porque a caixa é sempre a mesma.
+            enviar, e qualquer que seja o arquivo que `srcset` escolher abaixo.
+            Miniaturas de proporções variadas também não fazem a grade dançar,
+            porque a caixa é sempre a mesma.
 
             Não pedimos recorte ao CDN (`urlDaImagem` só recebe a largura, sem
             `.height()`): o `object-cover` já resolve o enquadramento visual,
@@ -60,8 +95,20 @@ export function LinhaNoticia({ noticia }: { noticia: ResumoNoticia }) {
           /* eslint-disable-next-line @next/next/no-img-element --
              o CDN do Sanity já redimensiona; ver lib/sanity/imagem.ts. */
           <img
-            src={capaUrl}
-            alt={noticia.capa.alt}
+            src={capaSrc}
+            srcSet={capaSrcSet}
+            /*
+              Abaixo de `sm` (640px), a caixa é `w-full` dentro do link
+              (`px-5`, 20px de cada lado) dentro do contêiner da página
+              (`px-4`, 16px de cada lado): 100vw menos 72px de preenchimento
+              somado. A partir de `sm`, a caixa é fixa em 160px. Precisa
+              acompanhar `sm:w-[160px]` e os `px-*` da página e do link se
+              algum dos três mudar, senão o navegador passa a escolher a
+              largura errada do `srcset` (a caixa continua certa, só o
+              arquivo baixado fica maior ou menor do que precisa).
+            */
+            sizes="(min-width: 640px) 160px, calc(100vw - 72px)"
+            alt={capa.alt}
             width={160}
             height={112}
             className="h-[112px] w-full shrink-0 rounded-bloco object-cover shadow-apoio sm:w-[160px]"
