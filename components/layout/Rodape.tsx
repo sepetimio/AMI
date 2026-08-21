@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { bairrosComContagem, especialidadesComContagem } from "@/lib/dados/especialidades";
+import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
 
 /*
   Rodapé em verde-900. A marca não entra aqui: sendo verde-escura sobre fundo
@@ -195,10 +196,16 @@ export async function Rodape() {
             O conteúdo deste site é informativo e não substitui a consulta
             médica.
           </p>
-          <p className="mt-2 text-ami-mint-400/80">
-            Os dados de profissionais exibidos são fictícios, para
-            demonstração, até a carga do cadastro oficial da AMI.
-          </p>
+          {/* Some no mesmo instante em que o robots.txt abre o site: as duas
+              partes leem a mesma trava (lib/demonstracao.ts). Afirmar que os
+              perfis são fictícios depois da carga do cadastro real seria
+              desmentir 500 médicos de verdade no rodapé de toda página. */}
+          {DADOS_DEMONSTRACAO ? (
+            <p className="mt-2 text-ami-mint-400/80">
+              Os dados de profissionais exibidos são fictícios, para
+              demonstração, até a carga do cadastro oficial da AMI.
+            </p>
+          ) : null}
         </div>
       </div>
     </footer>
