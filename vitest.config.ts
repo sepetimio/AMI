@@ -1,8 +1,15 @@
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 
-/* Os testes cobrem só a lógica pura de `lib/`. Não há teste de interface:
-   o custo de manter não se paga num site deste porte. */
+/* Os testes cobrem a lógica pura de `lib/` e `sanity/`, mais uma exceção
+   deliberada: `testes/revalidar.test.ts` importa o handler de
+   `app/api/revalidar/route.ts`. Aquela é a única rota pública do site, o
+   caminho que devolve 400 nasceu de um 500 que se arrancava sem credencial
+   nenhuma, e ele se exercita com um `NextRequest` de verdade, sem mock. Uma
+   convenção não pode deixar a rota exposta sem teste.
+
+   Não há teste de interface: o custo de manter não se paga num site deste
+   porte. */
 export default defineConfig({
   test: {
     include: ["testes/**/*.test.ts"],
