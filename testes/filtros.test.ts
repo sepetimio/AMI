@@ -138,6 +138,37 @@ describe("aplicarFiltros", () => {
     expect(r.map((m) => m.nome)).toEqual(["José Andrade"]);
   });
 
+  it("acha por nome da profissão, não só pelo nome formal da especialidade", () => {
+    const r = aplicarFiltros(todos, { termo: "cardiologista" });
+    expect(r.map((m) => m.nome)).toEqual(["José Andrade"]);
+  });
+
+  it("pediatra acha quem tem especialidade Pediatria", () => {
+    const r = aplicarFiltros(todos, { termo: "pediatra" });
+    expect(r.map((m) => m.nome)).toEqual(["Ana Bezerra"]);
+  });
+
+  it('"uro" acha urologista e não neurologista (prefixo de token, não substring)', () => {
+    const urologista = medico({
+      nome: "Uriel Osório",
+      slug: "uriel-osorio",
+      especialidades: [
+        { nome: "Urologia", slug: "urologia", rqe: "1", principal: true },
+      ],
+      locais: [local("centro")],
+    });
+    const neurologista = medico({
+      nome: "Nina Elói",
+      slug: "nina-eloi",
+      especialidades: [
+        { nome: "Neurologia", slug: "neurologia", rqe: "1", principal: true },
+      ],
+      locais: [local("centro")],
+    });
+    const r = aplicarFiltros([urologista, neurologista], { termo: "uro" });
+    expect(r.map((m) => m.nome)).toEqual(["Uriel Osório"]);
+  });
+
   it("combina filtros com E, não com OU", () => {
     const r = aplicarFiltros(todos, {
       especialidade: "pediatria",

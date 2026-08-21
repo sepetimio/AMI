@@ -1,4 +1,5 @@
-import { atendeNoDia } from "@/lib/dados/horarios";
+﻿import { atendeNoDia } from "@/lib/dados/horarios";
+import { especialidadeCasaTermo, normalizar } from "@/lib/dados/sinonimos";
 import type { Filtros, Medico, Ordem } from "@/lib/dados/tipos";
 
 /*
@@ -10,21 +11,19 @@ import type { Filtros, Medico, Ordem } from "@/lib/dados/tipos";
   a migrar para SQL — e nenhuma tela precisa mudar.
 */
 
-/** "José" e "jose" precisam se encontrar: sem isto a busca falha em português. */
-function normalizar(s: string): string {
-  return s
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
-
 function casaNoNome(m: Medico, termo: string): boolean {
   return normalizar(m.nome).includes(termo);
 }
 
+/*
+  Busca por especialidade casa por PREFIXO de token (nome formal, nome da
+  profissão e abreviações — ver lib/dados/sinonimos.ts), não por substring:
+  "uro" tem que achar Urologia sem achar Neurologia, mesmo a sequência de
+  letras "uro" estando dentro de "neurologista". Nome de médico continua
+  usando substring logo acima — lá o padrão é sobrenome no meio do nome.
+*/
 function casaNaEspecialidade(m: Medico, termo: string): boolean {
-  return m.especialidades.some((e) => normalizar(e.nome).includes(termo));
+  return m.especialidades.some((e) => especialidadeCasaTermo(e.nome, termo));
 }
 
 export function aplicarFiltros(medicos: Medico[], filtros: Filtros): Medico[] {

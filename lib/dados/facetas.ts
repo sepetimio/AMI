@@ -1,3 +1,4 @@
+import { comoProfissional } from "@/lib/dados/sinonimos";
 import type { Medico } from "@/lib/dados/tipos";
 
 /**
@@ -38,33 +39,6 @@ export type ResumoFaceta = {
   /** Quantos atendem em mais de um endereço. */
   comMaisDeUmEndereco: number;
 };
-
-/* "Cardiologia" vira "cardiologista". Cobre os casos do catálogo; o que não
-   casar cai no rótulo neutro, que continua correto em português. */
-function comoProfissional(especialidade: string): [string, string] {
-  const mapa: Record<string, [string, string]> = {
-    Cardiologia: ["cardiologista", "cardiologistas"],
-    Dermatologia: ["dermatologista", "dermatologistas"],
-    Pediatria: ["pediatra", "pediatras"],
-    Oftalmologia: ["oftalmologista", "oftalmologistas"],
-    Psiquiatria: ["psiquiatra", "psiquiatras"],
-    Endocrinologia: ["endocrinologista", "endocrinologistas"],
-    Gastroenterologia: ["gastroenterologista", "gastroenterologistas"],
-    Neurologia: ["neurologista", "neurologistas"],
-    Otorrinolaringologia: ["otorrinolaringologista", "otorrinolaringologistas"],
-    Urologia: ["urologista", "urologistas"],
-    Reumatologia: ["reumatologista", "reumatologistas"],
-    "Clínica Médica": ["clínico geral", "clínicos gerais"],
-    "Ginecologia e Obstetrícia": ["ginecologista", "ginecologistas"],
-    "Ortopedia e Traumatologia": ["ortopedista", "ortopedistas"],
-  };
-  return (
-    mapa[especialidade] ?? [
-      `médico de ${especialidade}`,
-      `médicos de ${especialidade}`,
-    ]
-  );
-}
 
 function lista(nomes: string[]): string {
   if (nomes.length === 1) return nomes[0];

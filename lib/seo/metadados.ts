@@ -1,3 +1,5 @@
+import { comoProfissional as comoProfissionalBase } from "@/lib/dados/sinonimos";
+
 /*
   Moldes de title e description. O número vem sempre da contagem do banco,
   nunca escrito à mão — se o dataset tem 7 cardiologistas, a frase diz 7.
@@ -81,28 +83,12 @@ export function tituloMedico(
   return montar(cabecas, [MARCA], LIMITE_TITULO);
 }
 
-/* Mesmo dicionário de nomes de profissional usado nas facetas, em versão
-   reduzida: a descrição só precisa do plural. */
+/* Mesma fonte de nomes de profissional usada nas facetas
+   (lib/dados/sinonimos.ts), aplicada aqui só ao número que a descrição
+   precisa mostrar. */
 function comoProfissional(especialidade: string, total: number): string {
-  const mapa: Record<string, [string, string]> = {
-    Cardiologia: ["cardiologista", "cardiologistas"],
-    Dermatologia: ["dermatologista", "dermatologistas"],
-    Pediatria: ["pediatra", "pediatras"],
-    Oftalmologia: ["oftalmologista", "oftalmologistas"],
-    Psiquiatria: ["psiquiatra", "psiquiatras"],
-    Endocrinologia: ["endocrinologista", "endocrinologistas"],
-    Gastroenterologia: ["gastroenterologista", "gastroenterologistas"],
-    Neurologia: ["neurologista", "neurologistas"],
-    Otorrinolaringologia: ["otorrinolaringologista", "otorrinolaringologistas"],
-    Urologia: ["urologista", "urologistas"],
-    Reumatologia: ["reumatologista", "reumatologistas"],
-    "Clínica Médica": ["clínico geral", "clínicos gerais"],
-    "Ginecologia e Obstetrícia": ["ginecologista", "ginecologistas"],
-    "Ortopedia e Traumatologia": ["ortopedista", "ortopedistas"],
-  };
-  const par = mapa[especialidade];
-  if (!par) return `${plural(total, "médico", "médicos")} de ${especialidade}`;
-  return plural(total, par[0], par[1]);
+  const [singular, plural_] = comoProfissionalBase(especialidade);
+  return plural(total, singular, plural_);
 }
 
 function cortarNaPalavra(texto: string, limite: number): string {
