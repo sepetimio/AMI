@@ -29,8 +29,11 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       /* /painel entra na Fase 4 e já fica bloqueado desde agora, para que
-         nenhuma tela autenticada apareça no índice por descuido. */
-      disallow: ["/api/", "/painel/", "/_next/"],
+         nenhuma tela autenticada apareça no índice por descuido. /studio é o
+         Sanity embutido: também autenticado, e o próprio next-sanity já manda
+         noindex no metadata. A linha aqui é a segunda tranca, para o caso de
+         um rastreador que leia robots.txt e ignore a meta tag. */
+      disallow: ["/api/", "/painel/", "/studio/", "/_next/"],
     },
     sitemap: `${SITE}/sitemap.xml`,
   };
