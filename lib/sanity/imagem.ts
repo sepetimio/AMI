@@ -1,4 +1,5 @@
 import { createImageUrlBuilder } from "@sanity/image-url";
+import { exigir } from "@/sanity/exigir";
 import type { ImagemSanity } from "@/lib/sanity/tipos";
 
 /*
@@ -7,36 +8,27 @@ import type { ImagemSanity } from "@/lib/sanity/tipos";
   `createImageUrlBuilder` nomeado, e não a exportação padrão: no
   `@sanity/image-url@2` a padrão está marcada como depreciada.
 
-  Este módulo NÃO importa `projectId`/`dataset` de `sanity/env.ts`, ao
-  contrário do que o plano original previa. Aquele módulo valida as
-  variáveis de ambiente no próprio topo, na importação (falha rápida,
-  decisão deliberada, ver o comentário lá). Um `import` estático daqui
-  herdaria essa validação assim que qualquer arquivo importasse
-  `urlDaImagem`, mesmo sem nunca chegar a montar uma URL: foi exatamente o
-  que já quebrou a suíte na tarefa 3, através de `lib/sanity/consultas.ts`.
-
-  A correção de lá (`lib/sanity/cliente.ts`) adia a leitura do ambiente
-  para dentro de uma função `async`, memoizada, porque quem chama já está
-  numa função assíncrona fazendo uma consulta de rede. Aqui não dá para
-  repetir a mesma receita: `urlDaImagem` é síncrona por contrato (o passo 5
-  do brief usa `src={urlDaImagem(value, 1200)}` direto no JSX), e o tipo de
-  `PortableTextComponents["types"]["image"]` do `@portabletext/react` é um
-  `ComponentType` comum, que não aceita um componente assíncrono como
-  renderizador.
-
-  A solução aqui é "receber por parâmetro", a segunda saída já validada
-  neste projeto: `configuracao` tem valor padrão, calculado por chamada (não
-  na importação do módulo, porque um valor padrão de parâmetro só roda
-  quando a função é de fato chamada sem o argumento). O padrão lê
-  `process.env` direto, sem passar pelo `exigir()` de `sanity/env.ts`: aqui
-  faltar `projectId` produz uma URL malformada mas visível na tela, não uma
-  página inteira que não renderiza por causa de uma imagem que talvez nem
-  apareça na dobra. Quem precisar de validação forte (ou de testar com um
-  projeto fixo) pode passar `configuracao` explicitamente.
+  A configuração entra por parâmetro, com valor padrão, porque esta função é
+  síncrona por contrato: o tipo de `PortableTextComponents["types"]["image"]`
+  do `@portabletext/react` é um `ComponentType` comum, que não aceita
+  componente assíncrono, então a receita de `lib/sanity/cliente.ts` (adiar o
+  ambiente para dentro de uma função `async`) não cabe aqui. Um valor padrão
+  de parâmetro só roda quando a função é chamada sem o argumento, nunca na
+  importação do módulo, e é isso que mantém a preguiça que a tarefa 3 exigiu.
 */
 function configuracaoPadrao(): { projectId: string; dataset: string } {
   return {
-    projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? "",
+    /* `exigir()`, e não `?? ""`, alinhando com `lib/sanity/cliente.ts`:
+       faltar `projectId` é configuração ausente, e configuração ausente tem
+       de falhar dizendo o nome da variável. O `?? ""` de antes defendia um
+       estado impossível: toda chamada de `urlDaImagem` acontece depois de um
+       `paginaPorSlug`/`noticiaPorSlug` na mesma renderização, e aquele
+       caminho já passou pelo `exigir()` de `sanity/env.ts`. Não existe
+       estado com um objeto `Noticia` em mãos e sem `projectId`. */
+    projectId: exigir(
+      process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+      "NEXT_PUBLIC_SANITY_PROJECT_ID",
+    ),
     dataset: process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production",
   };
 }
