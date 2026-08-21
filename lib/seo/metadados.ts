@@ -48,10 +48,14 @@ export function tituloFaceta(
   bairro: string,
   total: number,
 ): string {
+  /* "no bairro X" concorda em português qualquer que seja o gênero do nome
+     do bairro — "no bairro Centro", "no bairro Nova Imperatriz" — sem
+     precisar de uma coluna de gênero. "Bairro" é masculino, e é ele quem
+     licencia o artigo, não o nome que segue. */
   return montar(
     [
-      `${especialidade} no ${bairro}, ${CIDADE}`,
-      `${especialidade} no ${bairro}`,
+      `${especialidade} no bairro ${bairro}, ${CIDADE}`,
+      `${especialidade} no bairro ${bairro}`,
     ],
     [`${total} ${plural(total, "médico", "médicos")}`, MARCA],
     LIMITE_TITULO,
@@ -107,16 +111,48 @@ function cortarNaPalavra(texto: string, limite: number): string {
   return fatia.slice(0, fatia.lastIndexOf(" ")).replace(/[.,;]$/, "") + ".";
 }
 
+/* "no bairro X" / "nos bairros X e Y": o artigo concorda com "bairro", que é
+   sempre masculino, não com o nome do bairro que vem depois — "no bairro
+   Nova Imperatriz" e "nos bairros Centro e Vila Lobão" soam certos os dois,
+   sem precisar de uma coluna de gênero para cada nome. */
+function noBairro(bairros: string[]): string {
+  const nomes = bairros.slice(0, 2).join(" e ");
+  if (!nomes) return "";
+  return bairros.length > 1 ? `nos bairros ${nomes}` : `no bairro ${nomes}`;
+}
+
 export function descricaoEspecialidade(
   nome: string,
   total: number,
   bairros: string[],
 ): string {
-  const onde = bairros.slice(0, 2).join(" e ");
+  const onde = noBairro(bairros);
   const texto =
     `${total} ${comoProfissional(nome, total)} em Imperatriz` +
-    (onde ? `, com atendimento em ${onde}` : "") +
+    (onde ? `, com atendimento ${onde}` : "") +
     `. Endereço, telefone e horários. Associação Médica de Imperatriz.`;
+  return cortarNaPalavra(texto, LIMITE_DESCRICAO);
+}
+
+/**
+ * Descrição da página de cruzamento (especialidade + bairro).
+ *
+ * Não reaproveita `descricaoEspecialidade`: com todos os profissionais da
+ * especialidade concentrados num bairro só e total >= 3, as duas funções
+ * receberiam os mesmos argumentos e produziriam a mesma frase — mas a página
+ * de especialidade e a de cruzamento são indexáveis com canonicals
+ * diferentes, então não podem emitir a mesma description. Esta nomeia o
+ * bairro no corpo da frase, o que a distingue sempre.
+ */
+export function descricaoFaceta(
+  especialidade: string,
+  bairro: string,
+  total: number,
+): string {
+  const texto =
+    `${total} ${comoProfissional(especialidade, total)} no bairro ${bairro}, ` +
+    `Imperatriz - MA. Endereço, telefone e horários de atendimento. ` +
+    `Associação Médica de Imperatriz.`;
   return cortarNaPalavra(texto, LIMITE_DESCRICAO);
 }
 
@@ -126,10 +162,10 @@ export function descricaoMedico(
   bairros: string[],
 ): string {
   const papel = especialidade ? `, ${especialidade}` : "";
-  const onde = bairros.slice(0, 2).join(" e ");
+  const onde = noBairro(bairros);
   const texto =
     `${nome}${papel}, em Imperatriz - MA` +
-    (onde ? `. Atende em ${onde}` : "") +
+    (onde ? `. Atende ${onde}` : "") +
     `. Veja CRM, endereço, telefone e horários de atendimento.`;
   return cortarNaPalavra(texto, LIMITE_DESCRICAO);
 }

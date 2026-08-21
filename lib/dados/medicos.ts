@@ -47,23 +47,37 @@ function paraDominio(linha: any): Medico {
       rqe: pe.rqe,
       principal: pe.principal,
     })),
-    locais: (linha.atendimento ?? []).map((a: any) => ({
-      id: a.local.id,
-      logradouro: a.local.logradouro,
-      numero: a.local.numero,
-      bairro: a.local.bairro,
-      telefone: a.local.telefone,
-      whatsapp: a.local.whatsapp,
-      estacionamento: a.local.estacionamento,
-      acessibilidade: (a.local.local_acessibilidade ?? []).map(
-        (r: any) => r.recurso as RecursoAcessibilidade,
-      ),
-      horarios: (a.horario ?? []).map((h: any) => ({
-        diaSemana: h.dia_semana,
-        abre: hhmm(h.abre),
-        fecha: hhmm(h.fecha),
-      })),
-    })),
+    /*
+      Ordenado por `id` do local. A consulta já pede ao PostgREST que devolva
+      `atendimento` ordenado pelo próprio id — mas PostgREST não promete
+      ordem estável em recursos aninhados, então este sort é cinto e
+      suspensório: garante a mesma ordem independentemente do que o banco
+      devolver, e continua correto mesmo que a consulta mude no futuro e
+      perca aquele `.order`. Sem isso, `locais[0]` — que `LinhaMedico`,
+      `jsonld.ts` e a página de perfil usam para decidir bairro, telefone,
+      selo de aberto/fechado e endereço do JSON-LD — poderia apontar para um
+      consultório diferente a cada renderização de um médico com dois
+      endereços, e o ISR congelaria essa escolha arbitrária por uma hora.
+    */
+    locais: (linha.atendimento ?? [])
+      .map((a: any) => ({
+        id: a.local.id,
+        logradouro: a.local.logradouro,
+        numero: a.local.numero,
+        bairro: a.local.bairro,
+        telefone: a.local.telefone,
+        whatsapp: a.local.whatsapp,
+        estacionamento: a.local.estacionamento,
+        acessibilidade: (a.local.local_acessibilidade ?? []).map(
+          (r: any) => r.recurso as RecursoAcessibilidade,
+        ),
+        horarios: (a.horario ?? []).map((h: any) => ({
+          diaSemana: h.dia_semana,
+          abre: hhmm(h.abre),
+          fecha: hhmm(h.fecha),
+        })),
+      }))
+      .sort((a: { id: number }, b: { id: number }) => a.id - b.id),
   };
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -86,7 +100,17 @@ const todosVisiveis = cache(async (): Promise<Medico[]> => {
     .from("profissional")
     .select(SELECAO)
     .eq("publicado", true)
-    .eq("situacao", "ativo");
+    .eq("situacao", "ativo")
+    /*
+      Sem ordem explícita, o PostgREST não promete estabilidade nos registros
+      de um recurso aninhado — `LinhaMedico`, `jsonld.ts` e a página de
+      perfil tomam `locais[0]` como "o" consultório do médico, e um médico com
+      dois endereços poderia alternar entre um e outro a cada renderização.
+      Ordenar pelo id do próprio `atendimento` torna a resposta determinística
+      na origem; `paraDominio` ainda reordena por id do local como garantia
+      adicional que não depende do banco.
+    */
+    .order("id", { foreignTable: "atendimento" });
 
   if (error) throw new Error(`Falha ao buscar médicos: ${error.message}`);
   return (data ?? []).map(paraDominio);

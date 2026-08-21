@@ -86,7 +86,11 @@ function lista(nomes: string[]): string {
 export function paragrafoDeAbertura(r: ResumoFaceta): string {
   const [sing, plur] = comoProfissional(r.especialidade);
   const nomeProf = r.total === 1 ? sing : plur;
-  const onde = r.bairro ? `no ${r.bairro}` : "em Imperatriz";
+  /* "no bairro X", não "no X": o artigo concorda com "bairro", que é sempre
+     masculino, e não com o nome do bairro — que pode ser feminino ("no
+     Nova Imperatriz" soaria errado; "no bairro Nova Imperatriz" está certo
+     para qualquer nome, sem precisar de uma coluna de gênero). */
+  const onde = r.bairro ? `no bairro ${r.bairro}` : "em Imperatriz";
 
   /* Com um profissional só, todo partitivo plural — "desses", "deles",
      "entre eles" — passa a se referir a um grupo de uma pessoa, o que soa

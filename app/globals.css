@@ -103,10 +103,33 @@
     }
   }
 
-  /* Foco visível obrigatório em tudo que recebe foco. Nunca outline:none. */
+  /*
+    Foco visível obrigatório em tudo que recebe foco. Nunca outline:none.
+
+    O raio do anel acompanha o raio que o próprio elemento já declara —
+    `rounded-chip` num chip (999px), `rounded-controle` num botão (6px) —
+    em vez de um valor fixo que teria de vencer ou perder essa disputa
+    contra a camada `utilities` do Tailwind, o que é frágil demais para
+    depender de qual `@layer` vem primeiro no arquivo. `revert-layer`
+    devolve exatamente o valor que o elemento teria sem esta regra desta
+    camada, então o anel de um chip fica redondo e o de um botão acompanha
+    a curva menor, sempre pela classe que o próprio elemento já tem.
+  */
   :focus-visible {
     outline: 2px solid var(--color-ami-green-600);
     outline-offset: 2px;
+    border-radius: revert-layer;
+  }
+
+  /*
+    Piso de 2px só para quem não declarou raio nenhum — um link de texto
+    corrido, por exemplo. Sem isto, `revert-layer` cairia no raio inicial
+    (zero) e o anel ficaria perfeitamente quadrado, o que lê como acidente,
+    não como decisão. A especificidade maior de `:not([class*="rounded-"])`
+    só entra em jogo quando o elemento não tem uma classe `rounded-*` —
+    quem já tem uma continua vencendo pela regra acima.
+  */
+  :focus-visible:not([class*="rounded-"]) {
     border-radius: 2px;
   }
 

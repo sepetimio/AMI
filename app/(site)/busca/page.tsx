@@ -64,7 +64,27 @@ export default async function PaginaBusca({ searchParams }: Props) {
           <h2 className="sr-only">Resultados</h2>
           <ListaMedicos
             medicos={medicos}
-            filtroMaisRestritivo={filtros.termo ? "termo digitado" : "bairro"}
+            /*
+              Mesmo raciocínio da página de especialidade — acessibilidade,
+              depois bairro, depois o resto — só que a busca livre aceita mais
+              filtros, então a cadeia continua em vez de cair direto num
+              `undefined`. Sem checar o que está de fato ativo, uma busca só
+              por acessibilidade (`?acessibilidade=interprete_libras`) sugeria
+              remover um filtro de bairro que ninguém aplicou.
+            */
+            filtroMaisRestritivo={
+              filtros.acessibilidade?.length
+                ? "acessibilidade"
+                : filtros.bairro
+                  ? "bairro"
+                  : filtros.termo
+                    ? "termo digitado"
+                    : filtros.telemedicina
+                      ? "telemedicina"
+                      : filtros.somenteAssociados
+                        ? "associados"
+                        : undefined
+            }
             saida={{
               rotulo: "Ver todas as especialidades",
               href: "/medicos",

@@ -472,6 +472,198 @@ conforme já registrado no brief desta tarefa.
 
 ---
 
+## Correções da revisão de branch
+
+Treze defeitos apontados por uma revisão do branch inteiro (`fase-1-diretorio`
+contra `main`), aplicados e verificados nesta ordem. Servidor local reiniciado
+sempre que a mudança dependia de variável de ambiente ou de cache do
+Turbopack; medições contra o mesmo banco de 24 profissionais do topo deste
+documento.
+
+**1. Trava de indexação para dados de demonstração.** `app/robots.ts` agora lê
+`NEXT_PUBLIC_DADOS_DEMONSTRACAO` (`process.env.NEXT_PUBLIC_DADOS_DEMONSTRACAO
+!== "false"`, então o padrão é demonstração) e, enquanto verdadeiro, devolve
+`disallow: "/"` sem linha de sitemap. Adicionada a `.env.example` (comentada)
+e a `.env.local`, ambas como `true`. Verificado: com a flag em `true`,
+`/robots.txt` respondeu
+
+```
+User-Agent: *
+Disallow: /
+```
+
+Com a flag em `false` (servidor reiniciado), voltaram as regras normais:
+
+```
+User-Agent: *
+Allow: /
+Disallow: /api/
+Disallow: /painel/
+Disallow: /_next/
+
+Sitemap: http://localhost:3000/sitemap.xml
+```
+
+A flag foi devolvida a `true` em `.env.local` antes de seguir para o item
+seguinte, e voltou a produzir o `disallow: "/"` acima — confirmado de novo
+antes do commit.
+
+**2. Chip de bairro em `/medicos` levava a um link morto.** O `href` mudou de
+`/medicos?bairro=${b.slug}` (página que nunca lê `searchParams`) para
+`/busca?bairro=${b.slug}`, igual ao rodapé. Verificado: o `href` do chip
+"Centro" no DOM de `/medicos` é `/busca?bairro=centro`; navegar direto para
+essa URL devolve "8 profissionais encontrados" — a contagem batendo com
+"Centro · 8" mostrado no próprio chip.
+
+**3. Especialidade sem profissional publicado renderizaria uma página
+indexável de zeros.** `app/(site)/medicos/[especialidade]/page.tsx` ganhou a
+mesma condição `medicos.length === 0` do cruzamento, em `generateMetadata`
+(retorna `{}`) e no corpo (`notFound()`), com o comentário explicando o
+sintoma evitado — H1 de verdade sobre "reúne 0 médicos". Verificado por
+leitura do código, como o brief antecipou: o dataset publicável não tem
+nenhuma especialidade com zero profissionais para acionar o caminho ao vivo.
+
+**4. Contagem total dobrava um profissional com duas especialidades.** As
+quatro ocorrências (`generateMetadata` e corpo de `app/(site)/page.tsx` e de
+`app/(site)/medicos/page.tsx`) trocaram
+`especialidades.reduce((s, e) => s + e.total, 0)` por
+`(await buscarMedicos()).length`, cada uma reaproveitando a mesma consulta
+memoizada com `Promise.all`. Verificado ao vivo: a home mostra "24 médicos em
+14 especialidades" e `/medicos` mostra "24 profissionais em 14
+especialidades" — o título da aba também lê "24 profissionais". Consultado o
+banco diretamente (`profissional_especialidade`): as 24 linhas têm 24
+`profissional_id` distintos, ou seja, nenhum profissional tem hoje duas
+especialidades — a soma antiga e a contagem nova coincidem no dataset atual,
+então este item não tem como divergir visualmente sem inserir um segundo
+registro em `profissional_especialidade`; a garantia fica na leitura do
+código (a soma por especialidade foi removida das quatro origens).
+
+**5. Qual endereço um médico "tem" era não determinístico.** `SELECAO`, em
+`lib/dados/medicos.ts`, ganhou `.order("id", { foreignTable: "atendimento" })`
+na consulta — sintaxe verificada por chamada direta ao PostgREST
+(`atendimento.order=id.asc` responde 200; a forma alternativa
+`order=atendimento(id)` responde `PGRST118`, "not possible" para embed
+um-para-muitos, então essa é a única forma válida). `paraDominio` passou a
+ordenar `locais` pelo próprio `id` do local como segunda garantia,
+independente do banco. Verificado: `tsc --noEmit` limpo, a suíte completa
+passa, `/medicos/cardiologia` e `/medicos/cardiologia/centro` renderizam com
+os números certos (3 e 2 cardiologistas). O dataset publicável não tem hoje
+nenhum profissional com mais de um endereço (`atendimento`: 24 linhas, 24
+`profissional_id` distintos) — não há como fotografar a instabilidade
+"antes" nem confirmar a estabilidade "depois" com dado ao vivo; a garantia é
+de leitura de código e do teste de tipos, não de uma medição comportamental.
+
+**6. Duas páginas indexáveis podiam emitir a mesma description.** Novo
+`descricaoFaceta(especialidade, bairro, total)` em `lib/seo/metadados.ts`,
+que nomeia o bairro na própria frase, usado só pelo cruzamento
+(`[especialidade]/[bairro]/page.tsx`); a especialidade continua com
+`descricaoEspecialidade`. Teste novo em `testes/metadados.test.ts` comparando
+`descricaoEspecialidade("Pediatria", 3, ["Centro"])` com
+`descricaoFaceta("Pediatria", "Centro", 3)` — passam, e são diferentes.
+Verificado ao vivo em `/medicos/cardiologia/centro`: description
+"2 cardiologistas no bairro Centro, Imperatriz - MA. Endereço, telefone e
+horários de atendimento. Associação Médica de Imperatriz."
+
+**7 e 8. Artigo antes do nome do bairro.** Trocado `em ${bairro}` por
+`no bairro ${bairro}` (ou `nos bairros X e Y`, plural) em
+`descricaoEspecialidade` e `descricaoMedico`; e `no ${bairro}` por
+`no bairro ${bairro}` em `tituloFaceta`, no `<h1>` do cruzamento e no `onde`
+de `paragrafoDeAbertura` (`lib/dados/facetas.ts`). Como "bairro" é sempre
+masculino, a forma concorda para qualquer nome, incluindo os femininos do
+dataset real. Verificado ao vivo em `/medicos/cardiologia/centro`: título da
+aba "Cardiologia no bairro Centro, Imperatriz - MA | 2 médicos", H1
+"Cardiologia no bairro Centro, Imperatriz - MA", parágrafo de abertura "…
+reúne 2 cardiologistas no bairro Centro, no Maranhão, …". Testes antigos que
+liam "no Centro" foram atualizados para "no bairro Centro", e foram
+adicionados testes específicos com "Nova Imperatriz" (nome feminino)
+confirmando "no bairro Nova Imperatriz" e a ausência de "no Nova Imperatriz"
+bruto, em `tituloFaceta`, `descricaoEspecialidade`, `descricaoMedico` e
+`paragrafoDeAbertura`.
+
+  **Comprimento do título mais longo real** — "Ginecologia e Obstetrícia" em
+  "Parque do Buriti", 3 médicos: `tituloFaceta` devolve
+  `"Ginecologia e Obstetrícia no bairro Parque do Buriti"` — **52
+  caracteres**, dentro do limite de 60 (`montar` descarta a cidade e o sufixo
+  antes de precisar cortar palavra). Os testes de comprimento existentes
+  (`respeita o limite`, `truncamento`) continuam passando com a frase maior
+  que "no bairro" introduz — em um caso (`tituloFaceta("Cardiologia",
+  "Centro", 4)`) o resultado passou a sair sem o sufixo `| AMI`
+  (63 caracteres estourava o limite de 60; sem o sufixo, 57), e o teste
+  correspondente foi atualizado para refletir esse valor real, não o antigo.
+
+  **Escopo não coberto por este item, registrado para não confundir com
+  esquecimento:** o brief da revisão listou exatamente estes cinco lugares
+  (`descricaoEspecialidade`, `descricaoMedico`, `tituloFaceta`, o `<h1>` do
+  cruzamento, e o `onde` de `paragrafoDeAbertura`). Há pelo menos mais dois
+  usos de `no ${bairro}` bruto no código com o mesmo defeito, fora dessa
+  lista e por isso não tocados aqui: a frase de concentração dentro do
+  próprio `paragrafoDeAbertura` (`... no ${principais[0].nome}.`) e o link
+  "{especialidade} no {bairro}" da seção de relacionados em
+  `app/(site)/medico/[slug]/page.tsx`. Ambos ficam corretos hoje só porque
+  nenhum bairro do dataset atual força a leitura errada nesses dois pontos
+  específicos, mas o padrão "no Nova Imperatriz" que os motivou aparecerá ali
+  também.
+
+**9. `/busca` sugeria remover um filtro que não existia.** A escolha de
+`filtroMaisRestritivo` deixou de ser um ternário `termo ? "termo digitado" :
+"bairro"` (que nomeava bairro mesmo sem filtro de bairro) e passou a checar,
+em ordem, `acessibilidade`, `bairro`, `termo`, `telemedicina` e
+`somenteAssociados` antes de cair em `undefined` — mesmo raciocínio já usado
+na página de especialidade, estendido aos filtros que só `/busca` tem.
+Verificado com a URL exata do brief,
+`/busca?acessibilidade=interprete_libras`: "0 profissionais encontrados" e
+"Tente remover o filtro de acessibilidade — costuma ser o que mais reduz a
+lista."
+
+**10. Anel de foco quadrado em chip arredondado.** A regra fixa
+`border-radius: 2px` em `:focus-visible` (`app/globals.css`) virou
+`border-radius: revert-layer`, que devolve o raio que o próprio elemento já
+tem por sua classe `rounded-*` (a camada `utilities` do Tailwind v4 já vence
+a camada `base` onde `:focus-visible` vive, então isso torna explícito um
+comportamento que a ordem de camadas já produzia, em vez de depender
+implicitamente dela). Um piso de `2px` foi adicionado só para elementos sem
+nenhuma classe `rounded-*`, via `:focus-visible:not([class*="rounded-"])`.
+Verificado com foco real via teclado (`Tab`, não `.focus()` programático) e
+leitura de `getComputedStyle`: num chip de bairro focado,
+`border-radius: 999px`; num link de texto comum focado (sem classe
+`rounded-*`), `border-radius: 2px`. O ambiente não expõe captura de tela do
+navegador nesta sessão (mesma limitação já registrada no Passo 4), então a
+forma visual do anel em si — e não só o raio computado da caixa — não pôde
+ser fotografada.
+
+**11. Rodapé sem saída além da vigésima especialidade.** Adicionado um item
+final "Ver todas as especialidades" → `/medicos` à lista de especialidades do
+rodapé, mostrado só quando `especialidades.length > 20`. Verificado por
+leitura do código: o dataset publicável tem 14 especialidades, então o item
+não aparece hoje — condição confirmada lendo `Rodape.tsx`, não fotografada ao
+vivo.
+
+**12. Cruzamento não anotava bairro-irmão abaixo do corte.** A lista "em
+outros bairros" de `[especialidade]/[bairro]/page.tsx` ganhou a mesma
+anotação "(menos de 3)" da página de especialidade, usando
+`facetaEhIndexavel` e `MINIMO_PARA_INDEXAR`. Verificado ao vivo em
+`/medicos/cardiologia/centro`: a seção "Cardiologia em outros bairros de
+Imperatriz" mostra "Bacuri · 1 (menos de 3)".
+
+**13. Comentário de teste com data errada.** `testes/horarios.test.ts` dizia
+"Terça-feira, 19/08/2026" sobre uma fixture com `2026-08-18`. Corrigido para
+"Terça-feira, 18/08/2026" — confirmado que 18/08/2026 cai numa terça-feira
+(`Date.prototype.toLocaleDateString` com `weekday: "long"`).
+
+### Verificação final
+
+```
+npx tsc --noEmit    → sem erros
+npm run lint         → 0 erros, 3 avisos (os mesmos <img> pré-existentes do Passo 1)
+npm test              → 8 arquivos, 99 testes, todos passando
+npm run build         → concluído, mesmas 30 páginas estáticas do Passo 1
+```
+
+`.env.local` termina esta tarefa com `NEXT_PUBLIC_DADOS_DEMONSTRACAO=true`
+(não versionado — `.gitignore` cobre `.env*.local`).
+
+---
+
 ## Passo 10 — Commit
 
 Arquivos alterados nesta tarefa:

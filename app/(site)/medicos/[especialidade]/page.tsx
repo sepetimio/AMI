@@ -48,6 +48,11 @@ export async function generateMetadata({
   const temFiltroDeQuery = Object.keys(sp).length > 0;
 
   const medicos = await buscarMedicos({ especialidade });
+  /* Mesma condição da página: uma especialidade cadastrada sem nenhum
+     profissional publicado não pode gerar metadados — title e description
+     afirmariam "0 médicos" para um endereço que nem deveria existir. */
+  if (medicos.length === 0) return {};
+
   const bairros = [
     ...new Set(medicos.flatMap((m) => m.locais.map((l) => l.bairro.nome))),
   ];
@@ -71,7 +76,6 @@ export default async function PaginaEspecialidade({
 }: Props) {
   const { especialidade } = await params;
   const esp = await especialidadePorSlug(especialidade);
-  if (!esp) notFound();
 
   const filtros = filtrosDaQuery(await searchParams);
   const [todosDaEspecialidade, bairros, relacionadas] = await Promise.all([
@@ -79,6 +83,16 @@ export default async function PaginaEspecialidade({
     bairrosComContagem(especialidade),
     especialidadesComContagem(),
   ]);
+  /*
+    A checagem de lista vazia é explícita, e não redundante — mesmo raciocínio
+    do cruzamento em `[bairro]/page.tsx`. Uma especialidade cadastrada sem
+    nenhum profissional publicado (a linha existe, mas ninguém a preenche
+    ainda) passaria pelo `if (!esp)` inteira e renderizaria um H1 de verdade
+    sobre "reúne 0 médicos de X, somando 0 endereços de atendimento" —
+    indexável e canônica para si mesma.
+  */
+  if (!esp || todosDaEspecialidade.length === 0) notFound();
+
   const medicos = await buscarMedicos({ ...filtros, especialidade });
 
   const resumo = resumirFaceta(todosDaEspecialidade, esp.nome);

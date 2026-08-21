@@ -7,6 +7,7 @@ import {
   bairrosComContagem,
   especialidadesComContagem,
 } from "@/lib/dados/especialidades";
+import { buscarMedicos } from "@/lib/dados/medicos";
 import { contagem } from "@/lib/formato";
 
 export const revalidate = 3600;
@@ -14,8 +15,14 @@ export const revalidate = 3600;
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const especialidades = await especialidadesComContagem();
-  const total = especialidades.reduce((s, e) => s + e.total, 0);
+  /* Não soma as contagens por especialidade: quem tem duas especialidades
+     entraria duas vezes ali, e o total deixaria de bater com a contagem real
+     de profissionais publicados que `/busca` lista. `buscarMedicos` já é
+     memoizada por requisição, então isto não custa uma segunda ida ao banco. */
+  const [especialidades, total] = await Promise.all([
+    especialidadesComContagem(),
+    buscarMedicos().then((m) => m.length),
+  ]);
 
   return {
     title: "Associação Médica de Imperatriz",
@@ -27,11 +34,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const [especialidades, bairros] = await Promise.all([
+  /* Mesmo raciocínio do `generateMetadata`: o total vem da contagem de
+     profissionais, não da soma por especialidade — que double-conta quem
+     tem mais de uma. */
+  const [especialidades, bairros, total] = await Promise.all([
     especialidadesComContagem(),
     bairrosComContagem(),
+    buscarMedicos().then((m) => m.length),
   ]);
-  const total = especialidades.reduce((s, e) => s + e.total, 0);
 
   return (
     <>

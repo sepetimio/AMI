@@ -6,7 +6,7 @@ import {
   type Horario,
 } from "@/lib/dados/horarios";
 
-/* Terça-feira, 19/08/2026. Datas fixas: o teste não pode depender do dia
+/* Terça-feira, 18/08/2026. Datas fixas: o teste não pode depender do dia
    em que roda. */
 const terca = (hora: string) => new Date(`2026-08-18T${hora}:00`);
 

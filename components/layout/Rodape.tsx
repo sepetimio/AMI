@@ -51,6 +51,22 @@ export async function Rodape() {
                     </Link>
                   </li>
                 ))}
+                {/* O corte em 20 existe para o rodapé não virar uma parede de
+                    texto, mas a promessa da coluna acima — nenhuma faceta a
+                    mais de dois cliques de qualquer outra — só vale se sobrar
+                    um caminho para o resto. Hoje, com 14 especialidades, isto
+                    nunca aparece; no dia em que passar de 20, é o que evita
+                    que a vigésima primeira fique inalcançável daqui. */}
+                {especialidades.length > 20 ? (
+                  <li>
+                    <Link
+                      href="/medicos"
+                      className="flex items-center py-1 text-[15px] font-semibold text-white hover:underline max-md:min-h-11 max-md:py-0"
+                    >
+                      Ver todas as especialidades
+                    </Link>
+                  </li>
+                ) : null}
               </ul>
             </nav>
           ) : null}

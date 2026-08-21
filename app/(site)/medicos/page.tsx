@@ -7,6 +7,7 @@ import {
   bairrosComContagem,
   especialidadesComContagem,
 } from "@/lib/dados/especialidades";
+import { buscarMedicos } from "@/lib/dados/medicos";
 import { contagem } from "@/lib/formato";
 
 /* Revalidação a cada hora: o cadastro muda algumas vezes por semana, e servir
@@ -16,8 +17,13 @@ export const revalidate = 3600;
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const especialidades = await especialidadesComContagem();
-  const total = especialidades.reduce((s, e) => s + e.total, 0);
+  /* Contagem de profissionais, não soma por especialidade: quem tem duas
+     especialidades entraria duas vezes na soma. `buscarMedicos` é memoizada
+     por requisição, então isto não é uma segunda ida ao banco. */
+  const [especialidades, total] = await Promise.all([
+    especialidadesComContagem(),
+    buscarMedicos().then((m) => m.length),
+  ]);
 
   return {
     title: `Médicos em Imperatriz - MA | ${total} profissionais | AMI`,
@@ -29,11 +35,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PaginaMedicos() {
-  const [especialidades, bairros] = await Promise.all([
+  /* Mesmo raciocínio do `generateMetadata`: total = profissionais
+     publicados, não a soma das contagens por especialidade. */
+  const [especialidades, bairros, total] = await Promise.all([
     especialidadesComContagem(),
     bairrosComContagem(),
+    buscarMedicos().then((m) => m.length),
   ]);
-  const total = especialidades.reduce((s, e) => s + e.total, 0);
 
   const trilha = [
     { nome: "Início", caminho: "/" },
@@ -87,7 +95,7 @@ export default async function PaginaMedicos() {
           {bairros.map((b) => (
             <li key={b.slug}>
               <Link
-                href={`/medicos?bairro=${b.slug}`}
+                href={`/busca?bairro=${b.slug}`}
                 className="numero-tabular inline-flex min-h-11 items-center rounded-chip border border-line bg-surface px-4 text-[15px] font-semibold text-ami-green-600 hover:bg-ami-mint-100"
               >
                 {b.nome} · {b.total}

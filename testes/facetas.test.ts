@@ -80,7 +80,17 @@ describe("paragrafoDeAbertura", () => {
 
   it("nomeia o bairro quando a faceta é de cruzamento", () => {
     const p = paragrafoDeAbertura({ ...base, bairro: "Centro", total: 4 });
-    expect(p).toContain("no Centro");
+    expect(p).toContain("no bairro Centro");
+  });
+
+  it("usa 'no bairro X', não um 'no' bruto antes do nome — concorda mesmo com nome feminino", () => {
+    const p = paragrafoDeAbertura({
+      ...base,
+      bairro: "Nova Imperatriz",
+      total: 4,
+    });
+    expect(p).toContain("no bairro Nova Imperatriz");
+    expect(p).not.toMatch(/\bno Nova Imperatriz\b/);
   });
 
   it("concorda o singular", () => {

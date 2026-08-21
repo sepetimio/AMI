@@ -6,6 +6,7 @@ import { ListaMedicos } from "@/components/diretorio/ListaMedicos";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbList, itemList } from "@/lib/seo/jsonld";
 import {
+  MINIMO_PARA_INDEXAR,
   facetaEhIndexavel,
   paragrafoDeAbertura,
   resumirFaceta,
@@ -15,7 +16,7 @@ import {
   bairrosComContagem,
   especialidadePorSlug,
 } from "@/lib/dados/especialidades";
-import { descricaoEspecialidade, tituloFaceta } from "@/lib/seo/metadados";
+import { descricaoFaceta, tituloFaceta } from "@/lib/seo/metadados";
 
 export const revalidate = 3600;
 
@@ -47,7 +48,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: tituloFaceta(esp.nome, b.nome, medicos.length),
-    description: descricaoEspecialidade(esp.nome, medicos.length, [b.nome]),
+    /* Builder próprio da faceta de cruzamento, não `descricaoEspecialidade`:
+       com todos os profissionais concentrados num bairro só e total >= 3, as
+       duas funções receberiam os mesmos argumentos e emitiriam a mesma
+       description — mas esta página e a de especialidade são indexáveis com
+       canonicals diferentes. */
+    description: descricaoFaceta(esp.nome, b.nome, medicos.length),
     /*
       Abaixo do corte, a página existe, funciona e é navegável — mas sai
       `noindex, follow`, com o canonical apontando para a especialidade.
@@ -98,7 +104,7 @@ export default async function PaginaFaceta({ params }: Props) {
 
       <div className="pb-8 pt-4">
         <h1>
-          {esp.nome} no {b.nome}, Imperatriz - MA
+          {esp.nome} no bairro {b.nome}, Imperatriz - MA
         </h1>
         <p className="coluna-leitura mt-4 text-ink-600">
           {paragrafoDeAbertura(resumo)}
@@ -127,6 +133,14 @@ export default async function PaginaFaceta({ params }: Props) {
                   className="numero-tabular inline-flex min-h-11 items-center rounded-chip border border-line bg-surface px-4 text-[15px] font-semibold text-ami-green-600 hover:bg-ami-mint-100"
                 >
                   {outro.nome} · {outro.total}
+                  {/* Mesma anotação da página de especialidade: o usuário
+                      merece saber que a página existe mesmo abaixo do corte
+                      de indexação. */}
+                  {!facetaEhIndexavel(outro.total) ? (
+                    <span className="ml-1 text-ink-400">
+                      (menos de {MINIMO_PARA_INDEXAR})
+                    </span>
+                  ) : null}
                 </Link>
               </li>
             ))}
