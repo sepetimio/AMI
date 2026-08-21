@@ -1,5 +1,5 @@
 import { defineQuery } from "next-sanity";
-import { cliente } from "@/lib/sanity/cliente";
+import { obterCliente } from "@/lib/sanity/cliente";
 import type {
   Noticia,
   PaginaInstitucional,
@@ -103,6 +103,7 @@ export const GROQ_PAGINA = defineQuery(`
    Declarar os dois aqui só criaria duas fontes de verdade sobre validade. */
 
 export async function listarNoticias(limite = 20): Promise<ResumoNoticia[]> {
+  const cliente = await obterCliente();
   return cliente.fetch(
     groqListaNoticias(limite),
     {},
@@ -111,6 +112,7 @@ export async function listarNoticias(limite = 20): Promise<ResumoNoticia[]> {
 }
 
 export async function noticiaPorSlug(slug: string): Promise<Noticia | null> {
+  const cliente = await obterCliente();
   return cliente.fetch(
     GROQ_NOTICIA,
     { slug },
@@ -122,6 +124,7 @@ export async function noticiaPorSlug(slug: string): Promise<Noticia | null> {
 }
 
 export async function slugsDeNoticias(): Promise<string[]> {
+  const cliente = await obterCliente();
   return cliente.fetch(
     GROQ_SLUGS_NOTICIAS,
     {},
@@ -132,6 +135,7 @@ export async function slugsDeNoticias(): Promise<string[]> {
 export async function paginaPorSlug(
   slug: string,
 ): Promise<PaginaInstitucional | null> {
+  const cliente = await obterCliente();
   return cliente.fetch(
     GROQ_PAGINA,
     { slug },

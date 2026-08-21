@@ -1,18 +1,5 @@
 import { defineConfig } from "vitest/config";
-import { loadEnv } from "vite";
 import { fileURLToPath } from "node:url";
-
-/*
-  `lib/sanity/cliente.ts` valida a variável de ambiente na importação (falha
-  rápida é a decisão de `sanity/env.ts`), o que significa que qualquer teste
-  que importe `lib/sanity/consultas.ts` (mesmo sem chamar nenhuma função dele)
-  já dispara essa validação. Ao contrário do `next dev`, o Vitest não lê
-  `.env.local` sozinho, então isto precisa ser feito aqui, uma vez, para toda
-  a suíte. O prefixo vazio ("") é de propósito: o padrão do `loadEnv` só
-  carrega variáveis com prefixo `VITE_`, e as deste projeto são
-  `NEXT_PUBLIC_*`.
-*/
-process.env = { ...process.env, ...loadEnv("test", process.cwd(), "") };
 
 /* Os testes cobrem só a lógica pura de `lib/`. Não há teste de interface:
    o custo de manter não se paga num site deste porte. */
