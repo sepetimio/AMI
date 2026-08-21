@@ -21,7 +21,8 @@ export function Breadcrumb({ itens }: { itens: ItemTrilha[] }) {
                 <>
                   <Link
                     href={item.caminho}
-                    className="text-ami-green-600 hover:underline"
+                    /* min-h-11 = 44px, o alvo mínimo de toque no mobile. */
+                    className="inline-flex min-h-11 items-center text-ami-green-600 hover:underline"
                   >
                     {item.nome}
                   </Link>

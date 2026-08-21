@@ -19,7 +19,9 @@ export function Cabecalho() {
       <div className="mx-auto flex max-w-[1200px] items-center gap-6 px-4 py-3 md:px-6">
         <Link
           href="/"
-          className="flex shrink-0 items-center"
+          /* min-h-11 = 44px, o alvo mínimo de toque no mobile — a marca
+             tem 40px de altura e sozinha ficaria abaixo do mínimo. */
+          className="flex min-h-11 shrink-0 items-center"
           aria-label="Ir para a página inicial da AMI"
         >
           <Marca altura={40} />

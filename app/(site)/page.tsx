@@ -158,7 +158,9 @@ export default async function Home() {
             {
               titulo: "Por bairro",
               texto: `Atendimento em ${bairros.length} bairros de Imperatriz.`,
-              href: "/medicos",
+              /* Âncora: /medicos abre no índice de especialidades e o bloco
+                 de bairros fica abaixo. Sem ela o leitor cai no lugar errado. */
+              href: "/medicos#por-bairro",
             },
             {
               titulo: "A Associação",
