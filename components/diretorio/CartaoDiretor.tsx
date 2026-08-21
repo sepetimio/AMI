@@ -21,10 +21,13 @@ export function CartaoDiretor({ diretor }: { diretor: Diretor }) {
         <p className="mt-1.5 font-titulo text-[21px] font-bold leading-tight [font-stretch:88%]">
           {diretor.nome}
         </p>
-        {/* `diretor.crm`/`crmUf` já vêm resolvidos por `lib/dados/diretoria`
-            entre as duas origens possíveis (perfil ligado, ou colunas
-            próprias da linha de diretoria): o cartão não precisa saber qual
-            das duas foi usada, só exibir quando há uma inscrição. */}
+        {/* O banco exige CRM na própria linha de todo diretor médico
+            publicado (constraint `diretor_medico_tem_inscricao`), então esta
+            linha só falta para quem não é médico, um contador na tesouraria
+            por exemplo. A guarda fica de pé mesmo assim: a Resolução CFM
+            2.336/2023, Art. 4º, I não admite nome de médico sem inscrição, e
+            um `null` que escape por qualquer caminho tem de sumir da tela em
+            vez de virar "MÉDICO - CRM/null". */}
         {diretor.crm && diretor.crmUf ? (
           <p className="registro mt-1 text-[14px] text-ink-600">
             {identificacaoMedica(diretor.crm, diretor.crmUf)}

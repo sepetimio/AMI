@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  ordenarDiretoria,
-  resolverCrmDoDiretor,
-  type Diretor,
-} from "@/lib/dados/diretoria";
+import { ordenarDiretoria, type Diretor } from "@/lib/dados/diretoria";
 
 const D = (p: Partial<Diretor>): Diretor => ({
   id: 1,
@@ -42,33 +38,5 @@ describe("ordenarDiretoria", () => {
     const original = [D({ id: 2, ordem: 20 }), D({ id: 1, ordem: 10 })];
     ordenarDiretoria(original);
     expect(original.map((d) => d.id)).toEqual([2, 1]);
-  });
-});
-
-describe("resolverCrmDoDiretor", () => {
-  it("prefere o CRM do perfil ligado, mesmo quando a linha de diretoria também tem um", () => {
-    /* O perfil, quando existe, é a fonte mais confiável: é o mesmo CRM já
-       verificado para publicar o profissional no diretório. */
-    const resultado = resolverCrmDoDiretor(
-      { crm: "10274", crmUf: "MA" },
-      { crm: "99999", crmUf: "SP" },
-    );
-    expect(resultado).toEqual({ crm: "10274", crmUf: "MA" });
-  });
-
-  it("usa o CRM próprio da linha de diretoria quando não há perfil ligado", () => {
-    /* Caso do diretor recém-eleito, ainda sem perfil publicado no
-       diretório: sem isto, ele sairia na tela sem CRM nenhum, violando a
-       Resolução CFM 2.336/2023, Art. 4º, I. */
-    const resultado = resolverCrmDoDiretor(null, { crm: "20364", crmUf: "MA" });
-    expect(resultado).toEqual({ crm: "20364", crmUf: "MA" });
-  });
-
-  it("não exibe nada quando nenhuma das duas origens tem CRM", () => {
-    /* Caso normal para um diretor que não é médico (`medico = false`), por
-       exemplo um contador na tesouraria: a constraint do banco não exige
-       CRM dele, e não há nada para o cartão mostrar. */
-    const resultado = resolverCrmDoDiretor(null, { crm: null, crmUf: null });
-    expect(resultado).toEqual({ crm: null, crmUf: null });
   });
 });

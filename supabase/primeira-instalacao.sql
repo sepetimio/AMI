@@ -5,8 +5,14 @@
 --   supabase/migrations/0001_diretorio.sql   (as tabelas)
 --   supabase/migrations/0002_rls.sql         (quem pode ler o quê)
 --   supabase/migrations/0003_diretoria.sql   (tabela e política da diretoria)
+--   supabase/migrations/0004_diretoria_crm.sql (CRM próprio obrigatório)
 --   supabase/seed/seed.sql                   (dados de demonstração)
 --   supabase/seed/diretoria.sql              (diretoria de demonstração)
+--
+-- As duas migrações da diretoria entram já fundidas na forma final da
+-- tabela, na PARTE 1: num banco vazio não há linha para a 0004 corrigir, e
+-- criar a restrição antiga para trocá-la três linhas depois só confundiria
+-- quem lê o arquivo.
 --
 -- Para a primeira instalação: cole tudo de uma vez no SQL Editor do
 -- Supabase e execute. Rodar duas vezes dá erro na segunda, porque as
@@ -164,9 +170,9 @@ create index horario_atendimento on horario (atendimento_id);
 -- poderia ser cadastrado, e a página da diretoria ficaria desatualizada
 -- justamente no mês em que mais gente a consulta.
 --
--- Por isso `nome` e `cargo` são colunas próprias, não projeções do
--- profissional. Com laço, a página mostra a foto e o CRM do perfil e linka
--- para ele; sem laço, mostra nome e cargo em texto.
+-- Por isso `nome`, `cargo`, `crm` e `crm_uf` são colunas próprias, não
+-- projeções do profissional. O laço, quando existe, dá foto e link para o
+-- perfil, e só isso.
 
 create table diretoria (
   id bigint generated always as identity primary key,
@@ -178,23 +184,22 @@ create table diretoria (
   ordem integer not null default 100,
   mandato_inicio date,
   mandato_fim date,
-  -- CRM próprio do diretor. Usado só quando não há profissional_id ligado:
-  -- o laço opcional acima, por desenho, permite publicar um diretor sem
-  -- perfil no diretório, e a Resolução CFM 2.336/2023, Art. 4º, I exige CRM
-  -- ao lado de todo nome de médico exibido. Sem estas colunas, esse diretor
-  -- recém-eleito sairia na tela sem inscrição nenhuma.
+  -- CRM do diretor, sempre na própria linha. O laço com `profissional` não
+  -- serve de inscrição: a política `leitura_profissional` da PARTE 2 esconde
+  -- do visitante anônimo todo perfil não publicado, e é assim que a planilha
+  -- entrega os 500 associados. Sem estas colunas, um diretor ligado a perfil
+  -- despublicado sairia na tela com nome de médico e nenhuma inscrição,
+  -- contra a Resolução CFM 2.336/2023, Art. 4º, I.
   crm text,
   crm_uf text,
   -- Falso só para o diretor que não é médico, por exemplo um contador na
   -- tesouraria. É o que libera esse caso da exigência de CRM abaixo.
   medico boolean not null default true,
   publicado boolean not null default false,
-  -- Todo diretor médico publicado precisa de inscrição em algum lugar: no
-  -- perfil ligado, ou nas colunas próprias quando não há perfil. Quem não é
-  -- médico (medico = false) fica de fora da exigência.
+  -- Todo diretor médico publicado precisa de CRM na própria linha. Quem não
+  -- é médico (medico = false) fica de fora da exigência.
   constraint diretor_medico_tem_inscricao check (
     not (publicado and medico)
-    or profissional_id is not null
     or (crm is not null and crm_uf is not null)
   )
 );
@@ -204,11 +209,14 @@ create index diretoria_ordem on diretoria (ordem, nome);
 comment on column diretoria.nome is
   'Redundante em relação a profissional.nome de propósito: diretor pode não ter perfil publicado no diretório.';
 
+comment on column diretoria.profissional_id is
+  'Laço opcional com o perfil do diretório. Serve para foto e link, nunca como prova de inscrição no CRM: o perfil pode estar despublicado e invisível para o visitante anônimo.';
+
 comment on column diretoria.crm is
-  'CRM próprio do diretor, usado só quando não há profissional_id ligado. Exigido pela Resolução CFM 2.336/2023, Art. 4º, I para todo diretor médico publicado. Ver constraint diretor_medico_tem_inscricao.';
+  'CRM do diretor, exigido pela Resolução CFM 2.336/2023, Art. 4º, I para todo diretor médico publicado. Coluna própria, e não projeção do perfil ligado: a RLS esconde do visitante o profissional não publicado, então só o que está nesta linha chega à tela. Ver constraint diretor_medico_tem_inscricao.';
 
 comment on column diretoria.crm_uf is
-  'UF do CRM próprio do diretor. Ver comentário de diretoria.crm.';
+  'UF do CRM do diretor. Ver comentário de diretoria.crm.';
 
 comment on column diretoria.medico is
   'Falso para o diretor que não é médico, por exemplo um contador na tesouraria. Libera esse diretor da exigência de CRM da constraint diretor_medico_tem_inscricao.';
@@ -721,12 +729,17 @@ insert into horario (atendimento_id, dia_semana, abre, fecha) values
 -- associação médica; os nomes vêm do seed do diretório, para que o laço com
 -- `profissional` exista de verdade e a página possa ser conferida.
 --
+-- O CRM é copiado do profissional para as colunas próprias da linha, e não
+-- deixado a cargo do laço: a restrição `diretor_medico_tem_inscricao` exige
+-- inscrição na própria linha de todo diretor médico publicado, porque é só
+-- ela que o visitante anônimo enxerga.
+--
 -- Substituir pela diretoria real da AMI antes do lançamento. Enquanto estes
 -- dados estiverem no ar, NEXT_PUBLIC_DADOS_DEMONSTRACAO continua "true" e o
 -- robots.txt bloqueia o site inteiro.
 
-insert into diretoria (profissional_id, nome, cargo, ordem, publicado)
-select p.id, p.nome, v.cargo, v.ordem, true
+insert into diretoria (profissional_id, nome, cargo, ordem, crm, crm_uf, publicado)
+select p.id, p.nome, v.cargo, v.ordem, p.crm, p.crm_uf, true
 from (values
   ('mayara-viana',     'Presidente',            10),
   ('rafael-coelho',    'Vice-presidente',       20),
