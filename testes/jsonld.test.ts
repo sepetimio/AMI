@@ -3,6 +3,7 @@ import {
   breadcrumbList,
   faqPage,
   itemList,
+  newsArticle,
   organizationAmi,
   physician,
 } from "@/lib/seo/jsonld";
@@ -152,6 +153,47 @@ describe("breadcrumbList", () => {
     ) as { itemListElement: { position: number; item: string }[] };
     expect(b.itemListElement[0].position).toBe(1);
     expect(b.itemListElement[1].item).toBe(`${SITE}/medicos`);
+  });
+});
+
+const NOTICIA = {
+  titulo: "AMI abre inscrições para o congresso de 2026",
+  slug: "congresso-2026",
+  resumo: "As inscrições vão até 30 de setembro, com desconto para associados.",
+  publicadoEm: "2026-08-21T12:00:00Z",
+  atualizadoEm: "2026-08-22T09:00:00Z",
+  autor: { nome: "Larissa Nogueira", crm: "10274", crmUf: "MA" },
+  corpo: [],
+};
+
+describe("newsArticle", () => {
+  it("declara o tipo e o endereço canônico", () => {
+    const j = newsArticle(NOTICIA, "https://ami.org.br");
+    expect(j["@type"]).toBe("NewsArticle");
+    expect(j.mainEntityOfPage).toBe("https://ami.org.br/noticias/congresso-2026");
+  });
+
+  it("credita o autor com CRM", () => {
+    /* Autoria verificável é o que separa conteúdo de saúde que ranqueia de
+       conteúdo que o Google trata como anônimo. */
+    const j = newsArticle(NOTICIA, "https://ami.org.br");
+    expect(j.author.name).toBe("Larissa Nogueira");
+    expect(JSON.stringify(j.author)).toContain("10274");
+  });
+
+  it("omite dateModified quando não houve revisão", () => {
+    /* Repetir a data de publicação em dateModified diz ao Google que a
+       matéria foi revisada no mesmo instante em que saiu, o que é falso e
+       gasta o sinal de frescor sem entregar nada. */
+    const j = newsArticle({ ...NOTICIA, atualizadoEm: undefined }, "https://x");
+    expect(j).not.toHaveProperty("dateModified");
+  });
+
+  it("não emite nota nem avaliação", () => {
+    /* CFM 2.336/2023, Art. 11, XIII. */
+    const j = JSON.stringify(newsArticle(NOTICIA, "https://x"));
+    expect(j).not.toContain("AggregateRating");
+    expect(j).not.toContain("ratingValue");
   });
 });
 
