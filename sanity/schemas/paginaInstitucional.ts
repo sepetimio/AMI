@@ -1,4 +1,5 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
+import { PAGINAS_CONHECIDAS } from "@/lib/sanity/paginas";
 
 /*
   Páginas de texto da associação: benefícios, estatuto, política editorial, e
@@ -14,21 +15,35 @@ import { defineArrayMember, defineField, defineType } from "sanity";
   documento publicado que não aparece em lugar nenhum do site.
 */
 
+/*
+  `enderecosValidos` deriva de `PAGINAS_CONHECIDAS` (`lib/sanity/paginas.ts`),
+  e não é mais escrita à mão aqui. Achado da rodada 2 de revisão da tarefa 11:
+  esta era, sem que nada a ligasse às outras duas, uma TERCEIRA lista
+  independente do mesmo conjunto de sete slugs que `CAMINHO_DAS_PAGINAS` (o
+  sitemap) e `PAGINAS` (a rota `/associacao/[pagina]`) também descreviam.
+  Nada impedia as três de divergirem; agora as três leem do mesmo módulo.
+
+  `PAGINAS_CONHECIDAS` não importa nada (ver o comentário lá), então
+  importar daqui não arrasta `obterCliente` nem a validação de ambiente de
+  `sanity/env.ts` para dentro do Studio, que carrega este arquivo no
+  navegador da secretaria da AMI sem `.env.local` nenhum por perto. É a
+  mesma razão pela qual este schema nunca importou de
+  `lib/sanity/consultas.ts`. */
+/* Exportada só para o teste de reconciliação em
+   `testes/sanity-paginas.test.ts`: comparar esta lista, importada daqui,
+   contra `PAGINAS_CONHECIDAS`, importada de `lib/sanity/paginas.ts`, é o que
+   pegaria alguém desfazendo esta derivação no futuro e voltando a escrever
+   a lista à mão. */
+export const enderecosValidos = Object.keys(PAGINAS_CONHECIDAS);
+
 /* `options.list` não existe em `SlugOptions` (@sanity/types@6.10.1, o que o
    `sanity@6.10.1` instalado reexporta) e o input padrão do tipo `slug` no
    Studio (`SlugInput`, em node_modules/sanity/lib/PerspectiveProvider-*.js)
    só lê `options.source`, não `options.list`: não existe dropdown para slug
-   nessa versão. A lista fechada é aplicada aqui, na validação, que é o único
-   lugar onde ela de fato impede a publicação de um endereço fora da lista. */
-const enderecosValidos = [
-  "associacao",
-  "beneficios",
-  "estatuto",
-  "politica-editorial",
-  "politica-de-privacidade",
-  "termos-de-uso",
-  "politica-de-cookies",
-];
+   nessa versão. A lista fechada é aplicada na validação abaixo, que é o
+   único lugar onde ela de fato impede a publicação de um endereço fora da
+   lista; a descrição do campo, logo ali, é o que dá à secretaria da AMI um
+   rótulo legível para cada slug, já que não há dropdown para mostrá-lo. */
 export const paginaInstitucional = defineType({
   name: "paginaInstitucional",
   title: "Página institucional",
@@ -44,9 +59,14 @@ export const paginaInstitucional = defineType({
       name: "slug",
       title: "Endereço",
       type: "slug",
+      /* "Rótulo (slug)" por entrada, não só o slug cru: "termos-de-uso"
+         sozinho não diz nada para quem preenche o formulário, e é a
+         secretaria da AMI que lê isto, não um desenvolvedor. */
       description:
         "Um destes, exatamente: " +
-        enderecosValidos.join(", ") +
+        enderecosValidos
+          .map((slug) => `${PAGINAS_CONHECIDAS[slug].rotulo} (${slug})`)
+          .join(", ") +
         ". Qualquer outro valor não tem rota correspondente no site.",
       validation: (r) =>
         r.required().custom((valor) => {
