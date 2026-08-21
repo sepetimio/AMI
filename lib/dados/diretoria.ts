@@ -12,8 +12,20 @@ export type Diretor = {
   crm: string | null;
   crmUf: string | null;
   /* Falso só para o diretor que não é médico, por exemplo um contador na
-     tesouraria. Guardado porque é o que isenta esse diretor da exigência de
-     CRM da Resolução CFM 2.336/2023, Art. 4º, I. */
+     tesouraria.
+
+     Onde ele de fato atua é no banco, na restrição
+     `diretor_medico_tem_inscricao`: é `medico = false` que libera aquela
+     linha da exigência de CRM próprio. Nenhum componente lê este campo, e
+     `CartaoDiretor` decide só por `crm && crmUf`.
+
+     Continua projetado assim mesmo, e por uma razão nomeável: sem ele, um
+     `Diretor` sem CRM é ambíguo entre dois estados que o banco distingue,
+     "não é médico, e por isso não tem inscrição" e "é médico e está sem
+     inscrição, estado que a restrição deveria ter impedido". O segundo é
+     defeito e o primeiro não, e quem for depurar a página, ou construir a
+     tela de edição da Fase 4, precisa dos dois separados. Custa uma coluna
+     numa linha que já vem do banco. */
   medico: boolean;
   foto: string | null;
 };
