@@ -74,6 +74,16 @@ export function ordenarDiretoria(lista: Diretor[]): Diretor[] {
   I proíbe é nome de médico sem inscrição na tela, e omitir um CRM que se
   tem em mãos é justamente produzir essa tela.
 
+  **Risco registrado, para quem for escrever a tela de edição de diretoria na
+  Fase 4.** `diretoria.crm` é cópia congelada; `profissional.crm` é o registro
+  vivo, com `unique (crm, crm_uf)` e `verificado_em`. Nada reconcilia os dois.
+  Corrigir o CRM de um diretor em `profissional` faz esta página exibir o
+  número velho, enquanto o perfil, a um clique pelo mesmo cartão, exibe o
+  novo: dois números diferentes para a mesma pessoa, no mesmo site. Não foi
+  consertado de propósito, porque a escolha entre sincronizar na escrita,
+  reconciliar na leitura ou avisar quem edita é decisão de produto e não de
+  camada de dados. Quem for construir aquela tela decide antes de escrevê-la.
+
   Exportada para ser testável sem banco.
 */
 export function resolverCrmDoDiretor(
