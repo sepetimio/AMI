@@ -21,13 +21,40 @@ create table diretoria (
   ordem integer not null default 100,
   mandato_inicio date,
   mandato_fim date,
-  publicado boolean not null default false
+  -- CRM próprio do diretor. Usado só quando não há profissional_id ligado:
+  -- o laço opcional acima, por desenho, permite publicar um diretor sem
+  -- perfil no diretório, e a Resolução CFM 2.336/2023, Art. 4º, I exige CRM
+  -- ao lado de todo nome de médico exibido. Sem estas colunas, esse diretor
+  -- recém-eleito sairia na tela sem inscrição nenhuma.
+  crm text,
+  crm_uf text,
+  -- Falso só para o diretor que não é médico, por exemplo um contador na
+  -- tesouraria. É o que libera esse caso da exigência de CRM abaixo.
+  medico boolean not null default true,
+  publicado boolean not null default false,
+  -- Todo diretor médico publicado precisa de inscrição em algum lugar: no
+  -- perfil ligado, ou nas colunas próprias quando não há perfil. Quem não é
+  -- médico (medico = false) fica de fora da exigência.
+  constraint diretor_medico_tem_inscricao check (
+    not (publicado and medico)
+    or profissional_id is not null
+    or (crm is not null and crm_uf is not null)
+  )
 );
 
 create index diretoria_ordem on diretoria (ordem, nome);
 
 comment on column diretoria.nome is
   'Redundante em relação a profissional.nome de propósito: diretor pode não ter perfil publicado no diretório.';
+
+comment on column diretoria.crm is
+  'CRM próprio do diretor, usado só quando não há profissional_id ligado. Exigido pela Resolução CFM 2.336/2023, Art. 4º, I para todo diretor médico publicado. Ver constraint diretor_medico_tem_inscricao.';
+
+comment on column diretoria.crm_uf is
+  'UF do CRM próprio do diretor. Ver comentário de diretoria.crm.';
+
+comment on column diretoria.medico is
+  'Falso para o diretor que não é médico, por exemplo um contador na tesouraria. Libera esse diretor da exigência de CRM da constraint diretor_medico_tem_inscricao.';
 
 alter table diretoria enable row level security;
 

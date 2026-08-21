@@ -21,6 +21,10 @@ export function CartaoDiretor({ diretor }: { diretor: Diretor }) {
         <p className="mt-1.5 font-titulo text-[21px] font-bold leading-tight [font-stretch:88%]">
           {diretor.nome}
         </p>
+        {/* `diretor.crm`/`crmUf` já vêm resolvidos por `lib/dados/diretoria`
+            entre as duas origens possíveis (perfil ligado, ou colunas
+            próprias da linha de diretoria): o cartão não precisa saber qual
+            das duas foi usada, só exibir quando há uma inscrição. */}
         {diretor.crm && diretor.crmUf ? (
           <p className="registro mt-1 text-[14px] text-ink-600">
             {identificacaoMedica(diretor.crm, diretor.crmUf)}
