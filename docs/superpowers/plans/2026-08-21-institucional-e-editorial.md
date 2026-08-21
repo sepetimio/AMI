@@ -125,6 +125,7 @@ Por que `lib/sanity/consultas.ts` num arquivo só, e não um por tipo: são seis
 ## Tarefa 1: Fundação do Sanity, cliente e Studio
 
 **Arquivos:**
+- Criar: `sanity/exigir.ts`
 - Criar: `sanity/env.ts`
 - Criar: `sanity.config.ts`
 - Criar: `lib/sanity/cliente.ts`
@@ -135,7 +136,7 @@ Por que `lib/sanity/consultas.ts` num arquivo só, e não um por tipo: são seis
 - Modificar: `.env.local.exemplo` (criar se não existir)
 
 **Interfaces:**
-- Produz: `projectId: string`, `dataset: string`, `apiVersion: string`, `exigir(valor: string | undefined, nome: string): string` em `sanity/env.ts`; `cliente` (instância de `SanityClient`) em `lib/sanity/cliente.ts`.
+- Produz: `exigir(valor: string | undefined, nome: string): string` em `sanity/exigir.ts`; `projectId: string`, `dataset: string`, `apiVersion: string` em `sanity/env.ts`; `cliente` (instância de `SanityClient`) em `lib/sanity/cliente.ts`.
 - Consome: nada.
 
 **Antes de começar:** a AMI precisa de um projeto Sanity. Quem executa **não cria conta em serviço de terceiro**. Se `NEXT_PUBLIC_SANITY_PROJECT_ID` não estiver em `.env.local`, pare e peça ao usuário, entregando estes passos:
@@ -150,7 +151,7 @@ Crie `testes/sanity-ambiente.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
-import { exigir } from "@/sanity/env";
+import { exigir } from "@/sanity/exigir";
 
 describe("exigir", () => {
   it("devolve o valor quando ele existe", () => {
@@ -181,21 +182,29 @@ describe("exigir", () => {
 - [ ] **Passo 2: rode e confirme que falha**
 
 Comando: `npx vitest run testes/sanity-ambiente.test.ts`
-Esperado: FALHA com "Cannot find module '@/sanity/env'".
+Esperado: FALHA com "Cannot find module '@/sanity/exigir'".
 
-- [ ] **Passo 3: escreva `sanity/env.ts`**
+- [ ] **Passo 3: escreva `sanity/exigir.ts` e `sanity/env.ts`**
+
+**Dois arquivos, e a divisão é o ponto.** `exigir` é função pura; `env.ts`
+calcula constantes chamando `exigir` no topo do módulo, o que é efeito
+colateral na importação. Juntos, o teste de `exigir` não roda: importar
+`@/sanity/env` avalia o módulo, que chama `exigir(process.env...)`, que
+lança quando a variável não está definida. O arquivo de teste inteiro falharia
+antes do primeiro caso, e falharia justamente na máquina de quem ainda não
+configurou o Sanity. Separados, o teste importa só a função.
+
+`sanity/exigir.ts`:
 
 ```ts
 /*
-  Variáveis de ambiente do Sanity, num lugar só e validadas na importação.
+  Validação de variável de ambiente, isolada num módulo sem efeito colateral.
 
-  A validação existe porque a falha silenciosa aqui é cara: sem projectId o
-  cliente é construído mesmo assim e só quebra na primeira consulta, com um
-  erro de rede que não menciona configuração nenhuma. Falhar cedo, com o nome
-  da variável e o endereço de onde tirá-la, transforma meia hora de
-  investigação em trinta segundos.
+  Separada de `env.ts` de propósito: lá as constantes são calculadas no topo
+  do módulo, então importar aquele arquivo já lança quando falta configuração.
+  Um teste desta função não pode depender de o ambiente estar configurado, ou
+  ele quebra exatamente na máquina de quem ainda não configurou.
 */
-
 export function exigir(valor: string | undefined, nome: string): string {
   /* String vazia conta como ausente: uma linha `NOME=` no .env produz "" e
      não undefined, e "" como projectId falha lá adiante, ilegível. */
@@ -207,6 +216,22 @@ export function exigir(valor: string | undefined, nome: string): string {
   }
   return valor;
 }
+```
+
+`sanity/env.ts`:
+
+```ts
+import { exigir } from "@/sanity/exigir";
+
+/*
+  Variáveis de ambiente do Sanity, num lugar só e validadas na importação.
+
+  A validação na importação é decisão: a falha silenciosa aqui é cara. Sem
+  projectId o cliente seria construído mesmo assim e só quebraria na primeira
+  consulta, com erro de rede que não menciona configuração nenhuma. Falhar
+  cedo, com o nome da variável e o endereço de onde tirá-la, transforma meia
+  hora de investigação em trinta segundos.
+*/
 
 export const projectId = exigir(
   process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
