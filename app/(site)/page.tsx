@@ -1,69 +1,212 @@
-import Image from "next/image";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Simbolo } from "@/components/marca/Simbolo";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { organizationAmi } from "@/lib/seo/jsonld";
+import {
+  bairrosComContagem,
+  especialidadesComContagem,
+} from "@/lib/dados/especialidades";
+import { contagem } from "@/lib/formato";
 
-export default function Home() {
+export const revalidate = 3600;
+
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const especialidades = await especialidadesComContagem();
+  const total = especialidades.reduce((s, e) => s + e.total, 0);
+
+  return {
+    title: "Associação Médica de Imperatriz",
+    description:
+      `${total} médicos e ${especialidades.length} especialidades em ` +
+      `Imperatriz - MA. Filtre por especialidade e bairro, e veja horários.`,
+    alternates: { canonical: "/" },
+  };
+}
+
+export default async function Home() {
+  const [especialidades, bairros] = await Promise.all([
+    especialidadesComContagem(),
+    bairrosComContagem(),
+  ]);
+  const total = especialidades.reduce((s, e) => s + e.total, 0);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <>
+      <JsonLd dados={organizationAmi(SITE)} />
+
+      {/* --- 1. Herói assimétrico em faixa verde-800 --- */}
+      <section className="relative overflow-hidden bg-ami-green-800 pb-24 pt-14 md:pb-32">
+        {/* Marca d'água: uso estrutural do símbolo, cortado pela borda.
+            É a primeira das no máximo duas aparições por página. */}
+        <Simbolo className="pointer-events-none absolute -right-16 top-0 h-full w-auto opacity-[0.05]" />
+
+        <div className="mx-auto grid max-w-[1200px] grid-cols-12 px-4 md:px-6">
+          <div className="col-span-12 md:col-span-7">
+            <p className="font-titulo text-xs font-bold uppercase tracking-[0.12em] text-ami-mint-400">
+              Associação Médica de Imperatriz
+            </p>
+            <h1 className="mt-3 text-white">
+              Encontre o médico certo em Imperatriz
+            </h1>
+            {/* Números contados do banco. Nunca escritos à mão. */}
+            <p className="numero-tabular mt-5 max-w-[46ch] text-[19px] text-ami-mint-400">
+              {contagem(total, "médico", "médicos")} em{" "}
+              {contagem(especialidades.length, "especialidade", "especialidades")}
+              , atendendo em {contagem(bairros.length, "bairro", "bairros")}.
+              Filtre por especialidade e bairro.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* --- 2. Cartão de busca invadindo a faixa: única sombra do site --- */}
+      <div className="mx-auto max-w-[1200px] px-4 md:px-6">
+        {/* Formulário HTML de verdade, com method GET: funciona sem
+            JavaScript e o resultado vira uma URL compartilhável. */}
+        <form
+          action="/busca"
+          method="get"
+          className="-mt-14 rounded-bloco bg-surface p-5 shadow-[0_8px_24px_rgba(6,33,15,.14)] md:p-6"
+        >
+          <h2 className="text-[21px] font-semibold">Buscar</h2>
+          <div className="mt-4 grid gap-4 md:grid-cols-[1fr_240px_auto]">
+            <div>
+              <label
+                htmlFor="busca-termo"
+                className="block text-[15px] font-semibold"
+              >
+                Especialidade ou nome
+              </label>
+              <input
+                id="busca-termo"
+                name="termo"
+                type="search"
+                placeholder="Cardiologia, Mayara Viana…"
+                className="mt-1.5 min-h-11 w-full rounded-controle border border-line px-3 text-[15px] placeholder:text-ink-300"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="busca-bairro"
+                className="block text-[15px] font-semibold"
+              >
+                Bairro
+              </label>
+              <select
+                id="busca-bairro"
+                name="bairro"
+                className="mt-1.5 min-h-11 w-full rounded-controle border border-line bg-surface px-3 text-[15px]"
+              >
+                <option value="">Todos</option>
+                {bairros.map((b) => (
+                  <option key={b.slug} value={b.slug}>
+                    {b.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              type="submit"
+              className="mt-auto min-h-11 rounded-controle bg-ami-green-600 px-6 font-semibold text-white hover:bg-ami-green-700"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              Buscar
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* --- 3. Chips das especialidades com mais profissionais --- */}
+      <section
+        aria-labelledby="mais-buscadas"
+        className="mx-auto max-w-[1200px] px-4 py-12 md:px-6"
+      >
+        <h2 id="mais-buscadas" className="sr-only">
+          Especialidades com mais profissionais
+        </h2>
+        <ul className="flex flex-wrap gap-2">
+          {especialidades.slice(0, 8).map((e) => (
+            <li key={e.slug}>
+              <Link
+                href={`/medicos/${e.slug}`}
+                className="numero-tabular inline-flex min-h-11 items-center rounded-chip border border-line bg-surface px-4 text-[15px] font-semibold text-ami-green-600 hover:bg-ami-mint-100"
+              >
+                {e.nome} · {e.total}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* --- 4. Acesso rápido em fios, não em cartões --- */}
+      <section
+        aria-labelledby="acesso-rapido"
+        className="mx-auto max-w-[1200px] px-4 pb-14 md:px-6"
+      >
+        <h2 id="acesso-rapido" className="border-b border-line-strong pb-3">
+          Acesso rápido
+        </h2>
+        <ul className="grid md:grid-cols-3">
+          {[
+            {
+              titulo: "Por especialidade",
+              texto: `${especialidades.length} especialidades com profissional publicado.`,
+              href: "/medicos",
+            },
+            {
+              titulo: "Por bairro",
+              texto: `Atendimento em ${bairros.length} bairros de Imperatriz.`,
+              href: "/medicos",
+            },
+            {
+              titulo: "A Associação",
+              texto: "Quem é a AMI, diretoria e como se associar.",
+              href: "/associacao",
+            },
+          ].map((item) => (
+            <li key={item.titulo} className="border-b border-line">
+              <Link
+                href={item.href}
+                className="block py-5 pr-4 hover:bg-ami-mint-100 md:pr-8"
+              >
+                <span className="block font-semibold text-ami-green-600">
+                  {item.titulo}
+                </span>
+                <span className="mt-1 block text-[15px] text-ink-600">
+                  {item.texto}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* --- 5. Faixa institucional em verde-900, respiro maior --- */}
+      <section
+        aria-labelledby="institucional"
+        className="bg-ami-green-900 py-20 text-ami-mint-400"
+      >
+        <div className="mx-auto max-w-[1200px] px-4 md:px-6">
+          <h2 id="institucional" className="text-white">
+            A entidade que representa os médicos de Imperatriz
+          </h2>
+          <p className="coluna-leitura mt-4">
+            A AMI reúne os profissionais que atendem em Imperatriz e na região
+            sul do Maranhão. Este diretório existe para que a população encontre
+            quem atende perto de casa, com informação correta e verificada.
+          </p>
+          <p className="mt-6">
+            <Link
+              href="/associacao"
+              className="inline-flex min-h-11 items-center font-semibold text-white underline"
             >
-              Learning
-            </a>{" "}
-            center.
+              Conhecer a Associação
+            </Link>
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </section>
+    </>
   );
 }
