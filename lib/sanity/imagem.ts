@@ -46,13 +46,69 @@ export function urlDaImagem(
   largura: number,
   configuracao: { projectId: string; dataset: string } = configuracaoPadrao(),
 ): string {
-  return createImageUrlBuilder(configuracao)
-    .image(imagem.asset)
-    .width(largura)
-    /* `fit=crop` com o ponto de interesse que a AMI marcou no Studio: sem
-       ele, uma foto larga num espaço quadrado entra deformada ou com a
-       cabeça de alguém cortada fora. */
-    .fit("crop")
-    .auto("format")
-    .url();
+  try {
+    return createImageUrlBuilder(configuracao)
+      .image(imagem.asset)
+      /*
+        `fit=crop` sozinho, sem `.height()`, não recorta nada: `fit()` do
+        `@sanity/image-url` só calcula o retângulo a partir do ponto de
+        interesse quando largura E altura são passadas (ver o `if
+        (!(imgWidth && imgHeight)) return {...}` logo no início da função,
+        em node_modules/@sanity/image-url/src/urlForImage.ts). Sem `.height()`
+        aqui, o CDN só redimensiona proporcionalmente pela largura pedida.
+
+        Isso é comportamento desejado, não um descuido: quem chama esta
+        função sem largura fixa de exibição, como `TextoRico` para imagem no
+        corpo do texto, quer a foto exatamente como a AMI enviou, sem
+        recortar rosto ou detalhe fora de um retângulo arbitrário. `fit=crop`
+        continua na cadeia porque é o parâmetro que o CDN exige para que um
+        chamador futuro que também passe altura (uma capa de matéria, por
+        exemplo, onde proporção fixa é desejada) ganhe o recorte pelo
+        hotspot de graça, sem precisar mudar esta função.
+      */
+      .width(largura)
+      .fit("crop")
+      .auto("format")
+      .url();
+  } catch {
+    /*
+      `asset._ref` malformado (upload ainda em andamento, referência
+      corrompida) faz `.image()` lançar "Malformed asset _ref" lá dentro do
+      `@sanity/image-url`. Devolver "" em vez de deixar a exceção subir é
+      decisão deliberada: quem usa este endereço está desenhando uma imagem
+      dentro de uma página inteira (uma notícia, uma página institucional).
+      A AMI perde uma foto, não a notícia inteira. Quem chama decide o que
+      fazer com uma resposta vazia; ver `TextoRico.tsx`, que descarta o
+      bloco de imagem inteiro nesse caso.
+    */
+    return "";
+  }
+}
+
+/*
+  Dimensões reais de uma imagem, extraídas do próprio `_ref`.
+
+  O Sanity codifica largura e altura originais no identificador do ativo,
+  no formato `image-{id}-{largura}x{altura}-{extensão}`. Isso permite
+  declarar `width`/`height` corretos num `<img>` sem precisar perguntar ao
+  CDN nem carregar a imagem primeiro: o navegador reserva a caixa certa
+  antes do primeiro byte chegar, o que é a diferença entre CLS zero e uma
+  página que pula quando a foto termina de carregar.
+
+  Devolve `undefined`, não lança, quando o `_ref` não tem o formato
+  esperado: mesma filosofia de `urlDaImagem`, degradar uma imagem não pode
+  derrubar a página.
+*/
+export function dimensoesDoRef(
+  ref: string,
+): { largura: number; altura: number } | undefined {
+  const [, , dimensoes] = ref.split("-");
+  if (!dimensoes) return undefined;
+
+  const [larguraTexto, alturaTexto] = dimensoes.split("x");
+  const largura = Number(larguraTexto);
+  const altura = Number(alturaTexto);
+  if (!Number.isFinite(largura) || !Number.isFinite(altura)) return undefined;
+
+  return { largura, altura };
 }
