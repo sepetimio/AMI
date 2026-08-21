@@ -4,7 +4,9 @@
 -- Junção, na ordem certa, de:
 --   supabase/migrations/0001_diretorio.sql   (as tabelas)
 --   supabase/migrations/0002_rls.sql         (quem pode ler o quê)
+--   supabase/migrations/0003_diretoria.sql   (tabela e política da diretoria)
 --   supabase/seed/seed.sql                   (dados de demonstração)
+--   supabase/seed/diretoria.sql              (diretoria de demonstração)
 --
 -- Para a primeira instalação: cole tudo de uma vez no SQL Editor do
 -- Supabase e execute. Rodar duas vezes dá erro na segunda, porque as
@@ -152,6 +154,44 @@ create index profissional_publicado on profissional (publicado);
 create index local_bairro on local (bairro_id);
 create index atendimento_profissional on atendimento (profissional_id);
 create index horario_atendimento on horario (atendimento_id);
+
+-- Diretoria da AMI.
+--
+-- `profissional_id` é opcional de propósito. A spec pede que a diretoria
+-- aponte para perfis reais do diretório, e é isso que o laço faz quando
+-- existe. Mas obrigar o laço criaria uma dependência que quebra o cadastro:
+-- um diretor recém-eleito que ainda não foi publicado no diretório não
+-- poderia ser cadastrado, e a página da diretoria ficaria desatualizada
+-- justamente no mês em que mais gente a consulta.
+--
+-- Por isso `nome` e `cargo` são colunas próprias, não projeções do
+-- profissional. Com laço, a página mostra a foto e o CRM do perfil e linka
+-- para ele; sem laço, mostra nome e cargo em texto.
+
+create table diretoria (
+  id bigint generated always as identity primary key,
+  profissional_id bigint references profissional (id) on delete set null,
+  nome text not null,
+  cargo text not null,
+  -- Hierarquia, não alfabética: presidente antes de vice antes de tesoureiro.
+  -- Números com folga (10, 20, 30) para inserir no meio sem renumerar tudo.
+  ordem integer not null default 100,
+  mandato_inicio date,
+  mandato_fim date,
+  publicado boolean not null default false
+);
+
+create index diretoria_ordem on diretoria (ordem, nome);
+
+comment on column diretoria.nome is
+  'Redundante em relação a profissional.nome de propósito: diretor pode não ter perfil publicado no diretório.';
+
+alter table diretoria enable row level security;
+
+-- Mesma regra do resto do site: visitante anônimo lê só o que está publicado.
+create policy leitura_diretoria on diretoria
+  for select
+  using (publicado = true);
 
 -- ============ PARTE 2 de 3: as permissões ============
 
@@ -650,3 +690,20 @@ insert into horario (atendimento_id, dia_semana, abre, fecha) values
   (24, 5, '08:00', '12:00'),
   (24, 5, '14:00', '18:00');
 
+-- Diretoria de demonstração. Os cargos são os de um estatuto típico de
+-- associação médica; os nomes vêm do seed do diretório, para que o laço com
+-- `profissional` exista de verdade e a página possa ser conferida.
+--
+-- Substituir pela diretoria real da AMI antes do lançamento. Enquanto estes
+-- dados estiverem no ar, NEXT_PUBLIC_DADOS_DEMONSTRACAO continua "true" e o
+-- robots.txt bloqueia o site inteiro.
+
+insert into diretoria (profissional_id, nome, cargo, ordem, publicado)
+select p.id, p.nome, v.cargo, v.ordem, true
+from (values
+  ('mayara-viana',     'Presidente',            10),
+  ('rafael-coelho',    'Vice-presidente',       20),
+  ('larissa-nogueira', 'Diretora científica',   30),
+  ('tiago-barbosa',    'Tesoureiro',            40)
+) as v (slug, cargo, ordem)
+join profissional p on p.slug = v.slug;
