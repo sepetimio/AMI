@@ -1,5 +1,8 @@
 # Verificação e auditoria de entrega — Fase 1
 
+As rotas institucionais e editoriais entraram depois desta verificação e têm
+relatório próprio, em `docs/verificacao-institucional-e-editorial.md`.
+
 Data: 2026-08-20. Todas as medições abaixo foram tiradas ao vivo, contra o
 banco Supabase de produção (24 profissionais publicados, 14 especialidades,
 8 bairros; Clínica Médica com 4 — 3 em Centro —, Cardiologia e Pediatria com
