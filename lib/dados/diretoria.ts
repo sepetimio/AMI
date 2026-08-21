@@ -8,8 +8,7 @@ export type Diretor = {
   ordem: number;
   /* Preenchidos só quando o diretor tem perfil publicado no diretório. */
   slugDoPerfil: string | null;
-  /* Colunas próprias da linha de diretoria, nunca do perfil ligado. Ver a
-     seleção abaixo. */
+  /* Já resolvidos entre as duas origens possíveis. Ver `resolverCrmDoDiretor`. */
   crm: string | null;
   crmUf: string | null;
   /* Falso só para o diretor que não é médico, por exemplo um contador na
@@ -35,21 +34,52 @@ export function ordenarDiretoria(lista: Diretor[]): Diretor[] {
 }
 
 /*
-  O CRM vem sempre das colunas próprias da linha, e o embed do perfil traz
-  só o que é ilustração: foto e slug para o link.
+  Qual CRM mostrar, entre as duas origens possíveis.
 
-  Houve aqui uma ordem de preferência, que tentava o CRM do perfil ligado
-  antes do da linha. Ela caiu junto com a restrição antiga do banco
-  (0004_diretoria_crm.sql): o perfil não é fonte confiável de inscrição
-  porque a RLS esconde do visitante anônimo todo profissional não publicado,
-  e a mesma consulta que devolve o perfil para um diretor devolve nulo para
-  outro sem nada na tela distinguir os dois casos. Agora que o banco exige
-  `crm`/`crm_uf` na própria linha de todo diretor médico publicado, uma fonte
-  só é ao mesmo tempo mais simples e a única que o visitante sempre enxerga.
+  A ordem é o inverso da que este arquivo teve até a revisão final, e a
+  inversão é o ponto:
+
+  1. **As colunas próprias de `diretoria` primeiro.** A restrição
+     `diretor_medico_tem_inscricao`, na forma que a 0004 lhe deu, exige
+     `crm` e `crm_uf` na própria linha de todo diretor médico publicado.
+     Isso as torna a fonte autoritativa: é o único CRM que o banco garante
+     existir e que o visitante anônimo sempre enxerga, porque não depende de
+     nenhuma outra linha nem de nenhuma política de leitura.
+
+  2. **O perfil ligado como reserva.** Quando o perfil existe e está
+     publicado, `profissional.crm` e `profissional.crm_uf` são `not null` e
+     vieram da mesma verificação que liberou aquele médico para o diretório:
+     é dado real e correto, não um contorno. Serve para a linha escrita fora
+     do alcance da restrição (um diretor despublicado que alguém resolva
+     publicar em duas etapas, por exemplo) e para a janela de transição em
+     que a 0004 ainda não preencheu as colunas.
+
+  A reserva **não** enfraquece a garantia, e é aqui que estava o erro
+  anterior: a garantia mora na restrição do banco, que continua exigindo as
+  colunas próprias e não aceita mais o laço como prova. A reserva não decide
+  quem pode ser publicado; ela só evita que a tela fique errada quando o dado
+  certo existe e está ao alcance. O que a Resolução CFM 2.336/2023, Art. 4º,
+  I proíbe é nome de médico sem inscrição na tela, e omitir um CRM que se
+  tem em mãos é justamente produzir essa tela.
+
+  Exportada para ser testável sem banco.
 */
+export function resolverCrmDoDiretor(
+  linha: { crm: string | null; crmUf: string | null },
+  perfil: { crm: string | null; crmUf: string | null } | null,
+): { crm: string | null; crmUf: string | null } {
+  if (linha.crm && linha.crmUf) {
+    return { crm: linha.crm, crmUf: linha.crmUf };
+  }
+  if (perfil?.crm && perfil?.crmUf) {
+    return { crm: perfil.crm, crmUf: perfil.crmUf };
+  }
+  return { crm: null, crmUf: null };
+}
+
 const SELECAO = `
   id, nome, cargo, ordem, crm, crm_uf, medico,
-  profissional:profissional_id ( slug, foto )
+  profissional:profissional_id ( slug, crm, crm_uf, foto )
 `;
 
 export const listarDiretoria = cache(async (): Promise<Diretor[]> => {
@@ -65,14 +95,18 @@ export const listarDiretoria = cache(async (): Promise<Diretor[]> => {
        cardinalidade que ele infere da chave estrangeira. Normalizado aqui
        para o resto do arquivo não precisar saber disso. */
     const p = Array.isArray(d.profissional) ? d.profissional[0] : d.profissional;
+    const { crm, crmUf } = resolverCrmDoDiretor(
+      { crm: d.crm, crmUf: d.crm_uf },
+      p ? { crm: p.crm, crmUf: p.crm_uf } : null,
+    );
     return {
       id: d.id,
       nome: d.nome,
       cargo: d.cargo,
       ordem: d.ordem,
       slugDoPerfil: p?.slug ?? null,
-      crm: d.crm,
-      crmUf: d.crm_uf,
+      crm,
+      crmUf,
       medico: d.medico,
       foto: p?.foto ?? null,
     };
