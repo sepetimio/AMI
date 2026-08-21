@@ -198,9 +198,22 @@ create table diretoria (
   publicado boolean not null default false,
   -- Todo diretor médico publicado precisa de CRM na própria linha. Quem não
   -- é médico (medico = false) fica de fora da exigência.
+  --
+  -- A exigência é de conteúdo, não de "não nulo": `crm = ''` satisfaria um
+  -- `is not null` e declararia conformidade sobre uma inscrição que não
+  -- existe. Formulário devolve string vazia, nunca nulo, e o painel da Fase 4
+  -- vai expor este campo num. O `coalesce` é o que impede a armadilha do
+  -- Postgres em que um CHECK de resultado nulo passa.
+  --
+  -- Sem trava de formato: `profissional.crm` e `profissional.crm_uf` são
+  -- `text` sem checagem, e é de lá que estes valores são copiados. Regra mais
+  -- estrita na cópia do que na fonte quebraria a cópia.
   constraint diretor_medico_tem_inscricao check (
     not (publicado and medico)
-    or (crm is not null and crm_uf is not null)
+    or (
+      coalesce(btrim(crm), '') <> ''
+      and coalesce(btrim(crm_uf), '') <> ''
+    )
   )
 );
 

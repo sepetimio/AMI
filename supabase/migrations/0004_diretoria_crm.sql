@@ -30,12 +30,32 @@ set crm = p.crm,
     crm_uf = p.crm_uf
 from profissional p
 where p.id = d.profissional_id
-  and (d.crm is null or d.crm_uf is null);
+  and (coalesce(btrim(d.crm), '') = '' or coalesce(btrim(d.crm_uf), '') = '');
 
+-- A exigência é de conteúdo, não de "não nulo". `crm = ''` satisfaria um
+-- `is not null` e declararia conformidade sobre uma inscrição que não existe:
+-- a tela trata vazio como ausente e cai na reserva, e sem perfil visível sai
+-- nome de médico sem CRM com o banco dizendo que está tudo certo. Hoje isso
+-- só se alcança por SQL direto, mas o painel da Fase 4 vai expor este campo
+-- num formulário, e formulário devolve string vazia, nunca nulo.
+--
+-- O `coalesce` não é enfeite: `btrim(null)` é nulo, `nulo <> ''` é nulo, e
+-- um CHECK cujo resultado é nulo PASSA no Postgres. Sem ele, a restrição
+-- aceitaria de volta exatamente o que veio consertar.
+--
+-- Sem trava de formato, nem aqui nem em `crm_uf`, e a razão é concreta: a
+-- coluna equivalente em `profissional` é `text` sem checagem nenhuma, e o
+-- `update` acima copia de lá. Uma regra mais estrita na cópia do que na
+-- fonte faria a própria migração falhar diante de um valor que o registro
+-- vivo considera legítimo. Disciplina de formato, se um dia entrar, entra
+-- primeiro em `profissional`.
 alter table diretoria
   add constraint diretor_medico_tem_inscricao check (
     not (publicado and medico)
-    or (crm is not null and crm_uf is not null)
+    or (
+      coalesce(btrim(crm), '') <> ''
+      and coalesce(btrim(crm_uf), '') <> ''
+    )
   );
 
 comment on column diretoria.crm is
