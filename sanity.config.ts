@@ -20,7 +20,11 @@ export default defineConfig({
   projectId,
   dataset,
   plugins: [
-    structureTool(),
+    /* O `@sanity/locale-pt-br` traduz os formulários, mas não tem bundle para
+       a ferramenta de estrutura, então a aba do topo sairia "Structure". Quem
+       vai usar isto é a secretaria da AMI: o título é a única palavra dali que
+       ela lê o dia inteiro. */
+    structureTool({ title: "Conteúdo" }),
     /* Interface do Studio em português. A spec pede locale pt-BR, e não é
        detalhe: quem vai escrever ali é a secretaria da AMI, não um
        desenvolvedor. Um formulário com "Publish" e "Discard changes" gera
