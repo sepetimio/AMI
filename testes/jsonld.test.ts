@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   breadcrumbList,
   comoItensDeLista,
@@ -229,9 +229,20 @@ describe("newsArticle", () => {
     expect(j).not.toHaveProperty("dateModified");
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("inclui a capa como image, com as dimensões reais do arquivo", () => {
     /* image é o que o Google exige para elegibilidade em Top Stories e
-       Discover; omitir a capa aqui devolveria o dado ao alcance sem usá-lo. */
+       Discover; omitir a capa aqui devolveria o dado ao alcance sem usá-lo.
+
+       O projeto entra por `stubEnv` porque `newsArticle` chama
+       `urlDaImagem` sem configuração, e desde a revisão final faltar
+       `projectId` é erro alto em vez de URL vazia. É o mesmo estado que a
+       renderização real tem: a página só monta este JSON-LD depois de ter
+       buscado a matéria no Sanity. */
+    vi.stubEnv("NEXT_PUBLIC_SANITY_PROJECT_ID", "abcd1234");
     const capa = {
       asset: { _ref: "image-abc123def-1600x900-jpg" },
       alt: "Mesa de inscrição do congresso da AMI",
