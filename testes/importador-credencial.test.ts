@@ -30,4 +30,20 @@ describe("chaveDoAmbiente", () => {
       /pública/i,
     );
   });
+
+  it("recusa a chave antiga em formato JWT, seja anon ou service_role", () => {
+    expect(() =>
+      chaveDoAmbiente({ [NOME_DA_VARIAVEL]: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.x.y" }),
+    ).toThrow(/JWT/i);
+  });
+
+  it("recusa chave que se identifica como anônima sem o prefixo novo", () => {
+    expect(() => chaveDoAmbiente({ [NOME_DA_VARIAVEL]: "chave-anon-do-projeto" })).toThrow(
+      /pública/i,
+    );
+  });
+
+  it("aceita a chave secreta dedicada", () => {
+    expect(chaveDoAmbiente({ [NOME_DA_VARIAVEL]: "sb_secret_abc" })).toBe("sb_secret_abc");
+  });
 });
