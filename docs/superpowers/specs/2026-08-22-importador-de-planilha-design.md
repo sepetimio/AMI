@@ -180,8 +180,9 @@ Falhou tudo, vira pendência **e o médico entra assim mesmo, sem especialidade*
 
 Duas pendências distintas, porque o conserto difere: *não reconheço este nome* pede
 corrigir a planilha; *reconheço, mas não está no catálogo do banco* pede acrescentar a
-especialidade. A distinção existe porque o mapa de sinônimos tem 19 entradas e o catálogo
-do banco tem 14.
+especialidade. Hoje as duas listas coincidem — 14 especialidades, as mesmas nas duas. A
+distinção existe porque elas **podem divergir**: o catálogo do banco cresce com o cadastro
+real, e o mapa de sinônimos é escrito à mão.
 
 **O RQE cai junto.** Ele não é coluna de `profissional`: mora em
 `profissional_especialidade`, que é o laço entre o médico e a especialidade. Sem
@@ -190,6 +191,18 @@ acontece o relatório diz explicitamente que o RQE daquela linha foi perdido, em
 deixar o número sumir junto com a especialidade — publicar um médico sem o RQE que ele
 tem enfraquece exatamente o que o Art. 4º, II da Resolução CFM manda exibir onde há
 registro.
+
+**RQE que chega numa rodada seguinte também é corrigido, não só gravado na primeira.** Um
+médico já ligado a uma especialidade sem RQE, cuja planilha nova traz o número, tinha o
+RQE descartado sem gravar e sem avisar. Agora isso é um caminho próprio,
+`especialidadesAtualizadas`, gravado com `update` — nunca `upsert`, que mandaria
+`principal` junto e sobrescreveria a marca de principal que o médico já tem.
+
+**Dois textos que resolvem para a mesma especialidade viram um vínculo só.** "Clínica
+Médica" e "internista" são textos diferentes na planilha, mas o mapa de sinônimos resolve
+os dois para o mesmo id. Sem deduplicar, dois vínculos com a mesma chave primária derrubam
+a operação inteira com o erro 21000 do Postgres, e a importação morre no meio. O primeiro
+texto vence; um RQE que só apareça na segunda grafia é aproveitado, não perdido.
 
 ### Bairro: criado, com aviso
 
@@ -243,8 +256,8 @@ BAIRROS NOVOS (serão criados)
   Nova Imperatris ...... 1 médico    (!) parecido com "Nova Imperatriz"
 
 ESPECIALIDADES NÃO RESOLVIDAS
-  "Cirurgia Vascular" .. 6 médicos    conhecida, fora do catálogo do banco
-  "Ortopedía" .......... 2 médicos    não reconhecida
+  "Mastologia" ......... 6 médicos    conhecida, fora do catálogo do banco
+  "Cirurgia Vascular" .. 2 médicos    não reconhecida
   2 destes tinham RQE, que não será gravado (linhas 41, 190)
 
 CAMPOS DESCARTADOS (o médico entra sem eles)
@@ -287,10 +300,23 @@ médico ou estabelecimento publicado — e a rodada seguinte o relata, sem apaga
 ### Ordem
 
 1. Bairros novos, em lote — os endereços dependem deles
-2. `profissional`, em lote, com resolução de conflito por `(crm, crm_uf)`
+2. `profissional`, em lote
 3. `profissional_especialidade`
 4. `local`
 5. `atendimento`
+
+**`plano.criar` usa `insert`, não `upsert`.** Com o retrato completo lido antes de montar o
+plano, um médico em `plano.criar` que já exista no banco significa que alguma premissa
+quebrou — e a cláusula de conflito de um `upsert` mandaria `slug` e `publicado: false`
+junto, despublicando um perfil no ar e trocando a URL dele. Violação de unicidade
+barulhenta é infinitamente melhor do que isso. Continua repetível: uma rodada interrompida
+deixa os médicos já gravados visíveis para o retrato da rodada seguinte, que os manda para
+`atualizar` em vez de `criar`.
+
+**`scripts/retrato.ts` lê cada tabela em páginas, avançando pelo que voltou e não pelo que
+foi pedido.** Sem isso, o PostgREST corta a resposta no `db-max-rows` do projeto e devolve
+um retrato incompleto sem erro nenhum — o pior defeito possível aqui, porque um médico
+publicado que não coubesse na página sumiria do retrato e cairia em `plano.criar` de novo.
 
 ### Nenhuma remoção, em lugar nenhum
 
