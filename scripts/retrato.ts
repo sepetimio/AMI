@@ -20,11 +20,16 @@ import type { Retrato } from "@/lib/importador/tipos";
 /*
   Uma tabela inteira, em páginas.
 
-  Sem isto o PostgREST corta a resposta no `db-max-rows` do projeto (1000, no
-  padrão do Supabase) e devolve um retrato incompleto SEM erro nenhum. É o
-  pior defeito possível aqui: um médico publicado que não coubesse na página
-  sumiria do retrato, cairia em `plano.criar`, e a gravação o despublicaria e
-  trocaria o slug dele — uma URL indexada, apagada em silêncio.
+  Sem isto o PostgREST corta a resposta no `db-max-rows` do projeto e devolve
+  um retrato incompleto SEM erro nenhum. É o pior defeito possível aqui: um
+  médico publicado que não coubesse na página sumiria do retrato e cairia em
+  `plano.criar`.
+
+  O passo avança pelo que VOLTOU, nunca pelo que foi pedido. Quem decide o
+  tamanho da página é o servidor, e um `db-max-rows` menor que `PAGINA` faria
+  a primeira página curta parecer fim de tabela — reabrindo em silêncio o
+  defeito que esta função conserta. Assim a correção não depende de uma
+  configuração remota que este arquivo não enxerga.
 
   A ordenação precisa ser total e estável, ou uma linha pode aparecer em duas
   páginas e outra em nenhuma. Daí o parâmetro: nem toda tabela tem `id`.
@@ -39,16 +44,19 @@ async function tudo(
 ) {
   const linhas: any[] = [];
 
-  for (let inicio = 0; ; inicio += PAGINA) {
-    let consulta = cliente.from(tabela).select(colunas).range(inicio, inicio + PAGINA - 1);
+  for (;;) {
+    let consulta = cliente
+      .from(tabela)
+      .select(colunas)
+      .range(linhas.length, linhas.length + PAGINA - 1);
     for (const c of ordem) consulta = consulta.order(c, { ascending: true });
 
     const { data, error } = await consulta;
     if (error) throw new Error(`Falha ao ler ${tabela}: ${error.message}`);
 
     const pagina = (data ?? []) as any[];
+    if (pagina.length === 0) return linhas;
     linhas.push(...pagina);
-    if (pagina.length < PAGINA) return linhas;
   }
 }
 

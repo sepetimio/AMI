@@ -159,10 +159,13 @@ export async function gravar(
         profissional_id: m.id,
         especialidade_id: v.especialidadeId,
         rqe: v.rqe,
-        /* Vem do plano. Ele já garante `false` aqui: médico que já existe
-           decidiu sua principal numa rodada anterior, e o retrato não a
-           carrega. O literal fixo que havia aqui fazia a gravação acertar
-           enquanto o relatório mentia. */
+        /*
+          Vem do plano, e o plano decide de um jeito que não cabe num literal:
+          médico que já tem vínculo mantém a principal que decidiu numa rodada
+          anterior, e médico sem nenhum vínculo recebe principal na primeira —
+          o que acontece de verdade quando uma rodada morre entre gravar o
+          profissional e gravar as especialidades dele.
+        */
         principal: v.principal,
       });
     }
