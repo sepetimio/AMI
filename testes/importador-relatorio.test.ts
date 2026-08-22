@@ -175,6 +175,13 @@ describe("relatorio — endereços soltos no banco", () => {
     const t = relatorio({ ...BASE, enderecosOrfaos: 0 });
     expect(t).not.toMatch(/ENDEREÇOS SOLTOS/);
   });
+
+  it("concorda no singular quando há só um", () => {
+    const t = relatorio({ ...BASE, enderecosOrfaos: 1 });
+    expect(t).toContain("1 endereço sem médico ligado");
+    expect(t).toContain("Não aparece no site");
+    expect(t).not.toContain("Não aparecem");
+  });
 });
 
 describe("planoEstaLimpo", () => {

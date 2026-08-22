@@ -68,7 +68,8 @@ export async function lerRetrato(cliente: SupabaseClient): Promise<Retrato> {
       tudo(cliente, "especialidade", "id, nome, slug", ["id"]),
       tudo(cliente, "bairro", "id, nome, slug", ["id"]),
       tudo(cliente, "local",
-        "id, logradouro, numero, complemento, bairro_id, cep, telefone, whatsapp", ["id"]),
+        "id, logradouro, numero, complemento, bairro_id, cep, telefone, whatsapp, estabelecimento_id",
+        ["id"]),
       tudo(cliente, "atendimento", "profissional_id, local_id",
         ["profissional_id", "local_id"]),
       tudo(cliente, "profissional_especialidade",
@@ -115,6 +116,12 @@ export async function lerRetrato(cliente: SupabaseClient): Promise<Retrato> {
       especialidadeId: v.especialidade_id,
       rqe: v.rqe,
     })),
-    enderecosOrfaos: locais.filter((l) => !donoDoLocal.has(l.id)).length,
+    /* Órfão de verdade exige as duas coisas: sem atendimento E sem
+       estabelecimento. Local de estabelecimento sem atendimento é normal —
+       é a política `local_publicado` que o publica, pelo estabelecimento —
+       e não é sobra de gravação interrompida. */
+    enderecosOrfaos: locais.filter(
+      (l) => !donoDoLocal.has(l.id) && l.estabelecimento_id === null,
+    ).length,
   };
 }

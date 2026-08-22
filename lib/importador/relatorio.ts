@@ -112,7 +112,10 @@ export function relatorio(plano: Plano): string {
         ),
       ]),
       ...(comAlteracao.length > QUANTOS_DETALHAR
-        ? [`  … e mais ${comAlteracao.length - QUANTOS_DETALHAR} médicos com alteração`]
+        ? (() => {
+            const resto = comAlteracao.length - QUANTOS_DETALHAR;
+            return [`  … e mais ${resto} ${resto === 1 ? "médico" : "médicos"} com alteração`];
+          })()
         : []),
     ]),
   );
@@ -138,8 +141,9 @@ export function relatorio(plano: Plano): string {
     ...secao(
       "ENDEREÇOS SOLTOS NO BANCO",
       [
-        `  ${plano.enderecosOrfaos} sem médico ligado, de alguma gravação interrompida.`,
-        "  Não aparecem no site e nada será feito com eles.",
+        `  ${plano.enderecosOrfaos} ${plano.enderecosOrfaos === 1 ? "endereço" : "endereços"} ` +
+          "sem médico ligado, de alguma gravação interrompida.",
+        `  ${plano.enderecosOrfaos === 1 ? "Não aparece" : "Não aparecem"} no site e nada será feito com eles.`,
       ].filter(() => plano.enderecosOrfaos > 0),
     ),
   );

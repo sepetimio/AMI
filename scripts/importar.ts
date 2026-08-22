@@ -37,12 +37,12 @@ async function principal(): Promise<void> {
   /*
     Argumento desconhecido é erro, não é ignorado — mesma forma do `publicar`.
 
-    Sem isto, uma flag digitada errado (`--modeloo`) vira um argumento solto
-    qualquer, e sob `--modelo` o primeiro argumento solto vira o DESTINO do
-    arquivo. Com a ordem trocada (`npm run importar -- associados.xlsx
-    --modelo`), a planilha preenchida pela AMI vira o destino do modelo.
-    `gerarModelo` ainda recusa sobrescrever, mas o argumento desconhecido é a
-    primeira linha de defesa.
+    Isto pega erro de digitação (`--modeloo` vira argumento solto e some sem
+    aviso). Não protege a planilha preenchida: em `associados.xlsx --modelo`
+    os dois argumentos são conhecidos, `desconhecidos` fica vazio, e o
+    arquivo da AMI chega normalmente como destino do modelo. Quem recusa
+    sobrescrever é `gerarModelo`, e por isso a guarda mora lá — cobre
+    qualquer chamador, não só esta forma de argumento.
   */
   const desconhecidos = argumentos.filter((a) => a.startsWith("--") && !CONHECIDOS.has(a));
   if (desconhecidos.length) {

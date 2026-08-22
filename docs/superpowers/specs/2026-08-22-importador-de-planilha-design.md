@@ -266,14 +266,19 @@ BAIRROS NOVOS (serão criados)
 
 O QUE MUDA EM QUEM JÁ ESTÁ NO BANCO
   CRM/MA 4821  Ana Souza
-      telefone       (vazio) → 9935243716
+      nome           Ana Souza → Ana Sousa
+      telemedicina   não → sim
+      especialidade  ganha 1
+      RQE            corrigido em 1
+      endereço       ganha 1
+      endereço 30: telefone 9935243716 → 9988020205
 
 ENDEREÇOS NO BANCO E FORA DESTE ARQUIVO
   2 endereços. Nada será feito com eles.
 
 ENDEREÇOS SOLTOS NO BANCO
-  1 sem médico ligado, de alguma gravação interrompida.
-  Não aparecem no site e nada será feito com eles.
+  1 endereço sem médico ligado, de alguma gravação interrompida.
+  Não aparece no site e nada será feito com eles.
 
 ESPECIALIDADES NÃO RESOLVIDAS
   "Cirurgia Vascular" .. 2 médicos    não reconhecida
