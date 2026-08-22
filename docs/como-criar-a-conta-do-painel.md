@@ -25,7 +25,7 @@ escrita estiverem criadas no banco.
 1. Entre em [supabase.com](https://supabase.com) e abra o projeto da AMI
 2. No menu do projeto, clique em **SQL Editor**
 3. Clique em **New query**
-4. Cole o conteúdo de `supabase/migrations/0005_painel.sql`
+4. Cole o conteúdo de [`supabase/migrations/0005_painel.sql`](../supabase/migrations/0005_painel.sql)
 5. Clique em **Run**
 
 Se a migração já tiver rodado antes, o Postgres recusa recriar a tabela e
@@ -83,7 +83,7 @@ volta para `/painel/entrar`, que volta a mostrar o formulário de entrar.
 Este passo prova que as políticas de segurança do banco fazem o que a
 migração diz que fazem, antes de confiar a primeira conta real a elas.
 
-1. Abra `supabase/testes-rls.sql` neste repositório
+1. Abra [`supabase/testes-rls.sql`](../supabase/testes-rls.sql) neste repositório
 2. No topo do arquivo, troque o uuid de exemplo pelo uuid da conta de admin
    (o mesmo do passo 4)
 3. Cole o arquivo **inteiro** no **SQL Editor** — ele contém um `insert` que
@@ -145,7 +145,7 @@ vira essa chave é um passo à parte, descrito em
 |---|---|
 | "E-mail ou senha não conferem." logo depois de criar a conta | **Auto Confirm User** ficou desmarcado no passo 3. A conta existe, mas está presa esperando uma confirmação por e-mail que este projeto não envia |
 | Entrar parece funcionar e a tela volta para `/painel/entrar` de novo | A conta não tem linha em `perfil_usuario` — faltou o passo 5, ou o uuid colado estava errado |
-| A lista mostra os médicos publicados e **nenhum** fora do ar | A migração rodou pela metade: a tabela e a conta existem, mas a política `admin_le_profissional` — a que deixa o admin enxergar quem não está publicado — não entrou. No **SQL Editor**, cole e rode só esta linha, tirada de `supabase/migrations/0005_painel.sql`: `create policy admin_le_profissional on profissional for select using ((select eh_admin()));`. Não rode o arquivo inteiro de novo: o `create table perfil_usuario` do topo recusa recriar uma tabela que já existe, e o script para logo no início sem chegar perto da política que falta |
+| A lista mostra os médicos publicados e **nenhum** fora do ar | A migração rodou pela metade: a tabela e a conta existem, mas a política `admin_le_profissional` — a que deixa o admin enxergar quem não está publicado — não entrou. No **SQL Editor**, cole e rode só esta linha, tirada de [`supabase/migrations/0005_painel.sql`](../supabase/migrations/0005_painel.sql): `create policy admin_le_profissional on profissional for select using ((select eh_admin()));`. Não rode o arquivo inteiro de novo: o `create table perfil_usuario` do topo recusa recriar uma tabela que já existe, e o script para logo no início sem chegar perto da política que falta |
 
 ---
 
