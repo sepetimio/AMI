@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { sair } from "@/app/painel/entrar/acoes";
 
 /*
   Casca visual do painel, e nada mais.
@@ -29,6 +30,15 @@ export default function LayoutDoPainel({
           <Link href="/painel" className="texto-placa text-[15px] text-ink-900">
             Painel da AMI
           </Link>
+
+          <form action={sair}>
+            <button
+              type="submit"
+              className="pressiona rounded-controle border border-line px-4 py-2 text-[14px] font-medium text-ink-600 hover:text-ink-900"
+            >
+              Sair
+            </button>
+          </form>
         </div>
       </header>
 

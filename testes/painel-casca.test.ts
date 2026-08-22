@@ -1,26 +1,6 @@
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { metadata } from "@/app/painel/layout";
-
-function fonte(relativo: string): string {
-  return readFileSync(fileURLToPath(new URL(relativo, import.meta.url)), "utf8");
-}
-
-/*
-  Comentário não é código.
-
-  Estas asserções proíbem que o arquivo CHAME certas funções, e o comentário
-  que explica a proibição precisa nomeá-las para ser legível. Varrer o texto
-  cru transformaria a explicação da regra na violação da regra — o que já
-  aconteceu três vezes neste plano.
-
-  Ingênuo de propósito: não entende `//` dentro de string. Nenhum arquivo do
-  painel usa isso, e errar aqui deixa passar, não reprova por engano.
-*/
-function semComentarios(codigo: string): string {
-  return codigo.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
-}
+import { fonte, semComentarios } from "@/testes/apoio";
 
 describe("a casca do painel", () => {
   it("declara noindex", () => {
@@ -38,6 +18,16 @@ describe("a casca do painel", () => {
       a cada navegação, então proteger nele deixa buraco entre telas.
     */
     expect(semComentarios(fonte("../app/painel/layout.tsx"))).not.toContain("exigirAdmin");
+  });
+
+  it("a casca tem o botão de sair", () => {
+    /*
+      O computador da sede da AMI é compartilhado. Sem este botão, a única
+      forma de encerrar a sessão é esperar ela expirar.
+    */
+    const codigo = fonte("../app/painel/layout.tsx");
+    expect(codigo).toContain("action={sair}");
+    expect(codigo).toContain("Sair");
   });
 });
 
