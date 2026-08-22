@@ -106,6 +106,11 @@ O `proxy` faz só o desvio otimista — sem cookie, vai para `/painel/entrar` �
 sessão. É o que o guia do Next manda: ele roda em toda rota, inclusive nas pré-carregadas, e
 por isso não pode consultar banco.
 
+O caminho inverso — logado e na tela de entrar, de volta para `/painel` — não existe, de
+propósito. Ele formava um laço com o desvio de `exigirAdmin()`: uma conta sem linha em
+`perfil_usuario` ia para a tela de entrar, o `proxy` a mandava de volta para `/painel`, e
+`exigirAdmin()` recomeçava o ciclo, sem escapatória pelo aplicativo.
+
 ## 6. As políticas
 
 Uma migração nova, `0005_painel.sql`, com três partes.
@@ -114,20 +119,26 @@ Uma migração nova, `0005_painel.sql`, com três partes.
 
 ```sql
 create function eh_admin() returns boolean
-  language sql stable security definer set search_path = public
+  language sql stable security definer set search_path = public, pg_temp
   as $$ select exists (
     select 1 from perfil_usuario where id = auth.uid() and papel = 'admin') $$;
 ```
 
 `security definer` é obrigatório pelo mesmo motivo que já obrigou em `local_publicado`
 (`0002_rls.sql`): sem ele, a política que consulta `perfil_usuario` dispara a política de
-`perfil_usuario`, e recursa.
+`perfil_usuario`, e recursa. `pg_temp` entra no fim do caminho de busca pelo mesmo motivo nas
+duas funções: sem ele listado, o Postgres procura o esquema temporário da sessão antes de
+tudo para nome de relação, e uma tabela temporária homônima sombrearia a real dentro de uma
+função que roda como dona. `local_publicado` nasceu em `0002_rls.sql` sem essa proteção; a
+migração desta fatia a corrige com um `create or replace function`, porque migração já
+aplicada não se edita.
 
 **Admin passa a enxergar o que não está publicado.** A política existente diz
 `using (publicado = true)`; entra uma segunda, `using (eh_admin())`. Políticas somam, então
-nada afrouxa para o visitante. Vale para `profissional` e para as tabelas que dependem dele —
-`profissional_especialidade`, `local`, `atendimento`, `horario` — porque a lista precisa
-mostrar especialidade e bairro de quem ainda não está no ar.
+nada afrouxa para o visitante. Vale para `profissional` e para as sete tabelas que dependem
+dele — `profissional_especialidade`, `formacao`, `estabelecimento`, `local`,
+`local_acessibilidade`, `atendimento`, `horario` — porque a lista precisa mostrar
+especialidade e bairro de quem ainda não está no ar.
 
 **Admin passa a poder gravar em `profissional`**, com `insert` e `update`. Só nesta tabela
 nesta fatia.
@@ -195,9 +206,13 @@ revalidatePath("/(site)", "layout")
 ```
 
 Toda página sob o layout do site é invalidada na próxima visita. É pesado e é o certo:
-publicar um médico mexe na home, no índice, na página da especialidade, na do bairro, no
-perfil e no sitemap — e listar as seis à mão é lista para ficar desatualizada. Isso acontece
-algumas vezes por dia, não por segundo.
+publicar um médico mexe na home, no índice, na página da especialidade, na do bairro e no
+perfil — e listar as cinco à mão é lista para ficar desatualizada.
+
+`app/sitemap.ts` fica na raiz de `app/`, fora do grupo `(site)` — medido, não suposto — e por
+isso a invalidação acima não o alcança. Entra uma segunda chamada,
+`revalidatePath("/sitemap.xml")`, só para ele. Isso acontece algumas vezes por dia, não por
+segundo.
 
 ### O que "publicar" não faz
 
@@ -227,6 +242,8 @@ cada tipo de usuário, uma asserção por linha:
 - admin grava
 - **ninguém apaga**, nem o admin
 - conta sem linha em `perfil_usuario` entra e não vê nada
+- conta sem linha em `perfil_usuario` não grava
+- ninguém se promove a admin
 
 **Conferência à mão, uma vez, escrita no plano.** Entrar, achar um médico despublicado, pôr
 no ar, abrir o site numa janela anônima e ver que apareceu; tirar, e ver que sumiu. É o que

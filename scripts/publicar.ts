@@ -7,10 +7,12 @@ import { lerRetrato } from "@/scripts/retrato";
 
   Mesma forma do importador: conferência por padrão, `--gravar` para valer.
 
-  Este comando é o único do projeto que muda `publicado` de falso para
-  verdadeiro. O importador nunca publica ninguém — 500 perfis vazios no ar de
-  uma vez fazem o Google classificar o site como conteúdo raso, e recuperar
-  leva meses.
+  Este é o comando de publicação em lote — o único caminho que publica
+  muitos médicos de uma vez. O painel publica um a um, pelo botão da tela da
+  lista (`app/painel/acoes.ts`); os dois juntos são os únicos caminhos do
+  projeto que mudam `publicado` de falso para verdadeiro. O importador nunca
+  publica ninguém — 500 perfis vazios no ar de uma vez fazem o Google
+  classificar o site como conteúdo raso, e recuperar leva meses.
 
   Não existe caminho de volta aqui: despublicar não é operação deste comando,
   e o importador não remove nem despublica ninguém.

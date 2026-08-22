@@ -1,0 +1,58 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { FormularioMedico } from "@/components/painel/FormularioMedico";
+import { oQueFalta } from "@/lib/painel/medico";
+import { medicoPorId } from "@/lib/painel/consultas";
+import { clienteDoPainel } from "@/lib/painel/servidor";
+import { exigirAdmin } from "@/lib/painel/sessao";
+
+export const dynamic = "force-dynamic";
+
+export default async function PaginaDeEdicao({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  await exigirAdmin();
+
+  const { id } = await params;
+  const numero = Number(id);
+  if (!Number.isInteger(numero) || numero <= 0) notFound();
+
+  const cliente = await clienteDoPainel();
+  const medico = await medicoPorId(cliente, numero);
+  if (!medico) notFound();
+
+  const falta = oQueFalta({
+    temEspecialidade: medico.especialidade !== null,
+    temEndereco: medico.bairros.length > 0,
+    temBio: Boolean(medico.bio),
+  });
+
+  return (
+    <>
+      <Link href="/painel" className="text-[15px] text-ink-600 hover:text-ink-900">
+        ← Todos os médicos
+      </Link>
+
+      <h1 className="mt-4 text-[28px] font-semibold text-ink-900">{medico.nome}</h1>
+
+      <p className="registro mt-1 text-[15px] text-ink-400">
+        {medico.publicado ? "no ar" : "fora do ar"}
+        {" · "}
+        <Link href={`/medico/${medico.slug}`} className="hover:text-ink-900">
+          ver no site
+        </Link>
+      </p>
+
+      {falta.length ? (
+        <p className="mt-4 rounded-bloco border border-line bg-surface px-4 py-3 text-[15px] text-ink-600">
+          Falta: {falta.join(", ")}. Endereços, horários e especialidades entram na
+          próxima etapa do painel.
+        </p>
+      ) : null}
+
+      <FormularioMedico medico={medico} />
+    </>
+  );
+}

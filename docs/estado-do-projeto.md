@@ -1,6 +1,7 @@
 # Estado do projeto — Site da Associação Médica de Imperatriz
 
-> Atualizado em 22 de agosto de 2026 · ramo `main`, 159 commits
+> Atualizado em 22 de agosto de 2026 · ramo `painel-fatia-1`, ainda não
+> fundido em `main`
 > Repositório: `github.com/sepetimio/AMI`
 > Especificação: [`docs/superpowers/specs/2026-08-19-site-ami-diretorio-design.md`](superpowers/specs/2026-08-19-site-ami-diretorio-design.md)
 
@@ -97,7 +98,7 @@ Hoje `NEXT_PUBLIC_DADOS_DEMONSTRACAO=true`, e por isso o `robots.txt` responde `
 Previstas na especificação, seção 8, e ainda não construídas:
 
 - ~~**Importador de planilha**~~ **Construído.** Três comandos: `npm run importar -- --modelo` gera a planilha modelo, `npm run importar -- arquivo.xlsx` confere sem gravar, e `--gravar` executa. A publicação é comando à parte, `npm run publicar`, com filtro de completude. Falta a planilha real da AMI
-- **Painel da agência**, em `/painel`: cadastrar e editar médicos, estabelecimentos, horários, diretoria, comunicados e anuidades sem tocar no banco
+- **Painel da agência**, em `/painel`: a fatia 1 está construída — entrar com e-mail e senha, listar os médicos incluindo os que não estão no ar, pôr e tirar do ar um a um, e editar os campos do médico. A primeira conta se cria pelos passos de [`docs/como-criar-a-conta-do-painel.md`](como-criar-a-conta-do-painel.md). Faltam as fatias 2 (estabelecimentos, locais e horários, especialidades, diretoria, comunicados, anuidades) e 3 (fila de revisões e "Atualizar meus dados")
 - **Área do associado** (Fase 2): login do médico, edição do próprio perfil, anuidade, carteirinha, comunicados e eventos
 
 ### 5. Itens técnicos adiados de propósito
