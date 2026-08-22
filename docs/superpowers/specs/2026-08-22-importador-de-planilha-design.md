@@ -37,6 +37,7 @@ violação de chave única. Ler exige privilégio, não só escrever.
 | Decisão | Motivo |
 |---|---|
 | Comando na máquina do desenvolvedor, não tela web | A chave de escrita nunca chega ao site publicado, então nenhuma rota mal escrita vira porta de gravação. O núcleo fica pronto para o painel chamar depois |
+| Chave secreta dedicada (`sb_secret_`), nunca a `service_role` | A `service_role` é a chave-mestra e não tem revogação isolada. Uma chave por componente, como o próprio Supabase recomenda, faz "a máquina foi comprometida" caber em dois minutos de painel, sem o site piscar |
 | Uma linha carrega médico e um endereço; horário fica fora | "seg a sex 8h às 12h" não vira faixa de horário sem chutar, e horário errado publicado faz paciente ir à porta fechada. O perfil sai pedindo confirmação por telefone, que é verdade |
 | Quem some da planilha não é despublicado | Linha apagada por engano e desligamento real chegam idênticos no arquivo. Um deles tira do ar um médico ativo, em silêncio |
 | Célula vazia nunca apaga o que está no banco | Vazio significa "não tenho essa informação", não "apague a que existe" |
@@ -313,8 +314,24 @@ publicá-lo só engorda o número.
 
 ## 10. Credencial
 
-A chave de serviço do Supabase passa a existir **na máquina do desenvolvedor**, em
-`.env.local`, que já está fora do versionamento.
+### Chave secreta dedicada, não a `service_role`
+
+O Supabase oferece quatro tipos de chave: as antigas `anon` e `service_role`, em formato
+JWT, e o par novo `sb_publishable_` e `sb_secret_`. As antigas continuam válidas, com
+descontinuação prevista para o fim de 2026.
+
+O importador usa uma **chave secreta dedicada**, criada no painel com o nome `importador`,
+e não a `service_role`. A razão está na própria documentação do Supabase: convém uma chave
+por componente, para que o vazamento de uma exija trocar só aquela. A `service_role` é a
+chave-mestra do projeto e não tem revogação isolada — comprometida, ela contamina tudo.
+
+Consequência prática, e é o que importa: **revogar a chave `importador` não faz o site
+piscar.** Ele nunca a usou; lê com a chave pública, que continua intacta. Quem para é só o
+importador, até uma chave nova ser criada.
+
+### Onde ela mora
+
+Na máquina do desenvolvedor, em `.env.local`, que já está fora do versionamento.
 
 - O importador mora em `scripts/`, **fora do aplicativo Next**. Nada que o Next empacota
   alcança a variável
@@ -322,10 +339,24 @@ A chave de serviço do Supabase passa a existir **na máquina do desenvolvedor**
   JavaScript que o navegador baixa
 - Entra em `.env.local.exemplo` só como explicação, sem valor
 - Não vai para a Vercel nem para onde o site for hospedado
-- `lib/dados/cliente.ts` continua com a chave anônima e não é tocado
+- `lib/dados/cliente.ts` continua com a chave pública e não é tocado
 
 O cliente privilegiado vive num módulo próprio, sob `scripts/`, e é o único ponto do
 projeto que lê essa variável.
+
+**Duas origens, e a escolha é de quem roda.** Se a variável existir no ambiente, ela é
+usada. Se não existir, o comando pergunta antes de continuar, sem ecoar o que for digitado
+e sem gravar em lugar nenhum. Quem preferir não ter a chave em arquivo tem como.
+
+### Se a máquina se perder
+
+Nada insubstituível vive nela: o código está no GitHub, o cadastro no Supabase, o
+conteúdo editorial no Sanity. O único arquivo fora do versionamento é `.env.local`, e todo
+valor dentro dele é recuperável de um painel ou gerável de novo em minutos.
+
+O procedimento vira documento próprio, `docs/como-remontar-o-ambiente.md`, em passos
+numerados: de qual tela de qual serviço vem cada variável, e o que fazer quando a máquina
+se perde. "É só reconfigurar" é fácil de escrever e ruim de descobrir sozinho.
 
 ## 11. Testes
 
@@ -362,3 +393,5 @@ para que nenhum binário entre no versionamento.
 - **Endereço duplicado entre médicos da mesma clínica** é consequência aceita de deixar
   `estabelecimento` fora. Se incomodar depois, o conserto é unir endereços iguais, não
   mudar o formato da planilha
+- **`docs/como-remontar-o-ambiente.md` ainda não existe.** É pendência do plano de
+  implementação, não deste desenho
