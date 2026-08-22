@@ -168,7 +168,7 @@ export function montarPlano(
         telemedicina: m.telemedicina ?? false,
         especialidades,
         enderecos,
-        linhas: m.linhas,
+        linhas: [...m.linhas],
       });
       continue;
     }
@@ -200,15 +200,36 @@ export function montarPlano(
       mudancas.push({ campo: "associado_ami", de: "não", para: "sim" });
     }
 
-    /* --- Especialidades que ainda não existem no laço --- */
-    const jaLigadas = new Set(
+    /* --- Especialidades --- */
+
+    const jaLigadas = new Map(
       retrato.vinculosEspecialidade
         .filter((v) => v.profissionalId === existente.id)
-        .map((v) => v.especialidadeId),
+        .map((v) => [v.especialidadeId, v.rqe]),
     );
-    const especialidadesNovas = especialidades.filter(
-      (v) => !jaLigadas.has(v.especialidadeId),
-    );
+
+    /*
+      `principal` NUNCA é recalculado para médico que já existe. Ele decidiu a
+      principal dele numa rodada anterior, e o retrato não a carrega — marcar
+      de novo aqui criaria uma segunda linha com principal verdadeiro, que é a
+      instabilidade que a marca existe para evitar. Mesma razão do slug.
+    */
+    const especialidadesNovas = especialidades
+      .filter((v) => !jaLigadas.has(v.especialidadeId))
+      .map((v) => ({ ...v, principal: false }));
+
+    /*
+      RQE que a planilha corrige numa especialidade já ligada. É o caso central
+      do laço de correção: o laço existe, faltava o número. Célula vazia não
+      apaga, e RQE igual ao do banco não vira mudança.
+    */
+    const especialidadesAtualizadas: { especialidadeId: number; rqe: string }[] = [];
+    for (const v of especialidades) {
+      if (!jaLigadas.has(v.especialidadeId)) continue;
+      if (!v.rqe) continue;
+      if (v.rqe === jaLigadas.get(v.especialidadeId)) continue;
+      especialidadesAtualizadas.push({ especialidadeId: v.especialidadeId, rqe: v.rqe });
+    }
 
     /* --- Endereços --- */
     const doBanco = retrato.locais.filter((l) => l.profissionalId === existente.id);
@@ -251,10 +272,11 @@ export function montarPlano(
       nome: m.nome,
       mudancas,
       especialidadesNovas,
+      especialidadesAtualizadas,
       enderecosNovos,
       enderecosAtualizados,
       enderecosSoNoBanco: doBanco.filter((l) => !casados.has(l.id)).length,
-      linhas: m.linhas,
+      linhas: [...m.linhas],
     });
   }
 

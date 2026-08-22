@@ -160,6 +160,8 @@ export type MedicoAtualizado = {
   nome: string;
   mudancas: Mudanca[];
   especialidadesNovas: VinculoPlanejado[];
+  /** Especialidade já ligada cujo RQE a planilha corrige. */
+  especialidadesAtualizadas: { especialidadeId: number; rqe: string }[];
   enderecosNovos: EnderecoPlanejado[];
   enderecosAtualizados: { id: number; mudancas: Mudanca[] }[];
   /** Quantos endereços o banco tem para este médico e a planilha não trouxe. */

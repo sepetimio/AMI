@@ -288,3 +288,70 @@ describe("montarPlano — o contexto atravessa intacto", () => {
     );
   });
 });
+
+describe("montarPlano — especialidades de médico que já existe", () => {
+  const ligado: Retrato = {
+    ...VAZIO,
+    profissionais: [{
+      id: 7, slug: "ana-souza", nome: "Ana Souza", crm: "4821", crmUf: "MA",
+      telemedicina: false, associadoAmi: true, publicado: false,
+    }],
+    vinculosEspecialidade: [{ profissionalId: 7, especialidadeId: 2, rqe: null }],
+  };
+
+  it("especialidade nova de médico existente nunca vira principal", () => {
+    const p = montarPlano(
+      [medico({ especialidades: [{ texto: "Clínica Médica", rqe: null, linha: 2 }] })],
+      ligado,
+      CONTEXTO,
+    );
+    expect(p.atualizar[0].especialidadesNovas).toEqual([
+      { especialidadeId: 1, rqe: null, principal: false },
+    ]);
+  });
+
+  it("RQE que a planilha traz para uma especialidade já ligada vira atualização", () => {
+    const p = montarPlano(
+      [medico({ especialidades: [{ texto: "Cardiologia", rqe: "1234", linha: 2 }] })],
+      ligado,
+      CONTEXTO,
+    );
+    expect(p.atualizar[0].especialidadesNovas).toEqual([]);
+    expect(p.atualizar[0].especialidadesAtualizadas).toEqual([
+      { especialidadeId: 2, rqe: "1234" },
+    ]);
+  });
+
+  it("célula de RQE vazia não apaga o RQE que o banco tem", () => {
+    const comRqe: Retrato = {
+      ...ligado,
+      vinculosEspecialidade: [{ profissionalId: 7, especialidadeId: 2, rqe: "9999" }],
+    };
+    const p = montarPlano(
+      [medico({ especialidades: [{ texto: "Cardiologia", rqe: null, linha: 2 }] })],
+      comRqe,
+      CONTEXTO,
+    );
+    expect(p.atualizar[0].especialidadesAtualizadas).toEqual([]);
+  });
+
+  it("RQE igual ao do banco não vira atualização", () => {
+    const comRqe: Retrato = {
+      ...ligado,
+      vinculosEspecialidade: [{ profissionalId: 7, especialidadeId: 2, rqe: "9999" }],
+    };
+    const p = montarPlano(
+      [medico({ especialidades: [{ texto: "Cardiologia", rqe: "9999", linha: 2 }] })],
+      comRqe,
+      CONTEXTO,
+    );
+    expect(p.atualizar[0].especialidadesAtualizadas).toEqual([]);
+  });
+
+  it("o plano não faz alias do array de linhas da entrada", () => {
+    const entrada = medico();
+    const p = montarPlano([entrada], VAZIO, CONTEXTO);
+    expect(p.criar[0].linhas).not.toBe(entrada.linhas);
+    expect(p.criar[0].linhas).toEqual(entrada.linhas);
+  });
+});
