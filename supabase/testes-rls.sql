@@ -5,6 +5,9 @@
   de uma transação que termina em rollback. Se qualquer asserção falhar, o
   Postgres levanta exceção com a mensagem correspondente.
 
+  APROVADO é o script terminar SEM ERRO: toda verificação aqui é um
+  `raise exception`, e a primeira que falhar aborta tudo com o nome dela.
+
   RODE O ARQUIVO INTEIRO, nunca um trecho selecionado. Ele contém um `insert`
   que promove uma conta a admin, e o que o desfaz é o `rollback` do fim. Um
   trecho selecionado sem ele deixa esse admin para trás.
@@ -120,3 +123,9 @@ begin
 end $$;
 
 rollback;
+
+-- O `raise notice` acima só aparece em psql; o editor SQL do Supabase exibe
+-- linhas de resultado e descarta avisos. Esta linha final é a mesma notícia
+-- num formato que aquela tela mostra. Ela só roda se nada antes levantou
+-- exceção, porque a primeira exceção aborta o script inteiro.
+select 'TODAS AS ASSERCOES PASSARAM' as resultado;

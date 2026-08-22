@@ -111,8 +111,16 @@ migração diz que fazem, antes de confiar a primeira conta real a elas.
    deixaria esse admin de teste para trás
 4. Clique em **Run**
 
-Esperado: a mensagem `TODAS AS ASSERCOES PASSARAM`, sem exceção nenhuma. Uma
-exceção interrompe o arquivo com o nome da asserção que falhou.
+**Esperado: nenhum erro.** Se o editor responder `Success`, passou — e passou
+de verdade, não por omissão: as verificações do arquivo são todas
+`raise exception`, então qualquer uma que falhe derruba o script inteiro e
+aparece em vermelho com o nome da asserção.
+
+O arquivo termina numa linha de resultado escrita `TODAS AS ASSERCOES
+PASSARAM`. Ela pode aparecer ou não, dependendo de qual resultado a tela
+resolve mostrar num script de vários comandos — o que vale é a ausência de
+erro. (Há também um `raise notice` com o mesmo texto dentro do arquivo; esse
+só aparece em psql, porque o editor do Supabase descarta avisos.)
 
 ---
 
