@@ -31,12 +31,19 @@ export async function clienteDoPainel(): Promise<SupabaseClient> {
           for (const { name, value, options } of paraGravar) {
             armazem.set(name, value, options);
           }
-        } catch {
+        } catch (erro) {
           /*
             Componente de servidor não pode gravar cookie, e tentar levanta.
             Ignorar é correto aqui: o `proxy.ts` já renovou a sessão antes de
             esta renderização começar, e é ele quem grava.
+
+            Em ação de servidor, porém, gravar funciona — e ali uma falha de
+            verdade seria engolida junto. Fora de produção ela aparece, para
+            não virar um token perdido em silêncio.
           */
+          if (process.env.NODE_ENV !== "production") {
+            console.warn("Não consegui gravar o cookie de sessão:", erro);
+          }
         }
       },
     },

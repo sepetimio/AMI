@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /*
@@ -15,42 +15,78 @@ import { NextResponse, type NextRequest } from "next/server";
   a outra.
 */
 export async function proxy(request: NextRequest) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const chave = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const chave = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  let resposta = NextResponse.next({ request });
+  if (!url || !chave) {
+    /* Mesma mensagem de `lib/painel/servidor.ts`: quem abre o painel bate
+       aqui primeiro, e é esta que a pessoa vai ver. */
+    throw new Error(
+      "Faltam NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY. " +
+        "Copie .env.local.exemplo para .env.local e preencha.",
+    );
+  }
+
+  /*
+    O que a renovação de sessão produzir fica guardado aqui, e não numa
+    resposta — porque a resposta que este proxy devolve pode ser um desvio,
+    criado depois. Acumula em vez de substituir: o Supabase pode chamar
+    `setAll` mais de uma vez numa requisição, e a segunda chamada apagaria o
+    que a primeira escreveu.
+  */
+  const cookiesDaSessao: { name: string; value: string; options: CookieOptions }[] = [];
+  const cabecalhosDaSessao: Record<string, string> = {};
 
   const supabase = createServerClient(url, chave, {
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (paraGravar, cabecalhos) => {
-        for (const { name, value } of paraGravar) {
-          request.cookies.set(name, value);
-        }
-
-        resposta = NextResponse.next({ request });
-
-        for (const { name, value, options } of paraGravar) {
-          resposta.cookies.set(name, value, options);
-        }
+        cookiesDaSessao.push(...paraGravar);
 
         /*
-          O segundo argumento não é enfeite. Ele traz os cabeçalhos que dizem
-          a CDN e a proxy reverso para não guardar esta resposta. Sem eles,
-          uma resposta que grava cookie de sessão pode ser cacheada e servida
-          a outra pessoa — com o token dentro. Omitir não dá erro.
+          Os cabeçalhos dizem a CDN e a proxy reverso para não guardar esta
+          resposta. Sem eles, uma resposta que grava cookie de sessão pode ser
+          cacheada e servida a outra pessoa, com o token dentro. Acumula em
+          `cabecalhosDaSessao` porque `setAll` pode ser chamado mais de uma
+          vez, e `entregar` aplica tudo de uma vez só, no fim.
         */
         for (const [nome, valor] of Object.entries(cabecalhos)) {
-          resposta.headers.set(nome, valor);
+          cabecalhosDaSessao[nome] = valor;
         }
+
+        /* A requisição também precisa enxergar o cookie novo, para que a
+           renderização desta mesma requisição use o token renovado. */
+        for (const { name, value } of paraGravar) request.cookies.set(name, value);
       },
     },
   });
 
-  /* Chamar `getUser` aqui é o que dispara a renovação do token. */
+  /* Chamar `getUser` é o que dispara a renovação do token. */
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  /*
+    A saída única.
+
+    Sem ela, um desvio devolveria uma resposta que nunca viu a renovação: o
+    navegador ficaria com o par de cookies antigo, JÁ GASTO no servidor, e a
+    pessoa seria desconectada em silêncio na requisição seguinte.
+
+    Cookies e cabeçalhos andam sempre juntos. Levar os cookies sem os
+    cabeçalhos seria pior do que não levar nada — um desvio com `Set-Cookie` e
+    sem `Cache-Control` é exatamente o que o segundo argumento existe para
+    impedir.
+  */
+  function entregar(resposta: NextResponse): NextResponse {
+    for (const { name, value, options } of cookiesDaSessao) {
+      resposta.cookies.set(name, value, options);
+    }
+    for (const [nome, valor] of Object.entries(cabecalhosDaSessao)) {
+      resposta.headers.set(nome, valor);
+    }
+    return resposta;
+  }
 
   const caminho = request.nextUrl.pathname;
   const naTelaDeEntrar = caminho.startsWith("/painel/entrar");
@@ -63,16 +99,18 @@ export async function proxy(request: NextRequest) {
   if (!user && !naTelaDeEntrar) {
     const destino = request.nextUrl.clone();
     destino.pathname = "/painel/entrar";
-    return NextResponse.redirect(destino);
+    destino.search = "";
+    return entregar(NextResponse.redirect(destino));
   }
 
   if (user && naTelaDeEntrar) {
     const destino = request.nextUrl.clone();
     destino.pathname = "/painel";
-    return NextResponse.redirect(destino);
+    destino.search = "";
+    return entregar(NextResponse.redirect(destino));
   }
 
-  return resposta;
+  return entregar(NextResponse.next({ request }));
 }
 
 export const config = {

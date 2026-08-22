@@ -37,6 +37,19 @@ describe("proxy.ts", () => {
     const decl = /setAll\s*:?\s*\(\s*[^,)]+,\s*([A-Za-zÀ-ú_$][\w$]*)\s*\)/.exec(codigo);
     expect(decl, "setAll precisa receber o segundo argumento").not.toBeNull();
     expect(codigo).toContain(`Object.entries(${decl![1]})`);
+    expect(codigo).toMatch(/\.headers\.set\(/);
+  });
+
+  it("todo desvio passa pela saída única que carrega a sessão", () => {
+    /*
+      Um `return NextResponse.redirect(...)` direto devolveria uma resposta que
+      nunca viu a renovação de sessão, e desconectaria em silêncio quem tivesse
+      o token vencido. Nenhum teste de texto consegue ver que a resposta
+      devolvida não é a que recebeu os cookies — então o que se trava aqui é a
+      forma.
+    */
+    expect(codigo).not.toMatch(/return\s+NextResponse\.redirect/);
+    expect(codigo).toMatch(/return\s+entregar\(/);
   });
 });
 
