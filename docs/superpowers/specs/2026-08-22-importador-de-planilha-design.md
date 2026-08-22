@@ -269,7 +269,7 @@ que `--gravar` executa.
 ### Não existe transação, e isso é assumido
 
 O supabase-js fala por HTTP e o PostgREST não abre transação entre requisições. Transação
-de verdade exigiria ligar direto no Postgres com o `pg`, o que troca a chave de serviço
+de verdade exigiria ligar direto no Postgres com o `pg`, o que troca uma chave revogável
 por uma senha de banco e depende de conexão direta que é IPv6 em muitas contas do
 Supabase — o que não conecta em boa parte das redes domésticas. Não compensa.
 
