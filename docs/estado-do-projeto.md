@@ -1,7 +1,6 @@
 # Estado do projeto — Site da Associação Médica de Imperatriz
 
-> Atualizado em 22 de agosto de 2026 · ramo `importador-de-planilha`, 155
-> commits · ainda não fundido em `main`
+> Atualizado em 22 de agosto de 2026 · ramo `main`, 159 commits
 > Repositório: `github.com/sepetimio/AMI`
 > Especificação: [`docs/superpowers/specs/2026-08-19-site-ami-diretorio-design.md`](superpowers/specs/2026-08-19-site-ami-diretorio-design.md)
 
