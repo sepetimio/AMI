@@ -44,15 +44,40 @@ export async function salvarMedico(
   }
 
   const cliente = await clienteDoPainel();
-  const { error } = await cliente
+  const { data, error } = await cliente
     .from("profissional")
     .update({ ...validacao.valor, atualizado_em: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
 
   if (error) {
-    /* A restrição de unicidade de (crm, crm_uf) é a que mais dispara aqui. */
+    /*
+      23505 é violação de unicidade, e nesta tabela só existe uma que a tela
+      alcança: (crm, crm_uf). É o erro mais provável daqui, e a mensagem crua
+      vem em inglês citando o nome interno da restrição — no campo errado.
+    */
+    if (error.code === "23505") {
+      return {
+        erros: {
+          crm: `Já existe um médico com o CRM ${validacao.valor.crm} em ${validacao.valor.crm_uf}.`,
+        },
+        salvo: false,
+      };
+    }
+
+    return { erros: { geral: `Não consegui salvar: ${error.message}` }, salvo: false };
+  }
+
+  if (!data) {
+    /*
+      Zero linhas e nenhum erro. O PostgREST filtra o que a política não deixa
+      ver em vez de recusar, então este é o caminho do banco dizendo não — ou
+      de a linha ter sumido entre carregar a tela e salvar. Sem o `select`,
+      isso voltaria como "Salvo.".
+    */
     return {
-      erros: { geral: `Não consegui salvar: ${error.message}` },
+      erros: { geral: "Não encontrei este médico para salvar. Recarregue a página." },
       salvo: false,
     };
   }

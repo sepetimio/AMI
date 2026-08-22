@@ -11,16 +11,22 @@ const CAMPO =
   "text-ink-900 outline-none focus-visible:border-ami-green-600";
 
 /*
+  Sempre montada, mesmo vazia.
+
+  Região `aria-live` que entra no DOM junto com o conteúdo não é anunciada:
+  o leitor de tela precisa já conhecê-la para notar a mudança. `min-h-5`
+  reserva a altura para o texto não empurrar o formulário quando aparecer.
+  Mesma forma de `FormularioEntrar`.
+
   `aria-live="polite"` e não `role="alert"`: alerta é região assertiva e
   interrompe quem usa leitor de tela. Erro de campo num formulário é feedback
   esperado, não emergência — mesmo raciocínio de
   `components/editorial/RascunhoLegalNaTela.tsx`.
 */
 function Erro({ texto }: { texto?: string }) {
-  if (!texto) return null;
   return (
-    <p aria-live="polite" className="mt-1 text-[14px] text-warn">
-      {texto}
+    <p aria-live="polite" className="mt-1 min-h-5 text-[14px] text-warn">
+      {texto ?? ""}
     </p>
   );
 }
