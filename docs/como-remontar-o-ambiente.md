@@ -58,13 +58,8 @@ arquivo manda: é ele que o código lê.
 `npm run publicar`, nunca pelo site publicado:
 
 1. Mesma tela do passo anterior — **Project Settings** → **API Keys**
-2. Na seção de chaves secretas, crie uma chave nova e dê a ela o nome
-   `importador`
-
-   O rótulo exato do botão pode ter mudado desde que este documento foi
-   escrito — o painel do Supabase vem sendo redesenhado. Procure por algo como
-   "nova chave secreta" perto da lista de chaves; é a mesma seção onde a
-   `service_role` aparece
+2. Na seção de chaves secretas, clique em **New secret key** e dê à chave o
+   nome `importador`
 3. Cole o valor gerado em `SUPABASE_CHAVE_IMPORTADOR`, em `.env.local`
 
    **Não é a `service_role`.** A `service_role` é a chave-mestra do projeto e
@@ -105,6 +100,10 @@ nenhum — são valores fixos, explicados linha a linha em
 `.env.local.exemplo`. Resumo: a URL pública do site, e a trava que mantém o
 `robots.txt` bloqueando o Google enquanto o cadastro publicado for o de
 demonstração.
+
+Rótulo de botão muda com o tempo — o painel do Supabase e o do Sanity são
+redesenhados de vez em quando. O que não muda é o caminho de telas descrito
+acima; se um nome não bater exatamente, siga o caminho mesmo assim.
 
 ---
 

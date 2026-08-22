@@ -174,7 +174,7 @@ sempre a mesma decisão.
 
 1. Nome exato no catálogo
 2. Nome sem acento e sem diferença de caixa
-3. Mapa de sinônimos de `lib/dados/sinonimos.ts` — "clinico" resolve para Clínica Médica
+3. Mapa de sinônimos de `lib/dados/sinonimos.ts` — "clinico geral" resolve para Clínica Médica
 
 Falhou tudo, vira pendência **e o médico entra assim mesmo, sem especialidade**.
 
@@ -256,10 +256,20 @@ BAIRROS NOVOS (serão criados)
   Nova Imperatris ...... 1 médico    (!) parecido com "Nova Imperatriz"
 
 ESPECIALIDADES NÃO RESOLVIDAS
-  "Otorrinolaringologia" 6 médicos    conhecida, fora do catálogo do banco
   "Cirurgia Vascular" .. 2 médicos    não reconhecida
   2 destes tinham RQE, que não será gravado (linhas 41, 190)
+```
 
+A outra pendência, *conhecida, fora do catálogo do banco*, não aparece neste exemplo
+porque hoje ela não acontece de verdade: as duas listas coincidem, 14 especialidades, as
+mesmas no mapa de sinônimos (`lib/dados/sinonimos.ts`) e no catálogo semeado no banco
+(`supabase/primeira-instalacao.sql`). Ela passa a aparecer quando as listas divergirem — e
+vão divergir: o catálogo do banco cresce com o cadastro real da AMI, e o mapa de sinônimos
+é escrito à mão. É por isso que as duas pendências continuam distintas mesmo sem exemplo
+duplo aqui: uma manda corrigir a planilha, a outra manda acrescentar a especialidade ao
+banco.
+
+```
 CAMPOS DESCARTADOS (o médico entra sem eles)
   linha 102  telefone "3524" tem 4 dígitos
   linha 267  cep "6590" tem 4 dígitos
