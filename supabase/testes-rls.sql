@@ -5,6 +5,10 @@
   de uma transação que termina em rollback. Se qualquer asserção falhar, o
   Postgres levanta exceção com a mensagem correspondente.
 
+  RODE O ARQUIVO INTEIRO, nunca um trecho selecionado. Ele contém um `insert`
+  que promove uma conta a admin, e o que o desfaz é o `rollback` do fim. Um
+  trecho selecionado sem ele deixa esse admin para trás.
+
   Por que este arquivo existe: os testes automáticos deste projeto rodam em
   memória, sem banco, e política de banco é a parte mais fácil de errar — e o
   erro é silencioso, porque uma política frouxa não avisa ninguém.
@@ -73,8 +77,15 @@ begin
   begin
     insert into perfil_usuario (id, papel) values (ninguem_uuid, 'admin');
     raise exception 'FALHOU: ninguem se promove a admin';
-  exception when insufficient_privilege then
-    null;
+  exception
+    when insufficient_privilege then
+      null; -- recusado pela politica, que e o esperado
+    when foreign_key_violation then
+      /*
+        A politica DEIXOU passar e so a chave estrangeira barrou. Numa conta
+        de verdade nao haveria chave estrangeira para barrar.
+      */
+      raise exception 'FALHOU: ninguem se promove a admin (a linha passou pela politica)';
   end;
 
   reset role;

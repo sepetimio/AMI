@@ -23,6 +23,7 @@ describe("0005_painel.sql", () => {
     expect(sql).not.toMatch(/\bgrant\b/);
     expect(sql).not.toMatch(/\bdrop\s+table\b/);
     expect(sql).not.toMatch(/\btruncate\b/);
+    expect(sql).not.toMatch(/disable\s+row\s+level\s+security/);
   });
 
   it("liga a segurança de linha na tabela nova", () => {
@@ -47,6 +48,19 @@ describe("0005_painel.sql", () => {
     expect(corpo![0]).toMatch(/set\s+search_path\s*=\s*public/);
   });
 
+  it("as duas funções pinam pg_temp no fim do caminho de busca", () => {
+    /*
+      Sem `pg_temp` listado, o Postgres procura o esquema temporário da sessão
+      ANTES de tudo para nome de relação. Uma tabela temporária homônima
+      sombrearia a real dentro de uma função que roda como dona.
+    */
+    for (const nome of ["eh_admin", "local_publicado"]) {
+      const corpo = new RegExp(`function\\s+${nome}\\([\\s\\S]*?\\$\\$;`).exec(sql);
+      expect(corpo, `não achei o corpo de ${nome}`).not.toBeNull();
+      expect(corpo![0], nome).toMatch(/search_path\s*=\s*public\s*,\s*pg_temp/);
+    }
+  });
+
   it("concede escrita apenas em profissional nesta fatia", () => {
     const escritas = [...sql.matchAll(/create\s+policy\s+\S+\s+on\s+(\S+)\s+for\s+(insert|update)/g)];
     const tabelas = [...new Set(escritas.map((m) => m[1]))];
@@ -57,7 +71,7 @@ describe("0005_painel.sql", () => {
 describe("supabase/testes-rls.sql", () => {
   const sql = fonte("../supabase/testes-rls.sql").toLowerCase();
 
-  it("cobre as seis asserções que a especificação exige", () => {
+  it("cobre as oito asserções que a especificação exige", () => {
     for (const marca of [
       "visitante nao ve despublicado",
       "admin ve despublicado",
@@ -65,6 +79,8 @@ describe("supabase/testes-rls.sql", () => {
       "admin grava",
       "ninguem apaga",
       "conta sem perfil nao ve nada",
+      "conta sem perfil nao grava",
+      "ninguem se promove a admin",
     ]) {
       expect(sql, `falta a asserção "${marca}"`).toContain(marca);
     }
