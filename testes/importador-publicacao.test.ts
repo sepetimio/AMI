@@ -93,4 +93,31 @@ describe("selecionarParaPublicar", () => {
     expect(s.barrados[0].motivo).toMatch(/especialidade/i);
     expect(s.barrados[0].motivo).toMatch(/endereço/i);
   });
+
+  it("só --com-especialidade não exige endereço", () => {
+    const s = selecionarParaPublicar(
+      retrato({
+        profissionais: [ANA],
+        vinculosEspecialidade: [{ profissionalId: 7, especialidadeId: 1, rqe: null }],
+      }),
+      { comEspecialidade: true, comLocal: false },
+    );
+    expect(s.publicar.map((c) => c.id)).toEqual([7]);
+    expect(s.barrados).toEqual([]);
+  });
+
+  it("só --com-local não exige especialidade", () => {
+    const s = selecionarParaPublicar(
+      retrato({
+        profissionais: [ANA],
+        locais: [{
+          id: 30, profissionalId: 7, logradouro: "R", numero: null,
+          complemento: null, bairroId: 1, cep: null, telefone: null, whatsapp: null,
+        }],
+      }),
+      { comEspecialidade: false, comLocal: true },
+    );
+    expect(s.publicar.map((c) => c.id)).toEqual([7]);
+    expect(s.barrados).toEqual([]);
+  });
 });
