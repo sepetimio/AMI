@@ -26,7 +26,7 @@ describe("entrar", () => {
 });
 
 describe("o formulário de entrar", () => {
-  const form = fonte("../components/painel/FormularioEntrar.tsx");
+  const form = semComentarios(fonte("../components/painel/FormularioEntrar.tsx"));
 
   it("usa useActionState, que é a forma do Next 16", () => {
     expect(form).toContain("useActionState");

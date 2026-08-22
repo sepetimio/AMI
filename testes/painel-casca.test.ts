@@ -25,7 +25,7 @@ describe("a casca do painel", () => {
       O computador da sede da AMI é compartilhado. Sem este botão, a única
       forma de encerrar a sessão é esperar ela expirar.
     */
-    const codigo = fonte("../app/painel/layout.tsx");
+    const codigo = semComentarios(fonte("../app/painel/layout.tsx"));
     expect(codigo).toContain("action={sair}");
     expect(codigo).toContain("Sair");
   });

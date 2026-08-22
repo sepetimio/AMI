@@ -42,8 +42,14 @@ export function FormularioEntrar() {
         />
       </div>
 
-      {/* `role="alert"` avisa na hora; `aria-live` cobre quem já estava lendo. */}
-      <p aria-live="polite" role="alert" className="min-h-6 text-[15px] text-warn">
+      {/*
+        Sem `role="alert"`: ele implica região assertiva, e emparelhado com
+        `polite` a prioridade fica inconsistente entre leitores de tela. Erro
+        de senha logo depois de apertar Entrar é feedback esperado, não
+        emergência — mesma razão que levou `RascunhoLegalNaTela` a preferir
+        `note` a `alert`.
+      */}
+      <p aria-live="polite" className="min-h-6 text-[15px] text-warn">
         {estado.erro}
       </p>
 
