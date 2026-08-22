@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "doc-legal": "tsx scripts/gerar-doc-legal.ts"
+    "doc-legal": "tsx scripts/gerar-doc-legal.ts",
+    "importar": "tsx scripts/importar.ts",
+    "publicar": "tsx scripts/publicar.ts"
   },
   "dependencies": {
     "@portabletext/react": "^8.0.0",

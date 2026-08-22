@@ -18,6 +18,8 @@ const FONTES = [
   "../scripts/gravar.ts",
   "../scripts/retrato.ts",
   "../scripts/credencial.ts",
+  "../scripts/importar.ts",
+  "../scripts/modelo.ts",
   "../lib/importador/plano.ts",
 ];
 
