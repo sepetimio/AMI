@@ -16,7 +16,7 @@ export default async function PaginaDoPainel({
   await exigirAdmin();
 
   const { q, pagina } = await searchParams;
-  const numero = Number(pagina ?? "1") || 1;
+  const numero = Math.max(1, Number(pagina ?? "1") || 1);
 
   const cliente = await clienteDoPainel();
   const { medicos, total } = await listarMedicos(cliente, { termo: q, pagina: numero });
@@ -27,7 +27,9 @@ export default async function PaginaDoPainel({
     <>
       <h1 className="text-[28px] font-semibold text-ink-900">Médicos</h1>
       <p className="mt-1 text-[16px] text-ink-600">
-        {contagem(total, "médico no cadastro", "médicos no cadastro")}, publicados ou não.
+        {q
+          ? `${contagem(total, "resultado", "resultados")} para "${q}".`
+          : `${contagem(total, "médico no cadastro", "médicos no cadastro")}, publicados ou não.`}
       </p>
 
       <form method="get" className="mt-6 flex gap-3">

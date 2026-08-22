@@ -60,6 +60,11 @@ export function paraLista(linha: unknown): MedicoNaLista {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
+/** O que uma busca digitada pode conter sem mudar o sentido do filtro. */
+export function termoSeguro(termo: string): string {
+  return termo.replace(/[%,()"*]/g, " ");
+}
+
 const SELECAO = `
   id, slug, nome, crm, crm_uf, publicado,
   profissional_especialidade ( principal, especialidade ( nome ) ),
@@ -80,8 +85,19 @@ export async function listarMedicos(
     .range(de, ate);
 
   if (termo) {
-    /* Nome OU CRM. `%` nas duas pontas para achar sobrenome também. */
-    const escapado = termo.replace(/[%,]/g, " ");
+    /*
+      Nome OU CRM, com `%` nas duas pontas para achar sobrenome também.
+
+      O que é escapado, e por quê: `.or()` embrulha o filtro em parênteses, e
+      um `)` no termo fecharia o grupo antes da hora — a requisição é recusada
+      e a tela cai no erro genérico. `%` e `*` são curingas de `ilike` no
+      PostgREST e mudariam o alcance da busca em silêncio. `,` separa os
+      filtros, e `"` delimita valor.
+
+      Vira espaço em vez de sumir: quem digitou "Silva )" continua achando
+      Silva.
+    */
+    const escapado = termoSeguro(termo);
     consulta = consulta.or(`nome.ilike.%${escapado}%,crm.ilike.%${escapado}%`);
   }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { POR_PAGINA, faixaDaPagina, paraLista } from "@/lib/painel/consultas";
+import { POR_PAGINA, faixaDaPagina, paraLista, termoSeguro } from "@/lib/painel/consultas";
 
 describe("faixaDaPagina", () => {
   it("a primeira página começa em zero", () => {
@@ -67,5 +67,22 @@ describe("paraLista", () => {
     const m = paraLista(cru);
     expect(m.especialidade).toBeNull();
     expect(m.bairros).toEqual([]);
+  });
+});
+
+describe("termoSeguro", () => {
+  it("neutraliza o que quebraria a gramática do filtro", () => {
+    expect(termoSeguro("Silva )")).toBe("Silva  ");
+    expect(termoSeguro("(Ana")).toBe(" Ana");
+    expect(termoSeguro('Jo"ao')).toBe("Jo ao");
+  });
+
+  it("neutraliza os curingas, que mudariam o alcance em silêncio", () => {
+    expect(termoSeguro("Ana%")).toBe("Ana ");
+    expect(termoSeguro("Ana*")).toBe("Ana ");
+  });
+
+  it("não mexe em nome comum, inclusive com acento e hífen", () => {
+    expect(termoSeguro("João Peçanha-Silva")).toBe("João Peçanha-Silva");
   });
 });
