@@ -46,7 +46,7 @@ avisa isso — não é preciso rodar de novo.
 Sem essa marcação, a conta nasce esperando uma confirmação por e-mail que
 nunca chega, e fica presa nesse estado — nenhum aviso de tela conta isso. O
 sintoma aparece só depois, na tentativa de entrar: `/painel/entrar` responde
-"E-mail ou senha não conferem", igual ao erro de senha errada, e é fácil
+"E-mail ou senha não conferem.", igual ao erro de senha errada, e é fácil
 gastar um tempo desconfiando da senha antes de lembrar desta marcação.
 
 ---
@@ -143,12 +143,13 @@ vira essa chave é um passo à parte, descrito em
 
 | Sintoma | O que costuma ser |
 |---|---|
-| "E-mail ou senha não conferem" logo depois de criar a conta | **Auto Confirm User** ficou desmarcado no passo 3. A conta existe, mas está presa esperando uma confirmação por e-mail que este projeto não envia |
+| "E-mail ou senha não conferem." logo depois de criar a conta | **Auto Confirm User** ficou desmarcado no passo 3. A conta existe, mas está presa esperando uma confirmação por e-mail que este projeto não envia |
 | Entrar parece funcionar e a tela volta para `/painel/entrar` de novo | A conta não tem linha em `perfil_usuario` — faltou o passo 5, ou o uuid colado estava errado |
-| Entrar funciona e a lista de médicos vem vazia | A migração `0005_painel.sql` não rodou, ou rodou num projeto Supabase diferente do que `.env.local` aponta |
+| A lista mostra os médicos publicados e **nenhum** fora do ar | A migração rodou pela metade: a tabela e a conta existem, mas a política `admin_le_profissional` — a que deixa o admin enxergar quem não está publicado — não entrou. No **SQL Editor**, cole e rode só esta linha, tirada de `supabase/migrations/0005_painel.sql`: `create policy admin_le_profissional on profissional for select using ((select eh_admin()));`. Não rode o arquivo inteiro de novo: o `create table perfil_usuario` do topo recusa recriar uma tabela que já existe, e o script para logo no início sem chegar perto da política que falta |
 
 ---
 
-Rótulo de botão muda com o tempo — o painel do Supabase é redesenhado de vez
-em quando. O que não muda é o caminho de telas descrito acima; se um nome não
-bater exatamente, siga o caminho mesmo assim.
+O nome de um botão nesta tela do Supabase pode já ter mudado quando você ler
+isto — painel de terceiro é redesenhado sem avisar quem escreveu o passo a
+passo. Se um nome não bater com o que você vê, confie na sequência de telas
+e no que cada clique deveria fazer, não no rótulo exato.
