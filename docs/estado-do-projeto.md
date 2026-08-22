@@ -1,6 +1,7 @@
 # Estado do projeto — Site da Associação Médica de Imperatriz
 
-> Atualizado em 21 de agosto de 2026 · ramo `main`, 132 commits
+> Atualizado em 22 de agosto de 2026 · ramo `importador-de-planilha`, 155
+> commits · ainda não fundido em `main`
 > Repositório: `github.com/sepetimio/AMI`
 > Especificação: [`docs/superpowers/specs/2026-08-19-site-ami-diretorio-design.md`](superpowers/specs/2026-08-19-site-ami-diretorio-design.md)
 
@@ -96,7 +97,7 @@ Hoje `NEXT_PUBLIC_DADOS_DEMONSTRACAO=true`, e por isso o `robots.txt` responde `
 
 Previstas na especificação, seção 8, e ainda não construídas:
 
-- **Importador de planilha**, em três passos: modelo pronto para baixar, conferência antes de gravar (quantas linhas criam, quantas atualizam, quantas têm erro e qual erro em qual linha), e chave natural CRM mais UF, para que rodar o mesmo arquivo duas vezes atualize em vez de duplicar
+- ~~**Importador de planilha**~~ **Construído.** Três comandos: `npm run importar -- --modelo` gera a planilha modelo, `npm run importar -- arquivo.xlsx` confere sem gravar, e `--gravar` executa. A publicação é comando à parte, `npm run publicar`, com filtro de completude. Falta a planilha real da AMI
 - **Painel da agência**, em `/painel`: cadastrar e editar médicos, estabelecimentos, horários, diretoria, comunicados e anuidades sem tocar no banco
 - **Área do associado** (Fase 2): login do médico, edição do próprio perfil, anuidade, carteirinha, comunicados e eventos
 
@@ -126,6 +127,20 @@ npx next build
 ```
 
 Variáveis em `.env.local`, com o modelo comentado em `.env.local.exemplo`. O banco se monta do zero com `supabase/primeira-instalacao.sql`.
+
+---
+
+## Como carregar o cadastro real
+
+1. `npm run importar -- --modelo` e mandar `modelo-associados.xlsx` para a AMI
+2. Quando voltar preenchido: `npm run importar -- associados.xlsx`, que não grava nada
+3. Mandar os erros do relatório para a AMI, corrigir, repetir o passo 2 quantas vezes for preciso
+4. Relatório limpo: `npm run importar -- associados.xlsx --gravar`
+5. `npm run publicar -- --com-especialidade --com-local` para conferir, e de novo com `--gravar`. O comando recusa gravar sem filtro explícito — publicar sem `--com-especialidade` nem `--com-local` exige escrever `--sem-filtro` com todas as letras
+6. Só então virar `NEXT_PUBLIC_DADOS_DEMONSTRACAO` para `false`
+
+A chave de escrita vem de `SUPABASE_CHAVE_IMPORTADOR`, explicada em
+[`docs/como-remontar-o-ambiente.md`](como-remontar-o-ambiente.md).
 
 ---
 

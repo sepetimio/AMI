@@ -174,14 +174,15 @@ sempre a mesma decisão.
 
 1. Nome exato no catálogo
 2. Nome sem acento e sem diferença de caixa
-3. Mapa de sinônimos de `lib/dados/sinonimos.ts` — "clinico" resolve para Clínica Médica
+3. Mapa de sinônimos de `lib/dados/sinonimos.ts` — "clinico geral" resolve para Clínica Médica
 
 Falhou tudo, vira pendência **e o médico entra assim mesmo, sem especialidade**.
 
 Duas pendências distintas, porque o conserto difere: *não reconheço este nome* pede
 corrigir a planilha; *reconheço, mas não está no catálogo do banco* pede acrescentar a
-especialidade. A distinção existe porque o mapa de sinônimos tem 19 entradas e o catálogo
-do banco tem 14.
+especialidade. Hoje as duas listas coincidem — 14 especialidades, as mesmas nas duas. A
+distinção existe porque elas **podem divergir**: o catálogo do banco cresce com o cadastro
+real, e o mapa de sinônimos é escrito à mão.
 
 **O RQE cai junto.** Ele não é coluna de `profissional`: mora em
 `profissional_especialidade`, que é o laço entre o médico e a especialidade. Sem
@@ -190,6 +191,18 @@ acontece o relatório diz explicitamente que o RQE daquela linha foi perdido, em
 deixar o número sumir junto com a especialidade — publicar um médico sem o RQE que ele
 tem enfraquece exatamente o que o Art. 4º, II da Resolução CFM manda exibir onde há
 registro.
+
+**RQE que chega numa rodada seguinte também é corrigido, não só gravado na primeira.** Um
+médico já ligado a uma especialidade sem RQE, cuja planilha nova traz o número, tinha o
+RQE descartado sem gravar e sem avisar. Agora isso é um caminho próprio,
+`especialidadesAtualizadas`, gravado com `update` — nunca `upsert`, que mandaria
+`principal` junto e sobrescreveria a marca de principal que o médico já tem.
+
+**Dois textos que resolvem para a mesma especialidade viram um vínculo só.** "Clínica
+Médica" e "internista" são textos diferentes na planilha, mas o mapa de sinônimos resolve
+os dois para o mesmo id. Sem deduplicar, dois vínculos com a mesma chave primária derrubam
+a operação inteira com o erro 21000 do Postgres, e a importação morre no meio. O primeiro
+texto vence; um RQE que só apareça na segunda grafia é aproveitado, não perdido.
 
 ### Bairro: criado, com aviso
 
@@ -213,13 +226,22 @@ para sempre.
 ### Atualização
 
 Para um CRM já existente, só é escrito o campo que está **preenchido na planilha e
-diferente do banco**. A conferência mostra a diferença campo a campo.
+diferente do banco**. A conferência mostra a diferença campo a campo, na seção "O QUE MUDA
+EM QUEM JÁ ESTÁ NO BANCO" — que é truncada nas primeiras 20 entradas, com a contagem do
+resto, porque numa rodada real isso pode ter centenas de linhas.
+
+Nem todo médico em `atualizar` tem alteração de verdade: a partir da segunda rodada com o
+mesmo arquivo, todo médico já cadastrado cai em `atualizar`, mesmo quando a gravação não
+tocaria em nada nele. O cabeçalho do relatório distingue as duas contagens — `atualiza 498
+médicos (0 com alteração)` — para que rodar o mesmo arquivo duas vezes não pareça, à
+primeira vista, que a segunda rodada reescreve 498 perfis já publicados.
 
 ### Endereços
 
 Casa por logradouro, número e bairro normalizados. Casou, é atualização do endereço
 existente — que é o caso de a AMI corrigir um telefone. Não casou, é endereço novo.
-Endereço que está no banco e não veio na planilha é **relatado, nunca apagado**.
+Endereço que está no banco e não veio na planilha é **relatado, nunca apagado**, na seção
+"ENDEREÇOS NO BANCO E FORA DESTE ARQUIVO".
 
 ### Ausentes
 
@@ -233,7 +255,7 @@ CONFERÊNCIA — associados.xlsx
 523 linhas lidas · 498 médicos distintos
 
   cria           471 médicos
-  atualiza        27 médicos
+  atualiza        27 médicos (9 com alteração)
   rejeita          3 linhas
   ignora           1 coluna do arquivo: "email"
 
@@ -242,11 +264,43 @@ BAIRROS NOVOS (serão criados)
   Vila Nova ............ 8 médicos
   Nova Imperatris ...... 1 médico    (!) parecido com "Nova Imperatriz"
 
-ESPECIALIDADES NÃO RESOLVIDAS
-  "Cirurgia Vascular" .. 6 médicos    conhecida, fora do catálogo do banco
-  "Ortopedía" .......... 2 médicos    não reconhecida
-  2 destes tinham RQE, que não será gravado (linhas 41, 190)
+O QUE MUDA EM QUEM JÁ ESTÁ NO BANCO
+  CRM/MA 4821  Ana Souza
+      nome           Ana Souza → Ana Sousa
+      telemedicina   não → sim
+      especialidade  ganha 1
+      RQE            corrigido em 1
+      endereço       ganha 1
+      endereço 30: telefone 9935243716 → 9988020205
 
+ENDEREÇOS NO BANCO E FORA DESTE ARQUIVO
+  2 endereços. Nada será feito com eles.
+
+ENDEREÇOS SOLTOS NO BANCO
+  1 endereço sem médico ligado, de alguma gravação interrompida.
+  Não aparece no site e nada será feito com eles.
+
+ESPECIALIDADES NÃO RESOLVIDAS
+  "Cirurgia Vascular" .. 2 médicos    não reconhecida
+  2 destes tinham RQE, que não será gravado (41, 190)
+```
+
+As seções `O QUE MUDA EM QUEM JÁ ESTÁ NO BANCO`, `ENDEREÇOS NO BANCO E FORA DESTE ARQUIVO` e
+`ENDEREÇOS SOLTOS NO BANCO` só aparecem quando têm algo a dizer, como toda seção deste
+relatório. A primeira lista, campo a campo, os primeiros 20 médicos com alteração real —
+mudança de campo do perfil, especialidade nova ou corrigida, endereço novo ou atualizado —
+e conta o resto quando passa disso.
+
+A outra pendência, *conhecida, fora do catálogo do banco*, não aparece neste exemplo
+porque hoje ela não acontece de verdade: as duas listas coincidem, 14 especialidades, as
+mesmas no mapa de sinônimos (`lib/dados/sinonimos.ts`) e no catálogo semeado no banco
+(`supabase/primeira-instalacao.sql`). Ela passa a aparecer quando as listas divergirem — e
+vão divergir: o catálogo do banco cresce com o cadastro real da AMI, e o mapa de sinônimos
+é escrito à mão. É por isso que as duas pendências continuam distintas mesmo sem exemplo
+duplo aqui: uma manda corrigir a planilha, a outra manda acrescentar a especialidade ao
+banco.
+
+```
 CAMPOS DESCARTADOS (o médico entra sem eles)
   linha 102  telefone "3524" tem 4 dígitos
   linha 267  cep "6590" tem 4 dígitos
@@ -282,15 +336,31 @@ atendimento e horário de quem não está publicado.
 
 Uma consequência honesta: se a interrupção cair entre criar o endereço e ligá-lo ao
 médico, sobra um endereço solto. Ele não vaza nada — a política `local_publicado` exige
-médico ou estabelecimento publicado — e a rodada seguinte o relata, sem apagar.
+médico ou estabelecimento publicado — e a rodada seguinte o relata, sem apagar, na seção
+"ENDEREÇOS SOLTOS NO BANCO". `scripts/retrato.ts` continua filtrando esse endereço fora de
+`locais`, para não casá-lo com um endereço da planilha e virar "atualização" de algo que não
+pertence a ninguém; a contagem chega ao relatório por um campo à parte, `enderecosOrfaos`.
 
 ### Ordem
 
 1. Bairros novos, em lote — os endereços dependem deles
-2. `profissional`, em lote, com resolução de conflito por `(crm, crm_uf)`
+2. `profissional`, em lote
 3. `profissional_especialidade`
 4. `local`
 5. `atendimento`
+
+**`plano.criar` usa `insert`, não `upsert`.** Com o retrato completo lido antes de montar o
+plano, um médico em `plano.criar` que já exista no banco significa que alguma premissa
+quebrou — e a cláusula de conflito de um `upsert` mandaria `slug` e `publicado: false`
+junto, despublicando um perfil no ar e trocando a URL dele. Violação de unicidade
+barulhenta é infinitamente melhor do que isso. Continua repetível: uma rodada interrompida
+deixa os médicos já gravados visíveis para o retrato da rodada seguinte, que os manda para
+`atualizar` em vez de `criar`.
+
+**`scripts/retrato.ts` lê cada tabela em páginas, avançando pelo que voltou e não pelo que
+foi pedido.** Sem isso, o PostgREST corta a resposta no `db-max-rows` do projeto e devolve
+um retrato incompleto sem erro nenhum — o pior defeito possível aqui, porque um médico
+publicado que não coubesse na página sumiria do retrato e cairia em `plano.criar` de novo.
 
 ### Nenhuma remoção, em lugar nenhum
 
@@ -382,9 +452,6 @@ para que nenhum binário entre no versionamento.
 
 ## 12. Pendências e riscos
 
-- **`tsx` não está declarado.** O script `doc-legal` já depende dele e ele só existe no
-  projeto por dependência transitiva. O importador aumenta a exposição. Entra como
-  dependência de desenvolvimento explícita
 - **A planilha real ainda não existe.** O importador é construído e testado contra
   arquivos gerados nos testes; a primeira rodada com dados reais vai revelar formato que
   este documento não previu, e é para isso que a conferência existe
@@ -393,5 +460,3 @@ para que nenhum binário entre no versionamento.
 - **Endereço duplicado entre médicos da mesma clínica** é consequência aceita de deixar
   `estabelecimento` fora. Se incomodar depois, o conserto é unir endereços iguais, não
   mudar o formato da planilha
-- **`docs/como-remontar-o-ambiente.md` ainda não existe.** É pendência do plano de
-  implementação, não deste desenho

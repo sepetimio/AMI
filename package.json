@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "doc-legal": "tsx scripts/gerar-doc-legal.ts"
+    "doc-legal": "tsx scripts/gerar-doc-legal.ts",
+    "importar": "tsx scripts/importar.ts",
+    "publicar": "tsx scripts/publicar.ts"
   },
   "dependencies": {
     "@portabletext/react": "^8.0.0",
@@ -32,8 +34,11 @@
     "@types/react-dom": "^19.2.4",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.1",
+    "read-excel-file": "^9.3.10",
     "tailwindcss": "^4.1.11",
+    "tsx": "^4.23.12",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.11",
+    "write-excel-file": "^4.1.1"
   }
 }
