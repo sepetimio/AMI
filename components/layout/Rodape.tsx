@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AMI, telefoneParaLigar } from "@/lib/ami";
 import { bairrosComContagem, especialidadesComContagem } from "@/lib/dados/especialidades";
 import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
 
@@ -156,10 +157,46 @@ export async function Rodape() {
             <h2 className="text-[13px] font-medium uppercase tracking-[0.09em] text-white/70">
               Contato
             </h2>
+            {/*
+              Endereço e telefone vêm de `lib/ami.ts`, que é a fonte única.
+              O critério de negócio local do Google pede que nome, endereço e
+              telefone sejam idênticos em todo lugar do site e iguais ao perfil
+              da empresa. Escrito à mão aqui, divergiria do dado estruturado na
+              primeira correção, sem erro em lugar nenhum.
+            */}
             <address className="mt-3 space-y-1.5 text-[15px] not-italic">
-              <p>[PROVISÓRIO] Endereço da sede</p>
-              <p>Imperatriz - MA</p>
-              <p className="registro">[PROVISÓRIO] (99) 0000-0000</p>
+              <p>
+                {AMI.endereco.logradouro}, {AMI.endereco.numero}
+                <br />
+                {AMI.endereco.bairro}, {AMI.endereco.cidade} -{" "}
+                {AMI.endereco.uf}
+                <br />
+                <span className="registro">CEP {AMI.endereco.cep}</span>
+              </p>
+
+              {/* Telefone clicável: no celular, que é a maioria do acesso,
+                  ligar é a ação mais provável de quem chegou até aqui. */}
+              <ul className="space-y-1 pt-1">
+                {AMI.telefones.map((t) => (
+                  <li key={t}>
+                    <a
+                      href={telefoneParaLigar(t)}
+                      className="registro pressiona inline-flex items-center hover:text-white hover:underline max-md:min-h-11"
+                    >
+                      {t}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+
+              <p className="pt-2">
+                <a
+                  href={AMI.redes.instagram}
+                  className="pressiona inline-flex items-center hover:text-white hover:underline max-md:min-h-11"
+                >
+                  Instagram
+                </a>
+              </p>
             </address>
           </div>
         </div>
@@ -195,8 +232,10 @@ export async function Rodape() {
           </nav>
 
           <p className="mt-6">
-            Associação Médica de Imperatriz{" "}
-            <span className="registro">CNPJ [PROVISÓRIO]</span>
+            {AMI.razaoSocial}, {AMI.naturezaJuridica}, em atividade desde{" "}
+            {AMI.fundadaEm}
+            <br />
+            <span className="registro">CNPJ {AMI.cnpj}</span>
           </p>
           <p className="mt-2">
             O conteúdo deste site é informativo e não substitui a consulta

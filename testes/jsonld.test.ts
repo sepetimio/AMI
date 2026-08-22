@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { AMI } from "@/lib/ami";
 import {
   breadcrumbList,
   comoItensDeLista,
@@ -125,11 +126,57 @@ describe("physician", () => {
 });
 
 describe("organizationAmi", () => {
-  it("é uma organização com endereço", () => {
+  it("se declara como organização da área de saúde", () => {
+    /* `MedicalOrganization` e não `Organization` genérica: é o tipo que
+       permite ao Google entender do que se trata sem inferir pelo texto. */
     const o = organizationAmi(SITE) as Record<string, unknown>;
-    expect(o["@type"]).toBe("Organization");
+    expect(o["@type"]).toBe("MedicalOrganization");
     expect(o.url).toBe(SITE);
-    expect(o.address).toBeDefined();
+  });
+
+  it("traz o endereço completo, com CEP", () => {
+    /* Endereço sem CEP é endereço pela metade para o critério de negócio
+       local, e o CEP é justamente o que desambigua rua homônima entre
+       cidades. */
+    const o = organizationAmi(SITE) as { address: Record<string, string> };
+    expect(o.address.streetAddress).toContain(AMI.endereco.logradouro);
+    expect(o.address.streetAddress).toContain(AMI.endereco.numero);
+    expect(o.address.addressLocality).toBe(AMI.endereco.cidade);
+    expect(o.address.addressRegion).toBe(AMI.endereco.uf);
+    expect(o.address.postalCode).toBe(AMI.endereco.cep);
+  });
+
+  it("o endereço e o telefone saem da mesma fonte que o rodapé lê", () => {
+    /* Este é o teste que importa de verdade aqui. O Google pede que nome,
+       endereço e telefone sejam idênticos em todo lugar do site, e a
+       divergência entre o rodapé e o dado estruturado não produz erro em
+       lugar nenhum: só enfraquece o sinal, em silêncio. Afirmar contra
+       `lib/ami.ts` é o que trava a fonte única no lugar. */
+    const o = organizationAmi(SITE) as { telephone: readonly string[] };
+    expect(o.telephone).toEqual(AMI.telefones);
+  });
+
+  it("declara o CNPJ como registro estruturado, não como texto solto", () => {
+    const o = organizationAmi(SITE) as {
+      identifier: { propertyID: string; value: string }[];
+    };
+    const cnpj = o.identifier.find((i) => i.propertyID === "CNPJ");
+    expect(cnpj?.value).toBe(AMI.cnpj);
+  });
+
+  it("liga a entidade ao perfil oficial em outra plataforma", () => {
+    /* Sem `sameAs`, o site e o Instagram podem ser lidos como duas
+       organizações diferentes de nome parecido. */
+    const o = organizationAmi(SITE) as { sameAs: string[] };
+    expect(o.sameAs).toContain(AMI.redes.instagram);
+  });
+
+  it("não emite nota nem avaliação", () => {
+    /* Resolução CFM 2.336/2023, Art. 11, XIII. Vale para a entidade como
+       vale para o perfil de cada médico. */
+    const bruto = JSON.stringify(organizationAmi(SITE));
+    expect(bruto).not.toContain("AggregateRating");
+    expect(bruto).not.toContain("ratingValue");
   });
 });
 

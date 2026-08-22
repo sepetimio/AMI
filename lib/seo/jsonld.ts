@@ -1,6 +1,7 @@
 import type { Medico } from "@/lib/dados/tipos";
 import type { Noticia } from "@/lib/sanity/tipos";
 import { dimensoesDoRef, urlDaImagem } from "@/lib/sanity/imagem";
+import { AMI } from "@/lib/ami";
 
 /*
   Construtores de JSON-LD. Puros, e testados porque erro aqui falha calado:
@@ -24,9 +25,10 @@ const DIAS = [
 function enderecoDaAmi() {
   return {
     "@type": "PostalAddress",
-    streetAddress: "[PROVISÓRIO] endereço da sede",
-    addressLocality: "Imperatriz",
-    addressRegion: "MA",
+    streetAddress: `${AMI.endereco.logradouro}, ${AMI.endereco.numero}`,
+    addressLocality: AMI.endereco.cidade,
+    addressRegion: AMI.endereco.uf,
+    postalCode: AMI.endereco.cep,
     addressCountry: "BR",
   };
 }
@@ -34,12 +36,32 @@ function enderecoDaAmi() {
 export function organizationAmi(siteUrl: string) {
   return {
     "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "Associação Médica de Imperatriz",
-    alternateName: "AMI",
+    /*
+      `MedicalOrganization` e não `Organization` genérica: é o tipo que o
+      schema.org tem para entidade da área de saúde, e é o que permite ao
+      Google entender do que se trata sem inferir pelo texto.
+    */
+    "@type": "MedicalOrganization",
+    name: AMI.razaoSocial,
+    alternateName: AMI.sigla,
     url: siteUrl,
     logo: `${siteUrl}/marca/ami-marca-2400.png`,
     address: enderecoDaAmi(),
+    /* Os dois números, e o primeiro é o fixo da sede. */
+    telephone: AMI.telefones,
+    /*
+      O CNPJ como `identifier` estruturado, e não como texto solto: é o campo
+      previsto para registro externo, e `propertyID` é o que diz de que
+      registro se trata. Mesmo padrão já usado para o CRM dos médicos.
+    */
+    identifier: [
+      { "@type": "PropertyValue", propertyID: "CNPJ", value: AMI.cnpj },
+    ],
+    foundingDate: AMI.fundadaEm,
+    /* `sameAs` liga a entidade aos perfis oficiais dela em outros lugares.
+       É o que impede o Google de tratar o site e o Instagram como duas
+       organizações diferentes de nome parecido. */
+    sameAs: [AMI.redes.instagram],
     areaServed: "Imperatriz, MA, Brasil",
   };
 }

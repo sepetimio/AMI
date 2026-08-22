@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AMI } from "@/lib/ami";
 import Link from "next/link";
 import { Cabeceira } from "@/components/layout/Cabeceira";
 import { TextoRico } from "@/components/editorial/TextoRico";
@@ -101,13 +102,27 @@ export default async function PaginaAssociacao() {
           /* Reserva de conteúdo enquanto o documento "associacao" não existe
              no Studio. Some sozinho assim que `paginaPorSlug` passar a
              devolver algo: o ramo acima entra no lugar deste. */
-          <p className="coluna-leitura pt-8 text-ink-600">
-            [PROVISÓRIO] A AMI reúne os médicos que atendem em Imperatriz e na
-            região sul do Maranhão, e mantém este diretório para que a
-            população encontre quem atende perto de casa. A apresentação
-            oficial da entidade entra aqui assim que a diretoria publicar o
-            texto no Studio.
-          </p>
+          <div className="coluna-leitura pt-8 text-ink-600">
+            <p>
+              A Associação Médica de Imperatriz está em atividade desde{" "}
+              {AMI.fundadaEm} e representa a classe médica na região sul do
+              Maranhão. Mantém este diretório para que a população encontre
+              quem atende perto de casa, com informação correta e verificada.
+            </p>
+            <p className="mt-4">
+              A sede fica na {AMI.endereco.logradouro}, {AMI.endereco.numero},
+              no {AMI.endereco.bairro} de {AMI.endereco.cidade}.
+            </p>
+            {/* Estes dois parágrafos são reserva, e dizem só o que é
+                verificável: ano de fundação, área de atuação e endereço, todos
+                vindos de `lib/ami.ts`. A apresentação institucional escrita
+                pela diretoria entra por cima assim que existir no Studio, e
+                aí este ramo inteiro deixa de renderizar. */}
+            <p className="mt-4 text-[15px] text-ink-400">
+              [PROVISÓRIO] A apresentação oficial da entidade, escrita pela
+              diretoria, entra aqui quando for publicada.
+            </p>
+          </div>
         )}
 
         <nav aria-labelledby="associacao-navegacao" className="mt-16">
