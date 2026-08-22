@@ -38,7 +38,7 @@ export type Aviso =
   | { tipo: "especialidade-desconhecida"; linha: number; texto: string }
   | { tipo: "especialidade-fora-do-catalogo"; linha: number; texto: string }
   | { tipo: "rqe-perdido"; linha: number; rqe: string }
-  | { tipo: "endereco-sem-bairro"; linha: number }
+  | { tipo: "endereco-incompleto"; linha: number; falta: "logradouro" | "bairro" }
   | { tipo: "nome-mudou"; linha: number; de: string; para: string; slug: string };
 
 /** Problema que descarta a linha inteira. */
@@ -116,6 +116,12 @@ export type Retrato = {
     especialidadeId: number;
     rqe: string | null;
   }[];
+  /**
+   * Endereços sem atendimento: sobra de gravação interrompida. Ficam fora de
+   * `locais` de propósito, e são contados aqui só para o relatório poder
+   * dizer que existem.
+   */
+  enderecosOrfaos?: number;
 };
 
 /* --- O plano --- */
@@ -188,4 +194,6 @@ export type Plano = {
   erros: ErroDeLinha[];
   avisos: Aviso[];
   ausentes: { crm: string; crmUf: string; nome: string }[];
+  /** Endereços do banco sem médico ligado, de alguma gravação interrompida. */
+  enderecosOrfaos: number;
 };

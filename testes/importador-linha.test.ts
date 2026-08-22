@@ -159,11 +159,30 @@ describe("lerLinha — o endereço", () => {
     expect(r.avisos).toEqual([]);
   });
 
-  it("logradouro sem bairro não vira endereço, e avisa", () => {
+  it("logradouro sem bairro não vira endereço, e avisa que falta o bairro", () => {
     const r = lerLinha(linha({ nome: "Ana", crm: 1, logradouro: "Rua A" }), CAB, 40);
     if (ehErro(r)) throw new Error("não deveria rejeitar");
     expect(r.endereco).toBeNull();
-    expect(r.avisos).toContainEqual({ tipo: "endereco-sem-bairro", linha: 40 });
+    expect(r.avisos).toContainEqual({
+      tipo: "endereco-incompleto",
+      linha: 40,
+      falta: "bairro",
+    });
+  });
+
+  it("telefone e cep sem logradouro não viram endereço, e avisa que falta o logradouro", () => {
+    const r = lerLinha(
+      linha({ nome: "Ana", crm: 1, bairro: "Centro", telefone: "99935243716", cep: "65900330" }),
+      CAB,
+      41,
+    );
+    if (ehErro(r)) throw new Error("não deveria rejeitar");
+    expect(r.endereco).toBeNull();
+    expect(r.avisos).toContainEqual({
+      tipo: "endereco-incompleto",
+      linha: 41,
+      falta: "logradouro",
+    });
   });
 
   it("número chegando como número vira texto", () => {

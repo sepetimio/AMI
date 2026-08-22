@@ -116,11 +116,7 @@ export function lerLinha(
 
   let endereco: EnderecoLido | null = null;
 
-  if (logradouro && !bairro) {
-    /* `local.bairro_id` é `not null` no banco: endereço sem bairro não tem
-       como ser gravado, e inventar um bairro seria fabricar dado. */
-    avisos.push({ tipo: "endereco-sem-bairro", linha });
-  } else if (logradouro && bairro) {
+  if (logradouro && bairro) {
     endereco = {
       linha,
       logradouro,
@@ -135,6 +131,32 @@ export function lerLinha(
         valor(celulas, cab, "whatsapp"), "whatsapp", linha, [10, 11], avisos,
       ),
     };
+  } else {
+    /*
+      Nenhum endereço se formou. `logradouro` sem `bairro` já era coberto —
+      `local.bairro_id` é `not null` no banco, e inventar um bairro seria
+      fabricar dado. Mas telefone, CEP, número ou complemento preenchidos
+      SEM logradouro caíam no mesmo lugar em silêncio: nenhum endereço se
+      formava e nenhum aviso avisava que eles sumiram. Generaliza os dois
+      casos num aviso só, que diz o que faltou.
+    */
+    const outrosCamposDeEndereco = [
+      valor(celulas, cab, "numero"),
+      valor(celulas, cab, "complemento"),
+      valor(celulas, cab, "cep"),
+      valor(celulas, cab, "telefone"),
+      valor(celulas, cab, "whatsapp"),
+    ];
+    const algumCampoPreenchido =
+      Boolean(logradouro) || Boolean(bairro) || outrosCamposDeEndereco.some((v) => v !== "");
+
+    if (algumCampoPreenchido) {
+      avisos.push({
+        tipo: "endereco-incompleto",
+        linha,
+        falta: logradouro ? "bairro" : "logradouro",
+      });
+    }
   }
 
   return { linha, nome, crm, crmUf, especialidade, rqe, telemedicina, endereco, avisos };

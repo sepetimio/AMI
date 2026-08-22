@@ -35,7 +35,7 @@ function chaveDeTitulo(s: string): string {
   return chave(s.replace(/[_-]+/g, " "));
 }
 
-const PORCHAVE = new Map<string, NomeDeColuna>(
+const POR_CHAVE = new Map<string, NomeDeColuna>(
   NOMES_DE_COLUNA.map((c) => [chaveDeTitulo(TITULOS[c]), c]),
 );
 
@@ -47,7 +47,7 @@ export function lerCabecalho(primeiraLinha: Celula[]): Cabecalho {
     const bruto = celula === null ? "" : String(celula);
     if (!bruto.trim()) return;
 
-    const reconhecida = PORCHAVE.get(chaveDeTitulo(bruto));
+    const reconhecida = POR_CHAVE.get(chaveDeTitulo(bruto));
 
     if (!reconhecida) {
       ignoradas.push(bruto.trim());

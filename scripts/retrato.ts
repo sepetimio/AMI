@@ -95,7 +95,8 @@ export async function lerRetrato(cliente: SupabaseClient): Promise<Retrato> {
     bairros: bairros.map((b) => ({ id: b.id, nome: b.nome, slug: b.slug })),
     /* Local sem atendimento é órfão — sobra de gravação interrompida. Fica
        de fora do retrato para não casar com endereço da planilha e virar
-       "atualização" de algo que não pertence a ninguém. */
+       "atualização" de algo que não pertence a ninguém. Contado à parte
+       para que o relatório possa dizer que ele existe, sem apagá-lo. */
     locais: locais
       .filter((l) => donoDoLocal.has(l.id))
       .map((l) => ({
@@ -114,5 +115,6 @@ export async function lerRetrato(cliente: SupabaseClient): Promise<Retrato> {
       especialidadeId: v.especialidade_id,
       rqe: v.rqe,
     })),
+    enderecosOrfaos: locais.filter((l) => !donoDoLocal.has(l.id)).length,
   };
 }

@@ -47,3 +47,9 @@ marca/_estudo-restauracao-recusado/
 
 # Direções de design recusadas e artefatos do canvas.
 design/
+
+# planilhas — nunca versionar
+# A planilha de associados traz nome, CRM, endereço e telefone de ~500 médicos.
+# O modelo gerado e o arquivo preenchido pela AMI ficam na raiz por padrão, e a
+# raiz é o destino natural de um `git add -A` distraído.
+*.xlsx

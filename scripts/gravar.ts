@@ -29,8 +29,8 @@ export type ResumoDaGravacao = {
   rqesCorrigidos: number;
 };
 
-function erro(o: { error: { message: string } | null }, o_que: string): void {
-  if (o.error) throw new Error(`${o_que}: ${o.error.message}`);
+function erro(o: { error: { message: string } | null }, oQue: string): void {
+  if (o.error) throw new Error(`${oQue}: ${o.error.message}`);
 }
 
 export async function gravar(
@@ -172,11 +172,14 @@ export async function gravar(
   }
 
   if (vinculos.length) {
-    const { error } = await cliente
+    const { data, error } = await cliente
       .from("profissional_especialidade")
-      .upsert(vinculos, { onConflict: "profissional_id,especialidade_id" });
+      .upsert(vinculos, { onConflict: "profissional_id,especialidade_id" })
+      .select("profissional_id, especialidade_id");
     erro({ error }, "Falha ao ligar especialidades");
-    resumo.vinculosCriados = vinculos.length;
+    /* Do que o banco confirmou, não do que o plano pediu — mesma regra dos
+       bairros e dos médicos, acima. */
+    resumo.vinculosCriados = (data ?? []).length;
   }
 
   /*
@@ -257,12 +260,21 @@ export async function gravar(
     await criarEnderecos(id, m.enderecos);
   }
 
+  const CAMPOS_DE_LOCAL_VALIDOS = new Set(["complemento", "cep", "telefone", "whatsapp"]);
+
   for (const m of plano.atualizar) {
     await criarEnderecos(m.id, m.enderecosNovos);
 
     for (const e of m.enderecosAtualizados) {
       const campos: Record<string, unknown> = {};
-      for (const mud of e.mudancas) campos[mud.campo] = mud.para;
+      for (const mud of e.mudancas) {
+        if (CAMPOS_DE_LOCAL_VALIDOS.has(mud.campo)) campos[mud.campo] = mud.para;
+        else {
+          throw new Error(
+            `Campo desconhecido "${mud.campo}" no endereço ${e.id} do médico ${m.crm}/${m.crmUf}.`,
+          );
+        }
+      }
 
       const { error } = await cliente.from("local").update(campos).eq("id", e.id);
       erro({ error }, `Falha ao atualizar o endereço ${e.id}`);

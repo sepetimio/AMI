@@ -45,4 +45,10 @@ describe("gerarModelo", () => {
     const r = lerLinha(dados[0], cab, 2);
     expect(ehErro(r)).toBe(false);
   });
+
+  it("recusa sobrescrever um arquivo que já existe", async () => {
+    const caminho = join(pasta, "nao-sobrescrever.xlsx");
+    await gerarModelo(caminho);
+    await expect(gerarModelo(caminho)).rejects.toThrow(/já existe/);
+  });
 });

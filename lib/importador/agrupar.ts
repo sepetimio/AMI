@@ -63,8 +63,10 @@ export function agrupar(linhas: LinhaLida[]): {
     if (existente.telemedicina === null) existente.telemedicina = l.telemedicina;
 
     if (l.especialidade) {
-      const k2 = chave(l.especialidade);
-      const jaTem = existente.especialidades.find((e) => chave(e.texto) === k2);
+      const chaveDaEspecialidade = chave(l.especialidade);
+      const jaTem = existente.especialidades.find(
+        (e) => chave(e.texto) === chaveDaEspecialidade,
+      );
       if (!jaTem) {
         existente.especialidades.push({
           texto: l.especialidade,

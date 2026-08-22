@@ -342,5 +342,6 @@ export function montarPlano(
     erros: contexto.erros,
     avisos,
     ausentes,
+    enderecosOrfaos: retrato.enderecosOrfaos ?? 0,
   };
 }

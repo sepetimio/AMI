@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { readSheet } from "read-excel-file/node";
 import writeXlsxFile from "write-excel-file/node";
 import { TITULOS } from "@/lib/importador/colunas";
@@ -43,6 +44,20 @@ const EXEMPLO: Record<(typeof NOMES_DE_COLUNA)[number], string> = {
 };
 
 export async function gerarModelo(caminho: string): Promise<void> {
+  /*
+    Nunca sobrescrever.
+
+    O destino do modelo vem da linha de comando, e a planilha preenchida pela
+    AMI é o único artefato deste fluxo que não se recupera de painel nenhum —
+    não está no GitHub, nem no Supabase, nem no Sanity. Um `--modelo` colado
+    por engano ao lado do nome dela apagaria 500 linhas de trabalho.
+  */
+  if (existsSync(caminho)) {
+    throw new Error(
+      `${caminho} já existe, e eu não sobrescrevo arquivo. Apague-o ou escolha outro nome.`,
+    );
+  }
+
   const cabecalho = NOMES_DE_COLUNA.map((c) => ({
     value: TITULOS[c],
     fontWeight: "bold" as const,

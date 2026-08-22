@@ -24,13 +24,34 @@ import { basename } from "node:path";
 
 const USO = `
 Uso:
-  npm run importar -- --modelo               gera modelo-associados.xlsx
-  npm run importar -- <arquivo.xlsx>         confere, sem gravar nada
-  npm run importar -- <arquivo.xlsx> --gravar  grava
+  npm run importar -- --modelo [destino.xlsx]   gera o modelo (padrão: modelo-associados.xlsx)
+  npm run importar -- <arquivo.xlsx>            confere, sem gravar nada
+  npm run importar -- <arquivo.xlsx> --gravar   grava
 `.trim();
+
+const CONHECIDOS = new Set(["--modelo", "--gravar"]);
 
 async function principal(): Promise<void> {
   const argumentos = process.argv.slice(2);
+
+  /*
+    Argumento desconhecido é erro, não é ignorado — mesma forma do `publicar`.
+
+    Sem isto, uma flag digitada errado (`--modeloo`) vira um argumento solto
+    qualquer, e sob `--modelo` o primeiro argumento solto vira o DESTINO do
+    arquivo. Com a ordem trocada (`npm run importar -- associados.xlsx
+    --modelo`), a planilha preenchida pela AMI vira o destino do modelo.
+    `gerarModelo` ainda recusa sobrescrever, mas o argumento desconhecido é a
+    primeira linha de defesa.
+  */
+  const desconhecidos = argumentos.filter((a) => a.startsWith("--") && !CONHECIDOS.has(a));
+  if (desconhecidos.length) {
+    console.error(`Não conheço ${desconhecidos.join(", ")}.\n`);
+    console.error(USO);
+    process.exitCode = 1;
+    return;
+  }
+
   const querGravar = argumentos.includes("--gravar");
   const soltos = argumentos.filter((a) => !a.startsWith("--"));
 
@@ -117,13 +138,20 @@ async function principal(): Promise<void> {
   const resumo = await gravar(cliente, plano);
 
   console.log("");
-  console.log(`  bairros criados        ${resumo.bairrosCriados}`);
-  console.log(`  médicos criados        ${resumo.medicosCriados}`);
-  console.log(`  médicos atualizados    ${resumo.medicosAtualizados}`);
-  console.log(`  endereços criados      ${resumo.enderecosCriados}`);
-  console.log(`  endereços atualizados  ${resumo.enderecosAtualizados}`);
-  console.log(`  especialidades ligadas ${resumo.vinculosCriados}`);
-  console.log(`  RQE corrigidos         ${resumo.rqesCorrigidos}`);
+  console.log(`  bairros criados          ${resumo.bairrosCriados}`);
+  console.log(`  médicos criados          ${resumo.medicosCriados}`);
+  /*
+    `resumo.medicosAtualizados` conta só quem teve UPDATE na tabela
+    `profissional` (nome, telemedicina, associado_ami) — não todo médico com
+    QUALQUER alteração, que é o que a conferência mostra em "com alteração".
+    Endereço e especialidade têm linha própria logo abaixo; o rótulo precisa
+    dizer isso, ou o número aqui parece contradizer o da conferência.
+  */
+  console.log(`  perfis com dado próprio mudado ${resumo.medicosAtualizados}`);
+  console.log(`  endereços criados        ${resumo.enderecosCriados}`);
+  console.log(`  endereços atualizados    ${resumo.enderecosAtualizados}`);
+  console.log(`  especialidades ligadas   ${resumo.vinculosCriados}`);
+  console.log(`  RQE corrigidos           ${resumo.rqesCorrigidos}`);
   console.log("");
   console.log(
     "Ninguém foi publicado. Para colocar no ar: npm run publicar -- --com-especialidade --com-local",

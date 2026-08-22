@@ -1,5 +1,7 @@
 import type { Aviso, Plano } from "@/lib/importador/tipos";
 
+const QUANTOS_DETALHAR = 20;
+
 /*
   O relatório da conferência.
 
@@ -33,6 +35,17 @@ function ehPendencia(a: Aviso): boolean {
   return a.tipo !== "nome-mudou";
 }
 
+/** Um médico de `atualizar` que a gravação não tocaria não é uma atualização. */
+function temAlteracao(m: Plano["atualizar"][number]): boolean {
+  return (
+    m.mudancas.length > 0 ||
+    m.especialidadesNovas.length > 0 ||
+    m.especialidadesAtualizadas.length > 0 ||
+    m.enderecosNovos.length > 0 ||
+    m.enderecosAtualizados.length > 0
+  );
+}
+
 export function planoEstaLimpo(plano: Plano): boolean {
   return plano.erros.length === 0 && !plano.avisos.some(ehPendencia);
 }
@@ -46,7 +59,13 @@ export function relatorio(plano: Plano): string {
   );
   l.push("");
   l.push(`  cria       ${String(plano.criar.length).padStart(6)} médicos`);
-  l.push(`  atualiza   ${String(plano.atualizar.length).padStart(6)} médicos`);
+
+  const comAlteracao = plano.atualizar.filter(temAlteracao);
+  l.push(
+    `  atualiza   ${String(plano.atualizar.length).padStart(6)} médicos` +
+      ` (${comAlteracao.length} com alteração)`,
+  );
+
   l.push(`  rejeita    ${String(plano.erros.length).padStart(6)} linhas`);
 
   if (plano.colunasIgnoradas.length) {
@@ -64,6 +83,64 @@ export function relatorio(plano: Plano): string {
         const base = `  ${pontilhado(b.nome)} ${b.medicos} ${b.medicos === 1 ? "médico" : "médicos"}`;
         return b.parecidoCom ? `${base}    (!) parecido com "${b.parecidoCom}"` : base;
       }),
+    ),
+  );
+
+  /*
+    O que a gravação muda em quem já está no banco, campo a campo. Sem isto a
+    conferência dizia "atualiza 498 médicos" sem dizer o quê — e a partir da
+    segunda rodada TODO médico cai em `atualizar`, mesmo quando a gravação não
+    tocaria em nada nele. Truncado como o `publicar` trunca `FICAM DE FORA`,
+    porque numa rodada real isso pode ter centenas de linhas.
+  */
+  l.push(
+    ...secao("O QUE MUDA EM QUEM JÁ ESTÁ NO BANCO", [
+      ...comAlteracao.slice(0, QUANTOS_DETALHAR).flatMap((m) => [
+        `  CRM/${m.crmUf} ${m.crm}  ${m.nome}`,
+        ...m.mudancas.map((c) => `      ${c.campo.padEnd(14)} ${c.de || "(vazio)"} → ${c.para}`),
+        ...(m.especialidadesNovas.length
+          ? [`      ${"especialidade".padEnd(14)} ganha ${m.especialidadesNovas.length}`]
+          : []),
+        ...(m.especialidadesAtualizadas.length
+          ? [`      ${"RQE".padEnd(14)} corrigido em ${m.especialidadesAtualizadas.length}`]
+          : []),
+        ...(m.enderecosNovos.length
+          ? [`      ${"endereço".padEnd(14)} ganha ${m.enderecosNovos.length}`]
+          : []),
+        ...m.enderecosAtualizados.flatMap((e) =>
+          e.mudancas.map((c) => `      endereço ${e.id}: ${c.campo} ${c.de || "(vazio)"} → ${c.para}`),
+        ),
+      ]),
+      ...(comAlteracao.length > QUANTOS_DETALHAR
+        ? [`  … e mais ${comAlteracao.length - QUANTOS_DETALHAR} médicos com alteração`]
+        : []),
+    ]),
+  );
+
+  /* Endereço que o banco tem e a planilha não trouxe. É relatado, nunca
+     apagado — a promessa central da seção 6 da spec. */
+  const enderecosSoNoBanco = plano.atualizar.reduce((t, m) => t + m.enderecosSoNoBanco, 0);
+  l.push(
+    ...secao(
+      "ENDEREÇOS NO BANCO E FORA DESTE ARQUIVO",
+      [
+        `  ${enderecosSoNoBanco} ${enderecosSoNoBanco === 1 ? "endereço" : "endereços"}. ` +
+          "Nada será feito com eles.",
+      ].filter(() => enderecosSoNoBanco > 0),
+    ),
+  );
+
+  /* Endereço órfão: sobra de gravação interrompida, sem médico ligado. Fica
+     fora do retrato de propósito (`scripts/retrato.ts`), e é contado aqui só
+     para a rodada seguinte relatar que ele existe, em vez de ficar calada e
+     deixar a próxima gravação inserir um segundo endereço igual. */
+  l.push(
+    ...secao(
+      "ENDEREÇOS SOLTOS NO BANCO",
+      [
+        `  ${plano.enderecosOrfaos} sem médico ligado, de alguma gravação interrompida.`,
+        "  Não aparecem no site e nada será feito com eles.",
+      ].filter(() => plano.enderecosOrfaos > 0),
     ),
   );
 
@@ -124,10 +201,14 @@ export function relatorio(plano: Plano): string {
 
   l.push(
     ...secao(
-      "ENDEREÇOS SEM BAIRRO (não serão gravados)",
+      "ENDEREÇOS INCOMPLETOS (não serão gravados)",
       plano.avisos
-        .filter((a) => a.tipo === "endereco-sem-bairro")
-        .map((a) => `  ${daLinha(a.linha)}  o banco exige bairro em todo endereço`),
+        .filter((a) => a.tipo === "endereco-incompleto")
+        .map((a) =>
+          a.tipo === "endereco-incompleto"
+            ? `  ${daLinha(a.linha)}  falta ${a.falta === "bairro" ? "o bairro" : "o logradouro"}`
+            : "",
+        ),
     ),
   );
 

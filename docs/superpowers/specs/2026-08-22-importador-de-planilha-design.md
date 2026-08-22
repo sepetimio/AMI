@@ -226,13 +226,22 @@ para sempre.
 ### Atualização
 
 Para um CRM já existente, só é escrito o campo que está **preenchido na planilha e
-diferente do banco**. A conferência mostra a diferença campo a campo.
+diferente do banco**. A conferência mostra a diferença campo a campo, na seção "O QUE MUDA
+EM QUEM JÁ ESTÁ NO BANCO" — que é truncada nas primeiras 20 entradas, com a contagem do
+resto, porque numa rodada real isso pode ter centenas de linhas.
+
+Nem todo médico em `atualizar` tem alteração de verdade: a partir da segunda rodada com o
+mesmo arquivo, todo médico já cadastrado cai em `atualizar`, mesmo quando a gravação não
+tocaria em nada nele. O cabeçalho do relatório distingue as duas contagens — `atualiza 498
+médicos (0 com alteração)` — para que rodar o mesmo arquivo duas vezes não pareça, à
+primeira vista, que a segunda rodada reescreve 498 perfis já publicados.
 
 ### Endereços
 
 Casa por logradouro, número e bairro normalizados. Casou, é atualização do endereço
 existente — que é o caso de a AMI corrigir um telefone. Não casou, é endereço novo.
-Endereço que está no banco e não veio na planilha é **relatado, nunca apagado**.
+Endereço que está no banco e não veio na planilha é **relatado, nunca apagado**, na seção
+"ENDEREÇOS NO BANCO E FORA DESTE ARQUIVO".
 
 ### Ausentes
 
@@ -246,7 +255,7 @@ CONFERÊNCIA — associados.xlsx
 523 linhas lidas · 498 médicos distintos
 
   cria           471 médicos
-  atualiza        27 médicos
+  atualiza        27 médicos (9 com alteração)
   rejeita          3 linhas
   ignora           1 coluna do arquivo: "email"
 
@@ -255,10 +264,27 @@ BAIRROS NOVOS (serão criados)
   Vila Nova ............ 8 médicos
   Nova Imperatris ...... 1 médico    (!) parecido com "Nova Imperatriz"
 
+O QUE MUDA EM QUEM JÁ ESTÁ NO BANCO
+  CRM/MA 4821  Ana Souza
+      telefone       (vazio) → 9935243716
+
+ENDEREÇOS NO BANCO E FORA DESTE ARQUIVO
+  2 endereços. Nada será feito com eles.
+
+ENDEREÇOS SOLTOS NO BANCO
+  1 sem médico ligado, de alguma gravação interrompida.
+  Não aparecem no site e nada será feito com eles.
+
 ESPECIALIDADES NÃO RESOLVIDAS
   "Cirurgia Vascular" .. 2 médicos    não reconhecida
-  2 destes tinham RQE, que não será gravado (linhas 41, 190)
+  2 destes tinham RQE, que não será gravado (41, 190)
 ```
+
+As seções `O QUE MUDA EM QUEM JÁ ESTÁ NO BANCO`, `ENDEREÇOS NO BANCO E FORA DESTE ARQUIVO` e
+`ENDEREÇOS SOLTOS NO BANCO` só aparecem quando têm algo a dizer, como toda seção deste
+relatório. A primeira lista, campo a campo, os primeiros 20 médicos com alteração real —
+mudança de campo do perfil, especialidade nova ou corrigida, endereço novo ou atualizado —
+e conta o resto quando passa disso.
 
 A outra pendência, *conhecida, fora do catálogo do banco*, não aparece neste exemplo
 porque hoje ela não acontece de verdade: as duas listas coincidem, 14 especialidades, as
@@ -305,7 +331,10 @@ atendimento e horário de quem não está publicado.
 
 Uma consequência honesta: se a interrupção cair entre criar o endereço e ligá-lo ao
 médico, sobra um endereço solto. Ele não vaza nada — a política `local_publicado` exige
-médico ou estabelecimento publicado — e a rodada seguinte o relata, sem apagar.
+médico ou estabelecimento publicado — e a rodada seguinte o relata, sem apagar, na seção
+"ENDEREÇOS SOLTOS NO BANCO". `scripts/retrato.ts` continua filtrando esse endereço fora de
+`locais`, para não casá-lo com um endereço da planilha e virar "atualização" de algo que não
+pertence a ninguém; a contagem chega ao relatório por um campo à parte, `enderecosOrfaos`.
 
 ### Ordem
 

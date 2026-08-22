@@ -13,6 +13,7 @@ const BASE: Plano = {
   erros: [],
   avisos: [],
   ausentes: [],
+  enderecosOrfaos: 0,
 };
 
 describe("relatorio", () => {
@@ -108,6 +109,71 @@ describe("relatorio", () => {
     expect(t).not.toMatch(/LINHAS REJEITADAS/);
     expect(t).not.toMatch(/NO BANCO E FORA/);
     expect(t).not.toMatch(/RQE CORRIGIDO/);
+    expect(t).not.toMatch(/O QUE MUDA/);
+    expect(t).not.toMatch(/ENDEREÇOS NO BANCO/);
+    expect(t).not.toMatch(/ENDEREÇOS SOLTOS/);
+  });
+});
+
+describe("relatorio — todo campo que a gravação executa aparece na conferência", () => {
+  it("um médico com alteração em todos os campos mostra todos", () => {
+    const t = relatorio({
+      ...BASE,
+      atualizar: [{
+        id: 7, crm: "4821", crmUf: "MA", nome: "Ana Souza",
+        mudancas: [
+          { campo: "nome", de: "Ana Souza", para: "Ana Sousa" },
+          { campo: "telemedicina", de: "não", para: "sim" },
+        ],
+        especialidadesNovas: [{ especialidadeId: 1, rqe: null, principal: false }],
+        especialidadesAtualizadas: [{ especialidadeId: 2, rqe: "1234" }],
+        enderecosNovos: [{
+          logradouro: "Rua Nova", numero: "1", complemento: null,
+          bairro: { tipo: "existente", id: 1 }, cep: null, telefone: null, whatsapp: null,
+        }],
+        enderecosAtualizados: [
+          { id: 30, mudancas: [{ campo: "telefone", de: "9935243716", para: "9988020205" }] },
+        ],
+        enderecosSoNoBanco: 2,
+        linhas: [2],
+      }],
+    });
+
+    expect(t).toContain("CRM/MA 4821");
+    expect(t).toContain("Ana Sousa");
+    expect(t).toContain("telemedicina");
+    expect(t).toMatch(/especialidade/i);
+    expect(t).toMatch(/RQE/);
+    expect(t).toMatch(/endereço/i);
+    expect(t).toContain("9988020205");
+    expect(t).toContain("2 endereços");
+  });
+
+  it("médico sem alteração nenhuma não conta como alterado no cabeçalho", () => {
+    const t = relatorio({
+      ...BASE,
+      atualizar: [{
+        id: 7, crm: "4821", crmUf: "MA", nome: "Ana Souza",
+        mudancas: [], especialidadesNovas: [], especialidadesAtualizadas: [],
+        enderecosNovos: [], enderecosAtualizados: [], enderecosSoNoBanco: 0,
+        linhas: [2],
+      }],
+    });
+    expect(t).toContain("(0 com alteração)");
+    expect(t).not.toMatch(/O QUE MUDA/);
+  });
+});
+
+describe("relatorio — endereços soltos no banco", () => {
+  it("relata quantos existem, sem apagar", () => {
+    const t = relatorio({ ...BASE, enderecosOrfaos: 3 });
+    expect(t).toMatch(/ENDEREÇOS SOLTOS/);
+    expect(t).toContain("3");
+  });
+
+  it("não imprime a seção quando não há nenhum", () => {
+    const t = relatorio({ ...BASE, enderecosOrfaos: 0 });
+    expect(t).not.toMatch(/ENDEREÇOS SOLTOS/);
   });
 });
 
