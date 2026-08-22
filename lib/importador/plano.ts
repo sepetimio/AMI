@@ -100,6 +100,23 @@ export function montarPlano(
       const r = resolverEspecialidade(e.texto, retrato.especialidades);
 
       if (r.tipo === "achada") {
+        /*
+          Dois textos podem resolver para a MESMA especialidade: `agrupar`
+          deduplica por texto ("Clínica Médica" e "internista" são textos
+          diferentes) e o mapa de sinônimos mapeia os dois para o mesmo id.
+          Dois vínculos com a mesma chave primária derrubam o upsert inteiro
+          com o erro 21000 do Postgres, no meio da importação.
+
+          O primeiro vence, e um RQE que só apareça na segunda grafia é
+          aproveitado: perder o número seria o mesmo defeito que
+          `especialidadesAtualizadas` existe para consertar.
+        */
+        const ja = vinculos.find((v) => v.especialidadeId === r.id);
+        if (ja) {
+          if (!ja.rqe && e.rqe) ja.rqe = e.rqe;
+          continue;
+        }
+
         vinculos.push({
           especialidadeId: r.id,
           rqe: e.rqe,
@@ -209,25 +226,36 @@ export function montarPlano(
     );
 
     /*
-      `principal` NUNCA é recalculado para médico que já existe. Ele decidiu a
-      principal dele numa rodada anterior, e o retrato não a carrega — marcar
-      de novo aqui criaria uma segunda linha com principal verdadeiro, que é a
-      instabilidade que a marca existe para evitar. Mesma razão do slug.
+      `principal` só é forçada a falso quando o médico JÁ TEM algum vínculo:
+      aí ele decidiu a principal numa rodada anterior e o retrato não a
+      carrega, então remarcar criaria uma segunda principal.
+
+      Com `jaLigadas` vazio o raciocínio se inverte: ele não decidiu nada, e
+      isso acontece de verdade — uma rodada interrompida entre gravar o
+      profissional e gravar os vínculos deixa o médico exatamente assim.
+      Forçar falso aqui o deixaria sem principal nenhuma, para sempre.
     */
+    const nenhumVinculoAinda = jaLigadas.size === 0;
     const especialidadesNovas = especialidades
       .filter((v) => !jaLigadas.has(v.especialidadeId))
-      .map((v) => ({ ...v, principal: false }));
+      .map((v, i) => ({ ...v, principal: nenhumVinculoAinda && i === 0 }));
 
     /*
       RQE que a planilha corrige numa especialidade já ligada. É o caso central
       do laço de correção: o laço existe, faltava o número. Célula vazia não
       apaga, e RQE igual ao do banco não vira mudança.
+
+      `especialidades` já chega deduplicada por id (a colapsagem acima, em
+      `planejarEspecialidades`), mas a guarda abaixo fica como cinto e
+      suspensório: dois `update` sequenciais pro mesmo par contariam duas
+      correções que são a mesma.
     */
     const especialidadesAtualizadas: { especialidadeId: number; rqe: string }[] = [];
     for (const v of especialidades) {
       if (!jaLigadas.has(v.especialidadeId)) continue;
       if (!v.rqe) continue;
       if (v.rqe === jaLigadas.get(v.especialidadeId)) continue;
+      if (especialidadesAtualizadas.some((x) => x.especialidadeId === v.especialidadeId)) continue;
       especialidadesAtualizadas.push({ especialidadeId: v.especialidadeId, rqe: v.rqe });
     }
 

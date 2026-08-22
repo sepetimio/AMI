@@ -289,6 +289,42 @@ describe("montarPlano — o contexto atravessa intacto", () => {
   });
 });
 
+describe("montarPlano — especialidades que colidem no mesmo id", () => {
+  it("dois textos que resolvem para a mesma especialidade viram um vínculo só", () => {
+    const p = montarPlano(
+      [medico({
+        especialidades: [
+          { texto: "Clínica Médica", rqe: null, linha: 2 },
+          { texto: "internista", rqe: "77", linha: 3 },
+        ],
+      })],
+      VAZIO,
+      CONTEXTO,
+    );
+    expect(p.criar[0].especialidades).toEqual([
+      { especialidadeId: 1, rqe: "77", principal: true },
+    ]);
+  });
+
+  it("médico existente sem nenhum vínculo recebe principal na primeira", () => {
+    const semVinculo: Retrato = {
+      ...VAZIO,
+      profissionais: [{
+        id: 7, slug: "ana-souza", nome: "Ana Souza", crm: "4821", crmUf: "MA",
+        telemedicina: false, associadoAmi: true, publicado: false,
+      }],
+    };
+    const p = montarPlano(
+      [medico({ especialidades: [{ texto: "Cardiologia", rqe: null, linha: 2 }] })],
+      semVinculo,
+      CONTEXTO,
+    );
+    expect(p.atualizar[0].especialidadesNovas).toEqual([
+      { especialidadeId: 2, rqe: null, principal: true },
+    ]);
+  });
+});
+
 describe("montarPlano — especialidades de médico que já existe", () => {
   const ligado: Retrato = {
     ...VAZIO,

@@ -61,7 +61,9 @@ export async function gravar(
     erro({ error }, "Falha ao criar bairros");
 
     for (const b of data ?? []) idDoBairroNovo.set(b.slug, b.id);
-    resumo.bairrosCriados = plano.bairrosNovos.length;
+    /* Do que o banco confirmou, não do que o plano pediu: um `upsert` que
+       devolvesse menos linhas do que enviou passaria por sucesso calado. */
+    resumo.bairrosCriados = idDoBairroNovo.size;
   }
 
   function bairroId(e: EnderecoPlanejado): number {
@@ -77,9 +79,20 @@ export async function gravar(
   const idPorChaveNatural = new Map<string, number>();
 
   if (plano.criar.length) {
+    /*
+      `insert` e não `upsert`, de propósito. Com o retrato completo, um médico
+      aqui que já exista no banco quer dizer que alguma premissa quebrou — e a
+      cláusula de conflito de um upsert mandaria `slug` e `publicado: false`
+      junto, despublicando um perfil no ar e trocando a URL dele. Violação de
+      unicidade barulhenta é infinitamente melhor do que isso.
+
+      Continua repetível: uma rodada interrompida deixa os médicos gravados
+      visíveis para o retrato da rodada seguinte, que os manda para
+      `atualizar` em vez de `criar`.
+    */
     const { data, error } = await cliente
       .from("profissional")
-      .upsert(
+      .insert(
         plano.criar.map((m) => ({
           slug: m.slug,
           nome: m.nome,
@@ -90,13 +103,13 @@ export async function gravar(
           /* Sempre. Publicar é o outro comando, com filtro próprio. */
           publicado: false,
         })),
-        { onConflict: "crm,crm_uf" },
       )
       .select("id, crm, crm_uf");
     erro({ error }, "Falha ao criar médicos");
 
     for (const p of data ?? []) idPorChaveNatural.set(`${p.crm}|${p.crm_uf}`, p.id);
-    resumo.medicosCriados = plano.criar.length;
+    /* Do que o banco confirmou, não do que o plano pediu. */
+    resumo.medicosCriados = idPorChaveNatural.size;
   }
 
   /* --- 3. Médicos existentes --- */
@@ -106,8 +119,13 @@ export async function gravar(
     const campos: Record<string, unknown> = { atualizado_em: new Date().toISOString() };
     for (const mud of m.mudancas) {
       if (mud.campo === "nome") campos.nome = mud.para;
-      if (mud.campo === "telemedicina") campos.telemedicina = mud.para === "sim";
-      if (mud.campo === "associado_ami") campos.associado_ami = true;
+      else if (mud.campo === "telemedicina") campos.telemedicina = mud.para === "sim";
+      else if (mud.campo === "associado_ami") campos.associado_ami = true;
+      else {
+        throw new Error(
+          `Campo desconhecido "${mud.campo}" no médico ${m.crm}/${m.crmUf}.`,
+        );
+      }
     }
 
     const { error } = await cliente.from("profissional").update(campos).eq("id", m.id);
@@ -120,7 +138,11 @@ export async function gravar(
 
   for (const m of plano.criar) {
     const id = idPorChaveNatural.get(`${m.crm}|${m.crmUf}`);
-    if (id === undefined) continue;
+    if (id === undefined) {
+      throw new Error(
+        `O banco não devolveu o id do médico ${m.crm}/${m.crmUf} depois de criá-lo.`,
+      );
+    }
     for (const v of m.especialidades) {
       vinculos.push({
         profissional_id: id,
@@ -199,6 +221,12 @@ export async function gravar(
     erro({ error }, "Falha ao criar endereços");
 
     const ids = (data ?? []).map((l) => l.id as number);
+    if (ids.length !== enderecos.length) {
+      throw new Error(
+        `O banco confirmou ${ids.length} de ${enderecos.length} endereços do médico ` +
+          `${profissionalId}. Os que entraram ficaram sem atendimento — confira antes de rodar de novo.`,
+      );
+    }
     resumo.enderecosCriados += ids.length;
 
     /*
@@ -218,7 +246,11 @@ export async function gravar(
 
   for (const m of plano.criar) {
     const id = idPorChaveNatural.get(`${m.crm}|${m.crmUf}`);
-    if (id === undefined) continue;
+    if (id === undefined) {
+      throw new Error(
+        `O banco não devolveu o id do médico ${m.crm}/${m.crmUf} depois de criá-lo.`,
+      );
+    }
     await criarEnderecos(id, m.enderecos);
   }
 
