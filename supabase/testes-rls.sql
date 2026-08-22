@@ -22,10 +22,19 @@ declare
   medico_id    bigint;
   quantos      bigint;
 begin
-  -- Um médico despublicado, criado dentro da transação para o teste.
+  -- Um médico despublicado, criado dentro da transação para o teste. CRM
+  -- gerado, não fixo, para não colidir com a unicidade (crm, crm_uf) de um
+  -- registro real e abortar o script inteiro por causa alheia à política.
   insert into profissional (slug, nome, crm, crm_uf, publicado)
-  values ('teste-rls-' || gen_random_uuid(), 'Teste RLS', '999999', 'MA', false)
+  values ('teste-rls-' || gen_random_uuid(), 'Teste RLS',
+          '999' || floor(random() * 1000000)::text, 'MA', false)
   returning id into medico_id;
+
+  -- Dentro da transação, e desfeito no rollback. Sem isto, a primeira rodada
+  -- depois da migração falharia dizendo que a política do admin está quebrada,
+  -- quando o que falta é a linha de perfil.
+  insert into perfil_usuario (id, papel) values (admin_uuid, 'admin')
+  on conflict (id) do update set papel = 'admin';
 
   ---------------------------------------------------------------- visitante
   set local role anon;
@@ -53,6 +62,20 @@ begin
   if quantos <> 0 then
     raise exception 'FALHOU: conta sem perfil nao ve nada';
   end if;
+
+  begin
+    update profissional set nome = 'invadido' where id = medico_id;
+    if found then raise exception 'FALHOU: conta sem perfil nao grava'; end if;
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  begin
+    insert into perfil_usuario (id, papel) values (ninguem_uuid, 'admin');
+    raise exception 'FALHOU: ninguem se promove a admin';
+  exception when insufficient_privilege then
+    null;
+  end;
 
   reset role;
 

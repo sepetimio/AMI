@@ -1,6 +1,6 @@
 -- O painel da agência: quem é quem, e quem pode escrever.
 --
--- Esta é a primeira migração do projeto que concede escrita. Até aqui as dez
+-- Esta é a primeira migração do projeto que concede escrita. Até aqui as onze
 -- políticas existentes eram todas `for select`, e o banco só sabia ler.
 
 create table perfil_usuario (
@@ -24,14 +24,19 @@ create policy leitura_do_proprio_perfil on perfil_usuario
 /*
   Quem está pedindo é admin?
 
-  `security definer` é obrigatório pelo mesmo motivo que já obrigou em
-  `local_publicado` (0002_rls.sql): sem ele, a política que consulta
-  perfil_usuario dispara a política de perfil_usuario, e recursa. O
-  `search_path` fixo impede que alguém troque o significado de
-  `perfil_usuario` por um objeto homônimo.
+  `security definer` não é necessário HOJE: a única política de
+  `perfil_usuario` é `id = auth.uid()`, que não consulta outra tabela, então a
+  cadeia termina e não há recursão. Fica assim mesmo porque no dia em que uma
+  fatia seguinte acrescentar "admin lê todos os perfis" — uma política sobre
+  `perfil_usuario` que chame esta função — a recursão vira real, e ninguém vai
+  lembrar de voltar aqui para acrescentar o modificador.
+
+  `pg_temp` no fim do caminho de busca é o que impede uma tabela temporária
+  homônima de sombrear `perfil_usuario` dentro de uma função que roda como
+  dona. A função não recebe argumento, então não há o que um chamador amplie.
 */
 create function eh_admin() returns boolean
-  language sql stable security definer set search_path = public
+  language sql stable security definer set search_path = public, pg_temp
   as $$
     select exists (
       select 1 from perfil_usuario
@@ -44,15 +49,23 @@ create function eh_admin() returns boolean
   Políticas somam: a de leitura do visitante continua `publicado = true` e não
   afrouxa. Vale para as tabelas dependentes também, porque a lista do painel
   precisa mostrar especialidade e bairro de quem ainda não está no ar.
+
+  `eh_admin()` também entra nas consultas do visitante anônimo, porque
+  políticas somam: toda leitura de `profissional` passa a avaliar
+  `publicado = true or eh_admin()`. `(select eh_admin())` em vez de
+  `eh_admin()` deixa o planejador tratar a chamada como uma subconsulta
+  içável e avaliá-la uma vez por consulta, não uma vez por linha — sem isto,
+  o custo desta fatia cairia sobre o site público, que é o caminho que mais
+  interessa manter rápido.
 */
-create policy admin_le_profissional     on profissional            for select using (eh_admin());
-create policy admin_le_prof_esp         on profissional_especialidade for select using (eh_admin());
-create policy admin_le_formacao         on formacao                for select using (eh_admin());
-create policy admin_le_estabelecimento  on estabelecimento         for select using (eh_admin());
-create policy admin_le_local            on local                   for select using (eh_admin());
-create policy admin_le_acessibilidade   on local_acessibilidade    for select using (eh_admin());
-create policy admin_le_atendimento      on atendimento             for select using (eh_admin());
-create policy admin_le_horario          on horario                 for select using (eh_admin());
+create policy admin_le_profissional     on profissional            for select using ((select eh_admin()));
+create policy admin_le_prof_esp         on profissional_especialidade for select using ((select eh_admin()));
+create policy admin_le_formacao         on formacao                for select using ((select eh_admin()));
+create policy admin_le_estabelecimento  on estabelecimento         for select using ((select eh_admin()));
+create policy admin_le_local            on local                   for select using ((select eh_admin()));
+create policy admin_le_acessibilidade   on local_acessibilidade    for select using ((select eh_admin()));
+create policy admin_le_atendimento      on atendimento             for select using ((select eh_admin()));
+create policy admin_le_horario          on horario                 for select using ((select eh_admin()));
 
 /*
   Admin grava em `profissional`, e só nela nesta fatia.
@@ -71,3 +84,24 @@ create policy admin_cria_profissional on profissional
 
 create policy admin_altera_profissional on profissional
   for update using (eh_admin()) with check (eh_admin());
+
+/*
+  `local_publicado` nasceu em 0002_rls.sql sem `pg_temp` no caminho de busca,
+  e por isso podia ser enganada por uma tabela temporária homônima. Corrigida
+  aqui, e não lá, porque migração já aplicada não se edita: o arquivo passaria
+  a divergir do banco de quem já rodou.
+
+  O corpo é idêntico ao original — só o caminho de busca muda.
+*/
+create or replace function local_publicado(id_local bigint) returns boolean
+  language sql stable security definer set search_path = public, pg_temp
+  as $$
+    select exists (
+             select 1 from local l
+             join estabelecimento e on e.id = l.estabelecimento_id
+             where l.id = id_local and e.publicado = true)
+        or exists (
+             select 1 from atendimento a
+             join profissional p on p.id = a.profissional_id
+             where a.local_id = id_local and p.publicado = true);
+  $$;

@@ -19,7 +19,8 @@ describe("0005_painel.sql", () => {
   const sql = fonte("../supabase/migrations/0005_painel.sql").toLowerCase();
 
   it("não concede remoção em tabela nenhuma", () => {
-    expect(sql).not.toMatch(/for\s+delete/);
+    expect(sql).not.toMatch(/for\s+(delete|all)\b/);
+    expect(sql).not.toMatch(/\bgrant\b/);
     expect(sql).not.toMatch(/\bdrop\s+table\b/);
     expect(sql).not.toMatch(/\btruncate\b/);
   });
@@ -29,11 +30,21 @@ describe("0005_painel.sql", () => {
   });
 
   it("a função de papel é security definer com search_path fixo", () => {
-    /* Sem `security definer`, a política que consulta perfil_usuario dispara a
-       política de perfil_usuario e recursa. Sem `search_path` fixo, alguém
-       troca o significado da tabela por um objeto homônimo. */
-    expect(sql).toMatch(/create\s+function\s+eh_admin[\s\S]*security\s+definer/);
-    expect(sql).toMatch(/create\s+function\s+eh_admin[\s\S]*set\s+search_path\s*=\s*public/);
+    /* `security definer` não é necessário hoje — a única política de
+       perfil_usuario é `id = auth.uid()`, que não consulta outra tabela, e a
+       cadeia não recursa. Fica assim porque a primeira política futura que ler
+       perfil_usuario via eh_admin() torna a recursão real, e ninguém vai
+       lembrar de voltar aqui. `search_path` fixo impede que alguém troque o
+       significado da tabela por um objeto homônimo — inclusive uma tabela
+       temporária da própria sessão, daí `pg_temp` no caminho de busca.
+
+       O corpo é isolado até o `$$;` que fecha eh_admin(): sem isso, a
+       asserção casaria com qualquer `security definer` mais adiante no
+       arquivo, inclusive o de local_publicado. */
+    const corpo = sql.match(/create\s+function\s+eh_admin\(\)[\s\S]*?\$\$;/);
+    expect(corpo, "não achou o corpo de eh_admin()").not.toBeNull();
+    expect(corpo![0]).toMatch(/security\s+definer/);
+    expect(corpo![0]).toMatch(/set\s+search_path\s*=\s*public/);
   });
 
   it("concede escrita apenas em profissional nesta fatia", () => {
