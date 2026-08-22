@@ -59,18 +59,37 @@ De volta ao **SQL Editor**, **New query**, rode:
 select id, email from auth.users;
 ```
 
-Copie o `id` (um uuid) da conta que acabou de ser criada.
+Copie o `id` (um uuid) da conta que acabou de ser criada. Ele não é
+preciso no passo 5, que procura a conta pelo e-mail — é no passo 6, a
+conferência das políticas, que ele entra.
 
 ---
 
 ## 5. Dar o papel de admin
 
-Ainda no **SQL Editor**, cole o comando abaixo trocando `<o uuid>` pelo valor
-copiado no passo anterior, e clique em **Run**:
+Ainda no **SQL Editor**, cole o comando abaixo trocando `o-email-da-conta`
+pelo e-mail do passo 3, e clique em **Run**:
 
 ```sql
-insert into perfil_usuario (id, papel) values ('<o uuid>', 'admin');
+insert into perfil_usuario (id, papel)
+select id, 'admin' from auth.users
+where lower(email) = lower('o-email-da-conta')
+returning id, papel;
 ```
+
+O comando procura a conta pelo e-mail em vez de pedir o uuid colado a mão,
+porque colar uuid erra de dois jeitos que o banco recusa com mensagens pouco
+óbvias: levar junto os sinais `<` `>` da marcação do lugar a preencher
+(`invalid input syntax for type uuid`), ou perder um caractere no caminho
+(`violates foreign key constraint`).
+
+O `returning` no fim é a conferência: **uma linha** com o uuid e `admin`
+quer dizer que deu certo. `Success. No rows returned` quer dizer que nenhuma
+conta tem esse e-mail — nada foi gravado, e o e-mail precisa sair de
+`select id, email from auth.users;` exatamente como está lá.
+
+Se a resposta for `duplicate key value violates unique constraint
+"perfil_usuario_pkey"`, o comando já rodou antes e deu certo; não é falha.
 
 Sem esta linha, a conta entra (o Supabase autentica normalmente) mas nenhuma
 política do banco a reconhece: `exigirAdmin()` encerra a sessão e manda de
