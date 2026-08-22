@@ -81,6 +81,12 @@ describe("resolverEspecialidade — as duas pendências, que são diferentes", (
     });
   });
 
+  it("nome formal de especialidade fora do catálogo é fora-do-catalogo, não desconhecida", () => {
+    expect(resolverEspecialidade("Otorrinolaringologia", ESPECIALIDADES)).toEqual({
+      tipo: "fora-do-catalogo", nome: "Otorrinolaringologia",
+    });
+  });
+
   it("texto vazio é desconhecido, não estoura", () => {
     expect(resolverEspecialidade("", ESPECIALIDADES)).toEqual({ tipo: "desconhecida" });
   });

@@ -256,7 +256,7 @@ BAIRROS NOVOS (serão criados)
   Nova Imperatris ...... 1 médico    (!) parecido com "Nova Imperatriz"
 
 ESPECIALIDADES NÃO RESOLVIDAS
-  "Mastologia" ......... 6 médicos    conhecida, fora do catálogo do banco
+  "Otorrinolaringologia" 6 médicos    conhecida, fora do catálogo do banco
   "Cirurgia Vascular" .. 2 médicos    não reconhecida
   2 destes tinham RQE, que não será gravado (linhas 41, 190)
 
@@ -408,9 +408,6 @@ para que nenhum binário entre no versionamento.
 
 ## 12. Pendências e riscos
 
-- **`tsx` não está declarado.** O script `doc-legal` já depende dele e ele só existe no
-  projeto por dependência transitiva. O importador aumenta a exposição. Entra como
-  dependência de desenvolvimento explícita
 - **A planilha real ainda não existe.** O importador é construído e testado contra
   arquivos gerados nos testes; a primeira rodada com dados reais vai revelar formato que
   este documento não previu, e é para isso que a conferência existe
@@ -419,5 +416,3 @@ para que nenhum binário entre no versionamento.
 - **Endereço duplicado entre médicos da mesma clínica** é consequência aceita de deixar
   `estabelecimento` fora. Se incomodar depois, o conserto é unir endereços iguais, não
   mudar o formato da planilha
-- **`docs/como-remontar-o-ambiente.md` ainda não existe.** É pendência do plano de
-  implementação, não deste desenho

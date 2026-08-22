@@ -47,6 +47,11 @@ export function resolverEspecialidade(
   const n = normalizar(texto);
   const sinonimo = SINONIMOS.find(
     (s) =>
+      /* O nome formal também. Sem ele, "Otorrinolaringologia" — a grafia que a
+         AMI tem mais chance de escrever — cai em `desconhecida`, que manda
+         corrigir a planilha, quando a planilha está certa e o incompleto é o
+         catálogo do banco. */
+      normalizar(s.especialidade) === n ||
       normalizar(s.singular) === n ||
       normalizar(s.plural) === n ||
       (s.tokensExtras ?? []).some((t) => normalizar(t) === n),
