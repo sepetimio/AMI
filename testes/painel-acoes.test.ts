@@ -1,12 +1,33 @@
+import { readdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { fonte, semComentarios } from "@/testes/apoio";
 
-const ACOES = [
-  "../app/painel/acoes.ts",
-  "../app/painel/entrar/acoes.ts",
-];
+/*
+  Varredura em vez de lista à mão: a fatia 2 acrescenta várias ações, e uma
+  lista literal é garantia que apodrece sozinha — este arquivo já ficou duas
+  tarefas cobrindo dois terços do que dizia cobrir.
+*/
+function acoesDoPainel(relativo: string): string[] {
+  const dir = fileURLToPath(new URL(relativo, import.meta.url));
+  const achados: string[] = [];
+
+  for (const entrada of readdirSync(dir, { withFileTypes: true })) {
+    const caminho = `${relativo}/${entrada.name}`;
+    if (entrada.isDirectory()) achados.push(...acoesDoPainel(caminho));
+    else if (entrada.name === "acoes.ts") achados.push(caminho);
+  }
+
+  return achados;
+}
+
+const ACOES = acoesDoPainel("../app/painel");
 
 describe("as ações do painel", () => {
+  it("a varredura acha os três arquivos de ação", () => {
+    expect(ACOES.length).toBeGreaterThanOrEqual(3);
+  });
+
   for (const caminho of ACOES) {
     it(`${caminho} é ação de servidor`, () => {
       expect(fonte(caminho).trimStart().startsWith('"use server"')).toBe(true);

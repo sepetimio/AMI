@@ -103,12 +103,13 @@ export async function proxy(request: NextRequest) {
     return entregar(NextResponse.redirect(destino));
   }
 
-  if (user && naTelaDeEntrar) {
-    const destino = request.nextUrl.clone();
-    destino.pathname = "/painel";
-    destino.search = "";
-    return entregar(NextResponse.redirect(destino));
-  }
+  /*
+    Não existe desvio de volta para quem já está logado e abre a tela de
+    entrar. Ele existiu, e formava um laço com o desvio de `exigirAdmin()`:
+    conta sem papel ia para a tela de entrar, voltava para `/painel`, e
+    recomeçava. Era conveniência — o admin logado agora vê o formulário em
+    vez de ser levado à lista —, e conveniência não paga um laço.
+  */
 
   return entregar(NextResponse.next({ request }));
 }

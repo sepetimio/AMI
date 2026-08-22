@@ -73,8 +73,8 @@ insert into perfil_usuario (id, papel) values ('<o uuid>', 'admin');
 ```
 
 Sem esta linha, a conta entra (o Supabase autentica normalmente) mas nenhuma
-política do banco a reconhece: `exigirAdmin()` manda de volta para
-`/painel/entrar`, num laço que parece um bug e não é.
+política do banco a reconhece: `exigirAdmin()` encerra a sessão e manda de
+volta para `/painel/entrar`, que volta a mostrar o formulário de entrar.
 
 ---
 

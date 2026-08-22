@@ -39,4 +39,10 @@ describe("lib/painel/sessao.ts", () => {
     expect(codigo).toContain("getUser()");
     expect(codigo).not.toContain("getSession()");
   });
+
+  it("encerra a sessão da conta sem papel antes de desviar", () => {
+    /* Sem isto, a conta volta logada para a tela de entrar e o laço reabre. */
+    const codigo = semComentarios(fonte("../lib/painel/sessao.ts"));
+    expect(codigo).toContain("signOut()");
+  });
 });

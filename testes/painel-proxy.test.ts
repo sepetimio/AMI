@@ -1,10 +1,5 @@
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-
-function fonte(relativo: string): string {
-  return readFileSync(fileURLToPath(new URL(relativo, import.meta.url)), "utf8");
-}
+import { fonte } from "@/testes/apoio";
 
 /*
   Duas armadilhas medidas, e as duas falham em silêncio.
@@ -51,6 +46,15 @@ describe("proxy.ts", () => {
     expect(codigo).not.toMatch(/return\s+NextResponse\.redirect/);
     expect(codigo).toMatch(/return\s+entregar\(/);
   });
+
+  it("não desvia quem já está logado para fora da tela de entrar", () => {
+    /*
+      Esse desvio formava um laço com o de `exigirAdmin()`: uma conta sem
+      linha em `perfil_usuario` alternava entre os dois até o navegador
+      desistir, sem escapatória pelo aplicativo.
+    */
+    expect(codigo).not.toMatch(/user\s*&&\s*naTelaDeEntrar/);
+  });
 });
 
 describe("lib/painel/servidor.ts", () => {
@@ -61,6 +65,11 @@ describe("lib/painel/servidor.ts", () => {
   });
 
   it("usa a chave pública, que é o que faz as políticas valerem", () => {
-    expect(codigo).toContain("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    /*
+      `process.env.` na frente de propósito: o nome sozinho aparece também na
+      mensagem de erro deste arquivo, e a asserção passaria com a leitura
+      apagada e uma chave cravada no código.
+    */
+    expect(codigo).toContain("process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY");
   });
 });

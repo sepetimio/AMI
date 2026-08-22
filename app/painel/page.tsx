@@ -27,7 +27,7 @@ export default async function PaginaDoPainel({
     <>
       <h1 className="text-[28px] font-semibold text-ink-900">Médicos</h1>
       <p className="mt-1 text-[16px] text-ink-600">
-        {q
+        {q?.trim()
           ? `${contagem(total, "resultado", "resultados")} para "${q}".`
           : `${contagem(total, "médico no cadastro", "médicos no cadastro")}, publicados ou não.`}
       </p>

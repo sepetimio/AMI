@@ -45,9 +45,32 @@ export async function sessaoAtual(): Promise<Sessao | null> {
   };
 }
 
-/** Devolve a sessão do admin, ou desvia para a tela de entrar. */
+/**
+ * Devolve a sessão do admin, ou desvia para a tela de entrar.
+ *
+ * Duas situações, dois tratamentos:
+ *
+ * SEM PAPEL NENHUM — conta que existe na autenticação e não tem linha em
+ * `perfil_usuario`. A sessão é encerrada antes do desvio, e isso não é
+ * zelo: sem encerrar, a pessoa chega à tela de entrar ainda logada, o
+ * `proxy` a manda de volta para `/painel`, e as duas se revezam até o
+ * navegador desistir. É o estado normal de quem criou a conta e esqueceu de
+ * colar a linha de perfil.
+ *
+ * PAPEL ERRADO — associado, na Fase 2. Só desvia. Encerrar a sessão de um
+ * associado válido que clicou num link de admin seria tirá-lo de onde ele
+ * pode estar.
+ */
 export async function exigirAdmin(): Promise<Sessao> {
   const sessao = await sessaoAtual();
-  if (!sessao || sessao.papel !== "admin") redirect("/painel/entrar");
+
+  if (!sessao) {
+    const cliente = await clienteDoPainel();
+    await cliente.auth.signOut();
+    redirect("/painel/entrar");
+  }
+
+  if (sessao.papel !== "admin") redirect("/painel/entrar");
+
   return sessao;
 }

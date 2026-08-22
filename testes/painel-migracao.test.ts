@@ -1,6 +1,5 @@
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { fonte } from "@/testes/apoio";
 
 /*
   A migração do painel é a primeira do projeto que concede escrita.
@@ -11,9 +10,6 @@ import { describe, expect, it } from "vitest";
   caminho — inclusive do admin. É a mesma garantia que o importador tem, aqui
   no lugar onde ela é mais barata de perder.
 */
-function fonte(relativo: string): string {
-  return readFileSync(fileURLToPath(new URL(relativo, import.meta.url)), "utf8");
-}
 
 describe("0005_painel.sql", () => {
   const sql = fonte("../supabase/migrations/0005_painel.sql").toLowerCase();

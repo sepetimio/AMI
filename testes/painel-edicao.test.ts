@@ -43,6 +43,7 @@ describe("salvarMedico", () => {
     */
     expect(codigo).toContain('.select("id")');
     expect(codigo).toContain("maybeSingle()");
+    expect(codigo).toContain("Não encontrei este médico para salvar");
   });
 
   it("traduz a colisão de CRM em vez de mostrar o erro cru do banco", () => {
