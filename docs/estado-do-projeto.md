@@ -1,6 +1,6 @@
 # Estado do projeto — Site da Associação Médica de Imperatriz
 
-> Atualizado em 21 de agosto de 2026 · ramo `main`, 129 commits
+> Atualizado em 21 de agosto de 2026 · ramo `main`, 132 commits
 > Repositório: `github.com/sepetimio/AMI`
 > Especificação: [`docs/superpowers/specs/2026-08-19-site-ami-diretorio-design.md`](superpowers/specs/2026-08-19-site-ami-diretorio-design.md)
 
@@ -37,7 +37,7 @@ A busca entende variação de nome de profissão: quem digita "cardiologista" en
 | `/associacao` | Página-índice da associação | no ar |
 | `/associacao/diretoria` | Diretoria, com cargo, nome e CRM, ligada aos perfis | no ar |
 | `/associacao/{beneficios,estatuto,politica-editorial}` | Páginas de texto | **404 até a AMI escrever** |
-| `/politica-de-privacidade`, `/termos-de-uso`, `/politica-de-cookies` | Páginas legais | **404 até a AMI escrever** |
+| `/politica-de-privacidade`, `/termos-de-uso`, `/politica-de-cookies` | Páginas legais | no ar, com **rascunho não revisado** e aviso visível |
 | `/studio` | Painel de conteúdo do Sanity, em português | no ar |
 
 ### Fundação
@@ -60,26 +60,31 @@ A busca entende variação de nome de profissão: quem digita "cardiologista" en
 
 ### 1. Conteúdo da AMI, e isto bloqueia o lançamento
 
-**Seis páginas de texto**, criadas em `/studio`, tipo "Página institucional". Enquanto não existirem, seis endereços dão 404 e há links quebrados no rodapé e na página da associação.
+**Três páginas de texto** ainda não existem, criadas em `/studio`, tipo "Página institucional". Enquanto não existirem, três endereços dão 404 e há links quebrados na página da associação.
 
 | Endereço a escolher no campo "Endereço" | Prioridade |
 |---|---|
-| `politica-de-privacidade` | **Alta.** Exigência legal, precisa de advogado |
-| `termos-de-uso` | **Alta.** Exigência legal, precisa de advogado |
-| `politica-de-cookies` | **Alta.** Exigência legal, precisa de advogado |
-| `politica-editorial` | **Alta.** É o que faz o Google reconhecer o site como fonte confiável em saúde |
+| `politica-editorial` | **Alta.** É o que faz o Google reconhecer o site como fonte confiável em saúde. Não depende de advogado |
 | `estatuto` | Média |
 | `beneficios` | Média |
 
-Cada uma pede: Título, Endereço, Resumo entre 60 e 220 caracteres, data de atualização e o texto.
+**As três páginas legais** (privacidade, termos, cookies) já estão no ar com **rascunho redigido a partir do funcionamento medido do site**, e aviso visível de que não passaram por advogado. O documento para revisão está em [`docs/rascunhos-textos-legais.md`](rascunhos-textos-legais.md), gerado da mesma fonte que o site renderiza.
 
-> **As três legais precisam de revisão por advogado de direito médico antes do lançamento.** Está registrado como pendência na especificação desde o início, e não é decisão de desenvolvimento.
+> **A revisão por advogado de direito médico continua obrigatória antes do lançamento.** Publicado o texto revisado no Studio, ele substitui o rascunho, o aviso some e a página entra no sitemap sozinha, que hoje não a lista de propósito: rascunho não convida buscador.
+
+Duas informações dentro dos rascunhos dependem da AMI:
+
+1. **O encarregado pelo tratamento de dados**, que o artigo 41 da Lei 13.709/2018 exige designar. Falta nome e contato
+2. **O prazo de guarda dos registros de acesso do servidor**, que depende de quem hospedar
+
+Cada página pede: Título, Endereço, Resumo entre 60 e 220 caracteres, data de atualização e o texto.
 
 ### 2. Dados reais da AMI, e isto também bloqueia
 
-- Razão social, **CNPJ**, endereço e telefone da sede. Aparecem hoje marcados `[PROVISÓRIO]` no rodapé de toda página e nos dados estruturados enviados ao Google
-- **A diretoria real**: nome, cargo, CRM, UF e ordem hierárquica de cada diretor. Vai para o banco, não para o Studio
+- ~~Razão social, CNPJ, endereço e telefone da sede~~ **Recebidos em 21/08/2026** e no ar. O CNPJ foi conferido pelos dígitos verificadores. Vivem em `lib/ami.ts`, fonte única lida pelo rodapé e pelo dado estruturado
+- **A diretoria real**: nome, cargo, **CRM**, UF e ordem hierárquica de cada diretor. Vai para o banco, não para o Studio. Só a presidente é conhecida, a Dra. Paula Bretas, e **falta o CRM dela**: exibir nome de médica sem inscrição viola o Art. 4º, I da Resolução CFM, e a restrição do banco impede gravar
 - **A planilha dos cerca de 500 associados**
+- **Qual dos dois telefones é WhatsApp**, se algum for. Não foi suposto: botão apontando para linha que não atende por lá é pior que não ter botão
 
 ### 3. A trava de indexação
 
