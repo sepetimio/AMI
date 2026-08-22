@@ -10,9 +10,7 @@ import { describe, expect, it } from "vitest";
   implementação, e ela vale mais sendo boba e infalível do que sendo elegante
   e furável.
 
-  Nota: esta lista nomeia só os arquivos que já existem nesta tarefa. As
-  tarefas 10 e 11 acrescentam `scripts/importar.ts` e `scripts/publicar.ts`
-  quando eles nascerem.
+  Nota: esta lista cresceu tarefa a tarefa, conforme cada arquivo nascia.
 */
 const FONTES = [
   "../scripts/gravar.ts",
@@ -20,7 +18,9 @@ const FONTES = [
   "../scripts/credencial.ts",
   "../scripts/importar.ts",
   "../scripts/modelo.ts",
+  "../scripts/publicar.ts",
   "../lib/importador/plano.ts",
+  "../lib/importador/publicacao.ts",
 ];
 
 describe("nenhuma remoção no importador", () => {
