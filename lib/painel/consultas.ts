@@ -71,6 +71,44 @@ const SELECAO = `
   atendimento ( local ( bairro ( nome ) ) )
 `;
 
+export type MedicoDoPainel = MedicoNaLista & {
+  bio: string | null;
+  telemedicina: boolean;
+  situacao: string;
+  verificadoEm: string | null;
+};
+
+const SELECAO_COMPLETA = `
+  id, slug, nome, crm, crm_uf, publicado, bio, telemedicina, situacao, verificado_em,
+  profissional_especialidade ( principal, especialidade ( nome ) ),
+  atendimento ( local ( bairro ( nome ) ) )
+`;
+
+export async function medicoPorId(
+  cliente: SupabaseClient,
+  id: number,
+): Promise<MedicoDoPainel | null> {
+  const { data, error } = await cliente
+    .from("profissional")
+    .select(SELECAO_COMPLETA)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw new Error(`Falha ao ler o médico ${id}: ${error.message}`);
+  if (!data) return null;
+
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+  const l = data as any;
+
+  return {
+    ...paraLista(data),
+    bio: l.bio,
+    telemedicina: l.telemedicina,
+    situacao: l.situacao,
+    verificadoEm: l.verificado_em,
+  };
+}
+
 export async function listarMedicos(
   cliente: SupabaseClient,
   opcoes: { termo?: string; pagina?: number },

@@ -43,5 +43,11 @@ export async function alternarPublicacao(dados: FormData): Promise<void> {
     site inteiro para buscadores.
   */
   revalidatePath("/(site)", "layout");
+  /*
+    O sitemap fica em `app/sitemap.ts`, na raiz, FORA do grupo `(site)` — a
+    invalidação do layout acima não o alcança, e ele lista os médicos
+    publicados um por linha. Medido, não suposto.
+  */
+  revalidatePath("/sitemap.xml");
   revalidatePath("/painel");
 }
