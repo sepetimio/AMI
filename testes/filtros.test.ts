@@ -27,7 +27,6 @@ const local = (bairroSlug: string, extras: Partial<Medico["locais"][0]> = {}) =>
   whatsapp: null,
   estacionamento: false,
   acessibilidade: [],
-  horarios: [{ diaSemana: 2, abre: "08:00", fecha: "12:00" }],
   ...extras,
 });
 

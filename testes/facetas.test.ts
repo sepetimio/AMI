@@ -245,7 +245,6 @@ describe("resumirFaceta", () => {
     whatsapp: null,
     estacionamento: false,
     acessibilidade,
-    horarios: [{ diaSemana: 2, abre: "08:00", fecha: "12:00" }],
   });
 
   const medico = (over: Partial<Medico> & { id: number }): Medico => ({

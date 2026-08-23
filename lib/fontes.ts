@@ -20,7 +20,7 @@ export const fonteCorpo = Geist({
 });
 
 /*
-  Mesma família, para o dado cartorial: CRM, RQE, telefone, CNPJ, horário.
+  Mesma família, para o dado cartorial: CRM, RQE, telefone, CNPJ.
 
   A razão de existir uma monoespaçada aqui está inalterada e continua valendo:
   um diretório médico é um registro público, e o número de inscrição é o que

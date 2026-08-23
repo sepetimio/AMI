@@ -125,8 +125,8 @@ export default async function PaginaPerfil({ params }: Props) {
           {m.locais.map((l) => (
             /* Cada endereço em painel próprio. Antes eram duas colunas soltas
                separadas por espaço em branco, e com dois consultórios ficava
-               ambíguo qual horário pertencia a qual endereço. O painel é o que
-               responde essa pergunta sem uma palavra de explicação. */
+               ambíguo qual telefone pertencia a qual endereço. O painel é o
+               que responde essa pergunta sem uma palavra de explicação. */
             <div
               key={l.id}
               className="grid gap-6 rounded-bloco border border-line bg-surface p-5 shadow-apoio md:grid-cols-[1fr_auto] md:gap-10 md:p-6"

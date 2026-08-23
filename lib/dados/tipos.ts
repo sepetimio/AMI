@@ -1,5 +1,3 @@
-import type { Horario } from "@/lib/dados/horarios";
-
 /* A forma do domínio, em português e independente do formato de tabela.
    O que muda de nome aqui — `crmUf` em vez de `crm_uf` — é de propósito:
    as telas falam a língua do domínio, não a do banco. */
@@ -38,7 +36,6 @@ export type LocalAtendimento = {
   whatsapp: string | null;
   estacionamento: boolean;
   acessibilidade: RecursoAcessibilidade[];
-  horarios: Horario[];
 };
 
 export type Medico = {

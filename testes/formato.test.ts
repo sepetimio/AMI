@@ -51,7 +51,7 @@ describe("dataPorExtenso", () => {
   });
 
   it("lê a data no fuso de Imperatriz, e não no do servidor", () => {
-    /* O Studio grava o instante correspondente ao horário local de quem
+    /* O Studio grava o instante correspondente à hora local de quem
        preencheu. Meia-noite de 1º de março em Imperatriz é 03:00 UTC, e é
        assim que a data volta do Sanity.
 

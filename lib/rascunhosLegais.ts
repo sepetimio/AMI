@@ -101,7 +101,7 @@ export const PRIVACIDADE: RascunhoLegal = {
     {
       titulo: "Os dados dos médicos publicados",
       paragrafos: [
-        "O diretório publica dados profissionais dos médicos associados: nome, número de inscrição no Conselho Regional de Medicina, especialidade, registro de qualificação de especialista quando houver, endereço de atendimento, telefone do consultório e horário.",
+        "O diretório publica dados profissionais dos médicos associados: nome, número de inscrição no Conselho Regional de Medicina, especialidade, registro de qualificação de especialista quando houver, endereço de atendimento e telefone do consultório.",
         "São dados de exercício profissional, de natureza pública, e a publicação atende à finalidade institucional da associação de tornar seus associados localizáveis pela população. Nenhum dado pessoal de natureza privada do médico é publicado.",
         "O médico que queira corrigir, completar ou retirar sua informação pode pedir à AMI a qualquer momento, pelos contatos ao fim deste texto.",
       ],
@@ -144,7 +144,7 @@ export const TERMOS: RascunhoLegal = {
       titulo: "O que é este site",
       paragrafos: [
         `Este site é mantido pela ${identificacao}.`,
-        "É um diretório de consulta pública, criado para que a população de Imperatriz e da região encontre médicos que atendem na cidade, com endereço, telefone e horário.",
+        "É um diretório de consulta pública, criado para que a população de Imperatriz e da região encontre médicos que atendem na cidade, com endereço e telefone.",
       ],
     },
     {
@@ -166,7 +166,7 @@ export const TERMOS: RascunhoLegal = {
     {
       titulo: "De onde vêm os dados, e como corrigir",
       paragrafos: [
-        "As informações de cada profissional são fornecidas por ele e revisadas pela AMI. Ainda assim, dado desatualizado acontece: consultório muda de endereço, telefone muda, horário muda.",
+        "As informações de cada profissional são fornecidas por ele e revisadas pela AMI. Ainda assim, dado desatualizado acontece: consultório muda de endereço, telefone muda.",
         "Confirme por telefone antes de se deslocar.",
         `Encontrou erro? Avise a AMI. ${contato}`,
       ],

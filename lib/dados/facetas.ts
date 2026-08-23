@@ -163,10 +163,10 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
     frases.push(
       umSo
         ? `O atendimento acontece em mais de um endereço, o que costuma ` +
-            `ampliar as opções de dia e horário.`
+            `ampliar as opções de local de atendimento.`
         : `Entre eles, ${r.comMaisDeUmEndereco} ` +
             `${r.comMaisDeUmEndereco === 1 ? "atende" : "atendem"} em mais de ` +
-            `um endereço, o que costuma ampliar as opções de dia e horário.`,
+            `um endereço, o que costuma ampliar as opções de local de atendimento.`,
     );
   } else {
     frases.push(
@@ -180,9 +180,8 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
      que não varia com os dados é a que faz duas facetas parecerem a mesma
      página, e é o que o Google trata como conteúdo raso. */
   frases.push(
-    `Cada perfil abaixo traz endereço, telefone, horários por dia da semana e ` +
-      `o número de registro no Conselho Regional de Medicina, como exige a ` +
-      `Resolução CFM 2.336/2023.`,
+    `Cada perfil abaixo traz endereço, telefone e o número de registro no ` +
+      `Conselho Regional de Medicina, como exige a Resolução CFM 2.336/2023.`,
   );
 
   return frases.join(" ");
