@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   avisoDeRqeFaltando,
   ordenarEspecialidades,
+  quemHerdaAPrincipal,
   validarRqe,
   type EspecialidadeDoMedico,
 } from "@/lib/painel/especialidades";
@@ -81,6 +82,70 @@ describe("ordenarEspecialidades", () => {
   });
 });
 
+/*
+  A tela garante no MÁXIMO uma principal; esta função é a metade que garante
+  PELO MENOS uma. Sem ela, remover a principal deixava o médico com
+  especialidades e nenhuma marcada, e o site caía no desempate
+  `?? especialidades[0]` sobre um array que o PostgREST devolve sem ordenação
+  — título, meta description, breadcrumb, JSON-LD e busca, todos decididos por
+  sorteio e congelados no cache por uma hora.
+*/
+describe("quemHerdaAPrincipal", () => {
+  const e = (id: number, nome: string, principal = false): EspecialidadeDoMedico => ({
+    id,
+    nome,
+    rqe: null,
+    principal,
+  });
+
+  it("removendo a principal com duas sobrando, promove a alfabeticamente primeira", () => {
+    const lista = [e(1, "Zoologia", true), e(2, "Pediatria"), e(3, "Cardiologia")];
+    expect(quemHerdaAPrincipal(lista, 1)?.nome).toBe("Cardiologia");
+  });
+
+  it("a ordem é de português: acento não empurra para o fim", () => {
+    /*
+      "Buco-maxilo" antes de "Ácaros" na entrada, de propósito: uma
+      ordenação de código, sem `localeCompare(…, "pt-BR")`, põe "Á" (U+00C1)
+      depois de "B" e devolve Buco-maxilo — e não ordenar nada devolve
+      Buco-maxilo também. Só a ordem de português devolve Ácaros.
+    */
+    const lista = [e(1, "Zoologia", true), e(2, "Buco-maxilo"), e(3, "Ácaros")];
+    expect(quemHerdaAPrincipal(lista, 1)?.nome).toBe("Ácaros");
+  });
+
+  it("removendo uma não-principal, não promove ninguém", () => {
+    const lista = [e(1, "Zoologia", true), e(2, "Pediatria"), e(3, "Cardiologia")];
+    expect(quemHerdaAPrincipal(lista, 3)).toBeNull();
+  });
+
+  it("removendo a última, não promove nada", () => {
+    expect(quemHerdaAPrincipal([e(1, "Cardiologia", true)], 1)).toBeNull();
+  });
+
+  it("id que não está na lista não promove ninguém", () => {
+    const lista = [e(1, "Zoologia", true), e(2, "Pediatria")];
+    expect(quemHerdaAPrincipal(lista, 99)).toBeNull();
+  });
+
+  it("sem nenhuma marcada como principal, não promove ninguém", () => {
+    /*
+      Estado que só o banco produz, e produziu: nada além desta função e do
+      insert da primeira especialidade marca `principal`. Promover aqui seria
+      inventar uma decisão que ninguém tomou, num caminho em que quem removeu
+      não estava mexendo na principal.
+    */
+    const lista = [e(1, "Zoologia"), e(2, "Pediatria")];
+    expect(quemHerdaAPrincipal(lista, 1)).toBeNull();
+  });
+
+  it("não mexe na lista que recebe", () => {
+    const lista = [e(1, "Zoologia", true), e(2, "Pediatria"), e(3, "Cardiologia")];
+    quemHerdaAPrincipal(lista, 1);
+    expect(lista.map((x) => x.nome)).toEqual(["Zoologia", "Pediatria", "Cardiologia"]);
+  });
+});
+
 describe("acoes-especialidade.ts", () => {
   const codigo = semComentarios(fonte("../app/painel/medico/[id]/acoes-especialidade.ts"));
 
@@ -147,6 +212,27 @@ describe("acoes-especialidade.ts", () => {
       expect(guarda, "ação que grava sem chamar exigirAdmin").toBeGreaterThan(-1);
       expect(guarda).toBeLessThan(escrita);
     }
+  });
+
+  it("removerEspecialidade promove uma herdeira, e lê a lista antes de apagar", () => {
+    /*
+      Ancorada em texto, como a de `reconciliarAcessibilidade` em
+      painel-locais.test.ts: as asserções estruturais deste arquivo não olham
+      PARA O QUE a ação faz depois de apagar. Uma versão que só apagasse
+      continuaria passando por todas elas — mesma tabela permitida, mesmo
+      `.select()` por gravação, mesmo `if (!data)` antes de invalidar.
+
+      A ordem importa e é medida: o que decide quem herda é a linha que está
+      prestes a sumir, e ler depois de apagar não acha mais nada.
+    */
+    const leitura = codigo.indexOf("especialidadesDoMedico(");
+    const decisao = codigo.indexOf("quemHerdaAPrincipal(");
+    const apaga = codigo.indexOf(".delete(");
+
+    expect(leitura, "não lê as especialidades atuais").toBeGreaterThan(-1);
+    expect(decisao, "não decide quem herda a principal").toBeGreaterThan(-1);
+    expect(leitura, "lê as especialidades depois de apagar").toBeLessThan(apaga);
+    expect(decisao, "decide quem herda depois de apagar").toBeLessThan(apaga);
   });
 
   it("só remove de profissional_especialidade", () => {

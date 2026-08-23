@@ -75,6 +75,47 @@ export function ordenarEspecialidades(
   );
 }
 
+/*
+  Quem herda a principal quando a principal é removida.
+
+  A tela garante NO MÁXIMO uma principal — é botão de escolha única. Nada
+  garantia PELO MENOS uma: remover a linha marcada deixava o médico com
+  especialidades e nenhuma delas principal, e o site inteiro decide por
+  `find(e => e.principal) ?? especialidades[0]`, onde esse `[0]` vem de um
+  array do PostgREST sem ordenação (`lib/dados/medicos.ts`). Cai nisso o
+  título da página, a meta description, a especialidade sob o nome, o
+  breadcrumb, "Outros profissionais de X", o `medicalSpecialty` e o RQE do
+  JSON-LD, e a linha da busca — e o cache congela a escolha arbitrária por uma
+  hora. O autor do importador já tinha visto o mesmo buraco de outro lado
+  (`lib/importador/plano.ts`: "Forçar falso aqui o deixaria sem principal
+  nenhuma, para sempre.").
+
+  Herda a primeira em ordem alfabética de português entre as que sobram — a
+  mesma ordem que `ordenarEspecialidades` acima usa, que é como quem preenche
+  procura. Escolha arbitrária é inevitável aqui; o que não pode é ser
+  IMPREVISÍVEL, que é o que a ordem do banco era.
+
+  Devolve `null` quando ninguém herda: a removida não era a principal, ou era
+  a última que ele tinha. Remover a última é permitido — o médico fica sem
+  especialidade nenhuma, e a tela já avisa que assim ele não aparece em busca
+  nenhuma do site.
+
+  Pura e separada da ida ao banco, mesmo desenho de `ordenarEspecialidades`
+  acima e de `paraLista` em `lib/painel/consultas.ts`.
+*/
+export function quemHerdaAPrincipal(
+  especialidades: EspecialidadeDoMedico[],
+  removidaId: number,
+): EspecialidadeDoMedico | null {
+  const removida = especialidades.find((e) => e.id === removidaId);
+  if (!removida || !removida.principal) return null;
+
+  const sobram = especialidades.filter((e) => e.id !== removidaId);
+  if (!sobram.length) return null;
+
+  return [...sobram].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))[0];
+}
+
 export async function especialidadesDoMedico(
   cliente: SupabaseClient,
   medicoId: number,

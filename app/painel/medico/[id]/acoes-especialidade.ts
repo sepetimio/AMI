@@ -1,7 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { validarRqe } from "@/lib/painel/especialidades";
+import {
+  especialidadesDoMedico,
+  quemHerdaAPrincipal,
+  validarRqe,
+  type EspecialidadeDoMedico,
+} from "@/lib/painel/especialidades";
 import { clienteDoPainel } from "@/lib/painel/servidor";
 import { exigirAdmin } from "@/lib/painel/sessao";
 
@@ -183,6 +188,26 @@ export async function removerEspecialidade(
   }
 
   const cliente = await clienteDoPainel();
+
+  /*
+    Lido ANTES de apagar, porque depois a informação não existe mais: o que
+    decide se alguém herda a principal é a linha que está prestes a sumir.
+    `especialidadesDoMedico` lança em caso de erro — aqui o erro vira estado,
+    como todo o resto deste arquivo, senão a frase em português não chega a
+    quem usa (ver o comentário de `acrescentarEspecialidade`).
+  */
+  let atuais: EspecialidadeDoMedico[];
+  try {
+    atuais = await especialidadesDoMedico(cliente, medicoId);
+  } catch (e) {
+    return {
+      erros: { geral: `Não consegui ler as especialidades: ${(e as Error).message}` },
+      salvo: false,
+    };
+  }
+
+  const herdeira = quemHerdaAPrincipal(atuais, especialidadeId);
+
   const { data, error } = await cliente
     .from("profissional_especialidade")
     .delete()
@@ -204,6 +229,33 @@ export async function removerEspecialidade(
       },
       salvo: false,
     };
+  }
+
+  /*
+    A promoção pede a linha de volta e falha alto como qualquer outra gravação
+    deste arquivo. A mensagem é diferente das outras de propósito: aqui a
+    remoção JÁ ACONTECEU, e o estrago de parar no meio é o médico ficar sem
+    principal nenhuma — exatamente o que esta ação existe para impedir. Quem
+    lê precisa saber que falta um passo e qual é.
+  */
+  if (herdeira) {
+    const promovida = await cliente
+      .from("profissional_especialidade")
+      .update({ principal: true })
+      .eq("profissional_id", medicoId)
+      .eq("especialidade_id", herdeira.id)
+      .select("especialidade_id")
+      .maybeSingle();
+
+    const naoPromoveu =
+      `Removi a especialidade, mas não consegui marcar ${herdeira.nome} como ` +
+      "principal no lugar dela. Marque a principal à mão e salve: sem uma " +
+      "principal, o site escolhe qualquer uma.";
+
+    if (promovida.error) {
+      return { erros: { geral: `${naoPromoveu} (${promovida.error.message})` }, salvo: false };
+    }
+    if (!promovida.data) return { erros: { geral: naoPromoveu }, salvo: false };
   }
 
   invalidar();
