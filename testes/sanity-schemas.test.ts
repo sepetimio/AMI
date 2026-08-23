@@ -54,9 +54,10 @@ function porNome(nome: string) {
 }
 
 describe("schemas do Sanity", () => {
-  it("registra os três tipos de documento", () => {
+  it("registra os quatro tipos de documento", () => {
     expect(tipos.map((t) => t.name).sort()).toEqual([
       "autor",
+      "banner",
       "noticia",
       "paginaInstitucional",
     ]);
