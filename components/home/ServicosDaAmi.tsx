@@ -3,11 +3,18 @@ import { AMI } from "@/lib/ami";
 import { formatarTelefone } from "@/lib/formato";
 
 /*
-  Os três serviços da AMI.
+  Os três serviços da AMI, mais um bloco de notícia.
 
-  Cada cartão mostra algo VIVO que o menu do topo não mostra — senão ele seria
-  um segundo menu. O primeiro traz a contagem, o segundo o telefone, o
-  terceiro a manchete mais recente.
+  A grade tem três cartões. Os dois primeiros mostram algo VIVO que o menu do
+  topo não mostra — senão a grade seria um segundo menu: o primeiro traz a
+  contagem de médicos e especialidades, o segundo o telefone. O terceiro,
+  "Seja associado", é o único sem dado vivo — de propósito, não por
+  esquecimento: o que ele precisaria mostrar (quanto custa, o que o
+  associado ganha) é texto que a AMI ainda não escreveu, e inventar um
+  número aqui seria fabricar dado.
+
+  A manchete mais recente não é o quarto cartão da grade — é um quarto
+  bloco, abaixo dela e fora do `grid`, do tamanho da linha inteira.
 
   A grade nasce com três e já comporta "Sua AMI" (aluguel de auditório e hall
   de eventos) e "Empresa parceira", que o dono anunciou para depois.

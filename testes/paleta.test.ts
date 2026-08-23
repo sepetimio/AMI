@@ -43,6 +43,35 @@ const T = tokensDeCor(CSS);
 /** Mínimo da WCAG AA para texto de corpo. */
 const MINIMO = 4.5;
 
+/*
+  `white` e `black`: cores padrão do Tailwind, não token nosso.
+
+  Não existe `--color-white`/`--color-black` em `app/globals.css` — não são
+  escolha de design deste projeto, e sim constante da própria paleta padrão
+  do Tailwind (#FFFFFF/#000000), sempre disponível, com ou sem `@theme`
+  personalizado (este projeto usa `@theme { ... }` aditivo, não
+  `@theme inline` nem `--color-*: initial`, então a paleta padrão continua
+  de pé ao lado da nossa).
+
+  `text-white` já é usado hoje sobre o verde (herói, rodapé, e agora a
+  faixa de identidade), e por não ter `--color-white` em T a rede contra
+  classe morta não os enxergava: nenhuma das duas expressões regulares
+  deste arquivo casava `white`/`black`, e a classe escapava da varredura
+  inteira — nem orfã, nem medida, nem lembrada. Nomeados aqui, com o
+  motivo escrito, é a mesma isenção documentada que TEXTO_FORA_DO_TESTE e
+  FUNDOS_FORA_DO_TESTE já fazem para token nosso: uma decisão registrada,
+  não um buraco em silêncio.
+*/
+const CORES_PADRAO_TAILWIND: Record<string, string> = {
+  white: "#FFFFFF",
+  black: "#000000",
+};
+
+/** Resolve tanto token do @theme quanto cor padrão do Tailwind sem --color-. */
+function corDe(nome: string): string {
+  return T[nome] ?? CORES_PADRAO_TAILWIND[nome];
+}
+
 /** Todo arquivo .tsx sob app/ e components/, recursivo. */
 function telas(relativo: string): string[] {
   const base = fileURLToPath(new URL(relativo, import.meta.url));
@@ -110,9 +139,12 @@ describe("as listas saem do código, não da memória", () => {
     const orfaos: string[] = [];
     for (const prefixo of ["text", "bg", "border"]) {
       for (const m of FONTES.matchAll(
-        new RegExp(`\\b${prefixo}-(ami-[a-z0-9-]+|ink-[0-9]+|canvas|surface[a-z-]*|line[a-z-]*|warn|danger)\\b`, "g"),
+        new RegExp(
+          `\\b${prefixo}-(ami-[a-z0-9-]+|ink-[0-9]+|canvas|surface[a-z-]*|line[a-z-]*|warn|danger|white|black)\\b`,
+          "g",
+        ),
       )) {
-        if (!T[m[1]]) orfaos.push(`${prefixo}-${m[1]}`);
+        if (!T[m[1]] && !(m[1] in CORES_PADRAO_TAILWIND)) orfaos.push(`${prefixo}-${m[1]}`);
       }
     }
     expect([...new Set(orfaos)], "classe que aponta para token que não existe").toEqual([]);
@@ -350,6 +382,16 @@ describe("texto sobre fundo escuro", () => {
     Os dois estão em uso: `bg-canvas` aparece em 11 lugares e `bg-surface`
     em mais, e ambos convivem sobre o verde do herói e do rodapé.
   */
+  /*
+    `white` entrou depois — rodada de correção da tarefa 4. Não é token do
+    @theme (ver o comentário de CORES_PADRAO_TAILWIND, no topo do arquivo),
+    mas já é usado como texto sobre os dois verdes (herói, rodapé, faixa de
+    identidade), e a rede contra classe morta ganhou uma isenção para não
+    reclamar dele — o que só é seguro porque este describe mede o par de
+    verdade, e o describe abaixo prova que ele não serve sobre fundo claro.
+    Medido com a mesma fórmula deste arquivo, não copiado de comentário
+    nenhum: 18,11:1 sobre ami-green-900, 14,86:1 sobre ami-green-800.
+  */
   const PARES_ESCUROS: [string, string][] = [
     ["canvas", "ami-green-900"],
     ["canvas", "ami-green-800"],
@@ -358,14 +400,16 @@ describe("texto sobre fundo escuro", () => {
     ["ami-lima-400", "ami-green-900"],
     ["ami-lima-400", "ami-green-800"],
     ["ink-900", "ami-lima-400"],
+    ["white", "ami-green-900"],
+    ["white", "ami-green-800"],
   ];
 
   for (const [tinta, fundo] of PARES_ESCUROS) {
     it(`${tinta} sobre ${fundo}`, () => {
-      const r = razaoDeContraste(T[tinta], T[fundo]);
+      const r = razaoDeContraste(corDe(tinta), corDe(fundo));
       expect(
         r,
-        `--color-${tinta} sobre --color-${fundo} dá ${r.toFixed(2)}:1, abaixo de ${MINIMO}:1`,
+        `${tinta} sobre ${fundo} dá ${r.toFixed(2)}:1, abaixo de ${MINIMO}:1`,
       ).toBeGreaterThanOrEqual(MINIMO);
     });
   }
@@ -381,6 +425,33 @@ describe("texto sobre fundo escuro", () => {
       precisa ser revisto.
     */
     expect(razaoDeContraste(T["ami-lima-400"], T["canvas"])).toBeLessThan(MINIMO);
+  });
+
+  it("o branco nunca serve como letra sobre fundo claro", () => {
+    /*
+      `white` sobre `canvas` dá 1,15:1 — quase indistinguível, o creme é
+      claro demais para o branco se destacar. Ele só existe como texto sobre
+      os dois verdes (medido acima, em PARES_ESCUROS).
+
+      O que esta asserção prova, e o que ela NÃO prova: ela testa o PAR — se
+      um dia alguém escurecer `canvas` ou trocar o próprio branco até o par
+      virar legível, ela vira vermelha e avisa que a regra "nunca é letra
+      sobre claro" deixou de ser física e virou escolha.
+
+      Ela não escaneia componente nenhum. Testei isso na prática: pus
+      `text-white` de propósito num `<h3>` dentro de um cartão `bg-surface`
+      real (`components/home/ServicosDaAmi.tsx`) e rodei a suíte inteira —
+      nenhum teste ficou vermelho, nem este, nem a rede contra classe morta
+      (CORES_PADRAO_TAILWIND isenta o token, de propósito, e a isenção não
+      sabe qual fundo está por perto). Desfiz a isca depois de confirmar.
+      Cruzar TEXTO_DE_CORPO com o fundo de cada uso real já se mostrou, no
+      comentário "Por que estas duas listas ficam escritas à mão" acima
+      neste arquivo, um caminho de falso positivo (31 falhas, nenhuma real);
+      a mesma armadilha vale aqui, e por isso não tentei fechar esse buraco
+      sozinho. A proteção real contra esse tipo de erro continua sendo
+      revisão de código, não este arquivo.
+    */
+    expect(razaoDeContraste(corDe("white"), T["canvas"])).toBeLessThan(MINIMO);
   });
 });
 
