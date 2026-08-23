@@ -235,6 +235,35 @@ describe("supabase/testes-rls.sql", () => {
     }
   });
 
+  it("todo bloco anônimo limpa a claim antes de trocar de papel", () => {
+    /*
+      `reset role` troca o PAPEL, não a GUC. `request.jwt.claims` é plantada
+      com `is_local := true`, o que a faz valer até o fim da transação, e
+      `auth.uid()` — logo `eh_admin()` — lê a GUC, não o papel. Um bloco
+      `set local role anon` que herde a claim do admin roda como admin
+      disfarçado de visitante: as políticas de 0006 são `with check ((select
+      eh_admin()))` sem cláusula `to`, valem para todo papel, e o `anon` do
+      Supabase tem GRANT de insert por padrão. Os inserts passam, a asserção
+      dispara, e quem rodar vai caçar um defeito de política que não existe.
+
+      Medido para trás a partir de cada troca: o que vale é a ÚLTIMA mexida em
+      `request.jwt.claims` antes da linha, não haver alguma em algum lugar.
+    */
+    const trocas = [...sql.matchAll(/set local role anon/g)];
+    expect(trocas.length, "não achei nenhum bloco anônimo").toBeGreaterThan(0);
+
+    for (const troca of trocas) {
+      const antes = sql.slice(0, troca.index ?? 0);
+      const ultima = antes.lastIndexOf("request.jwt.claims");
+
+      expect(ultima, "bloco anônimo sem limpar a claim antes").toBeGreaterThan(-1);
+      expect(
+        antes.slice(ultima, ultima + 40),
+        "o bloco anônimo herda a claim de quem veio antes",
+      ).toMatch(/^request\.jwt\.claims',\s*''/);
+    }
+  });
+
   it("exerce os três papéis nas tabelas da fatia 2", () => {
     /*
       As marcas dizem o que o arquivo AFIRMA; estas linhas dizem que ele

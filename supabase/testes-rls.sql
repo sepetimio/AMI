@@ -48,6 +48,14 @@ begin
   on conflict (id) do update set papel = 'admin';
 
   ---------------------------------------------------------------- visitante
+  /*
+    Limpa a claim antes de virar anônimo. Aqui ela ainda não vazava — nenhum
+    `set_config` roda antes deste ponto —, e é exatamente por isso que a linha
+    fica: a garantia era da ORDEM das seções, não do código, e mover um bloco
+    para cima a desfaria em silêncio. A explicação inteira está na seção
+    anônima da fatia 2, mais abaixo.
+  */
+  perform set_config('request.jwt.claims', '', true);
   set local role anon;
 
   select count(*) into quantos from profissional where id = medico_id;
@@ -172,6 +180,21 @@ begin
   */
 
   ------------------------------------------------- visitante anônimo escreve?
+  /*
+    LIMPAR A CLAIM ANTES DE VIRAR ANÔNIMO. `reset role` troca o PAPEL, não a
+    GUC: `request.jwt.claims` foi plantada lá em cima com `is_local := true`,
+    o que a faz valer até o fim da transação inteira, e `auth.uid()` lê a GUC,
+    não o papel. Sem esta linha, `eh_admin()` devolve verdadeiro sob `anon`,
+    porque a claim do admin ainda está lá.
+
+    E aí os quatro inserts abaixo PASSAM: as políticas de 0006 são
+    `with check ((select eh_admin()))` sem cláusula `to`, valem para todo
+    papel, e o `anon` do Supabase tem GRANT de insert por padrão — nenhuma
+    migração o revoga. O primeiro `raise exception 'FALHOU: ... anon insere'`
+    abortaria o arquivo, e quem rodasse iria caçar um defeito de política que
+    não existe: numa requisição anônima de verdade não há claim nenhuma.
+  */
+  perform set_config('request.jwt.claims', '', true);
   set local role anon;
 
   begin
