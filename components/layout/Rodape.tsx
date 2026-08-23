@@ -183,7 +183,7 @@ export async function Rodape() {
                 {AMI.telefones.map((t) => (
                   <li key={t}>
                     <a
-                      href={telefoneParaLigar(t)}
+                      href={`tel:${telefoneParaLigar(t)}`}
                       className="registro pressiona inline-flex items-center hover:text-white hover:underline max-md:min-h-11"
                     >
                       {t}
