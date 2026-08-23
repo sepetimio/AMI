@@ -154,7 +154,7 @@ export function PainelFiltros({
               name="termo"
               type="search"
               defaultValue={sp.get("termo") ?? ""}
-              placeholder="Mayara Viana, cardiologista…"
+              placeholder="Nome do médico ou especialidade"
               className="pressiona min-h-12 w-full min-w-0 flex-1 rounded-controle border border-line bg-canvas px-3.5 text-[16px] placeholder:text-ink-300 focus:border-ami-green-600 focus:bg-surface"
             />
             <button
