@@ -71,7 +71,6 @@ export type Filtros = {
   /** slug do bairro */
   bairro?: string;
   telemedicina?: boolean;
-  atendeSabado?: boolean;
   acessibilidade?: RecursoAcessibilidade[];
   somenteAssociados?: boolean;
   ordem?: Ordem;

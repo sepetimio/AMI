@@ -1,5 +1,4 @@
-﻿import { atendeNoDia } from "@/lib/dados/horarios";
-import { especialidadeCasaTermo, normalizar } from "@/lib/dados/sinonimos";
+﻿import { especialidadeCasaTermo, normalizar } from "@/lib/dados/sinonimos";
 import type { Filtros, Medico, Ordem } from "@/lib/dados/tipos";
 
 /*
@@ -50,13 +49,6 @@ export function aplicarFiltros(medicos: Medico[], filtros: Filtros): Medico[] {
 
     if (filtros.telemedicina && !m.telemedicina) return false;
     if (filtros.somenteAssociados && !m.associadoAmi) return false;
-
-    if (
-      filtros.atendeSabado &&
-      !m.locais.some((l) => atendeNoDia(l.horarios, 6))
-    ) {
-      return false;
-    }
 
     /* Acessibilidade exige TODOS os recursos pedidos no mesmo local: de nada
        adianta o elevador ficar num endereço e a rampa em outro. */

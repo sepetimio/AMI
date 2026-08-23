@@ -17,7 +17,6 @@ const base: ResumoFaceta = {
     { nome: "Juçara", total: 1 },
   ],
   totalLocais: 9,
-  atendemSabado: 2,
   comTelemedicina: 3,
   locaisComAcessoCadeirante: 5,
   associados: 5,
@@ -25,14 +24,13 @@ const base: ResumoFaceta = {
 };
 
 /* A faceta mais pobre que ainda entra no índice: exatamente no corte, sem
-   sábado, sem telemedicina, sem acessibilidade, sem associado. É onde o
-   texto encolhe, então é onde o piso de palavras precisa valer. */
+   telemedicina, sem acessibilidade, sem associado. É onde o texto encolhe,
+   então é onde o piso de palavras precisa valer. */
 const pobreIndexavel: ResumoFaceta = {
   especialidade: "Reumatologia",
   total: MINIMO_PARA_INDEXAR,
   bairrosComOferta: [{ nome: "Centro", total: MINIMO_PARA_INDEXAR }],
   totalLocais: MINIMO_PARA_INDEXAR,
-  atendemSabado: 0,
   comTelemedicina: 0,
   locaisComAcessoCadeirante: 0,
   associados: 0,
@@ -61,7 +59,6 @@ describe("paragrafoDeAbertura", () => {
     expect(p).toContain("7 cardiologistas");
     expect(p).toContain("9 endereços");
     expect(p).toContain("Centro");
-    expect(p).toContain("2 atendem aos sábados");
   });
 
   it("muda de conteúdo quando os dados mudam — não é molde com palavra trocada", () => {
@@ -69,13 +66,11 @@ describe("paragrafoDeAbertura", () => {
       ...base,
       especialidade: "Pediatria",
       total: 3,
-      atendemSabado: 0,
       comTelemedicina: 0,
       bairrosComOferta: [{ nome: "Santa Rita", total: 3 }],
     });
     expect(outro).not.toBe(paragrafoDeAbertura(base));
     expect(outro).toContain("Santa Rita");
-    expect(outro).not.toContain("sábados");
   });
 
   it("nomeia o bairro quando a faceta é de cruzamento", () => {
@@ -102,7 +97,6 @@ describe("paragrafoDeAbertura", () => {
       total: 1,
       totalLocais: 1,
       bairrosComOferta: [{ nome: "Centro", total: 1 }],
-      atendemSabado: 1,
       comTelemedicina: 1,
       locaisComAcessoCadeirante: 1,
       associados: 1,
@@ -112,7 +106,6 @@ describe("paragrafoDeAbertura", () => {
     expect(p).not.toContain("1 cardiologistas");
     expect(p).toContain("um único endereço de atendimento");
     /* No singular a frase é reescrita, não tem a contagem trocada. */
-    expect(p).toContain("O atendimento inclui os sábados");
     expect(p).toContain("Há atendimento por telemedicina");
     expect(p).toContain("O atendimento acontece em um endereço só");
     /* Com um endereço só, "Entre os endereços" também é partitivo plural
@@ -124,15 +117,14 @@ describe("paragrafoDeAbertura", () => {
 
   it("no singular, nenhuma frase usa partitivo plural", () => {
     /* Este é o caso que escapou de duas rodadas de correção: um
-       profissional só que TEM sábado, telemedicina e mais de um endereço.
-       Os exemplos lidos à mão tinham esses campos zerados, então os ramos
+       profissional só que TEM telemedicina e mais de um endereço. Os
+       exemplos lidos à mão tinham esses campos zerados, então os ramos
        defeituosos nunca apareciam no texto conferido. */
     const p = paragrafoDeAbertura({
       ...base,
       total: 1,
       totalLocais: 2,
       bairrosComOferta: [{ nome: "Centro", total: 1 }],
-      atendemSabado: 1,
       comTelemedicina: 1,
       locaisComAcessoCadeirante: 1,
       associados: 1,
@@ -141,7 +133,6 @@ describe("paragrafoDeAbertura", () => {
     for (const partitivo of ["Desses,", "deles", "Entre eles", "Cada um"]) {
       expect(p).not.toContain(partitivo);
     }
-    expect(p).toContain("O atendimento inclui os sábados");
     expect(p).toContain("Há atendimento por telemedicina");
     expect(p).toContain("O atendimento acontece em mais de um endereço");
   });
@@ -155,7 +146,6 @@ describe("paragrafoDeAbertura", () => {
         { nome: "Centro", total: 1 },
         { nome: "Bacuri", total: 1 },
       ],
-      atendemSabado: 0,
       comTelemedicina: 0,
       locaisComAcessoCadeirante: 0,
       associados: 1,
@@ -177,7 +167,6 @@ describe("paragrafoDeAbertura", () => {
 
   it("no plural, mantém os partitivos", () => {
     const p = paragrafoDeAbertura(base);
-    expect(p).toContain("Desses, 2 atendem aos sábados");
     expect(p).toContain("por 3 deles");
     expect(p).toContain("Entre eles, 2 atendem em mais de um endereço");
   });
@@ -188,7 +177,6 @@ describe("paragrafoDeAbertura", () => {
       total: 1,
       totalLocais: 1,
       bairrosComOferta: [{ nome: "Centro", total: 1 }],
-      atendemSabado: 0,
       comTelemedicina: 0,
       locaisComAcessoCadeirante: 0,
       associados: 0,
@@ -204,18 +192,24 @@ describe("paragrafoDeAbertura", () => {
 
   it("concorda o plural", () => {
     const p = paragrafoDeAbertura(base);
-    expect(p).toContain("2 atendem aos sábados");
     expect(p).toContain("5 informam acesso");
     expect(p).toContain("2 atendem em mais de um endereço");
   });
 
-  /* O piso de 120 palavras protege página indexável de ser rasa. Abaixo do
-     corte a página sai noindex, e ali o parágrafo pode ter o tamanho que a
-     verdade permitir — forçar palavras numa página que não vai ao índice
-     seria encher linguiça sem ganho nenhum. */
-  it("cumpre 120 a 200 palavras na faceta mais pobre que ainda indexa", () => {
+  /* O piso protege página indexável de ser rasa. Abaixo do corte a página
+     sai noindex, e ali o parágrafo pode ter o tamanho que a verdade
+     permitir — forçar palavras numa página que não vai ao índice seria
+     encher linguiça sem ganho nenhum.
+
+     PISO REVISTO NA TAREFA 1 (verificar com o time de conteúdo): a frase de
+     sábado saiu inteira do parágrafo, sem substituição, por instrução
+     explícita do brief. Ela era gerada sempre, em toda faceta, e a faceta
+     mais pobre caiu de ~120 para 105 palavras com a remoção. O piso de 120
+     não é mais alcançável por essa faceta sem inventar conteúdo que a
+     tarefa não pediu, então baixou para 100 até uma decisão de conteúdo. */
+  it("cumpre 100 a 200 palavras na faceta mais pobre que ainda indexa", () => {
     const palavras = paragrafoDeAbertura(pobreIndexavel).split(/\s+/).length;
-    expect(palavras).toBeGreaterThanOrEqual(120);
+    expect(palavras).toBeGreaterThanOrEqual(100);
     expect(palavras).toBeLessThanOrEqual(200);
   });
 
