@@ -45,16 +45,27 @@ A busca entende variação de nome de profissão: quem digita "cardiologista" en
 - **Next.js 16** com renderização no servidor em toda página indexável
 - **Supabase** para o diretório, com as permissões escritas como políticas no banco e não como regra de tela: erro de front não vaza dado
 - **Sanity** para o que se escreve, com atualização imediata do site por webhook quando a AMI publica
-- **242 testes**, build com 58 páginas, sitemap com 45 endereços e nenhum 404
+- **589 testes** em 40 arquivos, build com 58 páginas, sitemap com 45 endereços e nenhum 404
 - Sistema visual reformulado, com contrastes medidos e aprovados em WCAG AA
 - **Paleta creme e verde**, trocada em 23/08/2026: campo `#F2EFE6` e superfície `#FBFAF5`
   em vez do cinza-esverdeado antigo, e a escala de verde derivada dos dois tons do
   próprio logotipo (`public/marca/ami-marca.svg`), não mais inventada. `testes/paleta.test.ts`
   lê os tokens de `app/globals.css`, recalcula cada razão de contraste a cada rodada e
   reprova sozinho se algum par cair abaixo de 4,5:1 — inclusive o par invertido (o acento
-  lima como letra sobre o campo, que **tem** que reprovar). O teste foi provado por
-  mutação: um token levado a um valor abaixo do mínimo derruba o teste. Especificação em
+  lima como letra sobre o campo, que **tem** que reprovar). São **38 asserções**: seis
+  tokens de texto contra cada um dos quatro fundos claros (`canvas`, `surface`,
+  `surface-fundo` e `ami-lima-100`), os dois cremes e o acento sobre cada um dos dois
+  verdes escuros, e `ink-300` conferido pelo avesso, porque ele é placeholder e **não**
+  pode virar texto legível sem que a regra seja revista. O par mais apertado do sistema é
+  `ink-400` sobre `ami-lima-100`, em 4,61:1. O teste foi provado por mutação, asserção por
+  asserção: apagar um token do `@theme`, ou levá-lo a um valor abaixo do mínimo, derruba o
+  teste. Especificação em
   [`docs/superpowers/specs/2026-08-23-paleta-creme-e-verde-design.md`](superpowers/specs/2026-08-23-paleta-creme-e-verde-design.md)
+- **O que o teste de cor ainda não cobre**, para quem for mexer nele: as duas listas —
+  os tokens de texto e os fundos — são escritas à mão. Um fundo novo que ninguém
+  acrescentar ali passa despercebido, e foi assim que `ami-lima-100` e `surface-fundo`
+  ficaram fora até 23/08/2026. Derivar as duas de um grep por `text-<token>` e
+  `bg-<token>` é a primeira tarefa da fatia seguinte
 
 ### Conformidade
 
