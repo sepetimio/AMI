@@ -512,6 +512,18 @@ describe("acoes-local.ts", () => {
     expect(cria, "não achei a criação do endereço").toBeGreaterThan(-1);
     expect(procura, "procura o endereço equivalente depois de criar").toBeLessThan(cria);
     expect(criar, "não avisa que ligou a um endereço já cadastrado").toContain("aviso");
+
+    /*
+      E o aviso diz a parte que dói: o telefone e o WhatsApp digitados foram
+      descartados, porque sobrescrever os do endereço cadastrado mudaria calado
+      o contato de todos os outros médicos que atendem nele. Telefone é o que
+      fecha o encaminhamento no site — quem digitou não pode ir embora achando
+      que gravou. `codigo` já vem sem comentários, então esta palavra só pode
+      estar na frase que aparece na tela.
+    */
+    expect(criar, "o aviso não diz que o telefone digitado não foi gravado").toMatch(
+      /telefone/i,
+    );
   });
 
   it("salvarAcessibilidade reconcilia, não apaga tudo e recria", () => {

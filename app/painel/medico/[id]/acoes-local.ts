@@ -132,10 +132,20 @@ export async function criarLocal(
   return {
     erros: {},
     salvo: true,
+    /*
+      O aviso diz as duas coisas, e a segunda é a que dói: o telefone e o
+      WhatsApp digitados foram DESCARTADOS. Sobrescrever os do endereço
+      cadastrado mudaria calado o contato de todos os outros médicos que
+      atendem nele — o estrago exato contra o qual o aviso de endereço
+      compartilhado existe. Mas telefone é o que fecha o encaminhamento no
+      site, e quem digitou não pode ir embora achando que gravou.
+    */
     aviso: jaExiste
       ? "Este endereço já estava cadastrado. Liguei o médico ao que existia, em " +
         "vez de criar outro igual — assim o aviso de endereço compartilhado " +
-        "continua valendo."
+        "continua valendo. O telefone e o WhatsApp que você digitou não foram " +
+        "gravados: o consultório mantém os que já estavam cadastrados. Corrija " +
+        "no cartão deste consultório, na lista aqui em cima."
       : undefined,
   };
 }

@@ -82,7 +82,7 @@ describe("0006_painel_vinculos.sql", () => {
   /*
     A garantia destas seis vale para ESCRITA DIRETA, não para cascata.
 
-    `atendimento.atendimento_id` é referenciada por `horario` com
+    `horario.atendimento_id` referencia `atendimento (id)` com
     `on delete cascade`, em `0001_diretorio.sql`. Então `desligarLocal`, ao
     remover uma linha de `atendimento` — remoção permitida —, apaga junto as
     linhas de `horario` daquele vínculo. Cascata de integridade referencial é
