@@ -1,10 +1,46 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { Banner } from "@/lib/sanity/tipos";
 
 const INTERVALO = 6000;
+
+const MOVIMENTO_REDUZIDO = "(prefers-reduced-motion: reduce)";
+
+/*
+  Os quatro pares abaixo alimentam os `useSyncExternalStore` do componente e
+  moram fora dele de propósito: definidas no corpo do componente, seriam
+  funções novas a cada renderização, e o React refaria a inscrição toda vez.
+
+  Cada `ler*` devolve um booleano — mesmo valor enquanto nada muda, que é o
+  que `getSnapshot` exige (um objeto novo a cada chamada faria laço infinito).
+  Elas rodam só no cliente, então não precisam de guarda `typeof window`.
+*/
+function assinarMovimento(aoMudar: () => void) {
+  const consulta = window.matchMedia(MOVIMENTO_REDUZIDO);
+  consulta.addEventListener("change", aoMudar);
+  return () => consulta.removeEventListener("change", aoMudar);
+}
+
+function lerMovimento() {
+  return window.matchMedia(MOVIMENTO_REDUZIDO).matches;
+}
+
+function assinarAba(aoMudar: () => void) {
+  document.addEventListener("visibilitychange", aoMudar);
+  return () => document.removeEventListener("visibilitychange", aoMudar);
+}
+
+function lerAba() {
+  return document.hidden;
+}
+
+/* O instantâneo do servidor dos dois. Lá não há nem preferência de movimento
+   nem aba, e o valor precisa ser o mesmo em toda renderização de servidor. */
+function falso() {
+  return false;
+}
 
 /*
   O carrossel de banners, sem biblioteca.
@@ -33,50 +69,29 @@ export function Carrossel({ banners }: { banners: Banner[] }) {
   const [atual, setAtual] = useState(0);
   const [pausado, setPausado] = useState(false);
   /*
-    Inicializada já lendo `matchMedia`, não `false`.
+    `useSyncExternalStore`, e não `useState`, porque as duas árvores precisam
+    bater.
 
-    Com `useState(false)`, o primeiro render sempre acha que há movimento
-    permitido — o valor real só chega depois, no efeito abaixo, que roda
-    depois desse primeiro render. Nesse intervalo `gira` sai calculado com
-    a resposta errada, e o `useEffect` da rotação (mais abaixo) chega a
-    criar o temporizador de `INTERVALO` antes de a resposta certa chegar e
-    desligar `gira` de novo.
+    `semMovimento` decide se o botão "Pausar" existe no JSX lá embaixo, e este
+    componente é renderizado no servidor antes de hidratar. Ler `matchMedia`
+    na inicialização de um `useState` daria dois resultados: no servidor não
+    há `window`, então `false`, e o botão nasce; no cliente de quem tem
+    "reduzir movimento" ligado, `true`, e o botão não nasce. O React
+    descartaria a árvore do servidor e refaria do zero — justamente para quem
+    a regra existe para proteger.
 
-    Hoje isso não dispara nada: o re-render que corrige `semMovimento`
-    acontece em microssegundos, muito antes dos 6s de `INTERVALO`. Mas essa
-    segurança é por MARGEM DE TEMPO, não por desenho — encolher
-    `INTERVALO` ou atrasar o re-render vira a corrida real, e o que está em
-    jogo é a regra que existe para quem tem enxaqueca, vertigem ou
-    epilepsia fotossensível. Ler `matchMedia` já na inicialização do estado
-    fecha essa janela: o primeiro render já nasce com o valor certo, sem
-    depender de nenhum efeito rodar antes de o temporizador ter chance de
-    existir.
-
-    `typeof window !== "undefined"`: esta função roda também no servidor
-    (a primeira renderização de um componente cliente passa por lá antes
-    da hidratação), onde `window` não existe. Sem a checagem, `npm run
-    build` quebraria ao gerar a página.
+    O terceiro argumento é o instantâneo do servidor, e o React o usa tanto
+    para renderizar no servidor quanto para a renderização de hidratação: as
+    duas nascem iguais. Só depois de hidratar ele passa a `lerMovimento`. Isso
+    também fecha a corrida que o `useState(false)` original tinha, porque a
+    correção chega no commit da hidratação, antes de o efeito da rotação mais
+    abaixo criar o temporizador de `INTERVALO`.
   */
-  const [semMovimento, setSemMovimento] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  const semMovimento = useSyncExternalStore(
+    assinarMovimento,
+    lerMovimento,
+    falso,
   );
-  /*
-    Mesmo raciocínio do `semMovimento` acima, aplicado a `document.hidden`:
-    o valor inicial já vem certo, e o efeito abaixo só cuida de mudança
-    durante a visita (usuário troca de aba e volta).
-  */
-  const [abaOculta, setAbaOculta] = useState(
-    () => typeof document !== "undefined" && document.hidden,
-  );
-
-  useEffect(() => {
-    const consulta = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const aplicar = () => setSemMovimento(consulta.matches);
-    consulta.addEventListener("change", aplicar);
-    return () => consulta.removeEventListener("change", aplicar);
-  }, []);
 
   /*
     A quarta situação que para a rotação: a aba sai da frente.
@@ -87,12 +102,12 @@ export function Carrossel({ banners }: { banners: Banner[] }) {
     a rotação fora de sincronia com o que fez por último (setas, bolinhas,
     arrastar). `visibilitychange` é o evento que o próprio navegador
     dispara nas duas transições, então um só listener cobre ir e voltar.
+
+    Mesma forma do `semMovimento` acima, pela mesma razão: hoje `abaOculta`
+    não entra em nenhum JSX condicional, mas quem for mexer nisso depois não
+    tem como saber disso, e o defeito só apareceria em produção.
   */
-  useEffect(() => {
-    const aplicar = () => setAbaOculta(document.hidden);
-    document.addEventListener("visibilitychange", aplicar);
-    return () => document.removeEventListener("visibilitychange", aplicar);
-  }, []);
+  const abaOculta = useSyncExternalStore(assinarAba, lerAba, falso);
 
   const gira = banners.length > 1 && !semMovimento && !pausado && !abaOculta;
 

@@ -8,8 +8,12 @@ import { fileURLToPath } from "node:url";
    nenhuma, e ele se exercita com um `NextRequest` de verdade, sem mock. Uma
    convenção não pode deixar a rota exposta sem teste.
 
-   Não há teste de interface: o custo de manter não se paga num site deste
-   porte. */
+   Não há teste de interface no sentido usual — nada de clicar, digitar ou
+   afirmar sobre pixel: o custo de manter não se paga num site deste porte.
+   `testes/carrossel.test.ts` é a segunda exceção, e não é disso que ele
+   trata: ele renderiza o carrossel com `renderToString` só para comparar
+   duas saídas de servidor entre si, porque compatibilidade de hidratação não
+   dá para ler no código nem o `npm run build` verifica. */
 export default defineConfig({
   test: {
     include: ["testes/**/*.test.ts"],
