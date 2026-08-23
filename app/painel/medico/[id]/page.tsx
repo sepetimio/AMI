@@ -1,8 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FormularioMedico } from "@/components/painel/FormularioMedico";
+import { BlocoEspecialidades } from "@/components/painel/BlocoEspecialidades";
 import { oQueFalta } from "@/lib/painel/medico";
 import { medicoPorId } from "@/lib/painel/consultas";
+import {
+  catalogoDeEspecialidades,
+  especialidadesDoMedico,
+} from "@/lib/painel/especialidades";
 import { clienteDoPainel } from "@/lib/painel/servidor";
 import { exigirAdmin } from "@/lib/painel/sessao";
 
@@ -22,6 +27,11 @@ export default async function PaginaDeEdicao({
   const cliente = await clienteDoPainel();
   const medico = await medicoPorId(cliente, numero);
   if (!medico) notFound();
+
+  const [especialidades, catalogo] = await Promise.all([
+    especialidadesDoMedico(cliente, numero),
+    catalogoDeEspecialidades(cliente),
+  ]);
 
   const falta = oQueFalta({
     temEspecialidade: medico.especialidade !== null,
@@ -47,12 +57,17 @@ export default async function PaginaDeEdicao({
 
       {falta.length ? (
         <p className="mt-4 rounded-bloco border border-line bg-surface px-4 py-3 text-[15px] text-ink-600">
-          Falta: {falta.join(", ")}. Endereços, horários e especialidades entram na
-          próxima etapa do painel.
+          Falta: {falta.join(", ")}. Consultórios entram no bloco abaixo.
         </p>
       ) : null}
 
       <FormularioMedico medico={medico} />
+
+      <BlocoEspecialidades
+        medicoId={medico.id}
+        especialidades={especialidades}
+        catalogo={catalogo}
+      />
     </>
   );
 }

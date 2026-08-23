@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { avisoDeRqeFaltando, validarRqe } from "@/lib/painel/especialidades";
+import { fonte, semComentarios } from "@/testes/apoio";
 
 describe("validarRqe", () => {
   it("aceita vazio, porque clínico geral sem RQE é caso normal", () => {
@@ -41,5 +42,38 @@ describe("avisoDeRqeFaltando", () => {
     const aviso = avisoDeRqeFaltando(["Cardiologia", "Pediatria"]);
     expect(aviso).toContain("Cardiologia");
     expect(aviso).toContain("Pediatria");
+  });
+});
+
+describe("acoes-especialidade.ts", () => {
+  const codigo = semComentarios(fonte("../app/painel/medico/[id]/acoes-especialidade.ts"));
+
+  it("toda gravação pede as linhas afetadas de volta", () => {
+    const escritas = [...codigo.matchAll(/\.(insert|update|delete)\s*\(/g)];
+    expect(escritas.length).toBeGreaterThan(0);
+    /* Uma chamada de `.select(` por escrita, no mínimo. */
+    const selects = [...codigo.matchAll(/\.select\s*\(/g)];
+    expect(selects.length).toBeGreaterThanOrEqual(escritas.length);
+  });
+
+  it("confere se veio linha antes de invalidar", () => {
+    expect(codigo).toContain("if (!data)");
+    expect(codigo.indexOf("if (!data)")).toBeLessThan(codigo.indexOf("revalidatePath("));
+  });
+
+  it("chama exigirAdmin antes de qualquer escrita", () => {
+    const guarda = codigo.indexOf("exigirAdmin(");
+    const escrita = codigo.search(/\.(insert|update|delete)\s*\(/);
+    expect(guarda).toBeGreaterThan(-1);
+    expect(escrita).toBeGreaterThan(guarda);
+  });
+
+  it("só remove de profissional_especialidade", () => {
+    const tabelas = [...codigo.matchAll(/from\("(\w+)"\)([\s\S]*?)(?=from\("|$)/g)];
+    for (const [, tabela, trecho] of tabelas) {
+      if (/\.delete\s*\(/.test(trecho)) {
+        expect(tabela).toBe("profissional_especialidade");
+      }
+    }
   });
 });
