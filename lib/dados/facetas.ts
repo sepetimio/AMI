@@ -99,6 +99,17 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
     }
   }
 
+  /* O site existe para levar a pessoa até o especialista certo e permitir o
+     contato — não para marcar consulta. Esta frase fica no lugar onde antes
+     ficava a de sábado: informativa, sem promessa e sem adjetivo de venda. */
+  frases.push(
+    umEnderecoSo
+      ? `O único endereço traz o telefone do consultório, o contato que ` +
+          `fecha o encaminhamento até o especialista.`
+      : `Cada endereço traz o telefone do consultório, o contato que fecha ` +
+          `o encaminhamento até o especialista.`,
+  );
+
   if (r.comTelemedicina > 0) {
     frases.push(
       umSo

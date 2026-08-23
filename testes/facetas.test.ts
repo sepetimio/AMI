@@ -201,15 +201,19 @@ describe("paragrafoDeAbertura", () => {
      permitir — forçar palavras numa página que não vai ao índice seria
      encher linguiça sem ganho nenhum.
 
-     PISO REVISTO NA TAREFA 1 (verificar com o time de conteúdo): a frase de
-     sábado saiu inteira do parágrafo, sem substituição, por instrução
-     explícita do brief. Ela era gerada sempre, em toda faceta, e a faceta
-     mais pobre caiu de ~120 para 105 palavras com a remoção. O piso de 120
-     não é mais alcançável por essa faceta sem inventar conteúdo que a
-     tarefa não pediu, então baixou para 100 até uma decisão de conteúdo. */
-  it("cumpre 100 a 200 palavras na faceta mais pobre que ainda indexa", () => {
+     PISO REVISTO NA RODADA DE CORREÇÃO 1 (verificar com o time de
+     conteúdo): a frase de sábado saiu inteira do parágrafo, sem
+     substituição, e no lugar dela entrou uma frase sobre telefone do
+     consultório fechando o encaminhamento — real, não inventada para
+     completar contagem. Mesmo com essa frase a faceta mais pobre soma 116
+     palavras, abaixo do piso antigo de 120. A página passou a ter menos a
+     dizer desde que os horários saíram: não há mais frase verdadeira para
+     acrescentar sem repetir o que as outras frases já dizem, então o piso
+     desceu para o número medido em vez de inventar uma segunda frase só
+     para completar. */
+  it("cumpre 116 a 200 palavras na faceta mais pobre que ainda indexa", () => {
     const palavras = paragrafoDeAbertura(pobreIndexavel).split(/\s+/).length;
-    expect(palavras).toBeGreaterThanOrEqual(100);
+    expect(palavras).toBeGreaterThanOrEqual(116);
     expect(palavras).toBeLessThanOrEqual(200);
   });
 

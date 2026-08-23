@@ -34,8 +34,8 @@ export function contagem(n: number, singular: string, plural: string): string {
 /*
   Data em português, por extenso.
 
-  `timeZone` fixo em America/Fortaleza, o fuso de Imperatriz, que não observa
-  hora de verão. Sem ele, a formatação segue o fuso de onde o processo
+  `timeZone` fixo em America/Fortaleza, que é o horário de Imperatriz e não
+  tem horário de verão. Sem ele, a formatação segue o fuso de onde o processo
   roda: a Vercel roda em UTC, o computador de quem desenvolve roda em UTC-3, e
   a mesma notícia mostraria dias diferentes conforme o ambiente. Fixar o fuso
   da cidade é o que torna a data na tela igual à data que a AMI escolheu no
