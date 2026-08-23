@@ -74,7 +74,6 @@
   --color-ami-green-800: #0D2E0C; /* faixa de seção · superfície sobre ele 14,22:1 */
   --color-ami-green-700: #124211; /* borda e estado escuro · 10,07:1 no creme */
   --color-ami-green-600: #1A5E18; /* AÇÃO: 6,87:1 no creme */
-  --color-ami-green-500: #00a457; /* verde esmeralda da marca, NUNCA texto · 1 consumidor em gradiente (page.tsx, herói) — a tarefa 4 remove junto dos outros valores escritos à mão */
 
   /* --- LIMA: o acento ---
 
@@ -123,10 +122,6 @@
   --shadow-apoio: 0 1px 2px rgba(12, 14, 18, 0.04), 0 4px 12px -4px rgba(12, 14, 18, 0.06);
   --shadow-erguido: 0 1px 2px rgba(12, 14, 18, 0.03), 0 8px 24px -8px rgba(12, 14, 18, 0.1), 0 24px 56px -24px rgba(12, 14, 18, 0.12);
   --shadow-flutuante: 0 2px 4px rgba(12, 14, 18, 0.03), 0 16px 40px -12px rgba(12, 14, 18, 0.12), 0 48px 96px -32px rgba(12, 14, 18, 0.2);
-
-  /* Brilho interno de 1px no topo. É o que faz uma superfície
-     clara ter espessura em vez de ser um retângulo pintado. */
-  --shadow-lamina: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 
   /* --- CURVAS: nada linear, nada ease-in-out ---
      `saida` freia forte no fim: o elemento chega com massa,

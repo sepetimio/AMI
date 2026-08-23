@@ -81,7 +81,7 @@ export default async function Home() {
           className="pointer-events-none absolute inset-0 -z-10"
           style={{
             background:
-              "radial-gradient(120% 80% at 12% 0%, rgba(31,107,58,0.55) 0%, rgba(11,48,24,0.35) 38%, transparent 72%)",
+              "radial-gradient(120% 80% at 12% 0%, rgba(26,94,24,0.55) 0%, rgba(13,46,12,0.35) 38%, transparent 72%)",
           }}
         />
 
@@ -101,7 +101,7 @@ export default async function Home() {
           className="pointer-events-none absolute -right-[10%] top-1/2 hidden h-[165%] w-[58%] -translate-y-1/2 md:block"
           style={{
             background:
-              "linear-gradient(150deg, var(--color-ami-green-500) 0%, var(--color-ami-green-600) 38%, rgba(11,48,24,0) 92%)",
+              "linear-gradient(150deg, var(--color-ami-green-600) 0%, var(--color-ami-green-600) 38%, rgba(13,46,12,0) 92%)",
             opacity: 0.42,
             WebkitMaskImage: "url(/marca/ami-simbolo.svg)",
             maskImage: "url(/marca/ami-simbolo.svg)",

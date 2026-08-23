@@ -83,8 +83,8 @@ describe("texto sobre os dois fundos claros", () => {
     Exceção real, não descuido: tokens usados como texto só sobre fundo
     ESCURO (`ami-lima-400`) ficam de fora de propósito. Esta lista testa
     contra `canvas` e `surface`, os dois fundos claros do sistema — medir
-    esse token aqui testaria o par errado. `ami-lima-400` dá 1,36:1 em
-    canvas e 1,49:1 em surface: não é regressão, é a física que barra esse
+    esse token aqui testaria o par errado. `ami-lima-400` dá 1,48:1 em
+    canvas e 1,63:1 em surface: não é regressão, é a física que barra esse
     tom como texto sobre fundo claro. Quem usar esse token sobre fundo
     escuro tem um teste próprio contra `ami-green-800`/`ami-green-900` no
     describe abaixo.
