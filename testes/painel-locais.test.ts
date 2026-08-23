@@ -6,7 +6,7 @@ import {
   reconciliarAcessibilidade,
   validarLocal,
 } from "@/lib/painel/locais";
-import { fonte, semComentarios } from "@/testes/apoio";
+import { acoesQueGravam, fonte, gravacoes, semComentarios } from "@/testes/apoio";
 
 const BAIRROS = [1, 2, 3];
 
@@ -293,32 +293,47 @@ describe("acoes-local.ts", () => {
     expect(codigo).toContain("data.length !== paraInserir.length");
   });
 
-  it("toda gravação pede as linhas afetadas de volta", () => {
-    const escritas = [...codigo.matchAll(/\.(insert|update|delete)\s*\(/g)];
-    const selects = [...codigo.matchAll(/\.select\s*\(/g)];
-    expect(escritas.length).toBeGreaterThan(0);
-    expect(selects.length).toBeGreaterThanOrEqual(escritas.length);
+  it("cada gravação pede as linhas afetadas de volta na própria cadeia", () => {
+    const todas = gravacoes(codigo);
+    expect(todas.length, "nenhuma gravação achada neste arquivo").toBeGreaterThan(0);
+
+    for (const { acao, escrita, cadeia } of todas) {
+      expect(
+        /\.select\s*\(/.test(cadeia),
+        `${acao}: a gravação ${escrita} não pede as linhas afetadas de volta`,
+      ).toBe(true);
+    }
   });
 
-  it("cada ação confere se veio linha antes de invalidar", () => {
+  it("cada ação que grava confere se veio linha, antes de invalidar", () => {
     /*
-      Ancora na CHAMADA `invalidar()`, não em `revalidatePath(`. Medir a posição
-      de `revalidatePath(` mede a DEFINIÇÃO do helper, não o momento em que ele
-      roda. E confere por ação: no arquivo inteiro, o `if (!data)` de uma ação
-      cobriria o `invalidar()` de outra.
+      O gatilho é GRAVAR, não invalidar. A versão anterior dispensava do exame
+      a ação que não chamasse `invalidar()` — a condição que dispensava era a
+      própria coisa examinada, e uma ação que apagasse `atendimento` sem
+      `if (!data)` e sem `invalidar()` passava verde.
+
+      Ancora na CHAMADA `invalidar()`, não em `revalidatePath(`: medir a
+      posição de `revalidatePath(` mede a DEFINIÇÃO do helper, não o momento em
+      que ele roda. E confere por ação: no arquivo inteiro, o `if (!data)` de
+      uma ação cobriria o `invalidar()` de outra.
 
       `criarLocal` e `salvarLocal` conferem sob nomes diferentes — `if
       (!criado.data)`, `if (!ligado.data)`, `if (!data)` — por isso a busca casa
       qualquer uma dessas três formas, em vez de fixar um nome de variável.
     */
-    const acoes = codigo.split("export async function").slice(1);
-    expect(acoes.length).toBeGreaterThan(0);
+    const gravam = acoesQueGravam(codigo);
+    expect(gravam.length, "nenhuma ação que grava neste arquivo").toBeGreaterThan(0);
 
-    for (const acao of acoes) {
-      if (!acao.includes("invalidar()")) continue;
-      const confere = acao.search(/if \(!(\w+\.)?data\)/);
-      expect(confere, "ação que invalida sem conferir se veio linha").toBeGreaterThan(-1);
-      expect(confere).toBeLessThan(acao.indexOf("invalidar()"));
+    for (const { nome, corpo } of gravam) {
+      const confere = corpo.search(/if \(!(\w+\.)?data\)/);
+      expect(confere, `${nome} grava sem conferir se veio linha`).toBeGreaterThan(-1);
+
+      const invalida = corpo.indexOf("invalidar()");
+      if (invalida > -1) {
+        expect(confere, `${nome} invalida antes de conferir se veio linha`).toBeLessThan(
+          invalida,
+        );
+      }
     }
   });
 
