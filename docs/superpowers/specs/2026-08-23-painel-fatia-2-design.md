@@ -18,7 +18,7 @@ O que entra:
 - **Especialidades do médico**, com RQE e qual é a principal
 - **Consultórios onde ele atende**, com telefone e WhatsApp, buscando um já cadastrado
   ou criando um novo
-- **Dois campos que faltaram na fatia 1**: "é associado da AMI" e "CRM/UF"
+- **O campo que faltou na fatia 1**: "é associado da AMI"
 - **A retirada dos horários do site público** — seção 3
 
 Ao terminar, a AMI monta um perfil completo sozinha. Sobra só a foto.
@@ -218,11 +218,22 @@ A página do médico vira três blocos.
 
 ### Bloco 1 — Dados do médico
 
-O formulário da fatia 1, mais dois campos que faltavam:
+O formulário da fatia 1, mais **um** campo que faltava:
 
 - **É associado da AMI** — o interruptor de que a decisão de "não apagar médico"
-  depende. Existe no banco desde sempre e nenhuma tela mostrava
-- **CRM/UF** — a tela grava hoje sem perguntar, usando o valor que já estava
+  depende. A coluna `associado_ami` existe desde `0001_diretorio.sql` e nenhuma
+  tela jamais a mostrou
+
+O formulário tem hoje oito campos: `nome`, `crm`, `crmUf`, `situacao`,
+`telemedicina`, `bio`, `verificadoEm` e o `id` oculto. Medido em
+`components/painel/FormularioMedico.tsx`. Uma versão anterior desta spec dizia
+que faltava também CRM/UF; era falso, e veio de uma busca minha que só casava
+nomes em minúscula e por isso não via `crmUf`.
+
+Acrescentar o campo toca seis lugares: `CamposDoMedico` e `MedicoValidado` em
+`lib/painel/medico.ts`, o corpo de `validarMedico`, a leitura do `FormData` em
+`app/painel/medico/[id]/acoes.ts`, o formulário, e `SELECAO_COMPLETA` com
+`MedicoDoPainel` em `lib/painel/consultas.ts`.
 
 ### Bloco 2 — Especialidades
 
