@@ -70,8 +70,24 @@
      As razões foram calculadas contra o creme (#F2EFE6), e `testes/paleta.test.ts`
      as recalcula a cada rodada. Quem alterar um tom aqui não precisa lembrar
      de medir: o teste mede. */
-  --color-ami-green-900: #071A07; /* cabeçalho e rodapé · superfície sobre ele 17,33:1 */
-  --color-ami-green-800: #0D2E0C; /* faixa de seção · superfície sobre ele 14,22:1 */
+  /* Onde cada verde escuro está HOJE, conferido por grep e não de memória.
+     Os dois comentários anteriores descreviam um site que não é este: um
+     dizia "cabeçalho", e nenhum cabeçalho é verde; o outro dizia "faixa de
+     seção", e faixa de seção ainda não existe — ela nasce na fatia da home. */
+
+  /* O herói inteiro da home (app/(site)/page.tsx), o espaço de fotografia
+     provisória e a tarja de legenda dele (components/base/Fotografia.tsx) e
+     o rodapé (components/layout/Rodape.tsx). O cabeçalho NÃO: Cabecalho.tsx
+     é `bg-surface/80` e Cabeceira.tsx é `bg-surface`.
+     Creme sobre ele 15,75:1, superfície 17,33:1, acento 10,62:1. */
+  --color-ami-green-900: #071A07;
+
+  /* A placa de iniciais do médico, de 76 a 108px (components/diretorio/Placa.tsx),
+     e a ponta escura dos três degradês mascarados pela marca
+     (components/base/EstadoVazio.tsx, components/base/Fotografia.tsx,
+     components/layout/Cabeceira.tsx).
+     Creme sobre ele 12,92:1, superfície 14,22:1, acento 8,72:1. */
+  --color-ami-green-800: #0D2E0C;
   --color-ami-green-700: #124211; /* borda e estado escuro · 10,07:1 no creme */
   --color-ami-green-600: #1A5E18; /* AÇÃO: 6,87:1 no creme */
 
