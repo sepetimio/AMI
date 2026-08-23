@@ -165,7 +165,23 @@ describe("texto sobre fundo escuro", () => {
     existindo depois da tarefa 3 migrar e apagar a família antiga do
     `@theme`.
   */
+  /*
+    Os dois cremes sobre cada verde, e não só um.
+
+    A spec pede "creme sobre o verde profundo", e creme é `canvas`. Este
+    arquivo media `surface`, que é o creme mais CLARO — o caso mais fácil:
+    17,33:1 contra os 15,75:1 de `canvas` sobre `ami-green-900`. Medir só o
+    mais fácil é o erro simétrico ao que a revisão da tarefa 1 pegou em
+    `ink-300`, e o critério que o arquivo já aplica lá vale aqui: quando dois
+    tons dividem o mesmo papel, mede-se o par que cruza o mínimo primeiro, e
+    o outro junto, porque nenhum dos dois é hipotético.
+
+    Os dois estão em uso: `bg-canvas` aparece em 11 lugares e `bg-surface`
+    em mais, e ambos convivem sobre o verde do herói e do rodapé.
+  */
   const PARES_ESCUROS: [string, string][] = [
+    ["canvas", "ami-green-900"],
+    ["canvas", "ami-green-800"],
     ["surface", "ami-green-900"],
     ["surface", "ami-green-800"],
     ["ami-lima-400", "ami-green-900"],
