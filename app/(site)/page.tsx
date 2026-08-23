@@ -69,7 +69,7 @@ export default async function Home() {
           começa acima da borda de cima e nenhum ajuste futuro de respiro,
           de tamanho da marca ou de fonte pode reabrir a fresta.
           ===================================================== */}
-      <section className="relative isolate -mt-32 overflow-hidden bg-ami-green-950 pb-40 pt-[188px] md:pb-48 md:pt-[236px]">
+      <section className="relative isolate -mt-32 overflow-hidden bg-ami-green-900 pb-40 pt-[188px] md:pb-48 md:pt-[236px]">
         {/*
           Duas camadas de luz, e é o que separa campo de retângulo pintado. A
           primeira é um foco radial largo no alto à esquerda, atrás do título,
@@ -120,7 +120,7 @@ export default async function Home() {
               Encontre um médico em Imperatriz
             </h1>
             {/* Números contados do banco. Nunca escritos à mão. */}
-            <p className="mt-7 max-w-[46ch] text-[19px] leading-relaxed text-ami-mint-400 md:text-[22px]">
+            <p className="mt-7 max-w-[46ch] text-[19px] leading-relaxed text-ami-lima-400 md:text-[22px]">
               <span className="registro font-medium text-white">{total}</span>{" "}
               {total === 1 ? "profissional" : "profissionais"} em{" "}
               <span className="registro font-medium text-white">

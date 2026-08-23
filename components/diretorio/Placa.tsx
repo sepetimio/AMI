@@ -53,7 +53,7 @@ export function Placa({
            placa, em vez de nadar dentro dela no tamanho grande. */
         fontSize: Math.round(tamanho * 0.34),
       }}
-      className="flex shrink-0 items-center justify-center rounded-controle bg-ami-green-800 font-titulo font-bold text-ami-mint-400 shadow-[inset_0_1px_0_rgba(165,220,175,0.22)]"
+      className="flex shrink-0 items-center justify-center rounded-controle bg-ami-green-800 font-titulo font-bold text-ami-lima-400 shadow-[inset_0_1px_0_rgba(165,220,175,0.22)]"
     >
       {iniciais(nome)}
     </span>

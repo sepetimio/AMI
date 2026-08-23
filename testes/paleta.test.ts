@@ -81,13 +81,13 @@ describe("texto sobre os dois fundos claros", () => {
     `text-<nome>` em qualquer componente, ele pertence aqui.
 
     Exceção real, não descuido: tokens usados como texto só sobre fundo
-    ESCURO (`ami-mint-400`, `ami-lima-400`) ficam de fora de propósito.
-    Esta lista testa contra `canvas` e `surface`, os dois fundos claros do
-    sistema — medir esses tokens aqui testaria o par errado. `ami-mint-400`
-    dá 1,36:1 em canvas e 1,49:1 em surface: não é regressão, é a mesma
-    física que barra `ami-lima-400` como texto sobre fundo claro. Quem usar
-    esses dois sobre fundo escuro precisa de um teste próprio contra
-    `ami-green-800`/`ami-green-900`, que ainda não existe.
+    ESCURO (`ami-lima-400`) ficam de fora de propósito. Esta lista testa
+    contra `canvas` e `surface`, os dois fundos claros do sistema — medir
+    esse token aqui testaria o par errado. `ami-lima-400` dá 1,36:1 em
+    canvas e 1,49:1 em surface: não é regressão, é a física que barra esse
+    tom como texto sobre fundo claro. Quem usar esse token sobre fundo
+    escuro tem um teste próprio contra `ami-green-800`/`ami-green-900` no
+    describe abaixo.
   */
   const TEXTO_DE_CORPO = ["ink-900", "ink-600", "ink-400", "warn", "ami-green-600", "ami-green-700"];
 
@@ -130,14 +130,14 @@ describe("texto sobre fundo escuro", () => {
     à mão, que apodrece.
 
     A varredura da rodada anterior (grep de `text-<token>` em app/ e
-    components/) resolveu isso: `ami-mint-400` é usado só sobre verde
-    escuro, nunca sobre fundo claro, e `ami-lima-400` é o token novo com o
-    mesmo papel (marca sobre o verde, ou fundo de texto escuro). O par
-    deixou de ser suposição.
+    components/) resolveu isso: o token da família antiga (a que a tarefa 3
+    migrou) era usado só sobre verde escuro, nunca sobre fundo claro, e
+    `ami-lima-400` é o token novo com o mesmo papel (marca sobre o verde,
+    ou fundo de texto escuro). O par deixou de ser suposição.
 
-    `ami-mint-400` e `ami-mint-100` ficam de fora aqui de propósito: são os
-    tokens da família antiga que a tarefa 3 migra e apaga. Este describe
-    testa o par novo, `ami-lima-400`, que é o que continua existindo depois.
+    Este describe testa o par novo, `ami-lima-400`, que é o que continua
+    existindo depois da tarefa 3 migrar e apagar a família antiga do
+    `@theme`.
   */
   const PARES_ESCUROS: [string, string][] = [
     ["surface", "ami-green-900"],

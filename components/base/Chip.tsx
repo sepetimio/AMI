@@ -21,7 +21,7 @@ export function Chip({
      como preenchimento, nunca como cor de texto. */
   const cores = {
     neutro: "bg-canvas text-ink-600 border-transparent",
-    associado: "bg-ami-mint-100 text-ami-green-700 border-ami-green-600/30",
+    associado: "bg-ami-lima-100 text-ami-green-700 border-ami-green-600/30",
   }[tom];
 
   return (

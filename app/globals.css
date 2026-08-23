@@ -74,8 +74,7 @@
   --color-ami-green-800: #0D2E0C; /* faixa de seção · superfície sobre ele 14,22:1 */
   --color-ami-green-700: #124211; /* borda e estado escuro · 10,07:1 no creme */
   --color-ami-green-600: #1A5E18; /* AÇÃO: 6,87:1 no creme */
-  --color-ami-green-500: #00a457; /* verde esmeralda da marca, NUNCA texto · 4 consumidores em gradiente (page.tsx, EstadoVazio, Fotografia, Cabeceira) — a tarefa 3 migra e remove */
-  --color-ami-green-950: #04150c; /* campo mais profundo do herói · tom da família antiga (azulada); 3 consumidores em bg-ami-green-950 (page.tsx, Fotografia, Rodape) que hoje fariam o papel de green-900 — a tarefa 3 migra a classe e remove */
+  --color-ami-green-500: #00a457; /* verde esmeralda da marca, NUNCA texto · 1 consumidor em gradiente (page.tsx, herói) — a tarefa 4 remove junto dos outros valores escritos à mão */
 
   /* --- LIMA: o acento ---
 
@@ -84,13 +83,6 @@
      sobre o verde (8,72:1). Isto é física, não preferência. */
   --color-ami-lima-400: #A8D470;
   --color-ami-lima-100: #E2E9CC; /* lavagem de passagem de mouse */
-
-  /* Tons da família antiga (azulada), ainda com consumidores reais em
-     classe Tailwind, não em var() — por isso não apareceram na varredura
-     original. Ficam até a tarefa 3 migrar cada consumidor para o par novo
-     acima e então remover estes dois. */
-  --color-ami-mint-400: #a5dcaf; /* só sobre verde escuro · 5 usos em text-ami-mint-400 (page.tsx, Fotografia, Placa, Rodape×2) — o papel que ami-lima-400 assume */
-  --color-ami-mint-100: #e9f6ee; /* wash de fundo · 13 usos em bg-ami-mint-100 (Chip, IndiceEspecialidades, LinhaMedico, PainelFiltros×3, associacao, medico×3, medicos×2, noticias) — o papel que ami-lima-100 assume */
 
   --color-warn: #7C5F00; /* 5,23:1 no creme, 5,75:1 na superfície · era #8a6a00, 4,41:1 no creme, abaixo do mínimo; escurecido com folga · texto de corpo, em testes/paleta.test.ts */
 

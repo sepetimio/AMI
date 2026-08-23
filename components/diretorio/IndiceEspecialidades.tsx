@@ -40,7 +40,7 @@ export function IndiceEspecialidades({ itens }: { itens: Item[] }) {
 
             {/* Presa ao canto do cartão, e não encostada no nome, para que a
                 coluna de números alinhe de cartão a cartão. */}
-            <span className="registro shrink-0 rounded-chip bg-canvas px-2.5 py-1 text-[14px] text-ink-400 transition-colors duration-200 group-hover:bg-ami-mint-100 group-hover:text-ami-green-700">
+            <span className="registro shrink-0 rounded-chip bg-canvas px-2.5 py-1 text-[14px] text-ink-400 transition-colors duration-200 group-hover:bg-ami-lima-100 group-hover:text-ami-green-700">
               {e.total}
             </span>
           </Link>

@@ -25,7 +25,7 @@ export async function Rodape() {
   ]);
 
   return (
-    <footer className="mt-24 rounded-t-painel bg-ami-green-950 text-ami-mint-400">
+    <footer className="mt-24 rounded-t-painel bg-ami-green-900 text-ami-lima-400">
       <div className="mx-auto max-w-[1240px] px-5 py-16 md:px-8 md:py-20">
         <p className="text-[24px] font-semibold leading-[1.15] tracking-[-0.02em] text-white">
           Associação Médica
@@ -246,7 +246,7 @@ export async function Rodape() {
               perfis são fictícios depois da carga do cadastro real seria
               desmentir 500 médicos de verdade no rodapé de toda página. */}
           {DADOS_DEMONSTRACAO ? (
-            <p className="mt-2 text-ami-mint-400/80">
+            <p className="mt-2 text-ami-lima-400/80">
               Os dados de profissionais exibidos são fictícios, para
               demonstração, até a carga do cadastro oficial da AMI.
             </p>
