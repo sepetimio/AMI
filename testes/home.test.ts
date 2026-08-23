@@ -10,12 +10,14 @@ import { fonte, semComentarios } from "@/testes/apoio";
   PEGA — o componente foi removido do arquivo, teve o nome trocado, ou a
   ordem em que os três aparecem no código mudou.
 
-  NÃO PEGA — que o componente RENDERIZE alguma coisa. `{false && <FaixaDaAmi
-  … />}` passa em todas as asserções abaixo: a substring "<FaixaDaAmi" está
-  lá. Isso não é suposição, foi provado por mutação na tarefa que escreveu
-  este arquivo. `{null}` devolvido de dentro do próprio componente também
-  passa, e `UltimasNoticias` faz exatamente isso quando não há notícia — de
-  propósito, e sem que nada aqui saiba.
+  NÃO PEGA — que o componente RENDERIZE alguma coisa. Envolver a faixa em
+  `{false && (<FaixaDaAmi … />)}` deixa os quatro testes abaixo VERDES: a
+  substring "<FaixaDaAmi" continua no arquivo. Isso não é raciocínio, é
+  medido — a mutação foi aplicada e a suíte rodou assim. `null` devolvido de
+  dentro do próprio componente passa pelo mesmo motivo, e
+  `UltimasNoticias` faz exatamente isso quando não há notícia
+  (components/editorial/UltimasNoticias.tsx: `if (noticias.length === 0)
+  return null;`) — de propósito, e sem que nada aqui saiba.
 
   NÃO PEGA, também — ordem VISUAL. `indexOf` mede posição no arquivo, não na
   tela: um `order-*` do Tailwind, um `flex-col-reverse` ou um wrapper que
