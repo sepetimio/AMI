@@ -70,8 +70,8 @@
      As razões foram calculadas contra o creme (#F2EFE6), e `testes/paleta.test.ts`
      as recalcula a cada rodada. Quem alterar um tom aqui não precisa lembrar
      de medir: o teste mede. */
-  --color-ami-green-900: #071A07; /* cabeçalho e rodapé · creme sobre ele 15,75:1 */
-  --color-ami-green-800: #0D2E0C; /* faixa de seção · creme sobre ele 12,92:1 */
+  --color-ami-green-900: #071A07; /* cabeçalho e rodapé · superfície sobre ele 17,33:1 */
+  --color-ami-green-800: #0D2E0C; /* faixa de seção · superfície sobre ele 14,22:1 */
   --color-ami-green-700: #124211; /* borda e estado escuro · 10,07:1 no creme */
   --color-ami-green-600: #1A5E18; /* AÇÃO: 6,87:1 no creme */
   --color-ami-green-500: #00a457; /* verde esmeralda da marca, NUNCA texto · 4 consumidores em gradiente (page.tsx, EstadoVazio, Fotografia, Cabeceira) — a tarefa 3 migra e remove */

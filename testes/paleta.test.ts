@@ -73,7 +73,7 @@ describe("os tokens existem", () => {
 });
 
 describe("texto sobre os dois fundos claros", () => {
-  const TEXTO_DE_CORPO = ["ink-900", "ink-600", "ink-400", "warn"];
+  const TEXTO_DE_CORPO = ["ink-900", "ink-600", "ink-400", "warn", "ami-green-600"];
 
   for (const fundo of ["canvas", "surface"]) {
     for (const tinta of TEXTO_DE_CORPO) {
@@ -87,12 +87,21 @@ describe("texto sobre os dois fundos claros", () => {
     }
   }
 
-  it("ink-300 fica de fora de propósito", () => {
-    /*
-      `ink-300` é placeholder e ícone desabilitado — nunca texto que alguém
-      precisa ler. Se um dia ele passar de 4,5:1, o motivo dele deixou de
-      existir e o comentário de globals.css precisa ser revisto.
-    */
-    expect(razaoDeContraste(T["ink-300"], T["canvas"])).toBeLessThan(MINIMO);
-  });
+  for (const fundo of ["canvas", "surface"]) {
+    it(`ink-300 fica de fora de propósito, sobre ${fundo}`, () => {
+      /*
+        `ink-300` é placeholder e ícone desabilitado — nunca texto que alguém
+        precisa ler. Se um dia ele passar de 4,5:1, o motivo dele deixou de
+        existir e o comentário de globals.css precisa ser revisto.
+
+        Os dois fundos precisam da mesma checagem: `surface` é o mais claro
+        dos dois, então é onde qualquer tom escurecido cruza o mínimo
+        primeiro. Testar só `canvas` deixa passar um token que já está em
+        conformidade sobre `surface` — foi o que a revisão da tarefa 1
+        mostrou mutando para `#727272`: 4,18:1 sobre canvas (ainda abaixo,
+        teste único não pega) mas 4,60:1 sobre surface (já acima).
+      */
+      expect(razaoDeContraste(T["ink-300"], T[fundo])).toBeLessThan(MINIMO);
+    });
+  }
 });
