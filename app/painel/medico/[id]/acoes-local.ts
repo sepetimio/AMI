@@ -132,17 +132,31 @@ export async function salvarLocal(
   return { erros: {}, salvo: true };
 }
 
-export async function ligarLocalExistente(dados: FormData): Promise<void> {
+/*
+  Devolve estado, não lança.
+
+  Erro lançado de Server Action vira, em produção, uma mensagem genérica com
+  identificador — a documentação da versão instalada do Next.js é explícita
+  (`node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/
+  error.md`): "This is to prevent leaking sensitive details." A frase em
+  português nunca chegaria a quem usa. Mesmo formato de `criarLocal` e
+  `salvarLocal` acima, e das duas ações equivalentes em
+  `acoes-especialidade.ts`.
+*/
+export async function ligarLocalExistente(
+  _anterior: EstadoDoLocal,
+  dados: FormData,
+): Promise<EstadoDoLocal> {
   await exigirAdmin();
 
   const medicoId = Number(dados.get("medicoId"));
   const localId = Number(dados.get("localId"));
 
   if (!Number.isInteger(medicoId) || medicoId <= 0) {
-    throw new Error("Identificador de médico inválido.");
+    return { erros: { geral: "Identificador de médico inválido." }, salvo: false };
   }
   if (!Number.isInteger(localId) || localId <= 0) {
-    throw new Error("Escolha um consultório da lista.");
+    return { erros: { geral: "Escolha um consultório da lista." }, salvo: false };
   }
 
   const cliente = await clienteDoPainel();
@@ -154,13 +168,14 @@ export async function ligarLocalExistente(dados: FormData): Promise<void> {
 
   if (error) {
     if (error.code === "23505") {
-      throw new Error("Este médico já atende neste consultório.");
+      return { erros: { geral: "Este médico já atende neste consultório." }, salvo: false };
     }
-    throw new Error(`Não consegui ligar: ${error.message}`);
+    return { erros: { geral: `Não consegui ligar: ${error.message}` }, salvo: false };
   }
-  if (!data) throw new Error(NAO_ADMITIU);
+  if (!data) return { erros: { geral: NAO_ADMITIU }, salvo: false };
 
   invalidar();
+  return { erros: {}, salvo: true };
 }
 
 /*
@@ -169,17 +184,20 @@ export async function ligarLocalExistente(dados: FormData): Promise<void> {
   Remove a LIGAÇÃO, não o consultório. O endereço continua existindo, com os
   outros médicos que atendem nele.
 */
-export async function desligarLocal(dados: FormData): Promise<void> {
+export async function desligarLocal(
+  _anterior: EstadoDoLocal,
+  dados: FormData,
+): Promise<EstadoDoLocal> {
   await exigirAdmin();
 
   const medicoId = Number(dados.get("medicoId"));
   const localId = Number(dados.get("localId"));
 
   if (!Number.isInteger(medicoId) || medicoId <= 0) {
-    throw new Error("Identificador de médico inválido.");
+    return { erros: { geral: "Identificador de médico inválido." }, salvo: false };
   }
   if (!Number.isInteger(localId) || localId <= 0) {
-    throw new Error("Identificador de consultório inválido.");
+    return { erros: { geral: "Identificador de consultório inválido." }, salvo: false };
   }
 
   const cliente = await clienteDoPainel();
@@ -191,14 +209,21 @@ export async function desligarLocal(dados: FormData): Promise<void> {
     .select("id")
     .maybeSingle();
 
-  if (error) throw new Error(`Não consegui desligar: ${error.message}`);
+  if (error) {
+    return { erros: { geral: `Não consegui desligar: ${error.message}` }, salvo: false };
+  }
 
   if (!data) {
-    throw new Error(
-      "Nada foi removido: ou o vínculo já não existia, ou o banco não admitiu. " +
-        "Recarregue a página.",
-    );
+    return {
+      erros: {
+        geral:
+          "Nada foi removido: ou o vínculo já não existia, ou o banco não admitiu. " +
+          "Recarregue a página.",
+      },
+      salvo: false,
+    };
   }
 
   invalidar();
+  return { erros: {}, salvo: true };
 }

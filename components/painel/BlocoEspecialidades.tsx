@@ -19,6 +19,41 @@ const CAMPO =
   "w-full rounded-controle border border-line bg-surface px-4 py-3 text-[16px] " +
   "text-ink-900 outline-none focus-visible:border-ami-green-600";
 
+/*
+  Uma linha, um estado.
+
+  `useActionState` não pode ser chamado dentro do `.map()` do componente pai
+  — violaria a regra dos hooks a cada especialidade a mais ou a menos. Por
+  isso "Remover" é um componente próprio: cada instância tem seu hook, e a
+  mensagem de erro de remover uma linha não se mistura com a de outra.
+*/
+function LinhaDeRemocao({
+  medicoId,
+  especialidade,
+}: {
+  medicoId: number;
+  especialidade: EspecialidadeDoMedico;
+}) {
+  const [estado, acao, pendente] = useActionState(removerEspecialidade, INICIAL);
+
+  return (
+    <form action={acao} className="mt-2">
+      <input type="hidden" name="medicoId" value={medicoId} />
+      <input type="hidden" name="especialidadeId" value={especialidade.id} />
+      <button
+        type="submit"
+        disabled={pendente}
+        className="text-[14px] text-ink-400 underline hover:text-ink-900"
+      >
+        {pendente ? "Removendo…" : `Remover ${especialidade.nome}`}
+      </button>
+      <p aria-live="polite" className="min-h-5 text-[14px] text-warn">
+        {estado.erros.geral ?? ""}
+      </p>
+    </form>
+  );
+}
+
 export function BlocoEspecialidades({
   medicoId,
   especialidades,
@@ -29,6 +64,7 @@ export function BlocoEspecialidades({
   catalogo: EspecialidadeDisponivel[];
 }) {
   const [estado, acao, pendente] = useActionState(salvarEspecialidades, INICIAL);
+  const [estadoNovo, acaoNovo, pendenteNovo] = useActionState(acrescentarEspecialidade, INICIAL);
 
   const jaTem = new Set(especialidades.map((e) => e.id));
   const disponiveis = catalogo.filter((c) => !jaTem.has(c.id));
@@ -103,7 +139,7 @@ export function BlocoEspecialidades({
       ) : null}
 
       <div className="mt-6 flex flex-wrap items-end gap-3">
-        <form action={acrescentarEspecialidade} className="flex items-end gap-3">
+        <form action={acaoNovo} className="flex items-end gap-3">
           <input type="hidden" name="medicoId" value={medicoId} />
           <input
             type="hidden"
@@ -127,25 +163,20 @@ export function BlocoEspecialidades({
           </div>
           <button
             type="submit"
-            disabled={disponiveis.length === 0}
+            disabled={disponiveis.length === 0 || pendenteNovo}
             className="pressiona rounded-controle border border-line px-4 py-3 text-[15px] font-medium text-ink-600 hover:text-ink-900"
           >
-            Acrescentar
+            {pendenteNovo ? "Acrescentando…" : "Acrescentar"}
           </button>
         </form>
       </div>
 
+      <p aria-live="polite" className="min-h-5 text-[14px] text-warn">
+        {estadoNovo.erros.geral ?? ""}
+      </p>
+
       {especialidades.map((e) => (
-        <form key={`remover-${e.id}`} action={removerEspecialidade} className="mt-2">
-          <input type="hidden" name="medicoId" value={medicoId} />
-          <input type="hidden" name="especialidadeId" value={e.id} />
-          <button
-            type="submit"
-            className="text-[14px] text-ink-400 underline hover:text-ink-900"
-          >
-            Remover {e.nome}
-          </button>
-        </form>
+        <LinhaDeRemocao key={`remover-${e.id}`} medicoId={medicoId} especialidade={e} />
       ))}
     </section>
   );

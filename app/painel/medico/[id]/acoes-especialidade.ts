@@ -98,7 +98,22 @@ export async function salvarEspecialidades(
   return { erros: {}, salvo: true };
 }
 
-export async function acrescentarEspecialidade(dados: FormData): Promise<void> {
+/*
+  Devolve estado, não lança.
+
+  Erro lançado de Server Component/Action vira, em produção, uma mensagem
+  genérica com um identificador — a documentação da versão instalada do
+  Next.js é explícita (`node_modules/next/dist/docs/01-app/03-api-reference/
+  03-file-conventions/error.md`): "This is to prevent leaking sensitive
+  details." A frase em português que este arquivo escreve nunca chegaria a
+  quem usa. Por isso as quatro ações que mexem em vínculo — as duas daqui e
+  as duas de `acoes-local.ts` — devolvem `{ erros, salvo }`, no mesmo formato
+  de `salvarEspecialidades` acima, e quem chama usa `useActionState`.
+*/
+export async function acrescentarEspecialidade(
+  _anterior: EstadoDaEspecialidade,
+  dados: FormData,
+): Promise<EstadoDaEspecialidade> {
   await exigirAdmin();
 
   const medicoId = Number(dados.get("medicoId"));
@@ -106,10 +121,10 @@ export async function acrescentarEspecialidade(dados: FormData): Promise<void> {
   const ehAPrimeira = dados.get("ehAPrimeira") === "true";
 
   if (!Number.isInteger(medicoId) || medicoId <= 0) {
-    throw new Error("Identificador de médico inválido.");
+    return { erros: { geral: "Identificador de médico inválido." }, salvo: false };
   }
   if (!Number.isInteger(especialidadeId) || especialidadeId <= 0) {
-    throw new Error("Escolha uma especialidade da lista.");
+    return { erros: { geral: "Escolha uma especialidade da lista." }, salvo: false };
   }
 
   const cliente = await clienteDoPainel();
@@ -131,32 +146,40 @@ export async function acrescentarEspecialidade(dados: FormData): Promise<void> {
 
   if (error) {
     if (error.code === "23505") {
-      throw new Error("Este médico já tem essa especialidade.");
+      return { erros: { geral: "Este médico já tem essa especialidade." }, salvo: false };
     }
-    throw new Error(`Não consegui acrescentar: ${error.message}`);
+    return { erros: { geral: `Não consegui acrescentar: ${error.message}` }, salvo: false };
   }
 
   if (!data) {
-    throw new Error(
-      "A especialidade não foi gravada: o banco não admitiu a escrita. " +
-        "Costuma ser sessão expirada — saia e entre de novo.",
-    );
+    return {
+      erros: {
+        geral:
+          "A especialidade não foi gravada: o banco não admitiu a escrita. " +
+          "Costuma ser sessão expirada — saia e entre de novo.",
+      },
+      salvo: false,
+    };
   }
 
   invalidar();
+  return { erros: {}, salvo: true };
 }
 
-export async function removerEspecialidade(dados: FormData): Promise<void> {
+export async function removerEspecialidade(
+  _anterior: EstadoDaEspecialidade,
+  dados: FormData,
+): Promise<EstadoDaEspecialidade> {
   await exigirAdmin();
 
   const medicoId = Number(dados.get("medicoId"));
   const especialidadeId = Number(dados.get("especialidadeId"));
 
   if (!Number.isInteger(medicoId) || medicoId <= 0) {
-    throw new Error("Identificador de médico inválido.");
+    return { erros: { geral: "Identificador de médico inválido." }, salvo: false };
   }
   if (!Number.isInteger(especialidadeId) || especialidadeId <= 0) {
-    throw new Error("Identificador de especialidade inválido.");
+    return { erros: { geral: "Identificador de especialidade inválido." }, salvo: false };
   }
 
   const cliente = await clienteDoPainel();
@@ -168,14 +191,21 @@ export async function removerEspecialidade(dados: FormData): Promise<void> {
     .select("especialidade_id")
     .maybeSingle();
 
-  if (error) throw new Error(`Não consegui remover: ${error.message}`);
+  if (error) {
+    return { erros: { geral: `Não consegui remover: ${error.message}` }, salvo: false };
+  }
 
   if (!data) {
-    throw new Error(
-      "Nada foi removido: ou o vínculo já não existia, ou o banco não admitiu. " +
-        "Recarregue a página.",
-    );
+    return {
+      erros: {
+        geral:
+          "Nada foi removido: ou o vínculo já não existia, ou o banco não admitiu. " +
+          "Recarregue a página.",
+      },
+      salvo: false,
+    };
   }
 
   invalidar();
+  return { erros: {}, salvo: true };
 }

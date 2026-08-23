@@ -174,6 +174,7 @@ function CartaoDeLocal({
   listaDeBairros: Bairro[];
 }) {
   const [estado, acao, pendente] = useActionState(salvarLocal, INICIAL);
+  const [estadoTirar, acaoTirar, pendenteTirar] = useActionState(desligarLocal, INICIAL);
 
   return (
     <div className="mt-6 rounded-bloco border border-line p-6">
@@ -220,14 +221,21 @@ function CartaoDeLocal({
         </p>
       </form>
 
-      <form action={desligarLocal} className="mt-6 border-t border-line pt-4">
+      <form action={acaoTirar} className="mt-6 border-t border-line pt-4">
         <input type="hidden" name="medicoId" value={medicoId} />
         <input type="hidden" name="localId" value={local.id} />
-        <button type="submit" className="text-[14px] text-ink-400 underline hover:text-ink-900">
-          Tirar deste consultório
+        <button
+          type="submit"
+          disabled={pendenteTirar}
+          className="text-[14px] text-ink-400 underline hover:text-ink-900"
+        >
+          {pendenteTirar ? "Tirando…" : "Tirar deste consultório"}
         </button>
         <p className="mt-1 text-[13px] text-ink-400">
           Tira o médico daqui. O consultório continua existindo.
+        </p>
+        <p aria-live="polite" className="min-h-5 text-[14px] text-warn">
+          {estadoTirar.erros.geral ?? ""}
         </p>
       </form>
     </div>
@@ -246,6 +254,7 @@ export function BlocoLocais({
   todosOsLocais: LocalDoMedico[];
 }) {
   const [estadoNovo, acaoNovo, pendenteNovo] = useActionState(criarLocal, INICIAL);
+  const [estadoLigar, acaoLigar, pendenteLigar] = useActionState(ligarLocalExistente, INICIAL);
 
   const jaTem = new Set(locais.map((l) => l.id));
   const disponiveisParaLigar = todosOsLocais.filter((l) => !jaTem.has(l.id));
@@ -281,7 +290,7 @@ export function BlocoLocais({
           evita cadastrar a mesma clínica duas vezes.
         </p>
 
-        <form action={ligarLocalExistente} className="mt-4 flex flex-wrap items-end gap-3">
+        <form action={acaoLigar} className="mt-4 flex flex-wrap items-end gap-3">
           <input type="hidden" name="medicoId" value={medicoId} />
           <div className="flex-1">
             <label htmlFor="localId-existente" className="block text-[14px] font-medium text-ink-600">
@@ -302,12 +311,15 @@ export function BlocoLocais({
           </div>
           <button
             type="submit"
-            disabled={disponiveisParaLigar.length === 0}
+            disabled={disponiveisParaLigar.length === 0 || pendenteLigar}
             className="pressiona rounded-controle border border-line px-4 py-3 text-[15px] font-medium text-ink-600 hover:text-ink-900"
           >
-            Ligar a este consultório
+            {pendenteLigar ? "Ligando…" : "Ligar a este consultório"}
           </button>
         </form>
+        <p aria-live="polite" className="min-h-5 text-[14px] text-warn">
+          {estadoLigar.erros.geral ?? ""}
+        </p>
       </div>
 
       <div className="mt-8 rounded-bloco border border-line p-6">
