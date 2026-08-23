@@ -405,8 +405,14 @@ export function BlocoLocais({
             {pendenteNovo ? "Criando…" : "Criar consultório"}
           </button>
 
+          {/*
+            O aviso toma o lugar do "Salvo." quando existe: ele diz que deu
+            certo E que deu certo de um jeito diferente do que quem preencheu
+            pediu — o endereço já estava cadastrado, e o médico foi ligado ao
+            que existia. "Salvo." sozinho esconderia isso.
+          */}
           <p aria-live="polite" className="min-h-5 text-[14px] text-ink-600">
-            {estadoNovo.salvo ? "Salvo." : ""}
+            {estadoNovo.salvo ? (estadoNovo.aviso ?? "Salvo.") : ""}
           </p>
         </form>
       </div>

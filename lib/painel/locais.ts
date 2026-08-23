@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ROTULO_ACESSIBILIDADE, type RecursoAcessibilidade } from "@/lib/dados/tipos";
+import { chave } from "@/lib/importador/texto";
 
 /*
   Consultórios: leitura e validação.
@@ -159,6 +160,57 @@ export function validarLocal(
       estacionamento: campos.estacionamento,
     },
   };
+}
+
+/*
+  Chave de comparação de endereço: logradouro normalizado, número e bairro.
+
+  `local` não tem unicidade nenhuma, e endereço nunca é removível por decisão
+  de projeto — cada duplicata que entra é lixo permanente. Pior que o lixo: ela
+  parte o `quantosMedicos` em dois e DESLIGA CALADO o aviso de endereço
+  compartilhado, que é a razão de o campo existir. Dois médicos na mesma
+  clínica, cadastrada duas vezes, contam um cada, e quem corrigir o telefone
+  acha que mexeu no de todo mundo.
+
+  Mesma ideia do `chaveDeEndereco` do importador (`lib/importador/plano.ts`) e
+  a mesma normalização (`chave`, de `lib/importador/texto.ts`: sem acento,
+  minúsculas, espaço colapsado). Uma diferença: o importador junta pelo NOME
+  do bairro, porque é o que a planilha tem; aqui entra o `bairro_id`, que vem
+  de lista fechada e é chave mais forte — dois bairros de nome parecido não se
+  confundem, e o mesmo bairro escrito de dois jeitos não existe.
+
+  O que ela NÃO pega: "1200" e "1.200" são números diferentes para ela, e
+  "Rua Simplício Moreira" e "R. Simplício Moreira" são ruas diferentes.
+  Abreviação é problema de outra ordem — o importador também não a resolve — e
+  o preço de errar para o lado de criar um endereço a mais é menor que o de
+  ligar um médico ao consultório errado.
+*/
+export function chaveDeEndereco(
+  logradouro: string,
+  numero: string | null,
+  bairroId: number,
+): string {
+  return [chave(logradouro), chave(numero ?? ""), String(bairroId)].join("|");
+}
+
+export type EnderecoExistente = {
+  id: number;
+  logradouro: string;
+  numero: string | null;
+  bairro_id: number;
+};
+
+/** O id do endereço equivalente que já existe, ou `null` se nenhum existe. */
+export function acharEnderecoIgual(
+  novo: { logradouro: string; numero: string | null; bairro_id: number },
+  existentes: EnderecoExistente[],
+): number | null {
+  const alvo = chaveDeEndereco(novo.logradouro, novo.numero, novo.bairro_id);
+  const achado = existentes.find(
+    (e) => chaveDeEndereco(e.logradouro, e.numero, e.bairro_id) === alvo,
+  );
+
+  return achado ? achado.id : null;
 }
 
 const SELECAO_DE_LOCAL = `

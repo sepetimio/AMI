@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import {
+  acharEnderecoIgual,
   bairros,
   lerCamposDoLocal,
   RECURSOS_DE_ACESSIBILIDADE,
@@ -11,7 +12,17 @@ import {
 import { clienteDoPainel } from "@/lib/painel/servidor";
 import { exigirAdmin } from "@/lib/painel/sessao";
 
-export type EstadoDoLocal = { erros: Record<string, string>; salvo: boolean };
+/*
+  `aviso` é o que deu certo de um jeito que quem preencheu precisa saber —
+  não é erro, e não substitui `salvo`. Hoje tem um uso só: `criarLocal`
+  descobriu que o endereço já estava cadastrado e ligou o médico ao que
+  existia em vez de criar outro igual.
+*/
+export type EstadoDoLocal = {
+  erros: Record<string, string>;
+  salvo: boolean;
+  aviso?: string;
+};
 
 function invalidar(): void {
   revalidatePath("/(site)", "layout");
@@ -31,6 +42,14 @@ const NAO_ADMITIU =
   possível é um endereço órfão, que não aparece em lugar nenhum do site — muito
   mais barato que a alternativa, que seria remover o endereço para "desfazer" e
   arriscar apagar um que outro médico passou a usar.
+
+  Antes de criar, procura endereço equivalente. `local` não tem unicidade e
+  nunca é removível, então duplicata é lixo permanente — e ela parte o
+  `quantosMedicos` em dois, desligando calado o aviso de endereço
+  compartilhado. Achando um igual, liga a ele e AVISA que ligou: quem preencheu
+  o formulário inteiro precisa saber que o endereço que aparecer na tela não é
+  literalmente o que ele digitou. O importador dedupica pela mesma ideia
+  (`chaveDeEndereco`, em `lib/importador/plano.ts`).
 */
 export async function criarLocal(
   _anterior: EstadoDoLocal,
@@ -51,29 +70,57 @@ export async function criarLocal(
     return { erros: validacao.erros as Record<string, string>, salvo: false };
   }
 
-  const criado = await cliente
+  /*
+    Filtrado pelo bairro, que já é metade da chave: o candidato só pode ser
+    igual a endereço do mesmo bairro, e são poucas linhas por bairro.
+  */
+  const doBairro = await cliente
     .from("local")
-    .insert(validacao.valor)
-    .select("id")
-    .maybeSingle();
+    .select("id, logradouro, numero, bairro_id")
+    .eq("bairro_id", validacao.valor.bairro_id);
 
-  if (criado.error) {
-    return { erros: { geral: `Não consegui criar: ${criado.error.message}` }, salvo: false };
+  if (doBairro.error) {
+    return {
+      erros: { geral: `Não consegui conferir os endereços: ${doBairro.error.message}` },
+      salvo: false,
+    };
   }
-  if (!criado.data) return { erros: { geral: NAO_ADMITIU }, salvo: false };
+
+  const jaExiste = acharEnderecoIgual(validacao.valor, doBairro.data ?? []);
+  let localId = jaExiste;
+
+  if (localId === null) {
+    const criado = await cliente
+      .from("local")
+      .insert(validacao.valor)
+      .select("id")
+      .maybeSingle();
+
+    if (criado.error) {
+      return { erros: { geral: `Não consegui criar: ${criado.error.message}` }, salvo: false };
+    }
+    if (!criado.data) return { erros: { geral: NAO_ADMITIU }, salvo: false };
+
+    localId = criado.data.id as number;
+  }
 
   const ligado = await cliente
     .from("atendimento")
-    .insert({ profissional_id: medicoId, local_id: criado.data.id })
+    .insert({ profissional_id: medicoId, local_id: localId })
     .select("id")
     .maybeSingle();
 
   if (ligado.error) {
+    if (ligado.error.code === "23505") {
+      return { erros: { geral: "Este médico já atende neste consultório." }, salvo: false };
+    }
     return {
       erros: {
-        geral:
-          `O endereço foi criado, mas não consegui ligar o médico a ele: ` +
-          `${ligado.error.message}. Use "buscar existente" para ligar.`,
+        geral: jaExiste
+          ? `Este endereço já estava cadastrado, mas não consegui ligar o médico a ` +
+            `ele: ${ligado.error.message}. Use "consultório já cadastrado" para ligar.`
+          : `O endereço foi criado, mas não consegui ligar o médico a ele: ` +
+            `${ligado.error.message}. Use "consultório já cadastrado" para ligar.`,
       },
       salvo: false,
     };
@@ -81,7 +128,16 @@ export async function criarLocal(
   if (!ligado.data) return { erros: { geral: NAO_ADMITIU }, salvo: false };
 
   invalidar();
-  return { erros: {}, salvo: true };
+
+  return {
+    erros: {},
+    salvo: true,
+    aviso: jaExiste
+      ? "Este endereço já estava cadastrado. Liguei o médico ao que existia, em " +
+        "vez de criar outro igual — assim o aviso de endereço compartilhado " +
+        "continua valendo."
+      : undefined,
+  };
 }
 
 /*

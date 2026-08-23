@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { ROTULO_ACESSIBILIDADE } from "@/lib/dados/tipos";
 import {
+  acharEnderecoIgual,
+  chaveDeEndereco,
   lerCamposDoLocal,
   paraLocal,
   paraLocalNaLista,
@@ -263,6 +265,80 @@ describe("paraLocal", () => {
 });
 
 /*
+  `local` não tem unicidade e nunca é removível: cada endereço duplicado é
+  lixo permanente, e ele parte o `quantosMedicos` em dois — desligando calado
+  o aviso de endereço compartilhado, que é a razão de o campo existir.
+*/
+describe("chaveDeEndereco", () => {
+  it("acento, caixa e espaço a mais não fazem endereço diferente", () => {
+    expect(chaveDeEndereco("  Rua   Simplício  MOREIRA ", "1200", 2)).toBe(
+      chaveDeEndereco("rua simplicio moreira", "1200", 2),
+    );
+  });
+
+  it("número diferente é endereço diferente", () => {
+    expect(chaveDeEndereco("Rua Simplício Moreira", "1200", 2)).not.toBe(
+      chaveDeEndereco("Rua Simplício Moreira", "1300", 2),
+    );
+  });
+
+  it("bairro diferente é endereço diferente, com a mesma rua e o mesmo número", () => {
+    expect(chaveDeEndereco("Rua Sete", "10", 2)).not.toBe(chaveDeEndereco("Rua Sete", "10", 3));
+  });
+
+  it("número nulo e número vazio são o mesmo endereço", () => {
+    expect(chaveDeEndereco("Rua Sete", null, 2)).toBe(chaveDeEndereco("Rua Sete", "  ", 2));
+  });
+
+  it("sem número não colide com o número 1", () => {
+    /*
+      A junção é por separador, não por concatenação: sem ele, ("Rua Sete",
+      null, 21) e ("Rua Sete", "2", 1) dariam a mesma chave.
+    */
+    expect(chaveDeEndereco("Rua Sete", null, 21)).not.toBe(chaveDeEndereco("Rua Sete", "2", 1));
+  });
+});
+
+describe("acharEnderecoIgual", () => {
+  const existentes = [
+    { id: 5, logradouro: "Rua Simplício Moreira", numero: "1200", bairro_id: 2 },
+    { id: 8, logradouro: "Avenida Bernardo Sayão", numero: null, bairro_id: 3 },
+  ];
+
+  it("acha o equivalente escrito de outro jeito", () => {
+    const novo = { logradouro: "rua simplicio  moreira", numero: "1200", bairro_id: 2 };
+    expect(acharEnderecoIgual(novo, existentes)).toBe(5);
+  });
+
+  it("endereço que não existe devolve nulo, e aí a ação cria", () => {
+    const novo = { logradouro: "Rua Nova", numero: "1", bairro_id: 2 };
+    expect(acharEnderecoIgual(novo, existentes)).toBeNull();
+  });
+
+  it("mesma rua em bairro diferente não é o mesmo endereço", () => {
+    const novo = { logradouro: "Rua Simplício Moreira", numero: "1200", bairro_id: 9 };
+    expect(acharEnderecoIgual(novo, existentes)).toBeNull();
+  });
+
+  it("sem nenhum endereço cadastrado, devolve nulo em vez de estourar", () => {
+    expect(acharEnderecoIgual({ logradouro: "Rua Sete", numero: null, bairro_id: 1 }, [])).toBeNull();
+  });
+
+  it("com duplicatas já no banco, liga à primeira em vez de recusar", () => {
+    /*
+      As duplicatas que já existirem continuam existindo — remover endereço
+      não é permitido. O que esta função garante é que não entra a terceira.
+    */
+    const comDuplicata = [
+      ...existentes,
+      { id: 11, logradouro: "Rua Simplício Moreira", numero: "1200", bairro_id: 2 },
+    ];
+    const novo = { logradouro: "Rua Simplício Moreira", numero: "1200", bairro_id: 2 };
+    expect(acharEnderecoIgual(novo, comDuplicata)).toBe(5);
+  });
+});
+
+/*
   O menu de "ligar a consultório existente" mostra rua, número e bairro. O que
   ele recebia era `LocalDoMedico` de TODO consultório do sistema — telefone,
   WhatsApp, CEP, acessibilidade e a contagem de médicos de cada um —
@@ -417,6 +493,25 @@ describe("acoes-local.ts", () => {
     for (const [, tabela, trecho] of tabelas) {
       if (/\.delete\s*\(/.test(trecho)) expect(PERMITIDAS).toContain(tabela);
     }
+  });
+
+  it("criarLocal procura endereço igual antes de criar outro", () => {
+    /*
+      Ancorada em texto, como a de `reconciliarAcessibilidade` abaixo: as
+      asserções estruturais deste arquivo não olham PARA O QUE a ação faz
+      antes de gravar. Uma versão que criasse sempre continuaria passando por
+      todas elas.
+
+      A ordem é medida: procurar depois de criar não evita duplicata nenhuma.
+    */
+    const criar = codigo.split("export async function criarLocal")[1] ?? "";
+    const procura = criar.indexOf("acharEnderecoIgual(");
+    const cria = criar.search(/\.from\("local"\)\s*\.insert\(/);
+
+    expect(procura, "criarLocal não procura endereço equivalente").toBeGreaterThan(-1);
+    expect(cria, "não achei a criação do endereço").toBeGreaterThan(-1);
+    expect(procura, "procura o endereço equivalente depois de criar").toBeLessThan(cria);
+    expect(criar, "não avisa que ligou a um endereço já cadastrado").toContain("aviso");
   });
 
   it("salvarAcessibilidade reconcilia, não apaga tudo e recria", () => {
