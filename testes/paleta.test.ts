@@ -67,10 +67,18 @@ const FONTES = [...telas("../app"), ...telas("../components")]
   foi, tinha dois buracos — um deles o par mais apertado do sistema inteiro.
 
   Lista escrita à mão é uma foto do que alguém lembrou. Esta varre o código.
+
+  Sem grupo de modificador antes do prefixo: `\b` já casa a fronteira de
+  palavra em `text-`/`bg-`/`border-` não importa o que vem antes — dois
+  pontos, hífen ou início de string dão todos a mesma transição de
+  não-palavra para palavra. `hover:text-x`, `group-hover:text-x`,
+  `focus-visible:border-x` e `placeholder:text-x` já são achados assim; um
+  grupo `(?:hover:)?` explícito não muda o conjunto casado, só sugere,
+  errado, que apenas `hover:` é tratado.
 */
 function tokensEm(prefixo: string): string[] {
   const achados = new Set<string>();
-  for (const m of FONTES.matchAll(new RegExp(`\\b(?:hover:)?${prefixo}-([a-z0-9-]+)\\b`, "g"))) {
+  for (const m of FONTES.matchAll(new RegExp(`\\b${prefixo}-([a-z0-9-]+)\\b`, "g"))) {
     achados.add(m[1]);
   }
   return [...achados].filter((n) => T[n]).sort();
@@ -92,11 +100,17 @@ describe("as listas saem do código, não da memória", () => {
       Esta é a rede contra classe morta. Um token que sai do @theme e sobra
       num componente não gera CSS, não dá erro, e o elemento fica sem cor —
       um revisor provou mutando, e o repositório já teve uma vítima.
+
+      Sem grupo de modificador antes do prefixo, pelo mesmo motivo de
+      `tokensEm()`: `\b` já casa `text-`/`bg-`/`border-` depois de `hover:`,
+      `group-hover:`, `focus-visible:`, `placeholder:` ou qualquer outro
+      prefixo do Tailwind, então um `(?:hover:)?` explícito não mudaria o que
+      é achado — só faria parecer que outros modificadores escapam.
     */
     const orfaos: string[] = [];
     for (const prefixo of ["text", "bg", "border"]) {
       for (const m of FONTES.matchAll(
-        new RegExp(`\\b(?:hover:)?${prefixo}-(ami-[a-z0-9-]+|ink-[0-9]+|canvas|surface[a-z-]*|line[a-z-]*|warn|danger)\\b`, "g"),
+        new RegExp(`\\b${prefixo}-(ami-[a-z0-9-]+|ink-[0-9]+|canvas|surface[a-z-]*|line[a-z-]*|warn|danger)\\b`, "g"),
       )) {
         if (!T[m[1]]) orfaos.push(`${prefixo}-${m[1]}`);
       }
