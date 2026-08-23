@@ -344,12 +344,23 @@ export function BlocoLocais({
             <label htmlFor="localId-existente" className="block text-[14px] font-medium text-ink-600">
               Escolha um consultório
             </label>
+            {/*
+              Abre vazio, não no primeiro endereço da lista. Aberto no
+              primeiro, quem clicasse em "Ligar" sem escolher ligava o médico
+              ao consultório de outra pessoa — e isso vai ao ar na página
+              pública. A ação recusa id vazio em português; isto é a outra
+              metade. Mesmo desenho do `select` de bairro acima.
+            */}
             <select
               id="localId-existente"
               name="localId"
+              defaultValue=""
               disabled={disponiveisParaLigar.length === 0}
               className={`mt-1 ${CAMPO}`}
             >
+              <option value="" disabled>
+                Escolha um consultório
+              </option>
               {disponiveisParaLigar.map((l) => (
                 <option key={l.id} value={l.id}>
                   {rotuloDoLocal(l)}

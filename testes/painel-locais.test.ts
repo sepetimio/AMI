@@ -313,6 +313,32 @@ describe("reconciliarAcessibilidade", () => {
   });
 });
 
+/*
+  Todo `select` desta tela abre vazio.
+
+  O de "ligar consultório existente" abria já com o primeiro endereço
+  escolhido: quem clicasse em "Ligar" sem escolher ligava o médico ao
+  consultório de outra pessoa, e isso vai ao ar na página pública. O de bairro,
+  no mesmo arquivo, já abria vazio — era inconsistência interna, não descuido
+  isolado.
+*/
+describe("BlocoLocais.tsx", () => {
+  const tela = semComentarios(fonte("../components/painel/BlocoLocais.tsx"));
+
+  it("nenhum select abre com uma opção já escolhida", () => {
+    const selects = [...tela.matchAll(/<select[\s\S]*?<\/select>/g)].map((m) => m[0]);
+    expect(selects.length, "não achei select nenhum").toBeGreaterThan(0);
+
+    for (const s of selects) {
+      const id = /id="([^"]+)"/.exec(s)?.[1] ?? /id=\{([^}]+)\}/.exec(s)?.[1] ?? "(sem id)";
+      expect(s, `o select ${id} não tem opção vazia desabilitada`).toMatch(
+        /<option value="" disabled>/,
+      );
+      expect(s, `o select ${id} não abre na opção vazia`).toContain("defaultValue=");
+    }
+  });
+});
+
 describe("acoes-local.ts", () => {
   const codigo = semComentarios(fonte("../app/painel/medico/[id]/acoes-local.ts"));
 

@@ -146,6 +146,26 @@ describe("quemHerdaAPrincipal", () => {
   });
 });
 
+/*
+  O `select` de acrescentar abria na primeira especialidade do catálogo: um
+  clique sem escolha dava ao médico a especialidade que calhasse de vir
+  primeiro — e a especialidade é o campo que responde à pergunta que traz a
+  pessoa ao site. Mesma regra do `select` de bairro em `BlocoLocais.tsx`.
+*/
+describe("BlocoEspecialidades.tsx", () => {
+  const tela = semComentarios(fonte("../components/painel/BlocoEspecialidades.tsx"));
+
+  it("nenhum select abre com uma opção já escolhida", () => {
+    const selects = [...tela.matchAll(/<select[\s\S]*?<\/select>/g)].map((m) => m[0]);
+    expect(selects.length, "não achei select nenhum").toBeGreaterThan(0);
+
+    for (const s of selects) {
+      expect(s, "select sem opção vazia desabilitada").toMatch(/<option value="" disabled>/);
+      expect(s, "select que não abre na opção vazia").toContain("defaultValue=");
+    }
+  });
+});
+
 describe("acoes-especialidade.ts", () => {
   const codigo = semComentarios(fonte("../app/painel/medico/[id]/acoes-especialidade.ts"));
 

@@ -153,7 +153,22 @@ export function BlocoEspecialidades({
             >
               Acrescentar especialidade
             </label>
-            <select id="especialidadeId" name="especialidadeId" className={`mt-1 ${CAMPO}`}>
+            {/*
+              Abre vazio, não na primeira do catálogo. Aberto na primeira,
+              quem clicasse em "Acrescentar" sem escolher dava ao médico a
+              especialidade que calhasse de vir primeiro — e a especialidade é
+              o campo mais importante do site. A ação recusa id vazio em
+              português; isto é a outra metade.
+            */}
+            <select
+              id="especialidadeId"
+              name="especialidadeId"
+              defaultValue=""
+              className={`mt-1 ${CAMPO}`}
+            >
+              <option value="" disabled>
+                Escolha uma especialidade
+              </option>
               {disponiveis.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.nome}
