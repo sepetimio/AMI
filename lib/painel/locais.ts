@@ -26,7 +26,23 @@ export type LocalDoMedico = {
   whatsapp: string | null;
   estacionamento: boolean;
   quantosMedicos: number;
+  acessibilidade: string[];
 };
+
+/*
+  Os cinco valores que a restrição de `local_acessibilidade` aceita, em
+  `0001_diretorio.sql` — conferidos ali, e os mesmos que `ROTULO_ACESSIBILIDADE`
+  em `lib/dados/tipos.ts` já usa para o site público. Valor gravado em
+  snake_case, rótulo em português: o banco nunca mostra texto a ninguém, e a
+  tela nunca inventa valor.
+*/
+export const RECURSOS_DE_ACESSIBILIDADE = [
+  { valor: "acesso_cadeirante", rotulo: "Acesso para cadeirante" },
+  { valor: "banheiro_adaptado", rotulo: "Banheiro adaptado" },
+  { valor: "elevador", rotulo: "Elevador" },
+  { valor: "piso_tatil", rotulo: "Piso tátil" },
+  { valor: "interprete_libras", rotulo: "Intérprete de Libras" },
+] as const;
 
 export type CamposDoLocal = {
   logradouro: string;
@@ -118,7 +134,8 @@ export function validarLocal(
 const SELECAO_DE_LOCAL = `
   id, logradouro, numero, complemento, cep, telefone, whatsapp, estacionamento,
   bairro ( id, nome ),
-  atendimento ( profissional_id )
+  atendimento ( profissional_id ),
+  local_acessibilidade ( recurso )
 `;
 
 /*
@@ -140,9 +157,30 @@ export function paraLocal(l: any): LocalDoMedico {
     whatsapp: l.whatsapp,
     estacionamento: l.estacionamento,
     quantosMedicos: (l.atendimento ?? []).length,
+    acessibilidade: (l.local_acessibilidade ?? []).map((a: any) => a.recurso),
   };
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
+
+/*
+  A tela manda o conjunto inteiro de recursos marcados; esta função decide o
+  que muda. Separada e testada em isolado porque é aqui que mora a diferença
+  entre reconciliar e apagar tudo e recriar: apagar tudo e recriar deixaria o
+  consultório sem nenhum recurso de acessibilidade se a chamada de inserir
+  falhasse depois da de remover — o PostgREST não abre transação entre
+  requisições. `salvarAcessibilidade`, em `acoes-local.ts`, usa o resultado
+  daqui para decidir exatamente o que remover e o que inserir, nunca o
+  conjunto inteiro de um dos dois lados.
+*/
+export function reconciliarAcessibilidade(
+  tinha: string[],
+  marcados: string[],
+): { remover: string[]; inserir: string[] } {
+  return {
+    remover: tinha.filter((r) => !marcados.includes(r)),
+    inserir: marcados.filter((r) => !tinha.includes(r)),
+  };
+}
 
 /*
   Duas consultas, não uma.

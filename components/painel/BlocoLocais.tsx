@@ -5,10 +5,11 @@ import {
   criarLocal,
   desligarLocal,
   ligarLocalExistente,
+  salvarAcessibilidade,
   salvarLocal,
   type EstadoDoLocal,
 } from "@/app/painel/medico/[id]/acoes-local";
-import type { Bairro, LocalDoMedico } from "@/lib/painel/locais";
+import { RECURSOS_DE_ACESSIBILIDADE, type Bairro, type LocalDoMedico } from "@/lib/painel/locais";
 
 const INICIAL: EstadoDoLocal = { erros: {}, salvo: false };
 
@@ -175,6 +176,10 @@ function CartaoDeLocal({
 }) {
   const [estado, acao, pendente] = useActionState(salvarLocal, INICIAL);
   const [estadoTirar, acaoTirar, pendenteTirar] = useActionState(desligarLocal, INICIAL);
+  const [estadoAcessibilidade, acaoAcessibilidade, pendenteAcessibilidade] = useActionState(
+    salvarAcessibilidade,
+    INICIAL,
+  );
 
   return (
     <div className="mt-6 rounded-bloco border border-line p-6">
@@ -218,6 +223,44 @@ function CartaoDeLocal({
 
         <p aria-live="polite" className="min-h-5 text-[14px] text-ink-600">
           {estado.salvo ? "Salvo." : ""}
+        </p>
+      </form>
+
+      <form action={acaoAcessibilidade} className="mt-6 border-t border-line pt-4">
+        <input type="hidden" name="localId" value={local.id} />
+
+        <fieldset>
+          <legend className="text-[14px] font-medium text-ink-600">Acessibilidade</legend>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {RECURSOS_DE_ACESSIBILIDADE.map((r) => (
+              <label key={r.valor} className="flex items-center gap-2 text-[15px] text-ink-900">
+                <input
+                  type="checkbox"
+                  name="recurso"
+                  value={r.valor}
+                  defaultChecked={local.acessibilidade.includes(r.valor)}
+                  className="size-4 accent-ami-green-600"
+                />
+                {r.rotulo}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <p aria-live="polite" className="mt-2 min-h-5 text-[14px] text-warn">
+          {estadoAcessibilidade.erros.geral ?? ""}
+        </p>
+
+        <button
+          type="submit"
+          disabled={pendenteAcessibilidade}
+          className="pressiona mt-2 rounded-controle border border-line px-4 py-3 text-[15px] font-medium text-ink-600 hover:text-ink-900"
+        >
+          {pendenteAcessibilidade ? "Salvando…" : "Salvar acessibilidade"}
+        </button>
+
+        <p aria-live="polite" className="min-h-5 text-[14px] text-ink-600">
+          {estadoAcessibilidade.salvo ? "Salvo." : ""}
         </p>
       </form>
 

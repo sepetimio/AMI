@@ -1,7 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { bairros, validarLocal } from "@/lib/painel/locais";
+import {
+  bairros,
+  RECURSOS_DE_ACESSIBILIDADE,
+  reconciliarAcessibilidade,
+  validarLocal,
+} from "@/lib/painel/locais";
 import { clienteDoPainel } from "@/lib/painel/servidor";
 import { exigirAdmin } from "@/lib/painel/sessao";
 
@@ -222,6 +227,88 @@ export async function desligarLocal(
       },
       salvo: false,
     };
+  }
+
+  invalidar();
+  return { erros: {}, salvo: true };
+}
+
+/*
+  A acessibilidade é um conjunto, e a tela manda o conjunto inteiro: o que
+  veio marcado é o que fica. `reconciliarAcessibilidade` decide o que remover
+  e o que inserir — nunca apagar tudo e recriar, que deixaria o consultório
+  sem nenhum recurso de acessibilidade se a segunda chamada falhasse depois da
+  primeira. Mesmo formato `{ erros, salvo }` das ações acima: erro lançado de
+  Server Action vira mensagem genérica em produção (ver o comentário de
+  `ligarLocalExistente`).
+*/
+export async function salvarAcessibilidade(
+  _anterior: EstadoDoLocal,
+  dados: FormData,
+): Promise<EstadoDoLocal> {
+  await exigirAdmin();
+
+  const localId = Number(dados.get("localId"));
+  if (!Number.isInteger(localId) || localId <= 0) {
+    return { erros: { geral: "Identificador de consultório inválido." }, salvo: false };
+  }
+
+  const validos = RECURSOS_DE_ACESSIBILIDADE.map((r) => r.valor as string);
+  const marcados = dados
+    .getAll("recurso")
+    .map(String)
+    .filter((r) => validos.includes(r));
+
+  const cliente = await clienteDoPainel();
+
+  const atuais = await cliente
+    .from("local_acessibilidade")
+    .select("recurso")
+    .eq("local_id", localId);
+
+  if (atuais.error) {
+    return {
+      erros: { geral: `Não consegui ler a acessibilidade: ${atuais.error.message}` },
+      salvo: false,
+    };
+  }
+
+  const tinha = (atuais.data ?? []).map((l) => l.recurso as string);
+  const { remover: paraRemover, inserir: paraInserir } = reconciliarAcessibilidade(
+    tinha,
+    marcados,
+  );
+
+  if (paraRemover.length) {
+    const { data, error } = await cliente
+      .from("local_acessibilidade")
+      .delete()
+      .eq("local_id", localId)
+      .in("recurso", paraRemover)
+      .select("recurso");
+
+    if (error) {
+      return { erros: { geral: `Não consegui remover: ${error.message}` }, salvo: false };
+    }
+    if (!data) return { erros: { geral: NAO_ADMITIU }, salvo: false };
+    if (data.length !== paraRemover.length) {
+      return { erros: { geral: NAO_ADMITIU }, salvo: false };
+    }
+  }
+
+  if (paraInserir.length) {
+    const { data, error } = await cliente
+      .from("local_acessibilidade")
+      .insert(paraInserir.map((recurso) => ({ local_id: localId, recurso })))
+      .select("recurso");
+
+    if (error) {
+      return { erros: { geral: `Não consegui acrescentar: ${error.message}` }, salvo: false };
+    }
+    if (!data) return { erros: { geral: NAO_ADMITIU }, salvo: false };
+    if (data.length !== paraInserir.length) {
+      return { erros: { geral: NAO_ADMITIU }, salvo: false };
+    }
   }
 
   invalidar();

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { paraLocal, validarLocal } from "@/lib/painel/locais";
+import {
+  paraLocal,
+  RECURSOS_DE_ACESSIBILIDADE,
+  reconciliarAcessibilidade,
+  validarLocal,
+} from "@/lib/painel/locais";
 import { fonte, semComentarios } from "@/testes/apoio";
 
 const BAIRROS = [1, 2, 3];
@@ -93,6 +98,33 @@ describe("validarLocal", () => {
 });
 
 /*
+  Os cinco valores que a restrição de `local_acessibilidade` aceita, em
+  `0001_diretorio.sql`. Sem este teste, um sexto valor digitado de cabeça — ou
+  um dos cinco digitado errado — passaria batido até quebrar contra o banco em
+  produção, na primeira gravação.
+*/
+describe("RECURSOS_DE_ACESSIBILIDADE", () => {
+  it("são exatamente os cinco que a restrição do banco aceita", () => {
+    expect(RECURSOS_DE_ACESSIBILIDADE.map((r) => r.valor).sort()).toEqual(
+      [
+        "acesso_cadeirante",
+        "banheiro_adaptado",
+        "elevador",
+        "interprete_libras",
+        "piso_tatil",
+      ].sort(),
+    );
+  });
+
+  it("cada um tem rótulo em português", () => {
+    for (const r of RECURSOS_DE_ACESSIBILIDADE) {
+      expect(r.rotulo.length).toBeGreaterThan(0);
+      expect(r.rotulo).not.toBe(r.valor);
+    }
+  });
+});
+
+/*
   paraLocal calcula quantosMedicos, a regra que a tarefa 8 inteira existia
   para proteger: sem ela testada, é possível quebrar o aviso de endereço
   compartilhado sem nenhum teste avisar. Mesmo padrão de paraLista em
@@ -110,6 +142,7 @@ describe("paraLocal", () => {
     estacionamento: true,
     bairro: { id: 2, nome: "Centro" },
     atendimento: [{ profissional_id: 1 }, { profissional_id: 2 }],
+    local_acessibilidade: [{ recurso: "elevador" }, { recurso: "piso_tatil" }],
   };
 
   it("conta um médico por linha de atendimento", () => {
@@ -140,16 +173,110 @@ describe("paraLocal", () => {
     expect(m.telefone).toBe("9935243716");
     expect(m.estacionamento).toBe(true);
   });
+
+  it("traduz local_acessibilidade para a lista de recursos", () => {
+    expect(paraLocal(linha).acessibilidade).toEqual(["elevador", "piso_tatil"]);
+  });
+
+  it("local_acessibilidade ausente também devolve vazio, sem estourar", () => {
+    const { local_acessibilidade: _semUso, ...semAcessibilidade } = linha;
+    expect(paraLocal(semAcessibilidade).acessibilidade).toEqual([]);
+  });
+});
+
+/*
+  A diferença entre reconciliar e apagar tudo e recriar mora inteira nesta
+  função — testada em isolado porque `salvarAcessibilidade`, em
+  `acoes-local.ts`, é `async` e fala com o banco, e não dá para exercitar a
+  decisão sem mockar Supabase inteiro (este projeto testa só lógica pura de
+  `lib/`, ver vitest.config.ts).
+*/
+describe("reconciliarAcessibilidade", () => {
+  it("remove só o que saiu e insere só o que entrou", () => {
+    const r = reconciliarAcessibilidade(
+      ["acesso_cadeirante", "elevador"],
+      ["elevador", "piso_tatil"],
+    );
+    expect(r.remover).toEqual(["acesso_cadeirante"]);
+    expect(r.inserir).toEqual(["piso_tatil"]);
+  });
+
+  /*
+    Esta é a asserção que distingue reconciliar de apagar-tudo-e-recriar. Uma
+    implementação que apaga tudo trataria "elevador" como removido mesmo
+    continuando marcado — o que, contra o banco de verdade, é uma janela em
+    que o consultório fica sem nenhum recurso se a gravação seguinte falhar.
+  */
+  it("o que ficou marcado nas duas pontas não é tocado", () => {
+    const r = reconciliarAcessibilidade(["elevador"], ["elevador"]);
+    expect(r.remover).toEqual([]);
+    expect(r.inserir).toEqual([]);
+  });
+
+  it("conjunto vazio nas duas pontas não mexe em nada", () => {
+    const r = reconciliarAcessibilidade([], []);
+    expect(r.remover).toEqual([]);
+    expect(r.inserir).toEqual([]);
+  });
+
+  it("tudo marcado do zero insere tudo e não remove nada", () => {
+    const r = reconciliarAcessibilidade([], ["elevador", "piso_tatil"]);
+    expect(r.remover).toEqual([]);
+    expect(r.inserir).toEqual(["elevador", "piso_tatil"]);
+  });
+
+  it("desmarcar tudo remove tudo e não insere nada", () => {
+    const r = reconciliarAcessibilidade(["elevador", "piso_tatil"], []);
+    expect(r.remover).toEqual(["elevador", "piso_tatil"]);
+    expect(r.inserir).toEqual([]);
+  });
 });
 
 describe("acoes-local.ts", () => {
   const codigo = semComentarios(fonte("../app/painel/medico/[id]/acoes-local.ts"));
 
   it("nunca remove da tabela local", () => {
+    /*
+      Remoção é permitida em duas tabelas de ligação/anexo — atendimento
+      (tarefa 9) e local_acessibilidade (esta tarefa) — nunca em local. Apagar
+      o endereço em si derrubaria o consultório para todo mundo que o usa, não
+      só para o médico que a tela está editando.
+    */
+    const PERMITIDAS = ["atendimento", "local_acessibilidade"];
     const tabelas = [...codigo.matchAll(/from\("(\w+)"\)([\s\S]*?)(?=from\("|$)/g)];
     for (const [, tabela, trecho] of tabelas) {
-      if (/\.delete\s*\(/.test(trecho)) expect(tabela).toBe("atendimento");
+      if (/\.delete\s*\(/.test(trecho)) expect(PERMITIDAS).toContain(tabela);
     }
+  });
+
+  it("salvarAcessibilidade reconcilia, não apaga tudo e recria", () => {
+    /*
+      Ancorada em texto de propósito: `reconciliarAcessibilidade` é quem
+      decide o que remover e o que inserir (testada em isolado, acima). Uma
+      implementação que apagasse tudo e recriasse continuaria passando pelos
+      testes estruturais acima — mesma tabela permitida, mesma contagem de
+      `.select()`, mesmo `if (!data)` antes de invalidar — porque nenhum deles
+      olha PARA O QUE a chamada de apagar filtra. Só uma leitura do texto pega
+      isso.
+    */
+    expect(codigo).toContain("reconciliarAcessibilidade(");
+  });
+
+  /*
+    Asserção que faltava, achada mutando `salvarAcessibilidade` para tirar a
+    conferência de quantidade de uma das duas gravações condicionais (remover
+    e inserir) e rodando a suíte: nada reclamou. `if (!data)` sozinho não
+    basta aqui, porque o `.in("recurso", paraRemover)` pode achar SÓ ALGUMAS
+    das linhas que a política do banco deveria admitir — o PostgREST devolve
+    um array não vazio, `data` passa em `if (!data)`, e a gravação parcial
+    declara sucesso. É a mesma classe de defeito do `.maybeSingle()` nas
+    outras ações, mas ali `data` é um objeto e "veio ou não veio" já é toda a
+    pergunta; aqui `data` é um array, e "veio a quantidade certa" é uma
+    pergunta a mais que só a contagem responde.
+  */
+  it("cada gravação de acessibilidade confere a quantidade, não só a presença", () => {
+    expect(codigo).toContain("data.length !== paraRemover.length");
+    expect(codigo).toContain("data.length !== paraInserir.length");
   });
 
   it("toda gravação pede as linhas afetadas de volta", () => {
