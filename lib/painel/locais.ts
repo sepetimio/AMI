@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ROTULO_ACESSIBILIDADE, type RecursoAcessibilidade } from "@/lib/dados/tipos";
-import { termoSeguro } from "@/lib/painel/consultas";
 
 /*
   Consultórios: leitura e validação.
@@ -242,44 +241,47 @@ export async function bairros(cliente: SupabaseClient): Promise<Bairro[]> {
 }
 
 /*
-  Todos os consultórios cadastrados, para o "ligar a existente" — o médico
-  escolhe entre os endereços que já existem, em vez de criar um endereço
-  igual ao de outro médico. São poucas dezenas de linhas hoje, então um
-  `select` sem paginação basta; não é a mesma pergunta que `buscarLocais`
-  responde, que filtra por termo digitado e existe para uma lista maior.
+  O que o `<select>` de "ligar a consultório existente" precisa saber, e nada
+  além. Três campos e o id, porque é o que o rótulo mostra: rua, número e
+  bairro.
+
+  A lista inteira vai para o navegador — é um Client Component que a recebe
+  como propriedade. Mandar `LocalDoMedico` daqui mandava o cadastro inteiro de
+  endereços junto: telefone, WhatsApp, CEP, acessibilidade e a contagem de
+  médicos de CADA consultório do sistema, para desenhar um menu que mostra
+  rua, número e bairro.
 */
-export async function todosOsLocais(cliente: SupabaseClient): Promise<LocalDoMedico[]> {
+export type LocalNaLista = {
+  id: number;
+  logradouro: string;
+  numero: string | null;
+  bairro: string;
+};
+
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+export function paraLocalNaLista(l: any): LocalNaLista {
+  return {
+    id: l.id,
+    logradouro: l.logradouro,
+    numero: l.numero,
+    bairro: l.bairro.nome,
+  };
+}
+
+/*
+  Todos os consultórios cadastrados, para o "ligar a existente" — o médico
+  escolhe entre os endereços que já existem, em vez de criar um endereço igual
+  ao de outro médico. São 24 endereços hoje, e o `<select>` mostra todos de uma
+  vez: não há o que paginar nem o que buscar.
+*/
+export async function todosOsLocais(cliente: SupabaseClient): Promise<LocalNaLista[]> {
   const { data, error } = await cliente
     .from("local")
-    .select(SELECAO_DE_LOCAL)
+    .select("id, logradouro, numero, bairro ( nome )")
     .order("logradouro", { ascending: true });
 
   if (error) throw new Error(`Falha ao ler os consultórios: ${error.message}`);
 
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  return ((data ?? []) as any[]).map(paraLocal);
-}
-
-/*
-  `termoSeguro` de `lib/painel/consultas.ts` escapa o que quebraria o filtro do
-  PostgREST — um parêntese digitado na busca derrubava a página inteira antes de
-  a fatia 1 corrigir isso. Sem ciclo entre os dois módulos, o import é estático.
-*/
-export async function buscarLocais(
-  cliente: SupabaseClient,
-  termo: string,
-): Promise<LocalDoMedico[]> {
-  const limpo = termoSeguro(termo).trim();
-  if (!limpo) return [];
-
-  const { data, error } = await cliente
-    .from("local")
-    .select(SELECAO_DE_LOCAL)
-    .ilike("logradouro", `%${limpo}%`)
-    .limit(20);
-
-  if (error) throw new Error(`Falha ao buscar consultórios: ${error.message}`);
-
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  return ((data ?? []) as any[]).map(paraLocal);
+  return ((data ?? []) as any[]).map(paraLocalNaLista);
 }

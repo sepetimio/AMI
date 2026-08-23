@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ROTULO_ACESSIBILIDADE } from "@/lib/dados/tipos";
 import {
   paraLocal,
+  paraLocalNaLista,
   RECURSOS_DE_ACESSIBILIDADE,
   reconciliarAcessibilidade,
   validarLocal,
@@ -195,6 +196,72 @@ describe("paraLocal", () => {
   it("local_acessibilidade ausente também devolve vazio, sem estourar", () => {
     const { local_acessibilidade: _semUso, ...semAcessibilidade } = linha;
     expect(paraLocal(semAcessibilidade).acessibilidade).toEqual([]);
+  });
+});
+
+/*
+  O menu de "ligar a consultório existente" mostra rua, número e bairro. O que
+  ele recebia era `LocalDoMedico` de TODO consultório do sistema — telefone,
+  WhatsApp, CEP, acessibilidade e a contagem de médicos de cada um —
+  serializado para o navegador dentro de um Client Component. `buscarLocais`,
+  a outra leitura que existia para isto, nunca foi chamada por ninguém.
+*/
+describe("paraLocalNaLista", () => {
+  const linha = {
+    id: 9,
+    logradouro: "Rua Simplício Moreira",
+    numero: "1200",
+    bairro: { id: 2, nome: "Centro" },
+  };
+
+  it("traz o id, a rua, o número e o nome do bairro", () => {
+    expect(paraLocalNaLista(linha)).toEqual({
+      id: 9,
+      logradouro: "Rua Simplício Moreira",
+      numero: "1200",
+      bairro: "Centro",
+    });
+  });
+
+  it("número nulo atravessa como nulo, não string vazia", () => {
+    expect(paraLocalNaLista({ ...linha, numero: null }).numero).toBeNull();
+  });
+
+  it("não copia nada além dos quatro campos, mesmo se a linha trouxer", () => {
+    const gorda = { ...linha, telefone: "9935243716", whatsapp: "99988020205", cep: "65900-000" };
+    expect(Object.keys(paraLocalNaLista(gorda)).sort()).toEqual(
+      ["bairro", "id", "logradouro", "numero"],
+    );
+  });
+});
+
+describe("todosOsLocais", () => {
+  it("não pede ao banco nada que o menu não mostra", () => {
+    /*
+      Varredura de fonte porque a leitura é `async` e fala com o banco. O que
+      está sendo vigiado é o que sai do banco: `paraLocalNaLista` recortar
+      depois não adiantaria nada se a consulta continuasse trazendo o cadastro
+      inteiro — o custo é a viagem e a serialização, não o objeto final.
+    */
+    const arquivo = semComentarios(fonte("../lib/painel/locais.ts"));
+
+    /*
+      A constante `SELECAO_DE_LOCAL` é substituída pelo texto dela antes do
+      exame. Sem isso, voltar a `.select(SELECAO_DE_LOCAL)` — que é a regressão
+      provável, porque era o que estava escrito aqui — passa verde: o nome da
+      constante não contém a palavra "telefone", o valor dela contém.
+    */
+    const selecaoInteira = /const SELECAO_DE_LOCAL = `([\s\S]*?)`/.exec(arquivo)?.[1];
+    expect(selecaoInteira, "não achei SELECAO_DE_LOCAL").toBeTruthy();
+
+    const corpo = arquivo
+      .split("export async function todosOsLocais")[1]
+      ?.replaceAll("SELECAO_DE_LOCAL", selecaoInteira ?? "");
+    expect(corpo, "não achei todosOsLocais").toBeTruthy();
+
+    for (const campo of ["telefone", "whatsapp", "cep", "local_acessibilidade", "atendimento"]) {
+      expect(corpo, `todosOsLocais pede ${campo} ao banco`).not.toContain(campo);
+    }
   });
 });
 

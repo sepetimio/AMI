@@ -9,7 +9,12 @@ import {
   salvarLocal,
   type EstadoDoLocal,
 } from "@/app/painel/medico/[id]/acoes-local";
-import { RECURSOS_DE_ACESSIBILIDADE, type Bairro, type LocalDoMedico } from "@/lib/painel/locais";
+import {
+  RECURSOS_DE_ACESSIBILIDADE,
+  type Bairro,
+  type LocalDoMedico,
+  type LocalNaLista,
+} from "@/lib/painel/locais";
 
 const INICIAL: EstadoDoLocal = { erros: {}, salvo: false };
 
@@ -160,9 +165,9 @@ function CamposDeLocal({
 }
 
 /** O que identifica um consultório para quem está escolhendo na lista. */
-function rotuloDoLocal(local: LocalDoMedico): string {
+function rotuloDoLocal(local: LocalNaLista): string {
   const numero = local.numero ? `, ${local.numero}` : "";
-  return `${local.logradouro}${numero} — ${local.bairro.nome}`;
+  return `${local.logradouro}${numero} — ${local.bairro}`;
 }
 
 function CartaoDeLocal({
@@ -294,7 +299,7 @@ export function BlocoLocais({
   medicoId: number;
   locais: LocalDoMedico[];
   listaDeBairros: Bairro[];
-  todosOsLocais: LocalDoMedico[];
+  todosOsLocais: LocalNaLista[];
 }) {
   const [estadoNovo, acaoNovo, pendenteNovo] = useActionState(criarLocal, INICIAL);
   const [estadoLigar, acaoLigar, pendenteLigar] = useActionState(ligarLocalExistente, INICIAL);
