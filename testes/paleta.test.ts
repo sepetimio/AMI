@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { fonte } from "@/testes/apoio";
 
@@ -41,6 +43,68 @@ const T = tokensDeCor(CSS);
 /** Mínimo da WCAG AA para texto de corpo. */
 const MINIMO = 4.5;
 
+/** Todo arquivo .tsx sob app/ e components/, recursivo. */
+function telas(relativo: string): string[] {
+  const base = fileURLToPath(new URL(relativo, import.meta.url));
+  const achados: string[] = [];
+  for (const entrada of readdirSync(base, { withFileTypes: true })) {
+    const caminho = `${base}/${entrada.name}`;
+    if (entrada.isDirectory()) achados.push(...telas(`${relativo}/${entrada.name}`));
+    else if (entrada.name.endsWith(".tsx")) achados.push(caminho);
+  }
+  return achados;
+}
+
+const FONTES = [...telas("../app"), ...telas("../components")]
+  .map((c) => readFileSync(c, "utf8"))
+  .join("\n");
+
+/*
+  Os tokens que o código realmente usa, achados no código.
+
+  A versão anterior deste arquivo trazia duas listas escritas à mão. A de
+  texto foi esquecida quatro vezes; a de fundos nunca foi auditada, e quando
+  foi, tinha dois buracos — um deles o par mais apertado do sistema inteiro.
+
+  Lista escrita à mão é uma foto do que alguém lembrou. Esta varre o código.
+*/
+function tokensEm(prefixo: string): string[] {
+  const achados = new Set<string>();
+  for (const m of FONTES.matchAll(new RegExp(`\\b(?:hover:)?${prefixo}-([a-z0-9-]+)\\b`, "g"))) {
+    achados.add(m[1]);
+  }
+  return [...achados].filter((n) => T[n]).sort();
+}
+
+describe("as listas saem do código, não da memória", () => {
+  it("acha token de texto e de fundo em uso", () => {
+    /*
+      Se a varredura devolver vazio, ela quebrou — e um teste que não mede
+      nada passa em silêncio. Estes pisos existem para isso, e são folgados
+      de propósito: o número exato muda a cada fatia.
+    */
+    expect(tokensEm("text").length).toBeGreaterThanOrEqual(5);
+    expect(tokensEm("bg").length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("todo token usado em text- ou bg- está declarado no @theme", () => {
+    /*
+      Esta é a rede contra classe morta. Um token que sai do @theme e sobra
+      num componente não gera CSS, não dá erro, e o elemento fica sem cor —
+      um revisor provou mutando, e o repositório já teve uma vítima.
+    */
+    const orfaos: string[] = [];
+    for (const prefixo of ["text", "bg", "border"]) {
+      for (const m of FONTES.matchAll(
+        new RegExp(`\\b(?:hover:)?${prefixo}-(ami-[a-z0-9-]+|ink-[0-9]+|canvas|surface[a-z-]*|line[a-z-]*|warn|danger)\\b`, "g"),
+      )) {
+        if (!T[m[1]]) orfaos.push(`${prefixo}-${m[1]}`);
+      }
+    }
+    expect([...new Set(orfaos)], "classe que aponta para token que não existe").toEqual([]);
+  });
+});
+
 describe("a conta", () => {
   it("bate com valores conhecidos", () => {
     /*
@@ -74,56 +138,110 @@ describe("os tokens existem", () => {
   });
 });
 
+/*
+  Por que estas duas listas ficam escritas à mão, e as de baixo não.
+
+  Um par de contraste é (texto, fundo), e só algumas combinações existem de
+  verdade no código: `ink-400` nunca aparece sobre `ami-green-600`, que é
+  fundo de botão com texto branco. Derivar os pares a partir de
+  `tokensEm("text")` × `tokensEm("bg")` inventaria dezenas de pares que não
+  existem — foi o que a autorrevisão desta tarefa mostrou: cruzar
+  TEXTO_DE_CORPO inteiro contra `tokensEm("bg")` sem filtro dava 31 falhas,
+  nenhuma delas um defeito real, e ainda por cima perdia `surface-fundo`
+  (nunca usado como classe `bg-`, só via `.moldura` no CSS — exatamente o
+  buraco que a lista de fundos já tinha levado uma rodada para fechar).
+
+  Por isso as listas de pares continuam curadas. O que a varredura faz é
+  outra coisa: conferir que nenhum token usado em `text-` ou `bg-` ficou de
+  fora das duas listas — a curada, ou a de exceções com motivo escrito. Isso
+  é o describe logo abaixo desta.
+*/
+const TEXTO_FORA_DO_TESTE: Record<string, string> = {
+  "ami-lima-400":
+    "só é texto sobre fundo escuro (marca sobre o verde) — medido no describe " +
+    "texto sobre fundo escuro, contra ami-green-800/900; sobre fundo claro " +
+    "daria o par errado",
+  "ink-300":
+    "placeholder (app/(site)/page.tsx) e separador aria-hidden " +
+    "(components/layout/Breadcrumb.tsx) — isento de AA por desenho, e testado " +
+    "à parte, para REPROVAR, logo abaixo",
+};
+
+const FUNDOS_FORA_DO_TESTE: Record<string, string> = {
+  "ami-green-600":
+    "fundo de botão e item de menu ativo, sempre com text-white (não é token " +
+    "nosso) — nunca carrega um dos tons de TEXTO_DE_CORPO",
+  "ami-green-700":
+    "só aparece via hover: nos mesmos botões de ami-green-600 — mesmo texto " +
+    "branco, e o estado de repouso já fica de fora pelo motivo acima",
+  "ami-green-800":
+    "fundo da plaqueta de iniciais (components/diretorio/Placa.tsx), com " +
+    "text-ami-lima-400 — o par real já é medido no describe texto sobre fundo " +
+    "escuro, junto com canvas/surface sobre ami-green-800",
+  "ami-green-900":
+    "fundo do herói, do rodapé e da legenda de foto, com text-ami-lima-400 ou " +
+    "text-white — o par real já é medido no describe texto sobre fundo escuro, " +
+    "junto com canvas/surface sobre ami-green-900",
+  warn:
+    "só aparece como bg-warn/5 (components/editorial/RascunhoLegalNaTela.tsx), " +
+    "5% de opacidade — a cor renderizada nunca é o tom cheio do token, então " +
+    "medir --color-warn opaco testaria uma cor que a tela nunca mostra",
+};
+
+/*
+  Todo token usado como cor de texto pertence a esta lista ou a
+  TEXTO_FORA_DO_TESTE — não é seleção do que parece arriscado.
+  `ami-green-600` ficou de fora numa primeira passada porque parecia cor de
+  botão, e uma mutação mostrou que ele podia cair para 2,86:1 sem nada
+  reclamar. A completude das duas listas juntas é conferida à parte, no
+  describe "as duas listas cobrem todo token em uso" — se um token de texto
+  novo não entrar em nenhuma das duas, aquele describe reprova.
+
+  Exceção real, não descuido: tokens usados como texto só sobre fundo
+  ESCURO (`ami-lima-400`) ficam de fora de propósito. Esta lista testa
+  contra os quatro fundos claros do sistema — medir esse token aqui
+  testaria o par errado. `ami-lima-400` dá 1,48:1 em canvas e 1,63:1 em
+  surface: não é regressão, é a física que barra esse tom como texto
+  sobre fundo claro. Quem usar esse token sobre fundo escuro tem um teste
+  próprio contra `ami-green-800`/`ami-green-900` no describe de fundo
+  escuro, mais abaixo.
+*/
+const TEXTO_DE_CORPO = ["ink-900", "ink-600", "ink-400", "warn", "ami-green-600", "ami-green-700"];
+
+/*
+  Os fundos, e por que são quatro e não dois.
+
+  A lista era `["canvas", "surface"]`, e deixava de fora dois fundos que
+  carregam texto de verdade. A prova de que o buraco era real: apagar
+  `--color-ami-lima-100` inteiro do `@theme` deixava os 22 testes desta
+  suíte verdes, e treze classes `bg-` do site viravam nada.
+
+  `ami-lima-100` é fundo PERMANENTE de texto em `components/base/Chip.tsx`
+  (a pílula "Associado AMI", `bg-ami-lima-100 text-ami-green-700`) e fundo
+  de passagem de mouse em outros doze lugares — 13 usos de `bg-`, mais que
+  `bg-canvas`, que tem 11. É também o par mais apertado de todo o sistema:
+  `ink-400` sobre ele dá 4,61:1, onze centésimos acima do mínimo, e o uso é
+  real (`app/(site)/associacao/page.tsx`, o cartão que muda de fundo no
+  hover).
+
+  `surface-fundo` é o fundo de `.moldura`, em `app/globals.css` — e aqui a
+  frase exata importa, porque a fácil seria falsa: `.moldura` não é
+  aplicada em componente nenhum hoje. O efeito de casca dupla foi refeito
+  à mão com `bg-surface p-2` em `app/(site)/page.tsx` e em
+  `app/(site)/noticias/[slug]/page.tsx`. O token entra nesta lista porque a
+  declaração é real e o dia em que alguém usar a classe não pode ser o dia
+  em que o par deixa de ser medido; que a classe esteja sem consumidor é
+  outro assunto, registrado na seção 6 da spec desta fatia.
+
+  Esta lista continua escrita à mão de propósito: derivá-la de
+  `tokensEm("bg")` sem filtro traria fundo de botão e de banner junto com
+  fundo de corpo, e perderia este token — nunca usado como classe `bg-`. A
+  varredura entra de outro jeito, conferindo completude: ver o describe "as
+  duas listas cobrem todo token em uso".
+*/
+const FUNDOS_CLAROS = ["canvas", "surface", "surface-fundo", "ami-lima-100"];
+
 describe("texto sobre os quatro fundos claros", () => {
-  /*
-    Todo token usado como cor de texto entra nesta lista — não é seleção do
-    que parece arriscado. `ami-green-600` ficou de fora numa primeira
-    passada porque parecia cor de botão, e uma mutação mostrou que ele
-    podia cair para 2,86:1 sem nada reclamar. Se um token aparece em
-    `text-<nome>` em qualquer componente, ele pertence aqui.
-
-    Exceção real, não descuido: tokens usados como texto só sobre fundo
-    ESCURO (`ami-lima-400`) ficam de fora de propósito. Esta lista testa
-    contra os quatro fundos claros do sistema — medir esse token aqui
-    testaria o par errado. `ami-lima-400` dá 1,48:1 em canvas e 1,63:1 em
-    surface: não é regressão, é a física que barra esse tom como texto
-    sobre fundo claro. Quem usar esse token sobre fundo escuro tem um teste
-    próprio contra `ami-green-800`/`ami-green-900` no describe abaixo.
-  */
-  const TEXTO_DE_CORPO = ["ink-900", "ink-600", "ink-400", "warn", "ami-green-600", "ami-green-700"];
-
-  /*
-    Os fundos, e por que são quatro e não dois.
-
-    A lista era `["canvas", "surface"]`, e deixava de fora dois fundos que
-    carregam texto de verdade. A prova de que o buraco era real: apagar
-    `--color-ami-lima-100` inteiro do `@theme` deixava os 22 testes desta
-    suíte verdes, e treze classes `bg-` do site viravam nada.
-
-    `ami-lima-100` é fundo PERMANENTE de texto em `components/base/Chip.tsx`
-    (a pílula "Associado AMI", `bg-ami-lima-100 text-ami-green-700`) e fundo
-    de passagem de mouse em outros doze lugares — 13 usos de `bg-`, mais que
-    `bg-canvas`, que tem 11. É também o par mais apertado de todo o sistema:
-    `ink-400` sobre ele dá 4,61:1, onze centésimos acima do mínimo, e o uso é
-    real (`app/(site)/associacao/page.tsx`, o cartão que muda de fundo no
-    hover).
-
-    `surface-fundo` é o fundo de `.moldura`, em `app/globals.css` — e aqui a
-    frase exata importa, porque a fácil seria falsa: `.moldura` não é
-    aplicada em componente nenhum hoje. O efeito de casca dupla foi refeito
-    à mão com `bg-surface p-2` em `app/(site)/page.tsx` e em
-    `app/(site)/noticias/[slug]/page.tsx`. O token entra nesta lista porque a
-    declaração é real e o dia em que alguém usar a classe não pode ser o dia
-    em que o par deixa de ser medido; que a classe esteja sem consumidor é
-    outro assunto, registrado na seção 6 da spec desta fatia.
-
-    Esta lista continua escrita à mão, e isso é a fraqueza conhecida: ela não
-    sabe de um fundo novo que ninguém acrescentar aqui. Derivá-la de um grep
-    por `bg-<token>` e `text-<token>` é a primeira tarefa da fatia seguinte;
-    até lá, quem criar um fundo que recebe texto acrescenta o nome aqui.
-  */
-  const FUNDOS_CLAROS = ["canvas", "surface", "surface-fundo", "ami-lima-100"];
-
   for (const fundo of FUNDOS_CLAROS) {
     for (const tinta of TEXTO_DE_CORPO) {
       it(`${tinta} sobre ${fundo}`, () => {
@@ -153,6 +271,38 @@ describe("texto sobre os quatro fundos claros", () => {
       expect(razaoDeContraste(T["ink-300"], T[fundo])).toBeLessThan(MINIMO);
     });
   }
+});
+
+describe("as duas listas cobrem todo token em uso", () => {
+  /*
+    A varredura não monta os pares — confere que ninguém foi esquecido.
+
+    Um par de contraste é (texto, fundo), e só algumas combinações existem no
+    código: `ink-400` nunca aparece sobre `ami-green-600`, que é fundo de
+    botão com texto branco. Derivar os pares do grep inventaria dezenas que
+    não existem — foi o que a primeira versão desta tarefa tentou, e a
+    autorrevisão pegou: 31 falhas, nenhuma delas um defeito real, e a
+    varredura ainda perdia `surface-fundo`.
+
+    O que apodrece numa lista à mão é o ESQUECIMENTO — quatro vezes na fatia
+    anterior. É isso que estas duas asserções impedem: um token novo em
+    `text-` ou `bg-` obriga uma decisão — entrar na lista curada, ou ganhar
+    uma exceção com motivo escrito em TEXTO_FORA_DO_TESTE/FUNDOS_FORA_DO_TESTE
+    — e a decisão fica escrita, em vez de passar em silêncio.
+  */
+  it("nenhum token de texto ficou fora das duas listas", () => {
+    const esquecidos = tokensEm("text").filter(
+      (n) => !TEXTO_DE_CORPO.includes(n) && !(n in TEXTO_FORA_DO_TESTE),
+    );
+    expect(esquecidos, "token usado como texto e ausente das duas listas").toEqual([]);
+  });
+
+  it("nenhum fundo ficou fora das duas listas", () => {
+    const esquecidos = tokensEm("bg").filter(
+      (n) => !FUNDOS_CLAROS.includes(n) && !(n in FUNDOS_FORA_DO_TESTE),
+    );
+    expect(esquecidos, "token usado como fundo e ausente das duas listas").toEqual([]);
+  });
 });
 
 describe("texto sobre fundo escuro", () => {
