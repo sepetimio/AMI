@@ -79,6 +79,22 @@ describe("0006_painel_vinculos.sql", () => {
     "local_acessibilidade",
   ];
 
+  /*
+    A garantia destas seis vale para ESCRITA DIRETA, não para cascata.
+
+    `atendimento.atendimento_id` é referenciada por `horario` com
+    `on delete cascade`, em `0001_diretorio.sql`. Então `desligarLocal`, ao
+    remover uma linha de `atendimento` — remoção permitida —, apaga junto as
+    linhas de `horario` daquele vínculo. Cascata de integridade referencial é
+    executada pelo próprio Postgres e NÃO passa por política de linha: nenhuma
+    política aqui a impede, e nenhuma poderia.
+
+    Decisão registrada em 23/08/2026: fica como está. Os horários saíram do
+    produto nesta fatia (o site não gera agendamento), as 246 linhas são dos
+    médicos fictícios, nada as lê, e alterar a chave estrangeira de uma tabela
+    já aplicada custa mais que o dano. Está na seção 14 da spec, entre os
+    riscos.
+  */
   const NUNCA_REMOVE = [
     "profissional",
     "local",

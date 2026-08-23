@@ -388,3 +388,14 @@ nenhuma página pode referenciar um componente que não existe mais. Um `grep` p
   corrige o telefone achando que mexe só no seu médico e mexe em seis
 - **A tabela `horario` fica no banco sem uso.** Decisão deliberada: apagar dado é pior
   que deixá-lo parado, e as 246 linhas somem junto com os fictícios no lançamento
+- **Tirar o médico de um consultório apaga linhas de `horario`, por cascata.**
+  `horario.atendimento_id` referencia `atendimento` com `on delete cascade`, em
+  `0001_diretorio.sql`. Remover uma linha de `atendimento` é permitido nesta fatia, e o
+  Postgres apaga junto os horários daquele vínculo — `horario` está na lista do "nunca
+  remove", mas **cascata de integridade referencial não passa por política de linha**:
+  nenhuma política impede, e nenhuma poderia. **Fica como está**, e é escolha
+  registrada: os horários saíram do produto nesta mesma fatia, as 246 linhas são dos
+  médicos fictícios, nada as lê, e alterar a chave estrangeira de uma tabela já
+  aplicada custa mais que o dano. A garantia da lista vale para escrita direta, e o
+  comentário de `NUNCA_REMOVE`, em `testes/painel-migracao.test.ts`, diz isso no lugar
+  onde alguém iria confiar nela
