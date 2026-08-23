@@ -121,3 +121,53 @@ describe("texto sobre os dois fundos claros", () => {
     });
   }
 });
+
+describe("texto sobre fundo escuro", () => {
+  /*
+    Ficou de fora do plano original porque, segundo a autorrevisão, "esses
+    pares dependem de saber qual token vai sobre qual, e essa informação não
+    está no CSS, está nos componentes" — cobri-los exigiria uma lista escrita
+    à mão, que apodrece.
+
+    A varredura da rodada anterior (grep de `text-<token>` em app/ e
+    components/) resolveu isso: `ami-mint-400` é usado só sobre verde
+    escuro, nunca sobre fundo claro, e `ami-lima-400` é o token novo com o
+    mesmo papel (marca sobre o verde, ou fundo de texto escuro). O par
+    deixou de ser suposição.
+
+    `ami-mint-400` e `ami-mint-100` ficam de fora aqui de propósito: são os
+    tokens da família antiga que a tarefa 3 migra e apaga. Este describe
+    testa o par novo, `ami-lima-400`, que é o que continua existindo depois.
+  */
+  const PARES_ESCUROS: [string, string][] = [
+    ["surface", "ami-green-900"],
+    ["surface", "ami-green-800"],
+    ["ami-lima-400", "ami-green-900"],
+    ["ami-lima-400", "ami-green-800"],
+    ["ink-900", "ami-lima-400"],
+  ];
+
+  for (const [tinta, fundo] of PARES_ESCUROS) {
+    it(`${tinta} sobre ${fundo}`, () => {
+      const r = razaoDeContraste(T[tinta], T[fundo]);
+      expect(
+        r,
+        `--color-${tinta} sobre --color-${fundo} dá ${r.toFixed(2)}:1, abaixo de ${MINIMO}:1`,
+      ).toBeGreaterThanOrEqual(MINIMO);
+    });
+  }
+
+  it("o acento nunca serve como letra sobre fundo claro", () => {
+    /*
+      `ami-lima-400` sobre o creme dá pouco mais de 1:1 — invisível. Ele só
+      existe como fundo de texto escuro, ou como marca sobre o verde.
+
+      Esta asserção falha se alguém um dia clarear o creme ou escurecer o
+      acento até o par virar legível: nesse momento a regra "nunca é letra"
+      deixou de ser física e virou escolha, e o comentário que a afirma
+      precisa ser revisto.
+    */
+    expect(razaoDeContraste(T["ami-lima-400"], T["canvas"])).toBeLessThan(MINIMO);
+  });
+});
+
