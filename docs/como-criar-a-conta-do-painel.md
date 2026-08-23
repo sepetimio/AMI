@@ -59,9 +59,9 @@ De volta ao **SQL Editor**, **New query**, rode:
 select id, email from auth.users;
 ```
 
-Copie o `id` (um uuid) da conta que acabou de ser criada. Ele não é
-preciso no passo 5, que procura a conta pelo e-mail — é no passo 6, a
-conferência das políticas, que ele entra.
+Este passo é só para conferir que a conta existe. **Nenhum passo seguinte pede
+que você cole esse uuid**: o passo 5 procura a conta pelo e-mail, e o passo 6
+busca o admin no próprio banco.
 
 ---
 
@@ -103,8 +103,10 @@ Este passo prova que as políticas de segurança do banco fazem o que a
 migração diz que fazem, antes de confiar a primeira conta real a elas.
 
 1. Abra [`supabase/testes-rls.sql`](../supabase/testes-rls.sql) neste repositório
-2. No topo do arquivo, troque o uuid de exemplo pelo uuid da conta de admin
-   (o mesmo do passo 4)
+2. **Não edite nada.** O arquivo descobre sozinho o uuid do admin, lendo
+   `auth.users`. Uma versão anterior pedia para trocar um uuid de exemplo, e
+   quem colava sem ver o aviso batia num erro citando
+   `perfil_usuario_id_fkey`, que não diz o que fazer
 3. Cole o arquivo **inteiro** no **SQL Editor** — ele contém um `insert` que
    promove uma conta de teste a admin dentro de uma transação, e é o
    `rollback` do fim do arquivo que desfaz isso; rodar só um trecho selecionado

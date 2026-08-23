@@ -16,15 +16,15 @@
   memória, sem banco, e política de banco é a parte mais fácil de errar — e o
   erro é silencioso, porque uma política frouxa não avisa ninguém.
 
-  ANTES DE RODAR: troque o uuid abaixo pelo id da sua conta de admin, que sai
-  de `select id, email from auth.users;`.
+  NÃO é preciso editar nada antes de rodar: o uuid do admin sai do próprio
+  banco. Cole o arquivo inteiro e clique em Run.
 */
 
 begin;
 
 do $$
 declare
-  admin_uuid             constant uuid := '00000000-0000-0000-0000-000000000000'; -- TROQUE
+  admin_uuid             uuid;
   ninguem_uuid           constant uuid := '11111111-1111-1111-1111-111111111111';
   medico_id              bigint;
   bairro_teste_id        bigint;
@@ -33,6 +33,25 @@ declare
   especialidade_teste_id bigint;
   quantos                bigint;
 begin
+  /*
+    O uuid do admin sai do próprio banco, em vez de ser colado à mão.
+
+    A versão anterior trazia um uuid de exemplo com um `-- TROQUE` ao lado, e
+    quem colava o arquivo sem ver o aviso batia num 23503 citando
+    `perfil_usuario_id_fkey` — mensagem que não diz o que fazer. A linha 47
+    roda como dono da tabela e passa por cima da política, então a chave
+    estrangeira é a primeira coisa que reclama.
+
+    `ninguem_uuid` continua inventado de propósito: o insert dele, na seção
+    "ninguém se promove a admin", é recusado pela POLÍTICA antes de a chave
+    estrangeira ser conferida — e é exatamente isso que aquela asserção prova.
+  */
+  select id into admin_uuid from auth.users order by created_at limit 1;
+
+  if admin_uuid is null then
+    raise exception 'Nao existe nenhuma conta em auth.users. Crie a conta de admin primeiro, pelos passos de docs/como-criar-a-conta-do-painel.md.';
+  end if;
+
   -- Um médico despublicado, criado dentro da transação para o teste. CRM
   -- gerado, não fixo, para não colidir com a unicidade (crm, crm_uf) de um
   -- registro real e abortar o script inteiro por causa alheia à política.
