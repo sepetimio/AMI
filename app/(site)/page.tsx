@@ -101,7 +101,7 @@ export default async function Home() {
           className="pointer-events-none absolute -right-[10%] top-1/2 hidden h-[165%] w-[58%] -translate-y-1/2 md:block"
           style={{
             background:
-              "linear-gradient(150deg, var(--color-ami-green-600) 0%, var(--color-ami-green-600) 38%, rgba(13,46,12,0) 92%)",
+              "linear-gradient(150deg, var(--color-ami-lima-400) 0%, var(--color-ami-green-600) 38%, rgba(13,46,12,0) 92%)",
             opacity: 0.42,
             WebkitMaskImage: "url(/marca/ami-simbolo.svg)",
             maskImage: "url(/marca/ami-simbolo.svg)",
