@@ -2,12 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FormularioMedico } from "@/components/painel/FormularioMedico";
 import { BlocoEspecialidades } from "@/components/painel/BlocoEspecialidades";
+import { BlocoLocais } from "@/components/painel/BlocoLocais";
 import { oQueFalta } from "@/lib/painel/medico";
 import { medicoPorId } from "@/lib/painel/consultas";
 import {
   catalogoDeEspecialidades,
   especialidadesDoMedico,
 } from "@/lib/painel/especialidades";
+import { bairros, locaisDoMedico } from "@/lib/painel/locais";
 import { clienteDoPainel } from "@/lib/painel/servidor";
 import { exigirAdmin } from "@/lib/painel/sessao";
 
@@ -28,9 +30,11 @@ export default async function PaginaDeEdicao({
   const medico = await medicoPorId(cliente, numero);
   if (!medico) notFound();
 
-  const [especialidades, catalogo] = await Promise.all([
+  const [especialidades, catalogo, locais, listaDeBairros] = await Promise.all([
     especialidadesDoMedico(cliente, numero),
     catalogoDeEspecialidades(cliente),
+    locaisDoMedico(cliente, numero),
+    bairros(cliente),
   ]);
 
   const falta = oQueFalta({
@@ -57,7 +61,7 @@ export default async function PaginaDeEdicao({
 
       {falta.length ? (
         <p className="mt-4 rounded-bloco border border-line bg-surface px-4 py-3 text-[15px] text-ink-600">
-          Falta: {falta.join(", ")}. Consultórios entram no bloco abaixo.
+          Falta: {falta.join(", ")}.
         </p>
       ) : null}
 
@@ -68,6 +72,8 @@ export default async function PaginaDeEdicao({
         especialidades={especialidades}
         catalogo={catalogo}
       />
+
+      <BlocoLocais medicoId={medico.id} locais={locais} listaDeBairros={listaDeBairros} />
     </>
   );
 }
