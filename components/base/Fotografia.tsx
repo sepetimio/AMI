@@ -46,7 +46,7 @@ export function Fotografia({
           className="pointer-events-none absolute inset-0 -z-10 scale-[1.35]"
           style={{
             background:
-              "linear-gradient(150deg, var(--color-ami-green-500), var(--color-ami-green-700))",
+              "linear-gradient(150deg, var(--color-ami-lima-400), var(--color-ami-green-800))",
             opacity: 0.22,
             WebkitMaskImage: "url(/marca/ami-simbolo.svg)",
             maskImage: "url(/marca/ami-simbolo.svg)",
@@ -58,7 +58,7 @@ export function Fotografia({
             maskPosition: "center",
           }}
         />
-        <p className="w-full bg-ami-green-950/75 px-5 py-4 text-[13px] font-medium uppercase tracking-[0.09em] text-ami-mint-400 backdrop-blur-sm">
+        <p className="w-full bg-ami-green-900/75 px-5 py-4 text-[13px] font-medium uppercase tracking-[0.09em] text-ami-lima-400 backdrop-blur-sm">
           Fotografia a entrar: {rotulo}
         </p>
       </div>

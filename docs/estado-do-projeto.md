@@ -1,6 +1,6 @@
 # Estado do projeto — Site da Associação Médica de Imperatriz
 
-> Atualizado em 22 de agosto de 2026 · ramo `main`
+> Atualizado em 23 de agosto de 2026 · ramo `main`
 > Repositório: `github.com/sepetimio/AMI`
 > Especificação: [`docs/superpowers/specs/2026-08-19-site-ami-diretorio-design.md`](superpowers/specs/2026-08-19-site-ami-diretorio-design.md)
 
@@ -45,8 +45,27 @@ A busca entende variação de nome de profissão: quem digita "cardiologista" en
 - **Next.js 16** com renderização no servidor em toda página indexável
 - **Supabase** para o diretório, com as permissões escritas como políticas no banco e não como regra de tela: erro de front não vaza dado
 - **Sanity** para o que se escreve, com atualização imediata do site por webhook quando a AMI publica
-- **242 testes**, build com 58 páginas, sitemap com 45 endereços e nenhum 404
+- **589 testes** em 40 arquivos, build com 58 páginas, sitemap com 45 endereços e nenhum 404
 - Sistema visual reformulado, com contrastes medidos e aprovados em WCAG AA
+- **Paleta creme e verde**, trocada em 23/08/2026: campo `#F2EFE6` e superfície `#FBFAF5`
+  em vez do cinza-esverdeado antigo, e a escala de verde derivada dos dois tons do
+  próprio logotipo (`public/marca/ami-marca.svg`), não mais inventada. `testes/paleta.test.ts`
+  lê os tokens de `app/globals.css`, recalcula cada razão de contraste a cada rodada e
+  reprova sozinho se algum par cair abaixo de 4,5:1 — inclusive o par invertido (o acento
+  lima como letra sobre o campo, que **tem** que reprovar). São **38 asserções**: seis
+  tokens de texto contra cada um dos quatro fundos claros (`canvas`, `surface`,
+  `surface-fundo` e `ami-lima-100`), os dois cremes e o acento sobre cada um dos dois
+  verdes escuros, e `ink-300` conferido pelo avesso, porque ele é placeholder e **não**
+  pode virar texto legível sem que a regra seja revista. O par mais apertado do sistema é
+  `ink-400` sobre `ami-lima-100`, em 4,61:1. O teste foi provado por mutação, asserção por
+  asserção: apagar um token do `@theme`, ou levá-lo a um valor abaixo do mínimo, derruba o
+  teste. Especificação em
+  [`docs/superpowers/specs/2026-08-23-paleta-creme-e-verde-design.md`](superpowers/specs/2026-08-23-paleta-creme-e-verde-design.md)
+- **O que o teste de cor ainda não cobre**, para quem for mexer nele: as duas listas —
+  os tokens de texto e os fundos — são escritas à mão. Um fundo novo que ninguém
+  acrescentar ali passa despercebido, e foi assim que `ami-lima-100` e `surface-fundo`
+  ficaram fora até 23/08/2026. Derivar as duas de um grep por `text-<token>` e
+  `bg-<token>` é a primeira tarefa da fatia seguinte
 
 ### Conformidade
 
@@ -99,6 +118,9 @@ Previstas na especificação, seção 8, e ainda não construídas:
 - ~~**Importador de planilha**~~ **Construído.** Três comandos: `npm run importar -- --modelo` gera a planilha modelo, `npm run importar -- arquivo.xlsx` confere sem gravar, e `--gravar` executa. A publicação é comando à parte, `npm run publicar`, com filtro de completude. Falta a planilha real da AMI
 - **Painel da agência**, em `/painel`: a fatia 1 está construída — entrar com e-mail e senha, listar os médicos incluindo os que não estão no ar, pôr e tirar do ar um a um, e editar os campos do médico. A primeira conta se cria pelos passos de [`docs/como-criar-a-conta-do-painel.md`](como-criar-a-conta-do-painel.md), e **já existe** desde 23/08/2026. **A fatia 1 foi verificada de ponta a ponta contra o banco de produção naquele dia**, com `next build` + `next start`, que é o único arranjo que exercita o cache: tirar do ar derruba a página do médico, o sitemap e a home; pôr no ar traz as três de volta. `supabase/testes-rls.sql` também passou contra o banco real. A verificação achou um defeito, corrigido em `003dda2`: `alternarPublicacao` não conferia se a gravação alterou alguma linha, e o painel mostrava um estado que o banco não tinha. **A fatia 2 foi construída e verificada em 23/08/2026**, no mesmo dia: o painel passa a dar ao médico especialidades (com RQE e qual é a principal) e consultórios (com telefone, WhatsApp e acessibilidade, ligando a um endereço já cadastrado ou criando novo), mais o interruptor "é associado da AMI". A migração `0006_painel_vinculos.sql` concede escrita em quatro tabelas e remoção em três, todas de ligação — é a primeira do projeto que permite apagar linha, e médico continua impossível de apagar. `supabase/testes-rls.sql` passou contra o banco real cobrindo as quatro tabelas e os três papéis, e a corrente inteira foi conferida com o dedo. **Os horários saíram do produto** na mesma fatia: a planilha da AMI não tem coluna de horário, então a grade, o selo de "aberto agora" e o filtro de sábado ficariam vazios para sempre; a tabela `horario` fica no banco, intocada. As 37 decisões tomadas durante a execução estão em [`docs/superpowers/2026-08-23-painel-fatia-2-decisoes.md`](superpowers/2026-08-23-painel-fatia-2-decisoes.md). Falta a foto do médico (fatia própria, porque não existe armazenamento de arquivo configurado) e a fatia 3 (fila de revisões e "Atualizar meus dados"). Diretoria, comunicados e anuidades saíram do escopo da fatia 2 no levantamento
 - **Área do associado** (Fase 2): login do médico, edição do próprio perfil, anuidade, carteirinha, comunicados e eventos
+- **Home nova**: ainda não construída. Vem em seguida à paleta creme e verde — nessa
+  ordem de propósito, para não montar as seções novas na paleta velha e repintar depois.
+  Já está desenhada em [`docs/superpowers/specs/2026-08-23-home-nova-decisoes.md`](superpowers/specs/2026-08-23-home-nova-decisoes.md)
 
 ### 5. Itens técnicos adiados de propósito
 

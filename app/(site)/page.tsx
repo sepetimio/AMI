@@ -69,7 +69,7 @@ export default async function Home() {
           começa acima da borda de cima e nenhum ajuste futuro de respiro,
           de tamanho da marca ou de fonte pode reabrir a fresta.
           ===================================================== */}
-      <section className="relative isolate -mt-32 overflow-hidden bg-ami-green-950 pb-40 pt-[188px] md:pb-48 md:pt-[236px]">
+      <section className="relative isolate -mt-32 overflow-hidden bg-ami-green-900 pb-40 pt-[188px] md:pb-48 md:pt-[236px]">
         {/*
           Duas camadas de luz, e é o que separa campo de retângulo pintado. A
           primeira é um foco radial largo no alto à esquerda, atrás do título,
@@ -81,7 +81,7 @@ export default async function Home() {
           className="pointer-events-none absolute inset-0 -z-10"
           style={{
             background:
-              "radial-gradient(120% 80% at 12% 0%, rgba(31,107,58,0.55) 0%, rgba(11,48,24,0.35) 38%, transparent 72%)",
+              "radial-gradient(120% 80% at 12% 0%, rgba(26,94,24,0.55) 0%, rgba(13,46,12,0.35) 38%, transparent 72%)",
           }}
         />
 
@@ -101,7 +101,7 @@ export default async function Home() {
           className="pointer-events-none absolute -right-[10%] top-1/2 hidden h-[165%] w-[58%] -translate-y-1/2 md:block"
           style={{
             background:
-              "linear-gradient(150deg, var(--color-ami-green-500) 0%, var(--color-ami-green-600) 38%, rgba(11,48,24,0) 92%)",
+              "linear-gradient(150deg, var(--color-ami-lima-400) 0%, var(--color-ami-green-600) 38%, rgba(13,46,12,0) 92%)",
             opacity: 0.42,
             WebkitMaskImage: "url(/marca/ami-simbolo.svg)",
             maskImage: "url(/marca/ami-simbolo.svg)",
@@ -120,7 +120,7 @@ export default async function Home() {
               Encontre um médico em Imperatriz
             </h1>
             {/* Números contados do banco. Nunca escritos à mão. */}
-            <p className="mt-7 max-w-[46ch] text-[19px] leading-relaxed text-ami-mint-400 md:text-[22px]">
+            <p className="mt-7 max-w-[46ch] text-[19px] leading-relaxed text-ami-lima-400 md:text-[22px]">
               <span className="registro font-medium text-white">{total}</span>{" "}
               {total === 1 ? "profissional" : "profissionais"} em{" "}
               <span className="registro font-medium text-white">

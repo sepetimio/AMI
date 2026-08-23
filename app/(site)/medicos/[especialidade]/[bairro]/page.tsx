@@ -135,7 +135,7 @@ export default async function PaginaFaceta({ params }: Props) {
               <li key={outro.slug}>
                 <Link
                   href={`/medicos/${especialidade}/${outro.slug}`}
-                  className="numero-tabular inline-flex min-h-11 items-center rounded-chip border border-line bg-surface px-4 text-[15px] font-semibold text-ami-green-600 hover:bg-ami-mint-100"
+                  className="numero-tabular inline-flex min-h-11 items-center rounded-chip border border-line bg-surface px-4 text-[15px] font-semibold text-ami-green-600 hover:bg-ami-lima-100"
                 >
                   {outro.nome} · {outro.total}
                   {/* Mesma anotação da página de especialidade: o usuário

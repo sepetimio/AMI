@@ -224,7 +224,7 @@ export default async function PaginaEspecialidade({
               <li key={e.slug}>
                 <Link
                   href={`/medicos/${e.slug}`}
-                  className="inline-flex min-h-11 items-center rounded-chip border border-line bg-surface px-4 text-[15px] font-semibold text-ami-green-600 hover:bg-ami-mint-100"
+                  className="inline-flex min-h-11 items-center rounded-chip border border-line bg-surface px-4 text-[15px] font-semibold text-ami-green-600 hover:bg-ami-lima-100"
                 >
                   {e.nome}
                 </Link>

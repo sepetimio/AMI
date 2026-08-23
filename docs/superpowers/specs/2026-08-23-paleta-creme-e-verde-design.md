@@ -57,26 +57,72 @@ saturado —, o dono escolheu **derivar tudo da marca**. Nada é inventado.
 
 ## 4. A paleta
 
+> **Reescrita em 23 de agosto de 2026, depois da entrega.** Esta seção descrevia o
+> desenho aprovado, e o construído diverge dele em dois pontos. Como este é o documento
+> que o dono leu e aprovou, ele passa a descrever o que existe, com as divergências
+> nomeadas logo abaixo. Toda razão foi recalculada dos valores entregues, com a fórmula
+> da WCAG 2.1 — a mesma de `testes/paleta.test.ts`.
+
 | papel | token | valor | de onde vem |
 |---|---|---|---|
 | campo da página | `--color-canvas` | `#F2EFE6` | creme |
 | superfície de cartão | `--color-surface` | `#FBFAF5` | creme mais claro |
-| verde profundo | `--color-ami-green-900` | `#0D2E0C` | `#248322` aprofundado |
+| bloco dentro de bloco | `--color-surface-fundo` | `#F7F5EF` | creme entre os dois |
+| verde profundo | `--color-ami-green-900` | `#071A07` | `#248322` aprofundado |
+| verde de bloco | `--color-ami-green-800` | `#0D2E0C` | `#248322` aprofundado |
+| borda e estado escuro | `--color-ami-green-700` | `#124211` | `#248322` aprofundado |
+| ação | `--color-ami-green-600` | `#1A5E18` | `#248322` aprofundado |
 | acento | `--color-ami-lima-400` | `#A8D470` | `#248322` clareado |
-| ação | `--color-ami-green-600` | `#1F6B3A` | mantido |
+| lavagem e pílula de associado | `--color-ami-lima-100` | `#E2E9CC` | `#248322` clareado |
 | marca | — | `#00A457` | intocado, no logotipo |
+
+### As duas divergências entre o aprovado e o entregue
+
+**1. O `#0D2E0C` desceu um degrau, e um verde mais escuro entrou acima dele.** A tabela
+aprovada dava `#0D2E0C` como `ami-green-900`, o verde profundo. No entregue,
+`ami-green-900` é `#071A07`, e o `#0D2E0C` é `ami-green-800`. A cor que o dono escolheu
+continua no sistema, com outro nome — mas deixou de ser o tom mais escuro, e isso tem
+consequência direta na ressalva da seção 5.
+
+**2. A cor de ação mudou de valor e de matiz depois da aprovação.** A tabela dizia
+`ami-green-600: #1F6B3A`, com a palavra **mantido**. O entregue é `#1A5E18`, e a troca
+não é um ajuste de tom:
+
+| | matiz | croma | no creme |
+|---|---|---|---|
+| aprovado `#1F6B3A` | 141° | 76 | 5,67:1 |
+| entregue `#1A5E18` | 118° | 70 | 6,87:1 |
+| a marca `#248322` | 119° | 97 | 4,20:1 |
+
+São 23° de deslocamento: `#1F6B3A` é um verde-esmeralda que puxa para o azul, e `#1A5E18`
+está na matiz do próprio `#248322` da marca. O contraste melhorou, e a coerência com a
+seção 3 — *"nada é inventado, tudo sai da marca"* — também. Mas **é a cor de ação do site**,
+com 60 usos entre botão, link, borda de foco e estado, e ela mudou de família sem passar
+pela aprovação. Fica registrado aqui em vez de só no plano.
 
 ### Os números, medidos
 
+Medidos da paleta entregue, não copiados. Os da versão anterior desta seção tinham dois
+problemas distintos: valores que deixaram de valer, e um **rótulo errado** — a linha
+"creme sobre verde profundo" media `surface`, que é o creme mais claro, e não `canvas`,
+que é o creme. É o mesmo defeito que a última revisão achou no teste, e a correção é a
+mesma: nomear o par.
+
 | par | razão |
 |---|---|
-| `ink-900` no creme | **15,46:1** |
+| `ink-900` no creme | **16,80:1** |
 | `ink-600` no creme | **5,86:1** |
 | `ink-400` no creme (corrigido) | **5,02:1** |
-| ação `#1F6B3A` no creme | **5,67:1** |
-| creme sobre verde profundo | **14,22:1** |
-| acento sobre verde profundo | **8,72:1** |
-| tinta sobre acento | **10,42:1** |
+| `warn` no creme | **5,23:1** |
+| ação `#1A5E18` no creme | **6,87:1** |
+| `ami-green-700` no creme | **10,07:1** |
+| **creme** (`canvas`) sobre o verde profundo `#071A07` | **15,75:1** |
+| superfície sobre o verde profundo `#071A07` | **17,33:1** |
+| creme sobre `ami-green-800` `#0D2E0C` | **12,92:1** |
+| acento sobre o verde profundo `#071A07` | **10,62:1** |
+| acento sobre `ami-green-800` `#0D2E0C` | **8,72:1** |
+| tinta sobre acento | **11,33:1** |
+| `ink-400` sobre `ami-lima-100` | **4,61:1** — o par mais apertado do sistema |
 
 ### O defeito que a medição achou antes de existir
 
@@ -95,9 +141,10 @@ acima do mínimo, não colado nele.
 
 **O acento `#A8D470` como letra sobre o creme dá 1,48:1.** Invisível.
 
-Ele só pode ser: fundo de texto escuro (10,42:1), ou marca sobre o verde profundo
-(8,72:1). **Nunca texto sobre fundo claro.** Isto é física, não preferência, e vale para
-qualquer tela futura.
+Ele só pode ser: fundo de texto escuro (`ink-900` sobre ele, **11,33:1**), ou marca sobre
+o verde — e aqui o verde precisa de nome, porque são dois: **10,62:1** sobre o verde
+profundo `#071A07`, **8,72:1** sobre `ami-green-800` `#0D2E0C`. **Nunca texto sobre fundo
+claro.** Isto é física, não preferência, e vale para qualquer tela futura.
 
 ## 5. Uma ressalva registrada
 
@@ -115,6 +162,38 @@ verde some — que é justamente o efeito que esta fatia existe para produzir.
 
 **O dono escolheu o profundo.** Fica registrado: se ao ver montado a faixa parecer preta,
 é um token para trocar, e a alternativa medida está aqui.
+
+*(A coluna "creme sobre ela" acima também trocou o par: os três números são de `surface`,
+o creme mais claro. Sobre `canvas`, que é o creme, dão **12,92:1**, **8,07:1** e
+**6,74:1**. Croma na tabela é a diferença entre o maior e o menor canal, em 0–255 — a
+mesma conta dos números originais.)*
+
+### O que a escolha decidiu, e o que ela não alcançou
+
+Escrito depois da entrega, porque a divergência da seção 4 esvazia esta ressalva.
+
+**A faixa larga de verde que domina a home hoje não é o `#0D2E0C` que o dono escolheu.**
+É `ami-green-900`, `#071A07` — o herói inteiro do topo, em `app/(site)/page.tsx`, mais o
+rodapé de todas as páginas.
+
+| | croma | creme sobre ela |
+|---|---|---|
+| **entregue no herói** `#071A07` | **19** | **15,75:1** |
+| profundo `#0D2E0C` (escolhido) | 34 | 12,92:1 |
+| nítido `#1A5218` | 58 | 8,07:1 |
+| vivo `#1E5F1C` | 67 | 6,74:1 |
+
+Croma 19 é **quase metade** do croma 34 que já me preocupava, e menos de um terço do que
+eu recomendei. A superfície larga do site é mais escura e menos verde que as três opções
+que ele comparou.
+
+O `#0D2E0C` que ele escolheu está hoje na placa de iniciais do médico, de 76 a 108px, e
+na ponta escura de três degradês mascarados pela marca. Nenhum desses é uma faixa larga.
+**E a faixa de seção para a qual a escolha foi feita ainda não existe** — ela nasce na
+fatia da home.
+
+O julgamento continua sendo dele, e agora com o par certo à frente: a pergunta a fazer não
+é se o `#0D2E0C` lê como preto numa faixa, é se o `#071A07` lê como preto no herói.
 
 ## 6. O tamanho real do trabalho
 
@@ -139,6 +218,14 @@ escrita à mão em vez de vir do token, e onde o contraste dependia do fundo ant
 
 Dois tokens já não são usados por ninguém e saem junto — não é escopo extra, é limpeza que
 esta fatia torna óbvia.
+
+*(Registrado depois da entrega: `ami-green-500` saiu, `surface-fundo` **não**. Ele
+continua declarado e é o fundo de `.moldura`, em `app/globals.css` — e `.moldura` não é
+aplicada em nenhum componente, o efeito de casca dupla foi refeito à mão com
+`bg-surface p-2` em `app/(site)/page.tsx` e em `app/(site)/noticias/[slug]/page.tsx`. É
+uma classe sem consumidor, o mesmo tipo de buraco que a `div.grao` sem regra, e é decisão
+de desenho: ou os dois lugares passam a usar `.moldura`, ou a regra e o token saem. Fica
+para a fatia seguinte.)*
 
 ## 7. A trava que falta, e que esta fatia cria
 

@@ -19,7 +19,7 @@ export function EstadoVazio({
         className="pointer-events-none absolute inset-x-0 top-1/2 -z-10 h-[220%] -translate-y-1/2"
         style={{
           background:
-            "linear-gradient(150deg, var(--color-ami-green-500), var(--color-ami-green-700))",
+            "linear-gradient(150deg, var(--color-ami-lima-400), var(--color-ami-green-800))",
           opacity: 0.055,
           WebkitMaskImage: "url(/marca/ami-simbolo.svg)",
           maskImage: "url(/marca/ami-simbolo.svg)",

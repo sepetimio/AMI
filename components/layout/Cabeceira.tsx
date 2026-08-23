@@ -43,7 +43,7 @@ export function Cabeceira({
         className="pointer-events-none absolute -right-[8%] top-1/2 hidden h-[190%] w-[42%] -translate-y-1/2 md:block"
         style={{
           background:
-            "linear-gradient(150deg, var(--color-ami-green-500), var(--color-ami-green-700))",
+            "linear-gradient(150deg, var(--color-ami-lima-400), var(--color-ami-green-800))",
           opacity: 0.05,
           WebkitMaskImage: "url(/marca/ami-simbolo.svg)",
           maskImage: "url(/marca/ami-simbolo.svg)",

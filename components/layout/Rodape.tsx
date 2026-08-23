@@ -4,15 +4,18 @@ import { bairrosComContagem, especialidadesComContagem } from "@/lib/dados/espec
 import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
 
 /*
-  Rodapé em verde-950, o tom mais profundo da escala, com o topo arredondado.
+  Rodapé em verde-900, o tom mais profundo da escala, com o topo arredondado.
+  Havia um verde-950 acima dele, e este comentário ainda citava esse token: a
+  fatia da paleta consolidou os dois num só, e é o verde-900 que a linha do
+  `footer` usa.
 
-  O canto arredondado no alto é o que faz o rodapé pousar sobre o cinza da
+  O canto arredondado no alto é o que faz o rodapé pousar sobre o creme da
   página em vez de fechar a tela com um bloco retangular de borda a borda. É o
   mesmo princípio do cabeçalho flutuante, na outra ponta.
 
-  Antes era verde-900. A marca não entra aqui: sendo verde-escura sobre fundo
-  verde-escuro, ela sumiria. No lugar, o nome da associação em texto, na
-  Archivo condensada — que é legível e acessível, o que uma imagem não seria.
+  A marca não entra aqui: sendo verde-escura sobre fundo verde-escuro, ela
+  sumiria. No lugar, o nome da associação em texto — que é legível e
+  acessível, o que uma imagem não seria.
 
   As listas de especialidade e bairro são o bloco de linkagem interna mais
   forte do site: garantem que nenhuma página de faceta fique a mais de dois
@@ -25,7 +28,7 @@ export async function Rodape() {
   ]);
 
   return (
-    <footer className="mt-24 rounded-t-painel bg-ami-green-950 text-ami-mint-400">
+    <footer className="mt-24 rounded-t-painel bg-ami-green-900 text-ami-lima-400">
       <div className="mx-auto max-w-[1240px] px-5 py-16 md:px-8 md:py-20">
         <p className="text-[24px] font-semibold leading-[1.15] tracking-[-0.02em] text-white">
           Associação Médica
@@ -246,7 +249,7 @@ export async function Rodape() {
               perfis são fictícios depois da carga do cadastro real seria
               desmentir 500 médicos de verdade no rodapé de toda página. */}
           {DADOS_DEMONSTRACAO ? (
-            <p className="mt-2 text-ami-mint-400/80">
+            <p className="mt-2 text-ami-lima-400/80">
               Os dados de profissionais exibidos são fictícios, para
               demonstração, até a carga do cadastro oficial da AMI.
             </p>

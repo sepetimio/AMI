@@ -17,11 +17,16 @@ export function Chip({
   children: React.ReactNode;
   tom?: "neutro" | "associado";
 }) {
-  /* Sobre fundo claro a ação e o destaque usam verde-600. A menta só entra
-     como preenchimento, nunca como cor de texto. */
+  /* O texto do tom "associado" é verde-700, não verde-600: sobre o lima-100
+     ele dá 9,24:1, e o verde-600 daria 6,31:1 — os dois passam, e a escolha
+     é de peso, porque a pílula é pequena. O verde-600 fica na borda, a 30%.
+
+     O lima só entra como preenchimento, nunca como cor de texto: sobre fundo
+     claro ele é invisível, e testes/paleta.test.ts reprova quem tentar. Este
+     comentário dizia "menta", família que a fatia da paleta apagou. */
   const cores = {
     neutro: "bg-canvas text-ink-600 border-transparent",
-    associado: "bg-ami-mint-100 text-ami-green-700 border-ami-green-600/30",
+    associado: "bg-ami-lima-100 text-ami-green-700 border-ami-green-600/30",
   }[tom];
 
   return (

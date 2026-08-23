@@ -138,7 +138,7 @@ export default async function PaginaAssociacao() {
               <li key={c.caminho}>
                 <Link
                   href={c.caminho}
-                  className="pressiona flex min-h-[88px] flex-col justify-center rounded-bloco border border-line bg-surface px-5 py-4 hover:border-ami-green-600 hover:bg-ami-mint-100 hover:shadow-erguido"
+                  className="pressiona flex min-h-[88px] flex-col justify-center rounded-bloco border border-line bg-surface px-5 py-4 hover:border-ami-green-600 hover:bg-ami-lima-100 hover:shadow-erguido"
                 >
                   <span className="font-titulo text-[17px] font-semibold">
                     {c.titulo}
