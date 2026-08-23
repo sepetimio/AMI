@@ -94,10 +94,19 @@
   /* --- LIMA: o acento ---
 
      Sai do mesmo #248322, clareado. NUNCA é texto sobre fundo claro: dá
-     1,48:1 no creme, invisível. Só fundo de texto escuro (11,33:1) ou marca
-     sobre o verde (8,72:1). Isto é física, não preferência. */
+     1,48:1 no creme, invisível. Só fundo de texto escuro (`ink-900` sobre
+     ele, 11,33:1) ou marca sobre o verde — e aqui o verde precisa de nome,
+     porque são dois: 8,72:1 sobre `ami-green-800` e 10,62:1 sobre
+     `ami-green-900`. Isto é física, não preferência. */
   --color-ami-lima-400: #A8D470;
-  --color-ami-lima-100: #E2E9CC; /* lavagem de passagem de mouse */
+
+  /* Não é só lavagem de passagem de mouse, que era o que este comentário
+     dizia: é fundo PERMANENTE da pílula "Associado AMI"
+     (components/base/Chip.tsx), e fundo de hover em outros doze lugares.
+     Com 13 usos de `bg-`, é o fundo claro mais usado do site depois de
+     `surface`. É também o par mais apertado do sistema: `ink-400` sobre ele
+     dá 4,61:1, e `ink-900` dá 15,42:1. Medido em testes/paleta.test.ts. */
+  --color-ami-lima-100: #E2E9CC;
 
   --color-warn: #7C5F00; /* 5,23:1 no creme, 5,75:1 na superfície · era #8a6a00, 4,41:1 no creme, abaixo do mínimo; escurecido com folga · texto de corpo, em testes/paleta.test.ts */
 
