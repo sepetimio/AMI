@@ -73,7 +73,23 @@ describe("os tokens existem", () => {
 });
 
 describe("texto sobre os dois fundos claros", () => {
-  const TEXTO_DE_CORPO = ["ink-900", "ink-600", "ink-400", "warn", "ami-green-600"];
+  /*
+    Todo token usado como cor de texto entra nesta lista — não é seleção do
+    que parece arriscado. `ami-green-600` ficou de fora numa primeira
+    passada porque parecia cor de botão, e uma mutação mostrou que ele
+    podia cair para 2,86:1 sem nada reclamar. Se um token aparece em
+    `text-<nome>` em qualquer componente, ele pertence aqui.
+
+    Exceção real, não descuido: tokens usados como texto só sobre fundo
+    ESCURO (`ami-mint-400`, `ami-lima-400`) ficam de fora de propósito.
+    Esta lista testa contra `canvas` e `surface`, os dois fundos claros do
+    sistema — medir esses tokens aqui testaria o par errado. `ami-mint-400`
+    dá 1,36:1 em canvas e 1,49:1 em surface: não é regressão, é a mesma
+    física que barra `ami-lima-400` como texto sobre fundo claro. Quem usar
+    esses dois sobre fundo escuro precisa de um teste próprio contra
+    `ami-green-800`/`ami-green-900`, que ainda não existe.
+  */
+  const TEXTO_DE_CORPO = ["ink-900", "ink-600", "ink-400", "warn", "ami-green-600", "ami-green-700"];
 
   for (const fundo of ["canvas", "surface"]) {
     for (const tinta of TEXTO_DE_CORPO) {
