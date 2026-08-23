@@ -31,9 +31,12 @@ export function PainelFiltros({
   /*
     O contador cobre os controles deste painel, e nada mais.
 
-    `termo` fica de fora de propósito: quem digitou "cardiologia" na home vê
-    isso no H1 da página, e não veio deste painel. `ordem` também: ordenar
-    não encurta a lista, então não explica por que ela está curta.
+    `termo` fica de fora de propósito, e o motivo mudou quando o campo de
+    texto entrou neste painel: não é mais "veio de outro lugar" — é que o
+    contador existe para explicar uma lista curta cuja causa está ESCONDIDA,
+    e a do termo não está. Ela aparece duas vezes na tela: no H1
+    ("Resultados para …") e no próprio campo, preenchido. `ordem` também:
+    ordenar não encurta a lista, então não explica por que ela está curta.
 
     Como consequência, "Limpar" preserva os dois — apagar o que não se conta
     seria remover a busca do usuário sem aviso.
@@ -108,6 +111,60 @@ export function PainelFiltros({
         >
           Filtrar
         </h2>
+
+        {/*
+          O campo de texto, e por que ele mora aqui.
+
+          `/busca` é alcançável por link de bairro já filtrado — do rodapé e
+          dos ladrilhos da home — e quem chega assim precisa poder digitar um
+          nome sem voltar à home para achar o único campo do site. Este é o
+          segundo, e o que sustenta a página sozinha.
+
+          `<form>` de verdade em volta de um campo só, para que Enter envie:
+          o resto do painel aplica no `onChange`, mas um texto aplicado a
+          cada tecla dispararia uma navegação por letra digitada. O
+          `onSubmit` chama o mesmo `aplicar()` dos outros controles — a URL
+          continua saindo por `queryDosFiltros`, e não por concatenação
+          escrita aqui.
+
+          Sem estado: o valor vem da URL por `defaultValue`, e o `key` amarra
+          o campo ao termo da URL, de modo que voltar pelo botão do navegador
+          (ou qualquer navegação que troque o termo) remonte o campo com o
+          valor certo em vez de deixar na tela o que o usuário digitou antes.
+        */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const valor = String(
+              new FormData(e.currentTarget).get("termo") ?? "",
+            ).trim();
+            aplicar({ termo: valor || undefined });
+          }}
+        >
+          <label
+            htmlFor="filtro-termo"
+            className="block text-[15px] font-medium text-ink-600"
+          >
+            Nome ou especialidade
+          </label>
+          <div className="mt-2 flex gap-2">
+            <input
+              key={sp.get("termo") ?? ""}
+              id="filtro-termo"
+              name="termo"
+              type="search"
+              defaultValue={sp.get("termo") ?? ""}
+              placeholder="Mayara Viana, cardiologista…"
+              className="pressiona min-h-12 w-full min-w-0 flex-1 rounded-controle border border-line bg-canvas px-3.5 text-[16px] placeholder:text-ink-300 focus:border-ami-green-600 focus:bg-surface"
+            />
+            <button
+              type="submit"
+              className="pressiona min-h-12 shrink-0 rounded-controle bg-ami-green-600 px-4 font-semibold text-white shadow-apoio hover:bg-ami-green-700 hover:shadow-erguido"
+            >
+              Buscar
+            </button>
+          </div>
+        </form>
 
         <div>
           <label
