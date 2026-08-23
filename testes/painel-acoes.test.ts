@@ -34,12 +34,30 @@ describe("as ações do painel", () => {
     });
   }
 
-  it("nenhuma ação remove nada", () => {
-    /* Não existe política de remoção no banco, então uma chamada de remoção
-       aqui falharia — mas falharia em tempo de execução, e o teste é mais
-       barato que descobrir assim. */
+  it("remoção só nas três tabelas de ligação", () => {
+    /*
+      A fatia 2 concede remoção em profissional_especialidade, atendimento e
+      local_acessibilidade, e em mais nada. Este teste vigia o lado do código:
+      a política do banco é a outra metade, em painel-migracao.test.ts.
+    */
+    const PERMITIDAS = [
+      "profissional_especialidade",
+      "atendimento",
+      "local_acessibilidade",
+    ];
+
     for (const caminho of ACOES) {
-      expect(semComentarios(fonte(caminho))).not.toMatch(/\.delete\s*\(/);
+      const codigo = semComentarios(fonte(caminho));
+      const tabelas = [...codigo.matchAll(/from\("(\w+)"\)([\s\S]*?)(?=from\("|$)/g)];
+
+      for (const [, tabela, trecho] of tabelas) {
+        if (/\.delete\s*\(/.test(trecho)) {
+          expect(
+            PERMITIDAS,
+            `${caminho} remove de ${tabela}, que não permite remoção`,
+          ).toContain(tabela);
+        }
+      }
     }
   });
 });

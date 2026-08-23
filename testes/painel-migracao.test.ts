@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fonte } from "@/testes/apoio";
+import { fonte, semComentarios } from "@/testes/apoio";
 
 /*
   A migração do painel é a primeira do projeto que concede escrita.
@@ -61,6 +61,51 @@ describe("0005_painel.sql", () => {
     const escritas = [...sql.matchAll(/create\s+policy\s+\S+\s+on\s+(\S+)\s+for\s+(insert|update)/g)];
     const tabelas = [...new Set(escritas.map((m) => m[1]))];
     expect(tabelas).toEqual(["profissional"]);
+  });
+});
+
+describe("0006_painel_vinculos.sql", () => {
+  const sql = semComentarios(fonte("../supabase/migrations/0006_painel_vinculos.sql"))
+    .toLowerCase();
+
+  const PERMITE_REMOVER = [
+    "profissional_especialidade",
+    "atendimento",
+    "local_acessibilidade",
+  ];
+
+  const NUNCA_REMOVE = [
+    "profissional",
+    "local",
+    "especialidade",
+    "bairro",
+    "horario",
+    "perfil_usuario",
+  ];
+
+  it("concede remoção exatamente nas três tabelas de ligação", () => {
+    const alvos = [...sql.matchAll(/on\s+(\w+)\s+for\s+delete/g)].map((m) => m[1]);
+    expect(alvos.sort()).toEqual([...PERMITE_REMOVER].sort());
+  });
+
+  it("não concede remoção em nenhuma tabela de cadastro", () => {
+    for (const tabela of NUNCA_REMOVE) {
+      expect(sql).not.toMatch(new RegExp(`on\\s+${tabela}\\s+for\\s+delete`));
+    }
+  });
+
+  it("não usa for all, grant, drop table, truncate nem desliga RLS", () => {
+    expect(sql).not.toMatch(/for\s+all\b/);
+    expect(sql).not.toMatch(/\bgrant\b/);
+    expect(sql).not.toMatch(/\bdrop\s+table\b/);
+    expect(sql).not.toMatch(/\btruncate\b/);
+    expect(sql).not.toMatch(/disable\s+row\s+level\s+security/);
+  });
+
+  it("nenhuma política de escrita passa sem eh_admin", () => {
+    const politicas = [...sql.matchAll(/create\s+policy[\s\S]*?;/g)].map((m) => m[0]);
+    expect(politicas.length).toBeGreaterThan(0);
+    for (const p of politicas) expect(p).toContain("eh_admin()");
   });
 });
 

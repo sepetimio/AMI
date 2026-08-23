@@ -119,6 +119,43 @@ begin
 
   reset role;
 
+  -- Fatia 2: os vínculos ----------------------------------------------------
+
+  set local role authenticated;
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', ninguem_uuid, 'role', 'authenticated')::text, true);
+
+  begin
+    insert into atendimento (profissional_id, local_id)
+      values (medico_id, (select id from local limit 1));
+    raise exception 'FALHOU: conta sem perfil cria atendimento';
+  exception when insufficient_privilege then
+    null; -- recusado, que é o esperado
+  end;
+
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', admin_uuid, 'role', 'authenticated')::text, true);
+
+  insert into atendimento (profissional_id, local_id)
+    values (medico_id, (select id from local limit 1));
+
+  select count(*) into quantos from atendimento where profissional_id = medico_id;
+  if quantos <> 1 then
+    raise exception 'FALHOU: admin cria atendimento';
+  end if;
+
+  delete from atendimento where profissional_id = medico_id;
+  if not found then
+    raise exception 'FALHOU: admin remove atendimento';
+  end if;
+
+  begin
+    delete from local where id = (select id from local limit 1);
+    if found then raise exception 'FALHOU: ninguem apaga local'; end if;
+  exception when insufficient_privilege then
+    null; -- recusado, que é o esperado
+  end;
+
   raise notice 'TODAS AS ASSERCOES PASSARAM';
 end $$;
 
