@@ -128,13 +128,13 @@ describe("páginas legais de primeiro nível têm rota correspondente no reposit
   e não o de PAGINAS_CONHECIDAS sozinho, que quebra.
 */
 describe("enderecosValidos do schema bate com PAGINAS_CONHECIDAS", () => {
-  it("os sete slugs são exatamente os mesmos, nos dois arquivos", () => {
+  it("os oito slugs são exatamente os mesmos, nos dois arquivos", () => {
     expect([...enderecosValidos].sort()).toEqual(
       Object.keys(PAGINAS_CONHECIDAS).sort(),
     );
   });
 
-  it("são sete, nem a mais nem a menos", () => {
-    expect(enderecosValidos).toHaveLength(7);
+  it("são oito, nem a mais nem a menos", () => {
+    expect(enderecosValidos).toHaveLength(8);
   });
 });

@@ -25,6 +25,10 @@ import { AMI, enderecoEmLinha } from "@/lib/ami";
   Quando qualquer um desses fatos mudar, ESTE ARQUIVO MUDA JUNTO. É a razão
   de os três textos morarem em código e não direto no Studio: assim eles
   ficam ao lado da coisa que descrevem, e o descompasso aparece na revisão.
+
+  Um quarto rascunho mora aqui também, mais abaixo: `SEJA_ASSOCIADO`. Não é
+  texto legal, é a página de filiação — reaproveita o mesmo tipo e o mesmo
+  aviso na tela, não o mesmo lote de revisão jurídica. Ver o comentário dele.
 */
 
 export type SecaoLegal = {
@@ -34,7 +38,11 @@ export type SecaoLegal = {
 };
 
 export type RascunhoLegal = {
-  slug: "politica-de-privacidade" | "termos-de-uso" | "politica-de-cookies";
+  slug:
+    | "politica-de-privacidade"
+    | "termos-de-uso"
+    | "politica-de-cookies"
+    | "seja-associado";
   titulo: string;
   resumo: string;
   /** Data da redação do rascunho. Vira a data de revisão quando for revisado. */
@@ -239,3 +247,70 @@ export const COOKIES: RascunhoLegal = {
 };
 
 export const RASCUNHOS_LEGAIS = [PRIVACIDADE, TERMOS, COOKIES] as const;
+
+/*
+  Data de redação separada de `DATA`, acima: os três rascunhos legais foram
+  escritos em 21/08/2026, este em 23/08/2026. Reaproveitar `DATA` daria a
+  origem errada para este texto.
+*/
+const DATA_SEJA_ASSOCIADO = "2026-08-23";
+
+/*
+  Não é texto legal — é a página de filiação, provisória enquanto a AMI não
+  escreve a definitiva. Mora aqui porque reaproveita o mesmo mecanismo e o
+  mesmo tipo `RascunhoLegal` que os três textos acima, pelo motivo que
+  `components/editorial/RascunhoLegalNaTela.tsx` explica no próprio
+  comentário: a alternativa a um rascunho assinalado era o cartão "Seja
+  associado" da home levar a 404 até a AMI escrever o texto dela.
+
+  NÃO entra em `RASCUNHOS_LEGAIS`, de propósito: aquele array alimenta
+  `scripts/gerar-doc-legal.ts`, o documento que vai para revisão de um
+  advogado de direito médico. Esta página não é peça jurídica — é
+  institucional, sobre filiação — e misturá-la ao lote que o advogado revisa
+  daria a ele um quarto texto que não é da alçada dele.
+
+  O texto não inventa fato. Sem valor de anuidade, sem lista de benefícios,
+  sem requisito além do que a AMI já confirmou (inscrição no conselho). O que
+  seria mais — quanto custa, o que o associado ganha — é justamente o que a
+  AMI ainda não escreveu, e está marcado [PROVISÓRIO] em vez de estimado.
+*/
+export const SEJA_ASSOCIADO: RascunhoLegal = {
+  slug: "seja-associado",
+  titulo: "Seja associado",
+  resumo:
+    "O que é a Associação Médica de Imperatriz e como um médico com " +
+    "inscrição no conselho se associa a ela.",
+  atualizadoEm: DATA_SEJA_ASSOCIADO,
+  secoes: [
+    {
+      titulo: "O que é a AMI",
+      paragrafos: [`A ${identificacao} está em atividade desde ${AMI.fundadaEm}.`],
+    },
+    {
+      titulo: "Quem pode se associar",
+      paragrafos: [
+        "A associação é aberta a médicos com inscrição regular no Conselho Regional de Medicina.",
+        "[PROVISÓRIO] Valor de anuidade, benefícios do quadro associativo e demais critérios de admissão ainda serão definidos e publicados pela AMI nesta página.",
+      ],
+    },
+    {
+      titulo: "Como se associar",
+      paragrafos: [
+        `Pelo telefone ${AMI.telefones[0]} ou ${AMI.telefones[1]}, ou presencialmente na sede, na ${enderecoEmLinha()}.`,
+      ],
+    },
+  ],
+};
+
+/*
+  Rascunhos por slug de `/associacao/[pagina]`, para a rota decidir entre
+  mostrar o rascunho ou `notFound()` sem precisar de um `if` por slug.
+  Só "seja-associado" tem entrada hoje; os outros dois slugs de prosa daquela
+  rota (benefícios, estatuto, política editorial) continuam sem rascunho de
+  propósito — ver o comentário na rota sobre o porquê de não inventar um.
+*/
+export const RASCUNHOS_DE_ASSOCIACAO: Readonly<
+  Partial<Record<string, RascunhoLegal>>
+> = {
+  "seja-associado": SEJA_ASSOCIADO,
+};

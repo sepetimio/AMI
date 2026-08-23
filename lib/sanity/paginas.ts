@@ -1,5 +1,5 @@
 /*
-  Fonte única dos sete slugs de `paginaInstitucional` que têm rota
+  Fonte única dos oito slugs de `paginaInstitucional` que têm rota
   correspondente no site, com o endereço e o rótulo de cada um.
 
   Achado da rodada 2 de revisão da tarefa 11: antes deste arquivo existir,
@@ -72,12 +72,16 @@ export const PAGINAS_CONHECIDAS: Readonly<Record<string, PaginaConhecida>> = {
     caminho: "/politica-de-cookies",
     rotulo: "Política de cookies",
   },
+  "seja-associado": {
+    caminho: "/associacao/seja-associado",
+    rotulo: "Seja associado",
+  },
 };
 
 /*
-  As seis páginas de PROSA que o sitemap e a rota `/associacao/[pagina]`
+  As sete páginas de PROSA que o sitemap e a rota `/associacao/[pagina]`
   conhecem: todo slug de `PAGINAS_CONHECIDAS`, exceto "associacao" (ver o
-  comentário na entrada dela, acima). Derivada, não reescrita: um oitavo
+  comentário na entrada dela, acima). Derivada, não reescrita: um nono
   slug acrescentado só em `PAGINAS_CONHECIDAS` aparece aqui e em
   `slugsDePaginasSobAssociacao` sem precisar tocar em mais nada.
 */
