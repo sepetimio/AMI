@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { avisoDeRqeFaltando, validarRqe } from "@/lib/painel/especialidades";
+import {
+  avisoDeRqeFaltando,
+  ordenarEspecialidades,
+  validarRqe,
+  type EspecialidadeDoMedico,
+} from "@/lib/painel/especialidades";
 import { fonte, semComentarios } from "@/testes/apoio";
 
 describe("validarRqe", () => {
@@ -45,6 +50,37 @@ describe("avisoDeRqeFaltando", () => {
   });
 });
 
+describe("ordenarEspecialidades", () => {
+  const e = (nome: string, principal: boolean, id = 1): EspecialidadeDoMedico => ({
+    id,
+    nome,
+    rqe: null,
+    principal,
+  });
+
+  it("a principal vem primeiro, mesmo estando por último na entrada", () => {
+    const entrada = [e("Cardiologia", false, 1), e("Alergologia", false, 2), e("Zoologia", true, 3)];
+    const saida = ordenarEspecialidades(entrada);
+    expect(saida[0].nome).toBe("Zoologia");
+  });
+
+  it("sem nenhuma principal, a ordem é só alfabética", () => {
+    const entrada = [e("Cardiologia", false, 1), e("Alergologia", false, 2), e("Pediatria", false, 3)];
+    const saida = ordenarEspecialidades(entrada).map((x) => x.nome);
+    expect(saida).toEqual(["Alergologia", "Cardiologia", "Pediatria"]);
+  });
+
+  it("a ordenação é de português: acento não empurra para o fim", () => {
+    const entrada = [e("Zoologia", false, 1), e("Álgebra", false, 2)];
+    const saida = ordenarEspecialidades(entrada).map((x) => x.nome);
+    expect(saida).toEqual(["Álgebra", "Zoologia"]);
+  });
+
+  it("lista vazia devolve lista vazia", () => {
+    expect(ordenarEspecialidades([])).toEqual([]);
+  });
+});
+
 describe("acoes-especialidade.ts", () => {
   const codigo = semComentarios(fonte("../app/painel/medico/[id]/acoes-especialidade.ts"));
 
@@ -56,9 +92,23 @@ describe("acoes-especialidade.ts", () => {
     expect(selects.length).toBeGreaterThanOrEqual(escritas.length);
   });
 
-  it("confere se veio linha antes de invalidar", () => {
-    expect(codigo).toContain("if (!data)");
-    expect(codigo.indexOf("if (!data)")).toBeLessThan(codigo.indexOf("revalidatePath("));
+  it("cada ação confere se veio linha antes de invalidar", () => {
+    /*
+      Ancora na CHAMADA `invalidar()`, não em `revalidatePath(`. Medir a posição
+      de `revalidatePath(` mede a DEFINIÇÃO do helper, não o momento em que ele
+      roda — com a definição no fim do arquivo, uma ação que invalidasse antes
+      de conferir a linha passaria verde. E confere por ação: no arquivo inteiro,
+      o `if (!data)` de uma ação cobriria o `invalidar()` de outra.
+    */
+    const acoes = codigo.split("export async function").slice(1);
+    expect(acoes.length).toBeGreaterThan(0);
+
+    for (const acao of acoes) {
+      if (!acao.includes("invalidar()")) continue;
+      const confere = acao.indexOf("if (!data)");
+      expect(confere, "ação que invalida sem conferir se veio linha").toBeGreaterThan(-1);
+      expect(confere).toBeLessThan(acao.indexOf("invalidar()"));
+    }
   });
 
   it("chama exigirAdmin antes de qualquer escrita", () => {

@@ -13,14 +13,13 @@ export type EstadoDaEspecialidade = { erros: Record<string, string>; salvo: bool
   linha que a política não admite em vez de recusar a chamada, então sem isso a
   tela mostra um estado que o banco não tem — foi o defeito de 23/08/2026, em
   `alternarPublicacao`, corrigido em 003dda2.
-
-  `invalidar` fica declarada no fim do arquivo, não aqui: é `function`
-  (hoisted, então a posição não muda o comportamento), e a varredura confere
-  que a conferência de `if (!data)` vem, no texto, antes de qualquer
-  `revalidatePath(`. Com a declaração aqui em cima, a própria definição do
-  helper apareceria antes do primeiro `if (!data)` e reprovaria a varredura
-  por um motivo que não é o que ela quer pegar.
 */
+
+function invalidar(): void {
+  revalidatePath("/(site)", "layout");
+  revalidatePath("/sitemap.xml");
+  revalidatePath("/painel");
+}
 
 /*
   Salvar os RQEs e a principal, de uma vez.
@@ -179,10 +178,4 @@ export async function removerEspecialidade(dados: FormData): Promise<void> {
   }
 
   invalidar();
-}
-
-function invalidar(): void {
-  revalidatePath("/(site)", "layout");
-  revalidatePath("/sitemap.xml");
-  revalidatePath("/painel");
 }

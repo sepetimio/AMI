@@ -56,6 +56,25 @@ export function avisoDeRqeFaltando(nomes: string[]): string | null {
   );
 }
 
+/*
+  A principal primeiro; o resto em ordem alfabética de português, que é como
+  quem preenche procura.
+
+  Separada de `especialidadesDoMedico` de propósito, seguindo o mesmo desenho
+  de `paraLista` em `lib/painel/consultas.ts`: é a regra de negócio mais
+  visível deste módulo, e ficar pura é o que permite testá-la sem fabricar um
+  cliente Supabase.
+*/
+export function ordenarEspecialidades(
+  linhas: EspecialidadeDoMedico[],
+): EspecialidadeDoMedico[] {
+  return [...linhas].sort((a, b) =>
+    a.principal !== b.principal
+      ? Number(b.principal) - Number(a.principal)
+      : a.nome.localeCompare(b.nome, "pt-BR"),
+  );
+}
+
 export async function especialidadesDoMedico(
   cliente: SupabaseClient,
   medicoId: number,
@@ -70,20 +89,14 @@ export async function especialidadesDoMedico(
   }
 
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  return ((data ?? []) as any[])
-    .map((l) => ({
-      id: l.especialidade.id as number,
-      nome: l.especialidade.nome as string,
-      rqe: l.rqe as string | null,
-      principal: l.principal as boolean,
-    }))
-    /* A principal primeiro; o resto em ordem alfabética, que é como quem
-       preenche procura. */
-    .sort((a, b) =>
-      a.principal !== b.principal
-        ? Number(b.principal) - Number(a.principal)
-        : a.nome.localeCompare(b.nome, "pt-BR"),
-    );
+  const linhas = ((data ?? []) as any[]).map((l) => ({
+    id: l.especialidade.id as number,
+    nome: l.especialidade.nome as string,
+    rqe: l.rqe as string | null,
+    principal: l.principal as boolean,
+  }));
+
+  return ordenarEspecialidades(linhas);
 }
 
 export async function catalogoDeEspecialidades(
