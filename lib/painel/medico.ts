@@ -18,6 +18,7 @@ export type CamposDoMedico = {
   crm: string;
   crmUf: string;
   telemedicina: boolean;
+  associadoAmi: boolean;
   situacao: string;
   bio: string;
   verificadoEm: string;
@@ -29,6 +30,7 @@ export type MedicoValidado = {
   crm: string;
   crm_uf: string;
   telemedicina: boolean;
+  associado_ami: boolean;
   situacao: "ativo" | "inativo";
   bio: string | null;
   verificado_em: string | null;
@@ -82,6 +84,12 @@ export function validarMedico(campos: CamposDoMedico): Validacao {
       crm,
       crm_uf: crmUf,
       telemedicina: campos.telemedicina,
+      /*
+        Caixa desmarcada é afirmação, não ausência: "não é associado". A regra
+        de célula vazia não se aplica a booleano, e trocar isto por um `||`
+        deixaria quem saiu da associação associado para sempre.
+      */
+      associado_ami: campos.associadoAmi,
       situacao: situacao as "ativo" | "inativo",
       /* Vazio vira nulo, não string vazia: no banco os dois significam coisas
          diferentes, e a tela do site testa `bio ? ... : null`. */

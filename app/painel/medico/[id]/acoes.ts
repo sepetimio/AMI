@@ -34,6 +34,7 @@ export async function salvarMedico(
     crm: String(dados.get("crm") ?? ""),
     crmUf: String(dados.get("crmUf") ?? ""),
     telemedicina: dados.get("telemedicina") === "on",
+    associadoAmi: dados.get("associadoAmi") === "on",
     situacao: String(dados.get("situacao") ?? "ativo"),
     bio: String(dados.get("bio") ?? ""),
     verificadoEm: String(dados.get("verificadoEm") ?? ""),
