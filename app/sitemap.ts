@@ -28,24 +28,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const todos = await buscarMedicos();
 
   /*
-    Cinco entradas fixas, e não onze como o brief original desta tarefa
+    Seis entradas fixas, e não onze como o brief original desta tarefa
     mandava. O brief acrescentava direto as seis páginas de prosa
     (`/associacao/beneficios`, `/associacao/estatuto`,
     `/associacao/politica-editorial`, as três legais) como fixas, mas todas
     dão 404 hoje: o Sanity ainda não tem o texto, e cada uma chama
     `notFound()` nesse caso. Sitemap apontando para 404 é defeito de SEO, e
     num site de saúde avaliado sob critério YMYL isso pesa mais do que
-    simplesmente deixar de listar. As cinco fixas abaixo renderizam sempre:
+    simplesmente deixar de listar. As seis fixas abaixo renderizam sempre:
     `/associacao` é índice com caminhos vindos do código, `/associacao/
-    diretoria` vem do Supabase, e as outras três são as raízes de navegação
-    do site. As seis páginas de prosa entram mais abaixo, derivadas do que
-    de fato está publicado.
+    diretoria` vem do Supabase, `/contato` é texto que mora em `lib/ami.ts`,
+    e as outras três são as raízes de navegação do site. As seis páginas de
+    prosa entram mais abaixo, derivadas do que de fato está publicado.
+
+    `/contato` fica em 0.7, o mesmo de `/associacao`: os dois são item do
+    menu principal (ver components/layout/MenuPrincipal.tsx), abaixo da home
+    e das duas listagens que trazem a busca.
   */
   const fixas: MetadataRoute.Sitemap = [
     { url: `${SITE}/`, changeFrequency: "weekly", priority: 1 },
     { url: `${SITE}/medicos`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${SITE}/noticias`, changeFrequency: "daily", priority: 0.8 },
     { url: `${SITE}/associacao`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${SITE}/contato`, changeFrequency: "monthly", priority: 0.7 },
     {
       url: `${SITE}/associacao/diretoria`,
       changeFrequency: "monthly",
