@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import {
   criarLocal,
   desligarLocal,
+  ligarLocalExistente,
   salvarLocal,
   type EstadoDoLocal,
 } from "@/app/painel/medico/[id]/acoes-local";
@@ -157,6 +158,12 @@ function CamposDeLocal({
   );
 }
 
+/** O que identifica um consultório para quem está escolhendo na lista. */
+function rotuloDoLocal(local: LocalDoMedico): string {
+  const numero = local.numero ? `, ${local.numero}` : "";
+  return `${local.logradouro}${numero} — ${local.bairro.nome}`;
+}
+
 function CartaoDeLocal({
   local,
   medicoId,
@@ -231,12 +238,17 @@ export function BlocoLocais({
   medicoId,
   locais,
   listaDeBairros,
+  todosOsLocais,
 }: {
   medicoId: number;
   locais: LocalDoMedico[];
   listaDeBairros: Bairro[];
+  todosOsLocais: LocalDoMedico[];
 }) {
   const [estadoNovo, acaoNovo, pendenteNovo] = useActionState(criarLocal, INICIAL);
+
+  const jaTem = new Set(locais.map((l) => l.id));
+  const disponiveisParaLigar = todosOsLocais.filter((l) => !jaTem.has(l.id));
 
   return (
     <section className="mt-12 max-w-[640px]">
@@ -261,6 +273,42 @@ export function BlocoLocais({
           />
         ))
       )}
+
+      <div className="mt-8 rounded-bloco border border-line p-6">
+        <h3 className="text-[16px] font-semibold text-ink-900">Consultório já cadastrado</h3>
+        <p className="mt-1 text-[14px] text-ink-600">
+          O mesmo endereço pode servir vários médicos. Ligar a um já existente
+          evita cadastrar a mesma clínica duas vezes.
+        </p>
+
+        <form action={ligarLocalExistente} className="mt-4 flex flex-wrap items-end gap-3">
+          <input type="hidden" name="medicoId" value={medicoId} />
+          <div className="flex-1">
+            <label htmlFor="localId-existente" className="block text-[14px] font-medium text-ink-600">
+              Escolha um consultório
+            </label>
+            <select
+              id="localId-existente"
+              name="localId"
+              disabled={disponiveisParaLigar.length === 0}
+              className={`mt-1 ${CAMPO}`}
+            >
+              {disponiveisParaLigar.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {rotuloDoLocal(l)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="submit"
+            disabled={disponiveisParaLigar.length === 0}
+            className="pressiona rounded-controle border border-line px-4 py-3 text-[15px] font-medium text-ink-600 hover:text-ink-900"
+          >
+            Ligar a este consultório
+          </button>
+        </form>
+      </div>
 
       <div className="mt-8 rounded-bloco border border-line p-6">
         <h3 className="text-[16px] font-semibold text-ink-900">Novo consultório</h3>

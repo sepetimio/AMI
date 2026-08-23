@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validarLocal } from "@/lib/painel/locais";
+import { paraLocal, validarLocal } from "@/lib/painel/locais";
 import { fonte, semComentarios } from "@/testes/apoio";
 
 const BAIRROS = [1, 2, 3];
@@ -67,10 +67,78 @@ describe("validarLocal", () => {
     if (!r.ok) expect(r.erros.telefone).toBeTruthy();
   });
 
+  /*
+    Espelha os dois testes de telefone acima. Sem estes, o WhatsApp só está
+    protegido pela paridade de código com telefone, não por teste — os oito
+    testes originais nunca passavam `whatsapp` com valor não vazio, e uma
+    mutação que apagasse a validação do WhatsApp inteira continuava verde.
+  */
+  it("guarda só os dígitos do whatsapp", () => {
+    const r = validarLocal(campos({ whatsapp: "(99) 98802-0205" }), BAIRROS);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.valor.whatsapp).toBe("99988020205");
+  });
+
+  it("recusa whatsapp que não tem dígito nenhum", () => {
+    const r = validarLocal(campos({ whatsapp: "só no telefone mesmo" }), BAIRROS);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.erros.whatsapp).toBeTruthy();
+  });
+
   it("espaço a mais no logradouro é limpo, não recusado", () => {
     const r = validarLocal(campos({ logradouro: "  Rua   Simplício   Moreira " }), BAIRROS);
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.valor.logradouro).toBe("Rua Simplício Moreira");
+  });
+});
+
+/*
+  paraLocal calcula quantosMedicos, a regra que a tarefa 8 inteira existia
+  para proteger: sem ela testada, é possível quebrar o aviso de endereço
+  compartilhado sem nenhum teste avisar. Mesmo padrão de paraLista em
+  testes/painel-consultas.test.ts: linha crua do banco entra, domínio sai.
+*/
+describe("paraLocal", () => {
+  const linha = {
+    id: 9,
+    logradouro: "Rua Simplício Moreira",
+    numero: "1200",
+    complemento: null,
+    cep: null,
+    telefone: "9935243716",
+    whatsapp: null,
+    estacionamento: true,
+    bairro: { id: 2, nome: "Centro" },
+    atendimento: [{ profissional_id: 1 }, { profissional_id: 2 }],
+  };
+
+  it("conta um médico por linha de atendimento", () => {
+    expect(paraLocal(linha).quantosMedicos).toBe(2);
+  });
+
+  it("atendimento vazio devolve zero", () => {
+    expect(paraLocal({ ...linha, atendimento: [] }).quantosMedicos).toBe(0);
+  });
+
+  it("atendimento ausente também devolve zero, sem estourar", () => {
+    const { atendimento: _semUso, ...semAtendimento } = linha;
+    expect(paraLocal(semAtendimento).quantosMedicos).toBe(0);
+  });
+
+  it("campos opcionais nulos atravessam como nulo, não string vazia", () => {
+    const m = paraLocal(linha);
+    expect(m.complemento).toBeNull();
+    expect(m.cep).toBeNull();
+    expect(m.whatsapp).toBeNull();
+  });
+
+  it("traduz o resto para o domínio", () => {
+    const m = paraLocal(linha);
+    expect(m.id).toBe(9);
+    expect(m.logradouro).toBe("Rua Simplício Moreira");
+    expect(m.bairro).toEqual({ id: 2, nome: "Centro" });
+    expect(m.telefone).toBe("9935243716");
+    expect(m.estacionamento).toBe(true);
   });
 });
 

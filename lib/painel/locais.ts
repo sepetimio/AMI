@@ -121,8 +121,14 @@ const SELECAO_DE_LOCAL = `
   atendimento ( profissional_id )
 `;
 
+/*
+  Exportada e testada, mesmo padrão de `paraLista` em
+  `lib/painel/consultas.ts` e `ordenarEspecialidades` em
+  `lib/painel/especialidades.ts`: é aqui que `quantosMedicos` é calculado, a
+  regra que a leitura em duas consultas (acima) existe para proteger.
+*/
 /* eslint-disable @typescript-eslint/no-explicit-any */
-function paraLocal(l: any): LocalDoMedico {
+export function paraLocal(l: any): LocalDoMedico {
   return {
     id: l.id,
     logradouro: l.logradouro,
@@ -192,6 +198,25 @@ export async function bairros(cliente: SupabaseClient): Promise<Bairro[]> {
 
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   return ((data ?? []) as any[]).map((l) => ({ id: l.id, nome: l.nome }));
+}
+
+/*
+  Todos os consultórios cadastrados, para o "ligar a existente" — o médico
+  escolhe entre os endereços que já existem, em vez de criar um endereço
+  igual ao de outro médico. São poucas dezenas de linhas hoje, então um
+  `select` sem paginação basta; não é a mesma pergunta que `buscarLocais`
+  responde, que filtra por termo digitado e existe para uma lista maior.
+*/
+export async function todosOsLocais(cliente: SupabaseClient): Promise<LocalDoMedico[]> {
+  const { data, error } = await cliente
+    .from("local")
+    .select(SELECAO_DE_LOCAL)
+    .order("logradouro", { ascending: true });
+
+  if (error) throw new Error(`Falha ao ler os consultórios: ${error.message}`);
+
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+  return ((data ?? []) as any[]).map(paraLocal);
 }
 
 /*

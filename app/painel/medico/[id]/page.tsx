@@ -9,7 +9,7 @@ import {
   catalogoDeEspecialidades,
   especialidadesDoMedico,
 } from "@/lib/painel/especialidades";
-import { bairros, locaisDoMedico } from "@/lib/painel/locais";
+import { bairros, locaisDoMedico, todosOsLocais } from "@/lib/painel/locais";
 import { clienteDoPainel } from "@/lib/painel/servidor";
 import { exigirAdmin } from "@/lib/painel/sessao";
 
@@ -30,11 +30,12 @@ export default async function PaginaDeEdicao({
   const medico = await medicoPorId(cliente, numero);
   if (!medico) notFound();
 
-  const [especialidades, catalogo, locais, listaDeBairros] = await Promise.all([
+  const [especialidades, catalogo, locais, listaDeBairros, todos] = await Promise.all([
     especialidadesDoMedico(cliente, numero),
     catalogoDeEspecialidades(cliente),
     locaisDoMedico(cliente, numero),
     bairros(cliente),
+    todosOsLocais(cliente),
   ]);
 
   const falta = oQueFalta({
@@ -73,7 +74,12 @@ export default async function PaginaDeEdicao({
         catalogo={catalogo}
       />
 
-      <BlocoLocais medicoId={medico.id} locais={locais} listaDeBairros={listaDeBairros} />
+      <BlocoLocais
+        medicoId={medico.id}
+        locais={locais}
+        listaDeBairros={listaDeBairros}
+        todosOsLocais={todos}
+      />
     </>
   );
 }
