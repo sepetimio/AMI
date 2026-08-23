@@ -4,6 +4,9 @@ import { Fotografia } from "@/components/base/Fotografia";
 import { IndiceEspecialidades } from "@/components/diretorio/IndiceEspecialidades";
 import { LadrilhosBairros } from "@/components/diretorio/LadrilhosBairros";
 import { UltimasNoticias } from "@/components/editorial/UltimasNoticias";
+import { Carrossel } from "@/components/home/Carrossel";
+import { FaixaDaAmi } from "@/components/home/FaixaDaAmi";
+import { ServicosDaAmi } from "@/components/home/ServicosDaAmi";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { organizationAmi } from "@/lib/seo/jsonld";
 import {
@@ -11,6 +14,8 @@ import {
   especialidadesComContagem,
 } from "@/lib/dados/especialidades";
 import { buscarMedicos } from "@/lib/dados/medicos";
+import { bannersAtivos } from "@/lib/sanity/banners";
+import { listarNoticias } from "@/lib/sanity/consultas";
 
 export const revalidate = 3600;
 
@@ -39,10 +44,12 @@ export default async function Home() {
   /* Mesmo raciocínio do `generateMetadata`: o total vem da contagem de
      profissionais, não da soma por especialidade, que double-conta quem tem
      mais de uma. */
-  const [especialidades, bairros, total] = await Promise.all([
+  const [especialidades, bairros, total, banners, noticias] = await Promise.all([
     especialidadesComContagem(),
     bairrosComContagem(),
     buscarMedicos().then((m) => m.length),
+    bannersAtivos(),
+    listarNoticias(1),
   ]);
 
   return (
@@ -50,157 +57,36 @@ export default async function Home() {
       <JsonLd dados={organizationAmi(SITE)} />
 
       {/* =====================================================
-          1. HERÓI
-          Campo profundo, não faixa chapada. O verde deixou de
-          cobrir seções inteiras e passou a marcar dois momentos
-          no site: esta cabeceira e o rodapé.
-
-          A margem negativa no topo puxa a faixa para trás do
-          cabeçalho flutuante, que agora é uma peça solta com ar
-          em volta. Sem isso sobraria uma tira do cinza da página
-          entre os dois, e a cabeceira pareceria descolada por
-          acidente em vez de por decisão.
-
-          A margem negativa é MAIOR que o cabeçalho de propósito, e o
-          respiro no topo compensa. A primeira versão usava o número exato
-          da altura dele, e bastou eu errar por 2px para sobrar uma faixa do
-          cinza da página acima do verde: uma linha clara no topo da tela,
-          onde não deveria haver nada. Com folga, a faixa escura sempre
-          começa acima da borda de cima e nenhum ajuste futuro de respiro,
-          de tamanho da marca ou de fonte pode reabrir a fresta.
+          1. FAIXA DA AMI
+          Substitui o herói de tela cheia. O <h1> mora dentro do
+          próprio componente — ver components/home/FaixaDaAmi.tsx.
           ===================================================== */}
-      <section className="relative isolate -mt-32 overflow-hidden bg-ami-green-900 pb-40 pt-[188px] md:pb-48 md:pt-[236px]">
-        {/*
-          Duas camadas de luz, e é o que separa campo de retângulo pintado. A
-          primeira é um foco radial largo no alto à esquerda, atrás do título,
-          que levanta aquele canto sem que ninguém consiga apontar de onde vem
-          a claridade.
-        */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10"
-          style={{
-            background:
-              "radial-gradient(120% 80% at 12% 0%, rgba(26,94,24,0.55) 0%, rgba(13,46,12,0.35) 38%, transparent 72%)",
-          }}
-        />
-
-        {/*
-          A segunda é a marca, em escala arquitetônica, cortada pela borda.
-
-          Entra como MÁSCARA sobre um degradê, não como imagem com opacidade
-          baixa. A diferença é entre imprimir cinza e gravar em relevo: por
-          máscara o traço vira verde de marca embutido no verde profundo, com
-          o brilho caindo ao longo da própria forma.
-
-          Some abaixo de md: num celular ele roubaria a largura do título, que
-          é o único elemento que precisa dela.
-        */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-[10%] top-1/2 hidden h-[165%] w-[58%] -translate-y-1/2 md:block"
-          style={{
-            background:
-              "linear-gradient(150deg, var(--color-ami-lima-400) 0%, var(--color-ami-green-600) 38%, rgba(13,46,12,0) 92%)",
-            opacity: 0.42,
-            WebkitMaskImage: "url(/marca/ami-simbolo.svg)",
-            maskImage: "url(/marca/ami-simbolo.svg)",
-            WebkitMaskSize: "contain",
-            maskSize: "contain",
-            WebkitMaskRepeat: "no-repeat",
-            maskRepeat: "no-repeat",
-            WebkitMaskPosition: "center",
-            maskPosition: "center",
-          }}
-        />
-
-        <div className="relative mx-auto grid max-w-[1240px] grid-cols-12 px-5 md:px-8">
-          <div className="col-span-12 md:col-span-9 lg:col-span-7">
-            <h1 className="texto-placa text-white">
-              Encontre um médico em Imperatriz
-            </h1>
-            {/* Números contados do banco. Nunca escritos à mão. */}
-            <p className="mt-7 max-w-[46ch] text-[19px] leading-relaxed text-ami-lima-400 md:text-[22px]">
-              <span className="registro font-medium text-white">{total}</span>{" "}
-              {total === 1 ? "profissional" : "profissionais"} em{" "}
-              <span className="registro font-medium text-white">
-                {especialidades.length}
-              </span>{" "}
-              {especialidades.length === 1 ? "especialidade" : "especialidades"}
-              , atendendo em{" "}
-              <span className="registro font-medium text-white">
-                {bairros.length}
-              </span>{" "}
-              {bairros.length === 1 ? "bairro" : "bairros"} da cidade.
-            </p>
-          </div>
-        </div>
-      </section>
+      <FaixaDaAmi
+        total={total}
+        especialidades={especialidades.length}
+        bairros={bairros.length}
+      />
 
       {/* =====================================================
-          2. BUSCA
-          Invade a faixa. É a única superfície flutuante do site, e é
-          a que carrega a ação principal.
+          2. CARROSSEL DE BANNERS
           ===================================================== */}
-      <div className="relative z-10 mx-auto max-w-[1240px] px-5 md:px-8">
-        {/* Formulário HTML de verdade, com method GET: funciona sem
-            JavaScript e o resultado vira uma URL compartilhável. */}
-        <form
-          action="/busca"
-          method="get"
-          className="-mt-24 rounded-painel border border-line bg-surface p-5 shadow-flutuante md:-mt-28 md:p-8"
-        >
-          <h2 className="font-titulo text-[15px] font-bold uppercase tracking-[0.1em] text-ink-400">
-            Buscar no diretório
-          </h2>
-          <div className="mt-4 grid gap-4 md:grid-cols-[1fr_260px_auto]">
-            <div>
-              <label
-                htmlFor="busca-termo"
-                className="block text-[15px] font-medium text-ink-600"
-              >
-                Especialidade ou nome
-              </label>
-              <input
-                id="busca-termo"
-                name="termo"
-                type="search"
-                placeholder="Cardiologista, Mayara Viana…"
-                className="pressiona mt-2 min-h-14 w-full rounded-controle border border-line bg-canvas px-4 text-[16px] placeholder:text-ink-300 focus:border-ami-green-600 focus:bg-surface"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="busca-bairro"
-                className="block text-[15px] font-medium text-ink-600"
-              >
-                Bairro
-              </label>
-              <select
-                id="busca-bairro"
-                name="bairro"
-                className="pressiona mt-2 min-h-14 w-full rounded-controle border border-line bg-canvas px-4 text-[16px] focus:border-ami-green-600 focus:bg-surface"
-              >
-                <option value="">Todos</option>
-                {bairros.map((b) => (
-                  <option key={b.slug} value={b.slug}>
-                    {b.nome}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              type="submit"
-              className="pressiona mt-auto min-h-14 rounded-controle bg-ami-green-600 px-9 font-semibold text-white shadow-apoio hover:bg-ami-green-700 hover:shadow-erguido"
-            >
-              Buscar
-            </button>
-          </div>
-        </form>
-      </div>
+      <Carrossel banners={banners} />
 
       {/* =====================================================
-          3. ÍNDICE DE ESPECIALIDADES
+          3. SERVIÇOS DA AMI
+          "Encontre um médico" — antes o título da página inteira —
+          vira o primeiro dos três cartões.
+          ===================================================== */}
+      <ServicosDaAmi
+        total={total}
+        especialidades={especialidades.length}
+        ultimaNoticia={
+          noticias[0] ? { titulo: noticias[0].titulo, slug: noticias[0].slug } : null
+        }
+      />
+
+      {/* =====================================================
+          4. ÍNDICE DE ESPECIALIDADES
           Fluxo em colunas, como o índice de um anuário impresso.
           ===================================================== */}
       <section
@@ -221,7 +107,7 @@ export default async function Home() {
       </section>
 
       {/* =====================================================
-          4. INSTITUCIONAL
+          5. INSTITUCIONAL
           Claro, com fotografia. Antes era uma segunda faixa verde
           escura com texto solto dentro, o que fazia o verde virar
           decoração em vez de estrutura.
@@ -270,7 +156,7 @@ export default async function Home() {
       </section>
 
       {/* =====================================================
-          4B. ÚLTIMAS NOTÍCIAS
+          6. ÚLTIMAS NOTÍCIAS
           Some sozinha (devolve null) enquanto não há matéria publicada
           no Sanity, então a home de hoje, sem conteúdo editorial, fica
           idêntica à de antes desta tarefa.
@@ -278,7 +164,7 @@ export default async function Home() {
       <UltimasNoticias />
 
       {/* =====================================================
-          5. BAIRROS
+          7. BAIRROS
           Quarta família de layout da página: ladrilho, não linha, não
           coluna, não divisão com foto.
           ===================================================== */}
