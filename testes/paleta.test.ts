@@ -73,7 +73,7 @@ describe("os tokens existem", () => {
 });
 
 describe("texto sobre os dois fundos claros", () => {
-  const TEXTO_DE_CORPO = ["ink-900", "ink-600", "ink-400"];
+  const TEXTO_DE_CORPO = ["ink-900", "ink-600", "ink-400", "warn"];
 
   for (const fundo of ["canvas", "surface"]) {
     for (const tinta of TEXTO_DE_CORPO) {

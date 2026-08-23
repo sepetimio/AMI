@@ -21,54 +21,78 @@
 @theme {
   /* --- SUPERFÍCIES: o par que faz a sombra existir ---
 
-     Duas camadas neutras, e a diferença entre elas é o que
+     Duas camadas creme, e a diferença entre elas é o que
      permite um cartão parecer solto sobre a página. Fundo
      branco puro com cartão branco puro precisa de fio para
      separar, e fio é justamente o que envelheceu aqui.
 
-     `canvas` é cinza-prata frio, sem uma gota de verde. O
-     verde no fundo era o que fazia a página inteira parecer
-     papel timbrado de consultório. */
-  --color-canvas: #f5f6f8;
-  --color-surface: #ffffff;
-  --color-surface-fundo: #fbfbfc; /* variação para bloco dentro de bloco */
+     `canvas` é creme, não mais o cinza-prata frio, sem uma
+     gota de verde, que era antes. O dono pediu um branco que
+     não fosse branco puro: o creme aquece a página sem trazer
+     o verde de volta ao fundo — a razão de não ser verde
+     continua valendo, só o tom neutro que a satisfaz mudou. */
+  --color-canvas: #F2EFE6;
+  --color-surface: #FBFAF5;
+  --color-surface-fundo: #F7F5EF; /* creme entre o campo e a superfície · variação para bloco dentro de bloco */
 
   /* --- TINTA: neutra, levemente fria ---
 
      As razões de contraste ao lado de cada valor foram medidas
-     contra os dois fundos do sistema, branco e canvas, e não
+     contra os dois fundos do sistema, creme e superfície, e não
      estimadas. O primeiro recorte desta escala trazia números
      que eu escrevi de memória, e a medição desmentiu dois:
      `ink-400` estava em 3,48:1 e reprovava em AA para texto de
      corpo, que é exatamente o uso dele (legenda, data,
-     contagem). Quem alterar qualquer tom aqui mede de novo. */
-  --color-ink-900: #0c0e12; /* 19,3:1 no branco · título e texto de peso */
-  --color-ink-600: #565c66; /* 6,7:1 no branco, 6,2:1 no canvas · corpo secundário */
-  --color-ink-400: #6b7079; /* 5,0:1 no branco, 4,6:1 no canvas · legenda e data */
-  --color-ink-300: #8d939e; /* 3,1:1 · SÓ placeholder e ícone desabilitado */
+     contagem). Quando o campo virou creme a escala inteira
+     perdeu contraste de novo, e `ink-400` reprovou uma segunda
+     vez, em 4,33:1 — a prova está em `testes/paleta.test.ts`.
+     Quem alterar qualquer tom aqui mede de novo. */
+  --color-ink-900: #0c0e12; /* 16,80:1 no creme, 18,48:1 na superfície · título e texto de peso */
+  --color-ink-600: #565c66; /* 5,86:1 no creme, 6,44:1 na superfície · corpo secundário */
+  --color-ink-400: #61666F; /* 5,02:1 no creme, 5,52:1 na superfície · legenda e data */
+  --color-ink-300: #8d939e; /* 2,69:1 no creme · SÓ placeholder e ícone desabilitado */
 
   /* --- FIOS: existem, mas quase não aparecem ---
      Passaram a ser a exceção, não o recurso principal de
-     separação. Quem separa agora é sombra e espaço. */
-  --color-line: #ebedf1;
-  --color-line-strong: #dcdfe5;
+     separação. Quem separa agora é sombra e espaço. Os tons
+     de hoje eram frios e sumiam sobre o creme; estes são
+     creme mais escuro, e aparecem sem virar risco preto. */
+  --color-line: #E4E0D4;
+  --color-line-strong: #D8D3C4;
 
-  /* --- VERDE: deixou de ser papel de parede ---
-     Antes o verde escuro cobria faixas inteiras da página.
-     Agora ele marca dois momentos, a cabeceira e o rodapé,
-     e no resto do site aparece só como ação e detalhe. */
-  --color-ami-green-950: #04150c; /* campo mais profundo do herói */
-  --color-ami-green-900: #06210f;
-  --color-ami-green-800: #0b3018;
-  --color-ami-green-700: #12502c;
-  --color-ami-green-600: #1f6b3a; /* AÇÃO: 6,51:1 sobre branco */
-  --color-ami-green-500: #00a457; /* verde da marca, NUNCA texto */
+  /* --- VERDE: derivado da própria marca ---
 
-  --color-ami-mint-400: #a5dcaf; /* só sobre verde escuro */
-  --color-ami-mint-100: #e9f6ee; /* wash de fundo */
+     `public/marca/ami-marca.svg` tem dois verdes: #00A457 esmeralda e
+     #248322, escuro e puxando para o amarelo. Toda a escala abaixo sai do
+     segundo. Antes disto a escala era de outra família, azulada, e nenhum
+     dos tons tinha relação com a marca.
 
-  --color-warn: #8a6a00;
-  --color-danger: #a33232;
+     As razões foram calculadas contra o creme (#F2EFE6), e `testes/paleta.test.ts`
+     as recalcula a cada rodada. Quem alterar um tom aqui não precisa lembrar
+     de medir: o teste mede. */
+  --color-ami-green-900: #071A07; /* cabeçalho e rodapé · creme sobre ele 15,75:1 */
+  --color-ami-green-800: #0D2E0C; /* faixa de seção · creme sobre ele 12,92:1 */
+  --color-ami-green-700: #124211; /* borda e estado escuro · 10,07:1 no creme */
+  --color-ami-green-600: #1A5E18; /* AÇÃO: 6,87:1 no creme */
+  --color-ami-green-500: #00a457; /* verde esmeralda da marca, NUNCA texto · 4 consumidores em gradiente (page.tsx, EstadoVazio, Fotografia, Cabeceira) — a tarefa 3 migra e remove */
+  --color-ami-green-950: #04150c; /* campo mais profundo do herói · tom da família antiga (azulada); 3 consumidores em bg-ami-green-950 (page.tsx, Fotografia, Rodape) que hoje fariam o papel de green-900 — a tarefa 3 migra a classe e remove */
+
+  /* --- LIMA: o acento ---
+
+     Sai do mesmo #248322, clareado. NUNCA é texto sobre fundo claro: dá
+     1,48:1 no creme, invisível. Só fundo de texto escuro (11,33:1) ou marca
+     sobre o verde (8,72:1). Isto é física, não preferência. */
+  --color-ami-lima-400: #A8D470;
+  --color-ami-lima-100: #E2E9CC; /* lavagem de passagem de mouse */
+
+  /* Tons da família antiga (azulada), ainda com consumidores reais em
+     classe Tailwind, não em var() — por isso não apareceram na varredura
+     original. Ficam até a tarefa 3 migrar cada consumidor para o par novo
+     acima e então remover estes dois. */
+  --color-ami-mint-400: #a5dcaf; /* só sobre verde escuro · 5 usos em text-ami-mint-400 (page.tsx, Fotografia, Placa, Rodape×2) — o papel que ami-lima-400 assume */
+  --color-ami-mint-100: #e9f6ee; /* wash de fundo · 13 usos em bg-ami-mint-100 (Chip, IndiceEspecialidades, LinhaMedico, PainelFiltros×3, associacao, medico×3, medicos×2, noticias) — o papel que ami-lima-100 assume */
+
+  --color-warn: #7C5F00; /* 5,23:1 no creme, 5,75:1 na superfície · era #8a6a00, 4,41:1 no creme, abaixo do mínimo; escurecido com folga · texto de corpo, em testes/paleta.test.ts */
 
   /* --- FONTES --- */
   --font-corpo: var(--fonte-corpo), system-ui, sans-serif;
