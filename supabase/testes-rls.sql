@@ -24,12 +24,14 @@ begin;
 
 do $$
 declare
-  admin_uuid      constant uuid := '00000000-0000-0000-0000-000000000000'; -- TROQUE
-  ninguem_uuid    constant uuid := '11111111-1111-1111-1111-111111111111';
-  medico_id       bigint;
-  bairro_teste_id bigint;
-  local_teste_id  bigint;
-  quantos         bigint;
+  admin_uuid             constant uuid := '00000000-0000-0000-0000-000000000000'; -- TROQUE
+  ninguem_uuid           constant uuid := '11111111-1111-1111-1111-111111111111';
+  medico_id              bigint;
+  bairro_teste_id        bigint;
+  local_teste_id         bigint;
+  local_admin_id         bigint;
+  especialidade_teste_id bigint;
+  quantos                bigint;
 begin
   -- Um médico despublicado, criado dentro da transação para o teste. CRM
   -- gerado, não fixo, para não colidir com a unicidade (crm, crm_uf) de um
@@ -138,32 +140,161 @@ begin
   insert into local (bairro_id, logradouro) values (bairro_teste_id, 'Rua Teste RLS')
   returning id into local_teste_id;
 
+  -- Uma especialidade criada aqui, e não escolhida do catálogo com um
+  -- `limit 1`: um catálogo vazio devolveria nulo, `especialidade_id` é
+  -- `not null`, e o script abortaria com violação de not-null (23502) — um
+  -- erro alheio à política, no lugar de testar a política. Mesmo raciocínio do
+  -- bairro e do local acima.
+  insert into especialidade (nome, slug)
+  values ('Especialidade Teste RLS ' || gen_random_uuid(),
+          'teste-rls-' || gen_random_uuid())
+  returning id into especialidade_teste_id;
+
+  /*
+    As quatro tabelas da fatia, os três papéis.
+
+    A seção é escrita tabela por tabela e papel por papel de propósito: o que
+    a spec pede (seção 12) é uma asserção POR TABELA NOVA para cada papel, e a
+    versão anterior deste arquivo tinha quatro asserções no total, todas sobre
+    `atendimento` e `local`. `profissional_especialidade` — a tabela que ganha
+    insert, update E delete, e que guarda o campo mais importante do site —
+    não tinha nenhuma. `local_acessibilidade` não tinha nenhuma. E o papel
+    `anon` não era exercido em nenhuma.
+
+    Insert que a política recusa levanta `insufficient_privilege`; update e
+    delete que a política recusa não levantam nada, filtram as linhas e voltam
+    sem `found`. Por isso as duas formas de asserção aqui embaixo.
+
+    As mensagens não se contêm umas às outras como substring: o guarda deste
+    arquivo, em painel-migracao.test.ts, procura cada uma por substring exata,
+    e uma que contivesse a outra deixaria o guarda cego para a remoção de um
+    bloco inteiro.
+  */
+
+  ------------------------------------------------- visitante anônimo escreve?
+  set local role anon;
+
+  begin
+    insert into profissional_especialidade (profissional_id, especialidade_id)
+      values (medico_id, especialidade_teste_id);
+    raise exception 'FALHOU: vinculo de especialidade: anon insere';
+  exception when insufficient_privilege then
+    null; -- recusado, que é o esperado
+  end;
+
+  begin
+    insert into atendimento (profissional_id, local_id) values (medico_id, local_teste_id);
+    raise exception 'FALHOU: atendimento: anon insere';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  begin
+    insert into local (bairro_id, logradouro) values (bairro_teste_id, 'Rua do Anon');
+    raise exception 'FALHOU: local: anon insere';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  begin
+    insert into local_acessibilidade (local_id, recurso) values (local_teste_id, 'elevador');
+    raise exception 'FALHOU: acessibilidade: anon insere';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  reset role;
+
+  --------------------------------------------- conta sem linha de perfil escreve?
   set local role authenticated;
   perform set_config('request.jwt.claims',
     json_build_object('sub', ninguem_uuid, 'role', 'authenticated')::text, true);
 
   begin
-    insert into atendimento (profissional_id, local_id)
-      values (medico_id, local_teste_id);
-    raise exception 'FALHOU: conta sem perfil cria atendimento';
+    insert into profissional_especialidade (profissional_id, especialidade_id)
+      values (medico_id, especialidade_teste_id);
+    raise exception 'FALHOU: vinculo de especialidade: conta sem perfil insere';
   exception when insufficient_privilege then
-    null; -- recusado, que é o esperado
+    null;
   end;
 
+  begin
+    insert into atendimento (profissional_id, local_id) values (medico_id, local_teste_id);
+    raise exception 'FALHOU: atendimento: conta sem perfil insere';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  begin
+    insert into local (bairro_id, logradouro) values (bairro_teste_id, 'Rua de Ninguem');
+    raise exception 'FALHOU: local: conta sem perfil insere';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  begin
+    insert into local_acessibilidade (local_id, recurso) values (local_teste_id, 'elevador');
+    raise exception 'FALHOU: acessibilidade: conta sem perfil insere';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  ------------------------------------------------------------- admin escreve
   perform set_config('request.jwt.claims',
     json_build_object('sub', admin_uuid, 'role', 'authenticated')::text, true);
 
-  insert into atendimento (profissional_id, local_id)
-    values (medico_id, local_teste_id);
+  -- profissional_especialidade: insert, update e delete
+  insert into profissional_especialidade (profissional_id, especialidade_id, principal)
+    values (medico_id, especialidade_teste_id, true);
+
+  select count(*) into quantos from profissional_especialidade
+    where profissional_id = medico_id and especialidade_id = especialidade_teste_id;
+  if quantos <> 1 then
+    raise exception 'FALHOU: vinculo de especialidade: admin insere';
+  end if;
+
+  update profissional_especialidade set rqe = '12345'
+    where profissional_id = medico_id and especialidade_id = especialidade_teste_id;
+  select count(*) into quantos from profissional_especialidade
+    where profissional_id = medico_id and especialidade_id = especialidade_teste_id
+      and rqe = '12345';
+  if quantos <> 1 then
+    raise exception 'FALHOU: vinculo de especialidade: admin altera';
+  end if;
+
+  delete from profissional_especialidade
+    where profissional_id = medico_id and especialidade_id = especialidade_teste_id;
+  if not found then
+    raise exception 'FALHOU: vinculo de especialidade: admin remove';
+  end if;
+
+  -- atendimento: insert e delete (a tabela não tem o que alterar)
+  insert into atendimento (profissional_id, local_id) values (medico_id, local_teste_id);
 
   select count(*) into quantos from atendimento where profissional_id = medico_id;
   if quantos <> 1 then
-    raise exception 'FALHOU: admin cria atendimento';
+    raise exception 'FALHOU: atendimento: admin insere';
   end if;
 
   delete from atendimento where profissional_id = medico_id;
   if not found then
-    raise exception 'FALHOU: admin remove atendimento';
+    raise exception 'FALHOU: atendimento: admin remove';
+  end if;
+
+  -- local: insert e update, nunca delete
+  insert into local (bairro_id, logradouro) values (bairro_teste_id, 'Rua do Admin RLS')
+  returning id into local_admin_id;
+
+  select count(*) into quantos from local where id = local_admin_id;
+  if quantos <> 1 then
+    raise exception 'FALHOU: local: admin insere';
+  end if;
+
+  update local set logradouro = 'Rua do Admin RLS alterada' where id = local_admin_id;
+  select count(*) into quantos from local
+    where id = local_admin_id and logradouro = 'Rua do Admin RLS alterada';
+  if quantos <> 1 then
+    raise exception 'FALHOU: local: admin altera';
   end if;
 
   begin
@@ -176,6 +307,21 @@ begin
   exception when insufficient_privilege then
     null; -- recusado, que é o esperado
   end;
+
+  -- local_acessibilidade: insert e delete
+  insert into local_acessibilidade (local_id, recurso) values (local_teste_id, 'elevador');
+
+  select count(*) into quantos from local_acessibilidade
+    where local_id = local_teste_id and recurso = 'elevador';
+  if quantos <> 1 then
+    raise exception 'FALHOU: acessibilidade: admin insere';
+  end if;
+
+  delete from local_acessibilidade
+    where local_id = local_teste_id and recurso = 'elevador';
+  if not found then
+    raise exception 'FALHOU: acessibilidade: admin remove';
+  end if;
 
   reset role;
 

@@ -150,23 +150,85 @@ describe("0006_painel_vinculos.sql", () => {
 describe("supabase/testes-rls.sql", () => {
   const sql = semComentariosSql(fonte("../supabase/testes-rls.sql")).toLowerCase();
 
-  it("cobre as doze asserções que a especificação exige", () => {
-    for (const marca of [
-      "visitante nao ve despublicado",
-      "admin ve despublicado",
-      "visitante nao grava",
-      "admin grava",
-      "ninguem apaga",
-      "conta sem perfil nao ve nada",
-      "conta sem perfil nao grava",
-      "ninguem se promove a admin",
-      // Fatia 2: os vínculos.
-      "conta sem perfil cria atendimento",
-      "admin cria atendimento",
-      "admin remove atendimento",
-      "local nao pode ser apagado",
-    ]) {
+  /*
+    A spec pede, na seção 12, uma asserção por tabela nova para cada papel:
+    visitante anônimo não escreve, conta sem perfil não escreve, admin escreve,
+    e remoção só nas três tabelas permitidas. São quatro tabelas novas.
+
+    A lista anterior tinha doze marcas e o arquivo cobria quatro asserções de
+    fatia 2, todas sobre `atendimento` e `local` —
+    `profissional_especialidade` e `local_acessibilidade` não tinham nenhuma, e
+    o papel `anon` não era exercido em nenhuma. A trava atestava uma cobertura
+    que não existia, e o título dizia um número que não era o do arquivo.
+  */
+  const MARCAS = [
+    // Fatia 1: o médico.
+    "visitante nao ve despublicado",
+    "admin ve despublicado",
+    "visitante nao grava",
+    "admin grava",
+    "ninguem apaga",
+    "conta sem perfil nao ve nada",
+    "conta sem perfil nao grava",
+    "ninguem se promove a admin",
+    // Fatia 2: profissional_especialidade.
+    "vinculo de especialidade: anon insere",
+    "vinculo de especialidade: conta sem perfil insere",
+    "vinculo de especialidade: admin insere",
+    "vinculo de especialidade: admin altera",
+    "vinculo de especialidade: admin remove",
+    // Fatia 2: atendimento.
+    "atendimento: anon insere",
+    "atendimento: conta sem perfil insere",
+    "atendimento: admin insere",
+    "atendimento: admin remove",
+    // Fatia 2: local — escrita sim, remoção não.
+    "local: anon insere",
+    "local: conta sem perfil insere",
+    "local: admin insere",
+    "local: admin altera",
+    "local nao pode ser apagado",
+    // Fatia 2: local_acessibilidade.
+    "acessibilidade: anon insere",
+    "acessibilidade: conta sem perfil insere",
+    "acessibilidade: admin insere",
+    "acessibilidade: admin remove",
+  ];
+
+  it("cobre as vinte e seis asserções que a especificação exige", () => {
+    expect(MARCAS.length, "o título desta asserção diz vinte e seis").toBe(26);
+
+    for (const marca of MARCAS) {
       expect(sql, `falta a asserção "${marca}"`).toContain(marca);
     }
+  });
+
+  it("nenhuma marca contém outra: senão a busca por substring fica cega", () => {
+    /*
+      A busca acima é por substring. Se "admin grava" fosse pedaço de
+      "atendimento: admin grava", apagar o bloco do médico inteiro continuaria
+      passando — a marca seria achada dentro da outra mensagem. Já aconteceu
+      neste arquivo, com "ninguem apaga", e está registrado no comentário do
+      próprio SQL.
+    */
+    for (const marca of MARCAS) {
+      for (const outra of MARCAS) {
+        if (marca === outra) continue;
+        expect(outra.includes(marca), `"${marca}" está dentro de "${outra}"`).toBe(false);
+      }
+    }
+  });
+
+  it("exerce os três papéis nas tabelas da fatia 2", () => {
+    /*
+      As marcas dizem o que o arquivo AFIRMA; estas linhas dizem que ele
+      chega a trocar de papel para afirmar. Sem `set local role anon` nenhum
+      no bloco da fatia 2, as marcas de "anon insere" seriam texto de
+      mensagem que nunca roda sob o papel que nomeiam.
+    */
+    expect(sql, "não exerce o papel anon").toContain("set local role anon");
+    expect(sql, "não exerce o papel authenticated").toContain("set local role authenticated");
+    expect(sql, "não fala pelo admin").toContain("admin_uuid");
+    expect(sql, "não fala por uma conta sem perfil").toContain("ninguem_uuid");
   });
 });
