@@ -98,7 +98,14 @@ describe("o painel de filtros, em /busca", () => {
 
   it("o campo vem preenchido com o termo atual", () => {
     /* Campo vazio numa página cujo H1 diz "Resultados para Mayara" faz o
-       usuário digitar de novo o que já buscou. */
-    expect(PAINEL).toMatch(/<input[^>]*name="termo"[^>]*value="Mayara"/);
+       usuário digitar de novo o que já buscou.
+
+       A asserção olha a TAG inteira, e não a sequência `name=…value=`: a
+       ordem em que o React imprime os atributos é detalhe de implementação
+       dele, e amarrar o teste a ela é combinar uma falha para o dia em que
+       essa ordem mudar. */
+    const campo = /<input[^>]*name="termo"[^>]*>/.exec(PAINEL)?.[0] ?? "";
+    expect(campo, "não achei o campo de termo no painel").not.toBe("");
+    expect(campo).toContain('value="Mayara"');
   });
 });
