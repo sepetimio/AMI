@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { fonte, semComentarios } from "@/testes/apoio";
+import { fonte, semComentariosSql } from "@/testes/apoio";
+
+/** Tira o prefixo `public.` de um nome de tabela capturado do SQL. */
+function normalizarTabela(nome: string): string {
+  return nome.replace(/^public\./, "");
+}
 
 /*
   A migração do painel é a primeira do projeto que concede escrita.
@@ -65,7 +70,7 @@ describe("0005_painel.sql", () => {
 });
 
 describe("0006_painel_vinculos.sql", () => {
-  const sql = semComentarios(fonte("../supabase/migrations/0006_painel_vinculos.sql"))
+  const sql = semComentariosSql(fonte("../supabase/migrations/0006_painel_vinculos.sql"))
     .toLowerCase();
 
   const PERMITE_REMOVER = [
@@ -83,15 +88,35 @@ describe("0006_painel_vinculos.sql", () => {
     "perfil_usuario",
   ];
 
+  const CONCEDE_ESCRITA = [
+    "profissional_especialidade",
+    "atendimento",
+    "local",
+    "local_acessibilidade",
+  ];
+
   it("concede remoção exatamente nas três tabelas de ligação", () => {
-    const alvos = [...sql.matchAll(/on\s+(\w+)\s+for\s+delete/g)].map((m) => m[1]);
+    const alvos = [...sql.matchAll(/on\s+([\w.]+)\s+for\s+delete/g)]
+      .map((m) => normalizarTabela(m[1]));
     expect(alvos.sort()).toEqual([...PERMITE_REMOVER].sort());
   });
 
   it("não concede remoção em nenhuma tabela de cadastro", () => {
     for (const tabela of NUNCA_REMOVE) {
-      expect(sql).not.toMatch(new RegExp(`on\\s+${tabela}\\s+for\\s+delete`));
+      expect(sql).not.toMatch(new RegExp(`on\\s+(?:public\\.)?${tabela}\\s+for\\s+delete`));
     }
+  });
+
+  it("concede escrita exatamente nas quatro tabelas da fatia", () => {
+    /*
+      O limite acordado não é só remoção em três tabelas — é escrita (insert
+      ou update) em quatro: as três de ligação mais `local`, que ganha
+      insert/update sem delete. Nenhuma tabela de cadastro (profissional,
+      especialidade, bairro, horario, perfil_usuario) entra aqui.
+    */
+    const escritas = [...sql.matchAll(/create\s+policy\s+\S+\s+on\s+([\w.]+)\s+for\s+(insert|update)/g)];
+    const tabelas = [...new Set(escritas.map((m) => normalizarTabela(m[1])))];
+    expect(tabelas.sort()).toEqual([...CONCEDE_ESCRITA].sort());
   });
 
   it("não usa for all, grant, drop table, truncate nem desliga RLS", () => {
@@ -107,12 +132,25 @@ describe("0006_painel_vinculos.sql", () => {
     expect(politicas.length).toBeGreaterThan(0);
     for (const p of politicas) expect(p).toContain("eh_admin()");
   });
+
+  it("toda condição de política usa (select eh_admin()), nunca eh_admin() cru", () => {
+    /*
+      `eh_admin()` cru dentro de `using`/`with check` roda uma vez por linha
+      varrida; `(select eh_admin())` é içável pelo planejador e roda uma vez
+      por comando. A diferença não é estilo — é o comentário do próprio
+      arquivo que a explica. Sem este teste, trocar as nove ocorrências pela
+      forma crua passava verde no teste acima (que só olha se `eh_admin()`
+      aparece em algum lugar da política, não em que forma).
+    */
+    expect(sql).not.toMatch(/using\s*\(\s*eh_admin\(\)/);
+    expect(sql).not.toMatch(/with\s+check\s*\(\s*eh_admin\(\)/);
+  });
 });
 
 describe("supabase/testes-rls.sql", () => {
-  const sql = fonte("../supabase/testes-rls.sql").toLowerCase();
+  const sql = semComentariosSql(fonte("../supabase/testes-rls.sql")).toLowerCase();
 
-  it("cobre as oito asserções que a especificação exige", () => {
+  it("cobre as doze asserções que a especificação exige", () => {
     for (const marca of [
       "visitante nao ve despublicado",
       "admin ve despublicado",
@@ -122,6 +160,11 @@ describe("supabase/testes-rls.sql", () => {
       "conta sem perfil nao ve nada",
       "conta sem perfil nao grava",
       "ninguem se promove a admin",
+      // Fatia 2: os vínculos.
+      "conta sem perfil cria atendimento",
+      "admin cria atendimento",
+      "admin remove atendimento",
+      "local nao pode ser apagado",
     ]) {
       expect(sql, `falta a asserção "${marca}"`).toContain(marca);
     }

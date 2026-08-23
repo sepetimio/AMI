@@ -23,3 +23,20 @@ export function fonte(relativo: string): string {
 export function semComentarios(codigo: string): string {
   return codigo.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
 }
+
+/*
+  O irmão de `semComentarios` para SQL.
+
+  `--` é comentário de linha em SQL, mas é decremento em JavaScript — por isso
+  `semComentarios` nunca poderia tratar `--` sem quebrar todo arquivo `.ts`
+  que decrementa uma variável. Sem uma função própria para SQL, uma linha como
+  `-- Nao existe policy on horario for delete` sobrevive à varredura e casa
+  com a regex que procura exatamente essa concessão, derrubando o teste por um
+  comentário inócuo em vez de por uma política real.
+
+  Mesmo ingênuo de propósito que o irmão: não entende `--` dentro de string
+  nem de expressão regular. Nenhum arquivo `.sql` deste projeto usa isso.
+*/
+export function semComentariosSql(codigo: string): string {
+  return codigo.replace(/\/\*[\s\S]*?\*\//g, "").replace(/--.*$/gm, "");
+}

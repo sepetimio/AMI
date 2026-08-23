@@ -24,10 +24,12 @@ begin;
 
 do $$
 declare
-  admin_uuid   constant uuid := '00000000-0000-0000-0000-000000000000'; -- TROQUE
-  ninguem_uuid constant uuid := '11111111-1111-1111-1111-111111111111';
-  medico_id    bigint;
-  quantos      bigint;
+  admin_uuid      constant uuid := '00000000-0000-0000-0000-000000000000'; -- TROQUE
+  ninguem_uuid    constant uuid := '11111111-1111-1111-1111-111111111111';
+  medico_id       bigint;
+  bairro_teste_id bigint;
+  local_teste_id  bigint;
+  quantos         bigint;
 begin
   -- Um médico despublicado, criado dentro da transação para o teste. CRM
   -- gerado, não fixo, para não colidir com a unicidade (crm, crm_uf) de um
@@ -121,13 +123,28 @@ begin
 
   -- Fatia 2: os vínculos ----------------------------------------------------
 
+  -- Um bairro e um local, criados dentro da transação, pelo mesmo motivo do
+  -- médico lá em cima: não depender de nenhuma linha de produção existir. A
+  -- diferença é que aqui o id fica numa variável em vez de vir de um SELECT
+  -- feito como "ninguém" — aquele papel só enxerga local publicado (a
+  -- política leitura_local, de 0002_rls.sql), e um `(select id from local
+  -- limit 1)` sob esse papel pode voltar nulo se nenhum local publicado
+  -- existir. `atendimento.local_id` é `not null`; um nulo ali levanta
+  -- violação de not-null (23502), não `insufficient_privilege` — o script
+  -- aborta com um erro alheio à política, em vez de testar a política.
+  insert into bairro (nome, slug) values ('Bairro Teste RLS', 'teste-rls-' || gen_random_uuid())
+  returning id into bairro_teste_id;
+
+  insert into local (bairro_id, logradouro) values (bairro_teste_id, 'Rua Teste RLS')
+  returning id into local_teste_id;
+
   set local role authenticated;
   perform set_config('request.jwt.claims',
     json_build_object('sub', ninguem_uuid, 'role', 'authenticated')::text, true);
 
   begin
     insert into atendimento (profissional_id, local_id)
-      values (medico_id, (select id from local limit 1));
+      values (medico_id, local_teste_id);
     raise exception 'FALHOU: conta sem perfil cria atendimento';
   exception when insufficient_privilege then
     null; -- recusado, que é o esperado
@@ -137,7 +154,7 @@ begin
     json_build_object('sub', admin_uuid, 'role', 'authenticated')::text, true);
 
   insert into atendimento (profissional_id, local_id)
-    values (medico_id, (select id from local limit 1));
+    values (medico_id, local_teste_id);
 
   select count(*) into quantos from atendimento where profissional_id = medico_id;
   if quantos <> 1 then
@@ -150,11 +167,17 @@ begin
   end if;
 
   begin
-    delete from local where id = (select id from local limit 1);
-    if found then raise exception 'FALHOU: ninguem apaga local'; end if;
+    delete from local where id = local_teste_id;
+    -- A mensagem não repete a substring "ninguem apaga" da seção do admin lá
+    -- em cima: o guarda deste arquivo em painel-migracao.test.ts procura essa
+    -- substring exata, e as duas mensagens colidindo deixava o guarda cego
+    -- para a remoção deste bloco inteiro.
+    if found then raise exception 'FALHOU: local nao pode ser apagado'; end if;
   exception when insufficient_privilege then
     null; -- recusado, que é o esperado
   end;
+
+  reset role;
 
   raise notice 'TODAS AS ASSERCOES PASSARAM';
 end $$;

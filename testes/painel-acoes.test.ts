@@ -48,7 +48,7 @@ describe("as ações do painel", () => {
 
     for (const caminho of ACOES) {
       const codigo = semComentarios(fonte(caminho));
-      const tabelas = [...codigo.matchAll(/from\("(\w+)"\)([\s\S]*?)(?=from\("|$)/g)];
+      const tabelas = [...codigo.matchAll(/from\(["'](\w+)["']\)([\s\S]*?)(?=from\(["']|$)/g)];
 
       for (const [, tabela, trecho] of tabelas) {
         if (/\.delete\s*\(/.test(trecho)) {

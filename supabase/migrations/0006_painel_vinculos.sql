@@ -6,10 +6,14 @@
 -- o médico, nem o consultório, nem a especialidade.
 
 /*
-  `(select eh_admin())` e não `eh_admin()`: a subconsulta é içável pelo
-  planejador, que a avalia uma vez por consulta em vez de uma por linha. As
-  políticas somam, então estas entram no caminho do site público também, e é
-  esse caminho que mais interessa manter rápido. Mesma escolha de 0005.
+  `(select eh_admin())` e não `eh_admin()`: mesma sintaxe de 0005, motivo
+  diferente. Lá a razão é a soma de políticas no caminho do visitante anônimo
+  — mas nenhuma política deste arquivo é `for select`, e a política de
+  insert, update ou delete nunca é avaliada numa consulta de leitura, então
+  esse caminho não é tocado aqui. A razão aqui é outra: o `using` de um
+  `update` ou `delete` roda uma vez por LINHA que a cláusula varre, não uma
+  vez pela consulta inteira. A subconsulta içável deixa o planejador avaliar
+  `eh_admin()` uma única vez por comando em vez de uma vez por linha.
 */
 
 -- Especialidades do médico -------------------------------------------------
