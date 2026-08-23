@@ -111,11 +111,24 @@ describe("acoes-especialidade.ts", () => {
     }
   });
 
-  it("chama exigirAdmin antes de qualquer escrita", () => {
-    const guarda = codigo.indexOf("exigirAdmin(");
-    const escrita = codigo.search(/\.(insert|update|delete)\s*\(/);
-    expect(guarda).toBeGreaterThan(-1);
-    expect(escrita).toBeGreaterThan(guarda);
+  it("cada ação chama exigirAdmin antes de gravar", () => {
+    /*
+      Por ação, não pelo arquivo inteiro: medido no arquivo inteiro, o
+      `exigirAdmin()` da primeira função do arquivo cobre a escrita de toda
+      ação depois dela, e uma ação nova que pulasse a guarda passaria verde.
+      Mesmo corte de `export async function` que a asserção de `invalidar()`
+      já usa, acima.
+    */
+    const acoes = codigo.split("export async function").slice(1);
+    expect(acoes.length).toBeGreaterThan(0);
+
+    for (const acao of acoes) {
+      const escrita = acao.search(/\.(insert|update|delete)\s*\(/);
+      if (escrita === -1) continue;
+      const guarda = acao.indexOf("exigirAdmin(");
+      expect(guarda, "ação que grava sem chamar exigirAdmin").toBeGreaterThan(-1);
+      expect(guarda).toBeLessThan(escrita);
+    }
   });
 
   it("só remove de profissional_especialidade", () => {

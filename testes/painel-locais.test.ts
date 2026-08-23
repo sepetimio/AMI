@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ROTULO_ACESSIBILIDADE } from "@/lib/dados/tipos";
 import {
   paraLocal,
   RECURSOS_DE_ACESSIBILIDADE,
@@ -121,6 +122,19 @@ describe("RECURSOS_DE_ACESSIBILIDADE", () => {
       expect(r.rotulo.length).toBeGreaterThan(0);
       expect(r.rotulo).not.toBe(r.valor);
     }
+  });
+
+  /*
+    O painel deriva de `ROTULO_ACESSIBILIDADE` (lib/dados/tipos.ts) em vez de
+    repetir os cinco pares à mão — a mesma lista que o cartão do médico usa no
+    site público. Sem este teste, um sexto recurso acrescentado só de um dos
+    lados não quebraria nada: o painel deixaria marcar um recurso que o site
+    nunca mostra, ou o site mostraria um que o painel não deixa editar.
+  */
+  it("o conjunto de valores é exatamente o mesmo que o site usa em ROTULO_ACESSIBILIDADE", () => {
+    expect(RECURSOS_DE_ACESSIBILIDADE.map((r) => r.valor).sort()).toEqual(
+      Object.keys(ROTULO_ACESSIBILIDADE).sort(),
+    );
   });
 });
 
@@ -308,10 +322,23 @@ describe("acoes-local.ts", () => {
     }
   });
 
-  it("chama exigirAdmin antes de qualquer escrita", () => {
-    const guarda = codigo.indexOf("exigirAdmin(");
-    const escrita = codigo.search(/\.(insert|update|delete)\s*\(/);
-    expect(guarda).toBeGreaterThan(-1);
-    expect(escrita).toBeGreaterThan(guarda);
+  it("cada ação chama exigirAdmin antes de gravar", () => {
+    /*
+      Por ação, não pelo arquivo inteiro: medido no arquivo inteiro, o
+      `exigirAdmin()` de `criarLocal` — a primeira função do arquivo — cobre a
+      escrita de toda ação depois dela, e uma ação nova que pulasse a guarda
+      passaria verde. Mesmo corte de `export async function` que a asserção de
+      `invalidar()` já usa, acima.
+    */
+    const acoes = codigo.split("export async function").slice(1);
+    expect(acoes.length).toBeGreaterThan(0);
+
+    for (const acao of acoes) {
+      const escrita = acao.search(/\.(insert|update|delete)\s*\(/);
+      if (escrita === -1) continue;
+      const guarda = acao.indexOf("exigirAdmin(");
+      expect(guarda, "ação que grava sem chamar exigirAdmin").toBeGreaterThan(-1);
+      expect(guarda).toBeLessThan(escrita);
+    }
   });
 });

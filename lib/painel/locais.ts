@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { ROTULO_ACESSIBILIDADE, type RecursoAcessibilidade } from "@/lib/dados/tipos";
 import { termoSeguro } from "@/lib/painel/consultas";
 
 /*
@@ -30,19 +31,21 @@ export type LocalDoMedico = {
 };
 
 /*
-  Os cinco valores que a restrição de `local_acessibilidade` aceita, em
-  `0001_diretorio.sql` — conferidos ali, e os mesmos que `ROTULO_ACESSIBILIDADE`
-  em `lib/dados/tipos.ts` já usa para o site público. Valor gravado em
-  snake_case, rótulo em português: o banco nunca mostra texto a ninguém, e a
-  tela nunca inventa valor.
+  Derivada de `ROTULO_ACESSIBILIDADE`, em `lib/dados/tipos.ts` — a mesma lista
+  que o site público já usa para mostrar os recursos no cartão do médico.
+  Não repetida à mão: um sexto recurso digitado só aqui deixaria o painel
+  marcar algo que o site nunca mostra; um sexto digitado só lá deixaria o
+  site mostrar algo que o painel não deixa editar. Uma fonte só, e a ordem
+  dela é a mesma que aparece na tela (mesmo padrão de `lib/painel/medico.ts`,
+  que importa `UFS` de `lib/importador/tipos` em vez de repetir a lista).
+
+  Os cinco valores continuam sendo exatamente os que a restrição de
+  `local_acessibilidade` aceita em `0001_diretorio.sql` — conferido ali, e
+  testado abaixo contra a própria constante.
 */
-export const RECURSOS_DE_ACESSIBILIDADE = [
-  { valor: "acesso_cadeirante", rotulo: "Acesso para cadeirante" },
-  { valor: "banheiro_adaptado", rotulo: "Banheiro adaptado" },
-  { valor: "elevador", rotulo: "Elevador" },
-  { valor: "piso_tatil", rotulo: "Piso tátil" },
-  { valor: "interprete_libras", rotulo: "Intérprete de Libras" },
-] as const;
+export const RECURSOS_DE_ACESSIBILIDADE: { valor: RecursoAcessibilidade; rotulo: string }[] = (
+  Object.keys(ROTULO_ACESSIBILIDADE) as RecursoAcessibilidade[]
+).map((valor) => ({ valor, rotulo: ROTULO_ACESSIBILIDADE[valor] }));
 
 export type CamposDoLocal = {
   logradouro: string;
