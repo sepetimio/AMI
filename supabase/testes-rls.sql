@@ -52,6 +52,22 @@ begin
     raise exception 'Nao existe nenhuma conta em auth.users. Crie a conta de admin primeiro, pelos passos de docs/como-criar-a-conta-do-painel.md.';
   end if;
 
+  /*
+    Este arquivo confere as políticas da fatia 2, que só existem depois de
+    `0006_painel_vinculos.sql` ser aplicada. Rodado antes dela, o bloco do
+    admin falha com 42501 dizendo que a política barrou a escrita — verdade
+    literal e inútil, porque o que falta é a política existir. Aconteceu na
+    primeira vez que alguém rodou, e custou uma ida e volta.
+  */
+  select count(*) into quantos
+  from pg_policies
+  where schemaname = 'public'
+    and tablename = 'profissional_especialidade';
+
+  if quantos = 0 then
+    raise exception 'A migracao 0006_painel_vinculos.sql ainda nao foi aplicada: nao ha politica nenhuma em profissional_especialidade. Cole a migracao no SQL Editor primeiro, e rode este arquivo depois.';
+  end if;
+
   -- Um médico despublicado, criado dentro da transação para o teste. CRM
   -- gerado, não fixo, para não colidir com a unicidade (crm, crm_uf) de um
   -- registro real e abortar o script inteiro por causa alheia à política.
