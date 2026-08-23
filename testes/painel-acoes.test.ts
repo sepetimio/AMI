@@ -68,6 +68,25 @@ describe("alternarPublicacao", () => {
     expect(posEscrita).toBeGreaterThan(posGuarda);
   });
 
+  it("confere se a gravação alterou alguma linha", () => {
+    /*
+      PostgREST filtra a linha que a política não admite em vez de recusar a
+      chamada: zero linhas alteradas, `error` nulo. Sem esta conferência a
+      ação declarava sucesso e o banco seguia com o valor antigo — aconteceu
+      em 23/08/2026, contra o banco de verdade.
+
+      As duas âncoras são a forma que EXECUTA, e `codigo` já vem sem
+      comentários: a prosa de `acoes.ts` cita `.select()` e `!data` ao
+      explicar por que eles estão lá, e uma busca no fonte cru casaria com ela
+      em vez de com o código.
+    */
+    const posConfere = codigo.indexOf(".select(");
+    expect(posConfere, "a gravação não pede as linhas afetadas de volta").toBeGreaterThan(-1);
+    expect(posConfere).toBeGreaterThan(posEscrita);
+    expect(codigo, "ninguém testa se veio linha").toContain("if (!data)");
+    expect(codigo.indexOf("if (!data)")).toBeLessThan(posInvalida);
+  });
+
   it("invalida o site público depois de gravar", () => {
     /*
       Antes da gravação, a invalidação derruba o cache e ele se reconstrói com

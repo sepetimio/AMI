@@ -25,12 +25,30 @@ export async function alternarPublicacao(dados: FormData): Promise<void> {
   }
 
   const cliente = await clienteDoPainel();
-  const { error } = await cliente
+  /*
+    `.select()` depois do `.update()` não é enfeite: sem ele não dá para saber
+    se alguma linha mudou. Quando a política do Postgres não admite a linha, o
+    PostgREST a FILTRA em vez de recusar a chamada — zero linhas alteradas,
+    `error` nulo. Sem a conferência abaixo isto aqui declarava sucesso, a tela
+    revalidava e mostrava o estado novo, e o banco seguia com o antigo. Foi
+    exatamente o que aconteceu em 23/08/2026, na primeira vez que o painel
+    rodou contra o banco de verdade.
+  */
+  const { data, error } = await cliente
     .from("profissional")
     .update({ publicado, atualizado_em: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
 
   if (error) throw new Error(`Não consegui alterar a publicação: ${error.message}`);
+
+  if (!data) {
+    throw new Error(
+      "A alteração não foi gravada: o banco não admitiu a escrita nesta linha. " +
+        "Costuma ser sessão expirada — saia e entre de novo.",
+    );
+  }
 
   /*
     O site público é gerado estaticamente e revalida de hora em hora. Um
