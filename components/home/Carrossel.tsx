@@ -32,17 +32,69 @@ export function Carrossel({ banners }: { banners: Banner[] }) {
   const trilho = useRef<HTMLDivElement>(null);
   const [atual, setAtual] = useState(0);
   const [pausado, setPausado] = useState(false);
-  const [semMovimento, setSemMovimento] = useState(false);
+  /*
+    Inicializada já lendo `matchMedia`, não `false`.
+
+    Com `useState(false)`, o primeiro render sempre acha que há movimento
+    permitido — o valor real só chega depois, no efeito abaixo, que roda
+    depois desse primeiro render. Nesse intervalo `gira` sai calculado com
+    a resposta errada, e o `useEffect` da rotação (mais abaixo) chega a
+    criar o temporizador de `INTERVALO` antes de a resposta certa chegar e
+    desligar `gira` de novo.
+
+    Hoje isso não dispara nada: o re-render que corrige `semMovimento`
+    acontece em microssegundos, muito antes dos 6s de `INTERVALO`. Mas essa
+    segurança é por MARGEM DE TEMPO, não por desenho — encolher
+    `INTERVALO` ou atrasar o re-render vira a corrida real, e o que está em
+    jogo é a regra que existe para quem tem enxaqueca, vertigem ou
+    epilepsia fotossensível. Ler `matchMedia` já na inicialização do estado
+    fecha essa janela: o primeiro render já nasce com o valor certo, sem
+    depender de nenhum efeito rodar antes de o temporizador ter chance de
+    existir.
+
+    `typeof window !== "undefined"`: esta função roda também no servidor
+    (a primeira renderização de um componente cliente passa por lá antes
+    da hidratação), onde `window` não existe. Sem a checagem, `npm run
+    build` quebraria ao gerar a página.
+  */
+  const [semMovimento, setSemMovimento] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+  /*
+    Mesmo raciocínio do `semMovimento` acima, aplicado a `document.hidden`:
+    o valor inicial já vem certo, e o efeito abaixo só cuida de mudança
+    durante a visita (usuário troca de aba e volta).
+  */
+  const [abaOculta, setAbaOculta] = useState(
+    () => typeof document !== "undefined" && document.hidden,
+  );
 
   useEffect(() => {
     const consulta = window.matchMedia("(prefers-reduced-motion: reduce)");
     const aplicar = () => setSemMovimento(consulta.matches);
-    aplicar();
     consulta.addEventListener("change", aplicar);
     return () => consulta.removeEventListener("change", aplicar);
   }, []);
 
-  const gira = banners.length > 1 && !semMovimento && !pausado;
+  /*
+    A quarta situação que para a rotação: a aba sai da frente.
+
+    Um temporizador de 6s continua rodando numa aba em segundo plano — o
+    navegador só reduz a frequência dele, não zera. Sem isto, um banner
+    pode trocar sozinho enquanto ninguém olha, e quem volta à aba encontra
+    a rotação fora de sincronia com o que fez por último (setas, bolinhas,
+    arrastar). `visibilitychange` é o evento que o próprio navegador
+    dispara nas duas transições, então um só listener cobre ir e voltar.
+  */
+  useEffect(() => {
+    const aplicar = () => setAbaOculta(document.hidden);
+    document.addEventListener("visibilitychange", aplicar);
+    return () => document.removeEventListener("visibilitychange", aplicar);
+  }, []);
+
+  const gira = banners.length > 1 && !semMovimento && !pausado && !abaOculta;
 
   /*
     `[gira, atual, banners.length]`, não `[]`.
