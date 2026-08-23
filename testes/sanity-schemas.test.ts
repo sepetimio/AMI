@@ -83,6 +83,18 @@ describe("schemas do Sanity", () => {
     );
   });
 
+  it("banner tem os campos que a consulta projeta", () => {
+    /* Contrato entre a tarefa 2 e a tarefa 3 (o carrossel), que já consome
+       `imagem`, `alt` (dentro de `imagem`) e `destino` — mesmo raciocínio do
+       teste de notícia acima. Renomear `imagem` para `arte` no Studio, por
+       exemplo, não quebra nada em tempo de compilação: GROQ_BANNERS devolve
+       `undefined` calado, e o carrossel perde a arte sem erro nenhum. */
+    const campos = porNome("banner").fields.map((c) => c.name);
+    expect(campos).toEqual(
+      expect.arrayContaining(["nome", "imagem", "destino", "ordem", "expiraEm"]),
+    );
+  });
+
   it("autor guarda CRM e UF separados", () => {
     /* Separados porque a Resolução CFM 2.336/2023 exige exibir a inscrição
        com a UF, e `identificacaoMedica` em lib/formato.ts já monta a string
