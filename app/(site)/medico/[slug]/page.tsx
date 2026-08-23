@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { Chip } from "@/components/base/Chip";
-import { GradeHorarios } from "@/components/diretorio/GradeHorarios";
 import { Placa } from "@/components/diretorio/Placa";
 import { LinhaMedico } from "@/components/diretorio/LinhaMedico";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -168,11 +167,6 @@ export default async function PaginaPerfil({ params }: Props) {
                     ) : null}
                   </ul>
                 ) : null}
-              </div>
-
-              <div className="md:w-[300px]">
-                <h3 className="sr-only">Horários em {l.bairro.nome}</h3>
-                <GradeHorarios horarios={l.horarios} />
               </div>
             </div>
           ))}
