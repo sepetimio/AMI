@@ -134,7 +134,7 @@ export function descricaoEspecialidade(
   const texto =
     `${total} ${comoProfissional(nome, total)} em Imperatriz` +
     (onde ? `, com atendimento ${onde}` : "") +
-    `. Endereço, telefone e especialidade. Associação Médica de Imperatriz.`;
+    `. Endereço, telefone e CRM. Associação Médica de Imperatriz.`;
   return cortarNaPalavra(texto, LIMITE_DESCRICAO);
 }
 
@@ -155,7 +155,7 @@ export function descricaoFaceta(
 ): string {
   const texto =
     `${total} ${comoProfissional(especialidade, total)} no bairro ${bairro}, ` +
-    `Imperatriz - MA. Endereço, telefone e especialidade. ` +
+    `Imperatriz - MA. Endereço, telefone e CRM. ` +
     `Associação Médica de Imperatriz.`;
   return cortarNaPalavra(texto, LIMITE_DESCRICAO);
 }

@@ -49,9 +49,8 @@ function lista(nomes: string[]): string {
  *
  * Gerado a partir dos dados reais: quantos profissionais, em quantos
  * endereços, onde se concentram, quantos fazem telemedicina, quantos locais
- * têm acesso para cadeirante. Nunca um
- * texto-modelo com a palavra trocada — é exatamente isso que o Google
- * classifica como conteúdo raso.
+ * têm acesso para cadeirante. Nunca um texto-modelo com a palavra trocada —
+ * é exatamente isso que o Google classifica como conteúdo raso.
  *
  * Nenhuma frase começa com algarismo: em texto corrido em português isso não
  * se faz, e é um dos sinais mais visíveis de texto gerado.
@@ -98,17 +97,6 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
       );
     }
   }
-
-  /* O site existe para levar a pessoa até o especialista certo e permitir o
-     contato — não para marcar consulta. Esta frase fica no lugar onde antes
-     ficava a de sábado: informativa, sem promessa e sem adjetivo de venda. */
-  frases.push(
-    umEnderecoSo
-      ? `O único endereço traz o telefone do consultório, o contato que ` +
-          `fecha o encaminhamento até o especialista.`
-      : `Cada endereço traz o telefone do consultório, o contato que fecha ` +
-          `o encaminhamento até o especialista.`,
-  );
 
   if (r.comTelemedicina > 0) {
     frases.push(

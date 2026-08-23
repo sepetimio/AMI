@@ -80,9 +80,9 @@ export function LinhaMedico({ medico }: { medico: Medico }) {
           ) : null}
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            {/* Ordem fixa: filiação, depois fatos do consultório, e o estado
-                por último. O olho aprende a ordem em duas linhas e para de
-                reler a fileira inteira em todas as outras. */}
+            {/* Ordem fixa: filiação, depois fatos do consultório. O olho
+                aprende a ordem em duas linhas e para de reler a fileira
+                inteira em todas as outras. */}
             {medico.associadoAmi ? (
               <Chip tom="associado">Associado AMI</Chip>
             ) : null}

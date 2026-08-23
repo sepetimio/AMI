@@ -239,8 +239,8 @@
 }
 
 /*
-  O dado cartorial: CRM, RQE, telefone, CNPJ, horário. A razão de existir
-  está em lib/fontes.ts, no comentário de `fonteRegistro`.
+  O dado cartorial: CRM, RQE, telefone, CNPJ. A razão de existir está em
+  lib/fontes.ts, no comentário de `fonteRegistro`.
 */
 @utility registro {
   font-family: var(--font-registro);

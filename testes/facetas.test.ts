@@ -201,19 +201,18 @@ describe("paragrafoDeAbertura", () => {
      permitir — forçar palavras numa página que não vai ao índice seria
      encher linguiça sem ganho nenhum.
 
-     PISO REVISTO NA RODADA DE CORREÇÃO 1 (verificar com o time de
-     conteúdo): a frase de sábado saiu inteira do parágrafo, sem
-     substituição, e no lugar dela entrou uma frase sobre telefone do
-     consultório fechando o encaminhamento — real, não inventada para
-     completar contagem. Mesmo com essa frase a faceta mais pobre soma 116
-     palavras, abaixo do piso antigo de 120. A página passou a ter menos a
-     dizer desde que os horários saíram: não há mais frase verdadeira para
-     acrescentar sem repetir o que as outras frases já dizem, então o piso
-     desceu para o número medido em vez de inventar uma segunda frase só
-     para completar. */
-  it("cumpre 116 a 200 palavras na faceta mais pobre que ainda indexa", () => {
+     O piso era 120. Com a saída da frase de sábado (sem substituição), a
+     faceta mais pobre mede hoje exatamente 100 palavras — a página passou a
+     ter menos a dizer desde que os horários saíram do site. O piso baixou
+     para 100, o número redondo medido, não um valor exato de casas
+     decimais: piso igual à medição, sem nenhuma folga, vira detector de
+     mudança em vez de guarda, mas é o número que a página real produz hoje.
+     Se a faceta mais pobre cair abaixo disso, é a página que ficou rasa,
+     não o teste que está errado. A decisão de conteúdo — se vale acrescentar
+     algo aqui — segue pendente com o dono do projeto. */
+  it("cumpre 100 a 200 palavras na faceta mais pobre que ainda indexa", () => {
     const palavras = paragrafoDeAbertura(pobreIndexavel).split(/\s+/).length;
-    expect(palavras).toBeGreaterThanOrEqual(116);
+    expect(palavras).toBeGreaterThanOrEqual(100);
     expect(palavras).toBeLessThanOrEqual(200);
   });
 

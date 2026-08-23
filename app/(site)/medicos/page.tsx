@@ -66,8 +66,8 @@ export default async function PaginaMedicos() {
         }
       >
         Em {contagem(especialidades.length, "especialidade", "especialidades")},
-        com endereço, telefone e especialidade. Todos os registros
-        trazem o CRM, conforme exige a Resolução CFM 2.336/2023.
+        com endereço e telefone de cada médico. Todos os registros trazem o
+        CRM, conforme exige a Resolução CFM 2.336/2023.
       </Cabeceira>
 
       <div className="mx-auto max-w-[1200px] px-4 md:px-6">
