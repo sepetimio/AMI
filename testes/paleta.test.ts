@@ -57,6 +57,8 @@ describe("os tokens existem", () => {
   const EXIGIDOS = [
     "canvas",
     "surface",
+    "surface-fundo",
+    "ami-lima-100",
     "ink-900",
     "ink-600",
     "ink-400",
@@ -72,7 +74,7 @@ describe("os tokens existem", () => {
   });
 });
 
-describe("texto sobre os dois fundos claros", () => {
+describe("texto sobre os quatro fundos claros", () => {
   /*
     Todo token usado como cor de texto entra nesta lista — não é seleção do
     que parece arriscado. `ami-green-600` ficou de fora numa primeira
@@ -82,16 +84,40 @@ describe("texto sobre os dois fundos claros", () => {
 
     Exceção real, não descuido: tokens usados como texto só sobre fundo
     ESCURO (`ami-lima-400`) ficam de fora de propósito. Esta lista testa
-    contra `canvas` e `surface`, os dois fundos claros do sistema — medir
-    esse token aqui testaria o par errado. `ami-lima-400` dá 1,48:1 em
-    canvas e 1,63:1 em surface: não é regressão, é a física que barra esse
-    tom como texto sobre fundo claro. Quem usar esse token sobre fundo
-    escuro tem um teste próprio contra `ami-green-800`/`ami-green-900` no
-    describe abaixo.
+    contra os quatro fundos claros do sistema — medir esse token aqui
+    testaria o par errado. `ami-lima-400` dá 1,48:1 em canvas e 1,63:1 em
+    surface: não é regressão, é a física que barra esse tom como texto
+    sobre fundo claro. Quem usar esse token sobre fundo escuro tem um teste
+    próprio contra `ami-green-800`/`ami-green-900` no describe abaixo.
   */
   const TEXTO_DE_CORPO = ["ink-900", "ink-600", "ink-400", "warn", "ami-green-600", "ami-green-700"];
 
-  for (const fundo of ["canvas", "surface"]) {
+  /*
+    Os fundos, e por que são quatro e não dois.
+
+    A lista era `["canvas", "surface"]`, e deixava de fora dois fundos que
+    carregam texto de verdade. A prova de que o buraco era real: apagar
+    `--color-ami-lima-100` inteiro do `@theme` deixava os 22 testes desta
+    suíte verdes, e treze classes `bg-` do site viravam nada.
+
+    `ami-lima-100` é fundo PERMANENTE de texto em `components/base/Chip.tsx`
+    (a pílula "Associado AMI", `bg-ami-lima-100 text-ami-green-700`) e fundo
+    de passagem de mouse em outros doze lugares — 13 usos de `bg-`, mais que
+    `bg-canvas`, que tem 11. É também o par mais apertado de todo o sistema:
+    `ink-400` sobre ele dá 4,61:1, onze centésimos acima do mínimo, e o uso é
+    real (`app/(site)/associacao/page.tsx`, o cartão que muda de fundo no
+    hover).
+
+    `surface-fundo` é o fundo de `.moldura`, em `app/globals.css`.
+
+    Esta lista continua escrita à mão, e isso é a fraqueza conhecida: ela não
+    sabe de um fundo novo que ninguém acrescentar aqui. Derivá-la de um grep
+    por `bg-<token>` e `text-<token>` é a primeira tarefa da fatia seguinte;
+    até lá, quem criar um fundo que recebe texto acrescenta o nome aqui.
+  */
+  const FUNDOS_CLAROS = ["canvas", "surface", "surface-fundo", "ami-lima-100"];
+
+  for (const fundo of FUNDOS_CLAROS) {
     for (const tinta of TEXTO_DE_CORPO) {
       it(`${tinta} sobre ${fundo}`, () => {
         const r = razaoDeContraste(T[tinta], T[fundo]);
@@ -103,15 +129,15 @@ describe("texto sobre os dois fundos claros", () => {
     }
   }
 
-  for (const fundo of ["canvas", "surface"]) {
+  for (const fundo of FUNDOS_CLAROS) {
     it(`ink-300 fica de fora de propósito, sobre ${fundo}`, () => {
       /*
         `ink-300` é placeholder e ícone desabilitado — nunca texto que alguém
         precisa ler. Se um dia ele passar de 4,5:1, o motivo dele deixou de
         existir e o comentário de globals.css precisa ser revisto.
 
-        Os dois fundos precisam da mesma checagem: `surface` é o mais claro
-        dos dois, então é onde qualquer tom escurecido cruza o mínimo
+        Os quatro fundos precisam da mesma checagem: `surface` é o mais
+        claro deles, então é onde qualquer tom escurecido cruza o mínimo
         primeiro. Testar só `canvas` deixa passar um token que já está em
         conformidade sobre `surface` — foi o que a revisão da tarefa 1
         mostrou mutando para `#727272`: 4,18:1 sobre canvas (ainda abaixo,
