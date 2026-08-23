@@ -8,8 +8,7 @@ Estado: aprovado no levantamento, aguardando plano
 ## 1. O que esta fatia cobre
 
 A fatia 1 deixou a AMI publicar um médico e editar os campos dele. Ela não deixa dar
-a esse médico uma especialidade, um consultório ou um horário — e a página pública
-mostra os três.
+a esse médico uma especialidade nem um consultório — e a página pública mostra os dois.
 
 Hoje esses dados só entram pelo importador, que é a máquina da agência rodando um
 script. A fatia 2 fecha esse buraco.
@@ -17,13 +16,96 @@ script. A fatia 2 fecha esse buraco.
 O que entra:
 
 - **Especialidades do médico**, com RQE e qual é a principal
-- **Consultórios onde ele atende**, buscando um já cadastrado ou criando um novo
-- **A grade de horários** de cada consultório
+- **Consultórios onde ele atende**, com telefone e WhatsApp, buscando um já cadastrado
+  ou criando um novo
 - **Dois campos que faltaram na fatia 1**: "é associado da AMI" e "CRM/UF"
+- **A retirada dos horários do site público** — seção 3
 
 Ao terminar, a AMI monta um perfil completo sozinha. Sobra só a foto.
 
-## 2. Medições feitas antes de o desenho existir
+## 2. Para que o site serve, e o que isso decide
+
+O site da AMI **não existe para gerar agendamento**. Ele existe para apresentar os
+associados e permitir que uma pessoa chegue até o especialista certo. Quando alguém
+pede um cardiologista, o site responde quem é e como falar com ele.
+
+Horário de funcionamento não serve a isso. Quem precisa saber quando o consultório
+abre descobre falando com a secretária, ou no cartão do Google, onde a informação é
+mantida por quem tem motivo para mantê-la.
+
+Duas consequências, e elas moldam a fatia inteira:
+
+**A especialidade é o campo mais importante do site.** É ela que responde à pergunta
+que traz a pessoa. Vale o cuidado extra que a seção 7 descreve.
+
+**Telefone e WhatsApp são o segundo mais importante.** São o que fecha o encaminhamento.
+Deixam de ser detalhe do endereço e passam a ser o objetivo dele.
+
+## 3. Os horários saem do site
+
+### Por que
+
+**A planilha que a AMI vai preencher não tem coluna de horário.** As colunas aceitas
+pelo importador são `nome`, `crm`, `uf_do_crm`, `especialidade`, `rqe`, `telemedicina`,
+`logradouro`, `numero`, `complemento`, `bairro`, `cep`, `telefone`, `whatsapp`
+(`lib/importador/tipos.ts`). Não há hora nenhuma.
+
+Quando o cadastro real entrar, **nenhum médico terá horário**. A grade ficará vazia em
+todas as páginas e o selo de "aberto agora" nunca acenderá. Os 246 horários que existem
+hoje são dos 24 médicos fictícios de demonstração, e somem no lançamento.
+
+Isto não é corte de funcionalidade. É reconhecer uma que já estava morta.
+
+O agravante é o selo: `SeloAbertoAgora` é uma promessa **ao vivo**, recalculada a cada
+minuto no navegador, feita a partir de um dado que ninguém mantém. É o que faz alguém
+sair de casa às 14h porque o site disse que estava aberto.
+
+### O que sai
+
+Quatorze arquivos. Três desaparecem por completo:
+
+```
+components/diretorio/GradeHorarios.tsx      a tabela de dias na página do médico
+components/diretorio/SeloAbertoAgora.tsx    o "aberto agora" na lista
+lib/dados/horarios.ts                       agruparPorDia, estaAbertoAgora, atendeNoDia
+```
+
+Os outros perdem os pedaços que usam horário:
+
+```
+app/(site)/medico/[slug]/page.tsx    linhas 174-175, a seção da grade
+components/diretorio/LinhaMedico.tsx linhas 43 e 102, o selo
+app/(site)/medicos/page.tsx          linhas 33 e 69, textos que prometem
+                                     "endereço, telefone e horários por dia da semana"
+components/diretorio/PainelFiltros.tsx linhas 44 e 149-153, a caixa "Atende aos sábados"
+lib/dados/filtros.ts                 linha 56, o filtro de sábado
+lib/dados/facetas.ts                 linha 249, a contagem de quem atende sábado
+lib/dados/medicos.ts                 a seleção de horários na consulta
+lib/dados/tipos.ts                   o tipo Horario
+lib/seo/jsonld.ts                    openingHoursSpecification
+testes/horarios.test.ts              some inteiro
+testes/filtros.test.ts               os casos de sábado
+testes/facetas.test.ts               os casos de sábado
+testes/jsonld.test.ts                os casos de horário
+```
+
+### Duas coisas medidas que valem registro
+
+**O filtro "Atende aos sábados" some junto.** É uma caixa visível na busca. Ela depende
+do mesmo dado que ninguém vai preencher: com o cadastro real, marcá-la devolveria zero
+médicos, sempre. Um filtro que nunca acha nada é pior que filtro nenhum.
+
+**O que vai para o Google já se limpa sozinho.** `lib/seo/jsonld.ts:123` só inclui
+`openingHoursSpecification` se houver horário — `...(horarios.length ? {...} : {})`.
+Sem dado, não emite nada. A remoção do código é limpeza, não correção de bug.
+
+### O que NÃO sai
+
+A tabela `horario` continua no banco, com as 246 linhas. Nada é apagado: elas somem
+junto com os médicos fictícios, no lançamento. A tabela fica sem uso, e é mais barato
+deixá-la parada do que escrever uma migração para removê-la.
+
+## 4. Medições feitas antes de o desenho existir
 
 Cada uma destas mudou o desenho. Nenhuma foi suposta.
 
@@ -33,10 +115,6 @@ fora: seria tela para um conceito que nada consome.
 
 **`lat` e `lng` não são lidos em lugar nenhum.** Não há mapa no site. Sem isso, some
 o item mais caro que a fatia poderia ter — geocodificar endereço.
-
-**Os horários reais têm duas faixas por dia.** 246 horários para 24 atendimentos, no
-padrão `08:00–12:00` e `14:00–18:00` de segunda a sexta, mais sábado de manhã. Uma
-grade de uma faixa por dia destruiria metade dos dados.
 
 **Os 24 locais são um por médico, nenhum compartilhado.** A tabela `atendimento`
 existe para permitir compartilhar, e a vida real compartilha — uma clínica com seis
@@ -49,16 +127,19 @@ Enviar foto seria montar do zero onde arquivo mora. Virou fatia própria.
 código, em `lib/painel/consultas.ts:39` — "a marcada como principal, ou a primeira".
 Duas principais deixam a página do médico ambígua sem ninguém perceber.
 
-## 3. Decisões tomadas, e por quê
+**Existem oito bairros cadastrados.** Lista pequena e fechada, o que permite escolha em
+vez de digitação.
 
-**Tudo mora dentro da página do médico.** Quem cadastra pensa "vou completar a
-Aline", não "vou até a tela de horários". A página vira quatro blocos empilhados, e
-cada bloco é um formulário independente: salvar o telefone de um consultório não
-pode arriscar o que foi digitado nas especialidades.
+## 5. Decisões tomadas, e por quê
 
-**Remoção passa a existir, restrita a quatro tabelas de ligação.** É o único jeito de
-desfazer um vínculo. As quatro são `profissional_especialidade`, `atendimento`,
-`horario` e `local_acessibilidade`.
+**Tudo mora dentro da página do médico.** Quem cadastra pensa "vou completar a Aline",
+não "vou até a tela de consultórios". A página vira três blocos empilhados, e cada
+bloco é um formulário independente: salvar o telefone de um consultório não pode
+arriscar o que foi digitado nas especialidades.
+
+**Remoção passa a existir, restrita a três tabelas de ligação.** É o único jeito de
+desfazer um vínculo. As três são `profissional_especialidade`, `atendimento` e
+`local_acessibilidade`.
 
 **Médico não pode ser apagado.** Quem deixa de ser associado vira `associado_ami =
 false` e `publicado = false`: some do site na hora, o cadastro fica guardado, e voltar
@@ -71,14 +152,10 @@ médico usa é estrago silencioso, e a tabela não tem como saber que estava em 
 endereço órfão não aparece em lugar nenhum do site; continuar existindo é mais barato
 que sumir por engano.
 
-**A grade tem sete dias e faixas livres, com "repetir nos dias úteis".** Fiel ao dado
-medido, e o botão de repetir resolve o caso comum, que é a mesma faixa de segunda a
-sexta.
-
 **Bairro sai de lista fechada.** Digitado à mão vira "Centro", "centro" e "CENTRO", e
 a busca do site quebra.
 
-## 4. Modelo de dados
+## 6. Modelo de dados
 
 Nenhuma tabela nova. Nenhuma coluna nova. Todas já existem desde `0001_diretorio.sql`.
 
@@ -89,29 +166,21 @@ profissional_especialidade   (profissional_id, especialidade_id) chave composta
 atendimento                  id, profissional_id, local_id
                              unique (profissional_id, local_id)
 
-horario                      id, atendimento_id, dia_semana 0..6,
-                             abre time, fecha time, check (fecha > abre)
-
 local                        id, estabelecimento_id null, logradouro, numero,
-                             complemento, bairro_id, cep, lat, lng, telefone,
-                             whatsapp, estacionamento
+                             complemento, bairro_id, cep, telefone, whatsapp,
+                             estacionamento, lat, lng (as duas sem uso)
 
 local_acessibilidade         (local_id, recurso) chave composta
                              recurso em acesso_cadeirante, banheiro_adaptado,
                              elevador, piso_tatil, interprete_libras
 ```
 
-Duas observações que o implementador precisa ter em mãos:
+Uma observação que o implementador precisa ter em mãos: `atendimento` tem
+`unique (profissional_id, local_id)`. Ligar duas vezes o mesmo médico ao mesmo local
+devolve erro `23505`, que precisa virar mensagem em português — como já é feito para
+colisão de CRM em `app/painel/medico/[id]/acoes.ts`.
 
-`horario` não tem restrição de unicidade sobre `(atendimento_id, dia_semana)`. Isso é
-deliberado e é o que permite duas faixas no mesmo dia. A consequência é que impedir
-sobreposição é trabalho da aplicação, não do banco.
-
-`atendimento` tem `unique (profissional_id, local_id)`. Ligar duas vezes o mesmo médico
-ao mesmo local devolve erro `23505`, que precisa virar mensagem em português — como
-já é feito para colisão de CRM em `app/painel/medico/[id]/acoes.ts`.
-
-## 5. As políticas
+## 7. As políticas
 
 A migração `0006_painel_vinculos.sql` acrescenta, com a mesma condição da fatia 1
 (`using ((select eh_admin()))`, subconsulta içável para não pesar no site público):
@@ -120,36 +189,39 @@ A migração `0006_painel_vinculos.sql` acrescenta, com a mesma condição da fa
 |---|---|---|---|
 | `profissional_especialidade` | sim | sim | **sim** |
 | `atendimento` | sim | — | **sim** |
-| `horario` | sim | sim | **sim** |
 | `local_acessibilidade` | sim | — | **sim** |
 | `local` | sim | sim | não |
 
 `atendimento` e `local_acessibilidade` não têm update porque não há o que atualizar:
 as duas são só a ligação, e trocar a ligação é remover e criar.
 
+`horario` não aparece nesta tabela. Os horários saíram do produto (seção 3), e uma
+política de escrita para dado que nada consome é superfície sem uso.
+
 ### O que muda numa garantia existente
 
 Hoje o projeto não apaga nada, em lugar nenhum, e dois testes vigiam isso:
 `testes/painel-acoes.test.ts:37` e `testes/painel-migracao.test.ts:18`.
 
-Os dois passam a nomear as quatro tabelas onde remoção é permitida, e continuam
+Os dois passam a nomear as três tabelas onde remoção é permitida, e continuam
 recusando remoção em qualquer outra — `profissional`, `local`, `especialidade`,
-`bairro`, `perfil_usuario`, `auth.users`. A trava é reapontada, não afrouxada.
+`bairro`, `horario`, `perfil_usuario`, `auth.users`. A trava é reapontada, não
+afrouxada.
 
 Isto está escrito aqui porque é a decisão de maior consequência da fatia, e foi
 tomada com o dono do projeto sabendo o que ela troca: **antes desta fatia é impossível
 apagar qualquer coisa por este painel; depois, deixa de ser.**
 
-## 6. As telas
+## 8. As telas
 
-A página do médico vira quatro blocos.
+A página do médico vira três blocos.
 
 ### Bloco 1 — Dados do médico
 
 O formulário da fatia 1, mais dois campos que faltavam:
 
-- **É associado da AMI** — o interruptor que a decisão de "não apagar médico" depende.
-  Existe no banco desde sempre e nenhuma tela mostrava
+- **É associado da AMI** — o interruptor de que a decisão de "não apagar médico"
+  depende. Existe no banco desde sempre e nenhuma tela mostrava
 - **CRM/UF** — a tela grava hoje sem perguntar, usando o valor que já estava
 
 ### Bloco 2 — Especialidades
@@ -174,71 +246,61 @@ Criar pede logradouro e bairro como mínimo. Bairro vem de lista fechada de oito
 resto — número, complemento, CEP, telefone, WhatsApp, estacionamento, acessibilidade —
 é opcional.
 
+**Telefone e WhatsApp ganham destaque na tela**, pela razão da seção 2: são o que
+fecha o encaminhamento, e o site existe para isso.
+
 Corrigir um endereço corrige para todos os médicos que atendem nele. Isso é o ganho de
-compartilhar, e a tela precisa dizer isso quando o endereço tem mais de um médico, para
-ninguém corrigir achando que mexe só no seu.
+compartilhar, e **a tela precisa dizer isso** quando o endereço tem mais de um médico,
+para ninguém corrigir achando que mexe só no seu.
 
 Remover tira o médico do consultório. O consultório continua existindo.
 
-### Bloco 4 — Horários
-
-Dentro de cada consultório, sete blocos, um por dia da semana. Cada dia aceita
-quantas faixas forem precisas, com "acrescentar faixa" e "remover".
-
-Um botão **"repetir nos dias úteis"** copia o dia preenchido para segunda a sexta. É o
-que torna a tela usável, porque o dado real é quase sempre o mesmo nos cinco dias.
-
-## 7. As regras que a tela vigia
-
-**Horário**
-
-1. Fechar antes de abrir — o banco já recusa, mas com mensagem em inglês citando o
-   nome interno da restrição. A tela avisa antes, em português
-2. Duas faixas do mesmo dia se sobrepondo — `08:00–12:00` e `11:00–15:00` não podem
-   coexistir. O banco não impede; só a aplicação
-3. Faixa sem dia da semana
+## 9. As regras que a tela vigia
 
 **Especialidade**
 
-4. No máximo uma principal — garantido pelo botão de escolha única
-5. A mesma especialidade duas vezes — a chave composta já recusa, e a mensagem vira
+1. No máximo uma principal — garantido pelo botão de escolha única
+2. A mesma especialidade duas vezes — a chave composta já recusa, e a mensagem vira
    português
 
 **Local**
 
-6. Logradouro e bairro obrigatórios; o resto opcional
-7. Bairro só da lista fechada
+3. Logradouro e bairro obrigatórios; o resto opcional
+4. Bairro só da lista fechada
+5. O mesmo médico ligado duas vezes ao mesmo local — erro `23505`, vira português
 
 **Atravessando tudo**
 
-8. **Célula vazia nunca apaga.** Salvar o formulário com o telefone em branco mantém o
+6. **Célula vazia nunca apaga.** Salvar o formulário com o telefone em branco mantém o
    telefone que estava lá. Apagar é ação explícita, com botão próprio. É a mesma regra
-   que `lib/importador/plano.ts` já segue, e vale a pena ser igual nos dois lugares
-9. Todos os erros de um formulário voltam de uma vez, não um por vez — como
+   que `lib/importador/plano.ts:46` já segue, e vale a pena ser igual nos dois lugares
+7. Todos os erros de um formulário voltam de uma vez, não um por vez — como
    `validarMedico` já faz
+8. **Toda gravação pede as linhas afetadas de volta** e falha alto quando não vem
+   nenhuma. A razão está na seção 12
 
-## 8. Arquivos
+## 10. Arquivos
 
 ```
 supabase/migrations/0006_painel_vinculos.sql
 
 lib/painel/especialidades.ts        consultas e validação
 lib/painel/locais.ts                consultas e validação
-lib/painel/horarios.ts              consultas e validação
 
 app/painel/medico/[id]/acoes-especialidade.ts
 app/painel/medico/[id]/acoes-local.ts
-app/painel/medico/[id]/acoes-horario.ts
 
 components/painel/BlocoEspecialidades.tsx
 components/painel/BlocoLocais.tsx
-components/painel/GradeDeHorarios.tsx
 ```
 
-Três pares, um por assunto. A validação fica separada da ida ao banco, como em
+Dois pares, um por assunto. A validação fica separada da ida ao banco, como em
 `lib/painel/medico.ts` — é o que permite testar as regras sem banco nenhum.
 
-## 9. A invalidação
+Mais a remoção listada na seção 3, que é trabalho espalhado por quatorze arquivos e
+merece tarefa própria no plano.
+
+## 11. A invalidação
 
 Reusa exatamente as três chamadas da fatia 1:
 
@@ -254,20 +316,20 @@ no caminho — a documentação do Next só exemplifica o grupo com segmentos de
 dúvida ficou fechada pela medição, não pela leitura.
 
 As páginas de especialidade e bairro estão sob o mesmo grupo `(site)` e são alcançadas
-junto. O sitemap não usa data de modificação, então horário não mexe nele; a chamada
-fica assim mesmo, porque custa nada e evita raciocínio sutil daqui a três meses.
+junto. O sitemap não usa data de modificação; a chamada fica assim mesmo, porque custa
+nada e evita raciocínio sutil daqui a três meses.
 
-## 10. Como isto é verificado
+## 12. Como isto é verificado
 
-**Testes automáticos, sem banco.** Cada regra da seção 7 vira um teste. Rodam em
+**Testes automáticos, sem banco.** Cada regra da seção 9 vira um teste. Rodam em
 milissegundos e a cada mudança.
 
 **Assertivas de política, contra o banco.** `supabase/testes-rls.sql` ganha uma
 assertiva por tabela nova: o visitante anônimo não escreve, a conta sem perfil não
-escreve, o admin escreve, e a remoção só passa nas quatro tabelas permitidas.
+escreve, o admin escreve, e a remoção só passa nas três tabelas permitidas.
 
-**A conferência com o dedo.** Pegar um médico, dar a ele uma especialidade, um
-consultório e uma grade, e ver os três aparecerem no site.
+**A conferência com o dedo.** Pegar um médico, dar a ele uma especialidade e um
+consultório, e ver os dois aparecerem no site.
 
 Esta terceira camada não é formalidade. Em 23/08/2026 foi ela que achou um defeito que
 469 testes automáticos e as assertivas de política deixaram passar: `alternarPublicacao`
@@ -276,10 +338,15 @@ política não admite em vez de recusar a chamada, o painel mostrava um estado q
 não tinha. Corrigido em `003dda2`.
 
 **Consequência para esta fatia:** toda gravação nova pede as linhas afetadas de volta e
-falha alto quando não vem nenhuma. Isso vale para as três ações e é assertiva de teste,
+falha alto quando não vem nenhuma. Isso vale para as duas ações e é assertiva de teste,
 não recomendação.
 
-## 11. O que fica de fora
+**Para a remoção dos horários**, a conferência é diferente: a suíte tem que ficar verde
+depois de `testes/horarios.test.ts` deixar de existir, `next build` tem que passar, e
+nenhuma página pode referenciar um componente que não existe mais. Um `grep` por
+`horario` fora do painel e do importador tem que voltar vazio.
+
+## 13. O que fica de fora
 
 | fica de fora | motivo |
 |---|---|
@@ -289,17 +356,17 @@ não recomendação.
 | Textos das especialidades | Escrita de conteúdo, não cadastro |
 | Comunicados e anuidades | Servem à área do associado, que não existe (Fase 2) |
 | Apagar médico | Decisão explícita. Fica o "não é mais associado" |
+| Horários | O site não gera agendamento. Saem também do que já está no ar |
 
-## 12. Riscos e pendências
+## 14. Riscos e pendências
 
-- **A remoção deixa de ser impossível.** Restrita a quatro tabelas de ligação, e o que
-  se perde se refaz em dois cliques. Mas é uma garantia a menos, e está registrado que
-  foi escolha consciente
-- **A página do médico no painel fica longa** — quatro blocos empilhados. Se a grade de
-  horários crescer demais na prática, ela sai para tela própria por consultório, que foi
-  a alternativa considerada e descartada por ora
-- **Sobreposição de horário é vigiada só pela aplicação.** O banco aceita. Uma gravação
-  por outro caminho — o importador, ou o editor SQL — pode criar sobreposição que a tela
-  recusaria. Vale um índice de exclusão no futuro, fora do escopo desta fatia
+- **A remoção deixa de ser impossível.** Restrita a três tabelas de ligação, e o que se
+  perde se refaz em dois cliques. Mas é uma garantia a menos, e está registrado que foi
+  escolha consciente
+- **A remoção dos horários toca quatorze arquivos**, incluindo um filtro visível na
+  busca. É trabalho espalhado, não difícil, e o risco é deixar referência órfã para
+  trás. Por isso a conferência da seção 12 termina num `grep` que precisa voltar vazio
 - **A tela precisa avisar quando um endereço é compartilhado.** Sem esse aviso, alguém
   corrige o telefone achando que mexe só no seu médico e mexe em seis
+- **A tabela `horario` fica no banco sem uso.** Decisão deliberada: apagar dado é pior
+  que deixá-lo parado, e as 246 linhas somem junto com os fictícios no lançamento
