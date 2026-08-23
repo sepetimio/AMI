@@ -42,6 +42,41 @@ export type Validacao =
 
 const SITUACOES = ["ativo", "inativo"] as const;
 
+/*
+  A ponte entre o formulário e a validação.
+
+  Extraída da ação por um motivo medido: com a leitura escrita dentro de
+  `salvarMedico`, trocar `dados.get("associadoAmi") === "on"` por `true`
+  passava a suíte inteira — todo médico salvo viraria associado, no campo de
+  que depende a decisão de nunca apagar médico. Ficando pura aqui, ela é
+  testável com um `FormData` de verdade, sem simular o Supabase (que este
+  projeto nunca fez, e não é aqui que começa).
+
+  Duas armadilhas que o teste vigia, e que o `?? ""` e o `=== "on"` existem
+  para evitar: campo ausente vira string vazia, não a palavra "null" — que é o
+  que `String(null)` devolve, e o que faria `validarMedico` aceitar "null"
+  como nome; e caixa desmarcada vira `false`, não `undefined` — o navegador
+  simplesmente não manda a caixa desmarcada, e um `undefined` ali gravaria
+  nulo numa coluna booleana.
+*/
+function texto(dados: FormData, campo: string, seVazio = ""): string {
+  const valor = dados.get(campo);
+  return valor === null ? seVazio : String(valor);
+}
+
+export function lerCamposDoMedico(dados: FormData): CamposDoMedico {
+  return {
+    nome: texto(dados, "nome"),
+    crm: texto(dados, "crm"),
+    crmUf: texto(dados, "crmUf"),
+    telemedicina: dados.get("telemedicina") === "on",
+    associadoAmi: dados.get("associadoAmi") === "on",
+    situacao: texto(dados, "situacao", "ativo"),
+    bio: texto(dados, "bio"),
+    verificadoEm: texto(dados, "verificadoEm"),
+  };
+}
+
 /** Data no formato que a coluna `date` do Postgres aceita. */
 function ehDataISO(s: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;

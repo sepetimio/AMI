@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   bairros,
+  lerCamposDoLocal,
   RECURSOS_DE_ACESSIBILIDADE,
   reconciliarAcessibilidade,
   validarLocal,
@@ -16,19 +17,6 @@ function invalidar(): void {
   revalidatePath("/(site)", "layout");
   revalidatePath("/sitemap.xml");
   revalidatePath("/painel");
-}
-
-function lerCampos(dados: FormData) {
-  return {
-    logradouro: String(dados.get("logradouro") ?? ""),
-    numero: String(dados.get("numero") ?? ""),
-    complemento: String(dados.get("complemento") ?? ""),
-    bairroId: String(dados.get("bairroId") ?? ""),
-    cep: String(dados.get("cep") ?? ""),
-    telefone: String(dados.get("telefone") ?? ""),
-    whatsapp: String(dados.get("whatsapp") ?? ""),
-    estacionamento: dados.get("estacionamento") === "on",
-  };
 }
 
 const NAO_ADMITIU =
@@ -57,7 +45,7 @@ export async function criarLocal(
 
   const cliente = await clienteDoPainel();
   const lista = await bairros(cliente);
-  const validacao = validarLocal(lerCampos(dados), lista.map((b) => b.id));
+  const validacao = validarLocal(lerCamposDoLocal(dados), lista.map((b) => b.id));
 
   if (!validacao.ok) {
     return { erros: validacao.erros as Record<string, string>, salvo: false };
@@ -115,7 +103,7 @@ export async function salvarLocal(
 
   const cliente = await clienteDoPainel();
   const lista = await bairros(cliente);
-  const validacao = validarLocal(lerCampos(dados), lista.map((b) => b.id));
+  const validacao = validarLocal(lerCamposDoLocal(dados), lista.map((b) => b.id));
 
   if (!validacao.ok) {
     return { erros: validacao.erros as Record<string, string>, salvo: false };

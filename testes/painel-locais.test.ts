@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ROTULO_ACESSIBILIDADE } from "@/lib/dados/tipos";
 import {
+  lerCamposDoLocal,
   paraLocal,
   paraLocalNaLista,
   RECURSOS_DE_ACESSIBILIDADE,
@@ -24,6 +25,68 @@ function campos(over: Partial<Parameters<typeof validarLocal>[0]> = {}) {
     ...over,
   };
 }
+
+/*
+  Irmã de `lerCamposDoMedico` em painel-edicao.test.ts, e pelo mesmo motivo:
+  dentro da ação, a leitura do formulário não tinha teste nenhum.
+*/
+describe("lerCamposDoLocal", () => {
+  function formulario(pares: Record<string, string> = {}): FormData {
+    const dados = new FormData();
+    for (const [chave, valor] of Object.entries(pares)) dados.append(chave, valor);
+    return dados;
+  }
+
+  it("cada campo chega ao lugar certo, os oito de uma vez", () => {
+    expect(
+      lerCamposDoLocal(
+        formulario({
+          logradouro: "Rua Simplício Moreira",
+          numero: "1200",
+          complemento: "sala 4",
+          bairroId: "2",
+          cep: "65900-000",
+          telefone: "99 3524-3716",
+          whatsapp: "99 98802-0205",
+          estacionamento: "on",
+        }),
+      ),
+    ).toEqual({
+      logradouro: "Rua Simplício Moreira",
+      numero: "1200",
+      complemento: "sala 4",
+      bairroId: "2",
+      cep: "65900-000",
+      telefone: "99 3524-3716",
+      whatsapp: "99 98802-0205",
+      estacionamento: true,
+    });
+  });
+
+  it("caixa desmarcada vira false, não undefined", () => {
+    expect(lerCamposDoLocal(formulario()).estacionamento).toBe(false);
+  });
+
+  it("campo ausente vira string vazia, não a palavra \"null\"", () => {
+    const campos = lerCamposDoLocal(formulario());
+    expect(campos.logradouro).toBe("");
+    expect(campos.numero).toBe("");
+    expect(campos.bairroId).toBe("");
+    expect(campos.telefone).toBe("");
+    expect(campos.whatsapp).toBe("");
+  });
+
+  it("campo esvaziado atravessa vazio, e é isso que apaga o telefone", () => {
+    /*
+      A regra do importador — célula vazia nunca apaga — vale para planilha,
+      onde branco significa "não tenho essa informação". Num formulário
+      PRÉ-PREENCHIDO, campo que o operador esvaziou é uma afirmação: "este
+      consultório não tem telefone". Se o vazio não atravessasse daqui, o
+      telefone seria inapagável pela tela. Ver a seção 9 da especificação.
+    */
+    expect(lerCamposDoLocal(formulario({ telefone: "" })).telefone).toBe("");
+  });
+});
 
 describe("validarLocal", () => {
   it("aceita o mínimo: logradouro e bairro", () => {

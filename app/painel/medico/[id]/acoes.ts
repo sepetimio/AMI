@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { validarMedico } from "@/lib/painel/medico";
+import { lerCamposDoMedico, validarMedico } from "@/lib/painel/medico";
 import { clienteDoPainel } from "@/lib/painel/servidor";
 import { exigirAdmin } from "@/lib/painel/sessao";
 
@@ -29,16 +29,12 @@ export async function salvarMedico(
     return { erros: { geral: "Identificador de médico inválido." }, salvo: false };
   }
 
-  const validacao = validarMedico({
-    nome: String(dados.get("nome") ?? ""),
-    crm: String(dados.get("crm") ?? ""),
-    crmUf: String(dados.get("crmUf") ?? ""),
-    telemedicina: dados.get("telemedicina") === "on",
-    associadoAmi: dados.get("associadoAmi") === "on",
-    situacao: String(dados.get("situacao") ?? "ativo"),
-    bio: String(dados.get("bio") ?? ""),
-    verificadoEm: String(dados.get("verificadoEm") ?? ""),
-  });
+  /*
+    A leitura do formulário mora em `lib/painel/medico.ts`, ao lado da
+    validação que a consome: aqui dentro ela não tinha teste nenhum, e trocar
+    a leitura da caixa "associado" por `true` passava a suíte inteira.
+  */
+  const validacao = validarMedico(lerCamposDoMedico(dados));
 
   if (!validacao.ok) {
     return { erros: validacao.erros as Record<string, string>, salvo: false };

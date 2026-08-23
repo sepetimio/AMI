@@ -73,6 +73,34 @@ export type ValidacaoDeLocal =
   | { ok: true; valor: LocalValidado }
   | { ok: false; erros: Partial<Record<keyof CamposDoLocal, string>> };
 
+/*
+  A ponte entre o formulário e a validação, irmã de `lerCamposDoMedico` em
+  `lib/painel/medico.ts` — e extraída pelo mesmo motivo: dentro da ação ela
+  não tinha teste nenhum, e trocar a leitura da caixa de estacionamento por
+  `true` passava a suíte inteira.
+
+  Campo ausente vira string vazia, não a palavra "null" que `String(null)`
+  devolve. Caixa desmarcada vira `false`, não `undefined`: o navegador não
+  manda a caixa desmarcada, e `undefined` gravaria nulo numa coluna booleana.
+*/
+export function lerCamposDoLocal(dados: FormData): CamposDoLocal {
+  const texto = (campo: string): string => {
+    const valor = dados.get(campo);
+    return valor === null ? "" : String(valor);
+  };
+
+  return {
+    logradouro: texto("logradouro"),
+    numero: texto("numero"),
+    complemento: texto("complemento"),
+    bairroId: texto("bairroId"),
+    cep: texto("cep"),
+    telefone: texto("telefone"),
+    whatsapp: texto("whatsapp"),
+    estacionamento: dados.get("estacionamento") === "on",
+  };
+}
+
 /** Vazio vira nulo. No banco, nulo e string vazia significam coisas diferentes. */
 function ouNulo(s: string): string | null {
   const limpo = s.trim();

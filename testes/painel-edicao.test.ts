@@ -1,5 +1,90 @@
 import { describe, expect, it } from "vitest";
+import { lerCamposDoMedico } from "@/lib/painel/medico";
 import { fonte, semComentarios } from "@/testes/apoio";
+
+/*
+  A ponte entre o formulário e a validação, com um `FormData` de verdade.
+
+  Ela não tinha teste nenhum: trocar `dados.get("associadoAmi") === "on"` por
+  `true` dentro da ação passava a suíte inteira, e o defeito faria TODO médico
+  salvo virar associado — o campo de que depende a decisão de nunca apagar
+  médico. Testar aqui, e não pela ação, evita simular o Supabase, que este
+  projeto nunca fez.
+*/
+describe("lerCamposDoMedico", () => {
+  function formulario(pares: Record<string, string> = {}): FormData {
+    const dados = new FormData();
+    for (const [chave, valor] of Object.entries(pares)) dados.append(chave, valor);
+    return dados;
+  }
+
+  const CHEIO = {
+    nome: "Ana Ribeiro",
+    crm: "12345",
+    crmUf: "MA",
+    telemedicina: "on",
+    associadoAmi: "on",
+    situacao: "inativo",
+    bio: "Atende desde 1998.",
+    verificadoEm: "2026-08-23",
+  };
+
+  it("cada campo chega ao lugar certo, os oito de uma vez", () => {
+    expect(lerCamposDoMedico(formulario(CHEIO))).toEqual({
+      nome: "Ana Ribeiro",
+      crm: "12345",
+      crmUf: "MA",
+      telemedicina: true,
+      associadoAmi: true,
+      situacao: "inativo",
+      bio: "Atende desde 1998.",
+      verificadoEm: "2026-08-23",
+    });
+  });
+
+  it("caixa marcada vira true", () => {
+    const campos = lerCamposDoMedico(formulario({ associadoAmi: "on", telemedicina: "on" }));
+    expect(campos.associadoAmi).toBe(true);
+    expect(campos.telemedicina).toBe(true);
+  });
+
+  it("caixa desmarcada vira false, não undefined", () => {
+    /*
+      O navegador não manda a caixa desmarcada: o campo simplesmente não
+      existe no envio. `undefined` aqui gravaria nulo numa coluna booleana, e
+      um `||` no lugar do `===` deixaria quem saiu da associação associado
+      para sempre.
+    */
+    const campos = lerCamposDoMedico(formulario({ nome: "Ana" }));
+    expect(campos.associadoAmi).toBe(false);
+    expect(campos.telemedicina).toBe(false);
+  });
+
+  it("campo ausente vira string vazia, não a palavra \"null\"", () => {
+    /*
+      `String(null)` devolve "null" — quatro letras que passariam por
+      `validarMedico` como nome, CRM e biografia de verdade.
+    */
+    const campos = lerCamposDoMedico(formulario());
+    expect(campos.nome).toBe("");
+    expect(campos.crm).toBe("");
+    expect(campos.crmUf).toBe("");
+    expect(campos.bio).toBe("");
+    expect(campos.verificadoEm).toBe("");
+  });
+
+  it("situação ausente vira ativo, que é o padrão do cadastro", () => {
+    expect(lerCamposDoMedico(formulario()).situacao).toBe("ativo");
+  });
+
+  it("caixa marcada com qualquer outro valor não vira true", () => {
+    /*
+      `=== "on"` e não "veio alguma coisa": uma requisição montada à mão pode
+      mandar `associadoAmi=off`, e "off" é um valor presente.
+    */
+    expect(lerCamposDoMedico(formulario({ associadoAmi: "off" })).associadoAmi).toBe(false);
+  });
+});
 
 describe("salvarMedico", () => {
   const codigo = semComentarios(fonte("../app/painel/medico/[id]/acoes.ts"));
