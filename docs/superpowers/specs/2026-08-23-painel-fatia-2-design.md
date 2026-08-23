@@ -282,9 +282,16 @@ Remover tira o médico do consultório. O consultório continua existindo.
 
 **Atravessando tudo**
 
-6. **Célula vazia nunca apaga.** Salvar o formulário com o telefone em branco mantém o
-   telefone que estava lá. Apagar é ação explícita, com botão próprio. É a mesma regra
-   que `lib/importador/plano.ts:46` já segue, e vale a pena ser igual nos dois lugares
+6. **Célula vazia nunca apaga — no importador. No formulário do painel, apaga.**
+   Numa planilha, célula em branco significa "não tenho essa informação", e é por isso
+   que `lib/importador/plano.ts:46` ignora o vazio em vez de apagar o que já estava lá.
+   Num formulário **pré-preenchido** o vazio significa outra coisa: o campo chegou à
+   tela com o telefone que o banco tem, e o operador o esvaziou de propósito — é uma
+   afirmação, "este consultório não tem telefone", exatamente o raciocínio que já vale
+   para a caixa de marcar desmarcada. Aplicar aqui a regra do importador tornaria o
+   telefone inapagável pela tela, sem nenhum outro caminho para corrigi-lo.
+   *(Corrigido em 23/08/2026: a regra tinha sido escrita para os dois lugares, e o
+   código do painel, que já gravava o vazio, estava certo.)*
 7. Todos os erros de um formulário voltam de uma vez, não um por vez — como
    `validarMedico` já faz
 8. **Toda gravação pede as linhas afetadas de volta** e falha alto quando não vem
