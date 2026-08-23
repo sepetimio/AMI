@@ -4,7 +4,7 @@ import { oQueFalta, validarMedico, type CamposDoMedico } from "@/lib/painel/medi
 function campos(p: Partial<CamposDoMedico> = {}): CamposDoMedico {
   return {
     nome: "Ana Souza", crm: "4821", crmUf: "MA",
-    telemedicina: false, situacao: "ativo", bio: "", verificadoEm: "",
+    telemedicina: false, associadoAmi: false, situacao: "ativo", bio: "", verificadoEm: "",
     ...p,
   };
 }
@@ -60,7 +60,7 @@ describe("validarMedico — o que sai limpo", () => {
     if (!r.ok) return;
     expect(r.valor).toEqual({
       nome: "Ana Souza", crm: "4821", crm_uf: "MA",
-      telemedicina: false, situacao: "ativo",
+      telemedicina: false, associado_ami: false, situacao: "ativo",
       bio: null, verificado_em: null,
     });
   });
@@ -89,6 +89,38 @@ describe("validarMedico — o que sai limpo", () => {
     const r = validarMedico(campos({ verificadoEm: "2026-08-22" }));
     if (!r.ok) throw new Error("não deveria rejeitar");
     expect(r.valor.verificado_em).toBe("2026-08-22");
+  });
+
+  it("carrega o campo de associado para o banco", () => {
+    const r = validarMedico({
+      nome: "Aline Peixoto",
+      crm: "11918",
+      crmUf: "MA",
+      telemedicina: false,
+      associadoAmi: true,
+      situacao: "ativo",
+      bio: "",
+      verificadoEm: "",
+    });
+
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.valor.associado_ami).toBe(true);
+  });
+
+  it("associado falso é gravado como falso, não descartado", () => {
+    const r = validarMedico({
+      nome: "Aline Peixoto",
+      crm: "11918",
+      crmUf: "MA",
+      telemedicina: false,
+      associadoAmi: false,
+      situacao: "ativo",
+      bio: "",
+      verificadoEm: "",
+    });
+
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.valor.associado_ami).toBe(false);
   });
 });
 

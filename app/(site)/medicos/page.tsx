@@ -30,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: `Médicos em Imperatriz - MA | ${total} profissionais | AMI`,
     description:
       `${total} médicos em ${especialidades.length} especialidades em ` +
-      `Imperatriz - MA. Veja endereço, telefone e horários de atendimento.`,
+      `Imperatriz - MA. Veja endereço, telefone e especialidade de cada médico.`,
     alternates: { canonical: "/medicos" },
   };
 }
@@ -66,8 +66,8 @@ export default async function PaginaMedicos() {
         }
       >
         Em {contagem(especialidades.length, "especialidade", "especialidades")},
-        com endereço, telefone e horários por dia da semana. Todos os registros
-        trazem o CRM, conforme exige a Resolução CFM 2.336/2023.
+        com endereço e telefone de cada médico. Todos os registros trazem o
+        CRM, conforme exige a Resolução CFM 2.336/2023.
       </Cabeceira>
 
       <div className="mx-auto max-w-[1200px] px-4 md:px-6">

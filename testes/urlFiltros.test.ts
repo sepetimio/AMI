@@ -8,7 +8,6 @@ describe("filtrosDaQuery", () => {
         termo: "cardio",
         bairro: "centro",
         telemedicina: "1",
-        sabado: "1",
         acessibilidade: "acesso_cadeirante",
         associados: "1",
         ordem: "nome",
@@ -17,7 +16,6 @@ describe("filtrosDaQuery", () => {
       termo: "cardio",
       bairro: "centro",
       telemedicina: true,
-      atendeSabado: true,
       acessibilidade: ["acesso_cadeirante"],
       somenteAssociados: true,
       ordem: "nome",
@@ -81,7 +79,6 @@ describe("queryDosFiltros", () => {
     const original = {
       termo: "jose",
       bairro: "bacuri",
-      atendeSabado: true,
       acessibilidade: ["elevador" as const],
     };
     const query = queryDosFiltros(original);

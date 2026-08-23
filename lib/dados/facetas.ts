@@ -30,7 +30,6 @@ export type ResumoFaceta = {
   bairrosComOferta: { nome: string; total: number }[];
   /** Endereços distintos, que é sempre >= total quando alguém tem dois. */
   totalLocais: number;
-  atendemSabado: number;
   comTelemedicina: number;
   /** Conta LOCAIS, não profissionais — o nome diz isso para não derivar. */
   locaisComAcessoCadeirante: number;
@@ -49,10 +48,9 @@ function lista(nomes: string[]): string {
  * Parágrafo de abertura da página de faceta.
  *
  * Gerado a partir dos dados reais: quantos profissionais, em quantos
- * endereços, onde se concentram, quantos atendem aos sábados, quantos fazem
- * telemedicina, quantos locais têm acesso para cadeirante. Nunca um
- * texto-modelo com a palavra trocada — é exatamente isso que o Google
- * classifica como conteúdo raso.
+ * endereços, onde se concentram, quantos fazem telemedicina, quantos locais
+ * têm acesso para cadeirante. Nunca um texto-modelo com a palavra trocada —
+ * é exatamente isso que o Google classifica como conteúdo raso.
  *
  * Nenhuma frase começa com algarismo: em texto corrido em português isso não
  * se faz, e é um dos sinais mais visíveis de texto gerado.
@@ -98,24 +96,6 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
           `no ${principais[0].nome}.`,
       );
     }
-  }
-
-  if (r.atendemSabado > 0) {
-    frases.push(
-      umSo
-        ? `O atendimento inclui os sábados, o que costuma resolver a consulta ` +
-            `de quem trabalha em horário comercial durante a semana.`
-        : `Desses, ${r.atendemSabado} ` +
-            `${r.atendemSabado === 1 ? "atende" : "atendem"} aos sábados, o ` +
-            `que costuma resolver a consulta de quem trabalha em horário ` +
-            `comercial durante a semana.`,
-    );
-  } else {
-    frases.push(
-      `Por enquanto, os atendimentos acontecem apenas em dias úteis, de ` +
-        `segunda a sexta-feira, o que vale considerar ao pedir dispensa no ` +
-        `trabalho para a consulta.`,
-    );
   }
 
   if (r.comTelemedicina > 0) {
@@ -182,10 +162,10 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
     frases.push(
       umSo
         ? `O atendimento acontece em mais de um endereço, o que costuma ` +
-            `ampliar as opções de dia e horário.`
+            `ampliar as opções de local de atendimento.`
         : `Entre eles, ${r.comMaisDeUmEndereco} ` +
             `${r.comMaisDeUmEndereco === 1 ? "atende" : "atendem"} em mais de ` +
-            `um endereço, o que costuma ampliar as opções de dia e horário.`,
+            `um endereço, o que costuma ampliar as opções de local de atendimento.`,
     );
   } else {
     frases.push(
@@ -199,9 +179,8 @@ export function paragrafoDeAbertura(r: ResumoFaceta): string {
      que não varia com os dados é a que faz duas facetas parecerem a mesma
      página, e é o que o Google trata como conteúdo raso. */
   frases.push(
-    `Cada perfil abaixo traz endereço, telefone, horários por dia da semana e ` +
-      `o número de registro no Conselho Regional de Medicina, como exige a ` +
-      `Resolução CFM 2.336/2023.`,
+    `Cada perfil abaixo traz endereço, telefone e o número de registro no ` +
+      `Conselho Regional de Medicina, como exige a Resolução CFM 2.336/2023.`,
   );
 
   return frases.join(" ");
@@ -245,9 +224,6 @@ export function resumirFaceta(
         (a, b) => b.total - a.total || a.nome.localeCompare(b.nome, "pt-BR"),
       ),
     totalLocais: locais.size,
-    atendemSabado: medicos.filter((m) =>
-      m.locais.some((l) => l.horarios.some((h) => h.diaSemana === 6)),
-    ).length,
     comTelemedicina: medicos.filter((m) => m.telemedicina).length,
     locaisComAcessoCadeirante: locaisComAcesso.size,
     associados: medicos.filter((m) => m.associadoAmi).length,

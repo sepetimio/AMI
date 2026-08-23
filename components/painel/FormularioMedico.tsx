@@ -79,6 +79,23 @@ export function FormularioMedico({ medico }: { medico: MedicoDoPainel }) {
         Atende por telemedicina
       </label>
 
+      <div className="flex items-center gap-3">
+        <input
+          id="associadoAmi"
+          name="associadoAmi"
+          type="checkbox"
+          defaultChecked={medico.associadoAmi}
+          className="size-4 accent-ami-green-600"
+        />
+        <label htmlFor="associadoAmi" className="text-[15px] text-ink-900">
+          É associado da AMI
+        </label>
+      </div>
+      <p className="-mt-3 text-[14px] text-ink-400">
+        Quem deixa a associação: desmarque aqui e tire do ar. O cadastro fica
+        guardado, e voltar é um clique.
+      </p>
+
       <div>
         <label htmlFor="bio" className="block text-[14px] font-medium text-ink-600">
           Biografia

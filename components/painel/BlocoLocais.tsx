@@ -1,0 +1,421 @@
+"use client";
+
+import { useActionState } from "react";
+import {
+  criarLocal,
+  desligarLocal,
+  ligarLocalExistente,
+  salvarAcessibilidade,
+  salvarLocal,
+  type EstadoDoLocal,
+} from "@/app/painel/medico/[id]/acoes-local";
+import {
+  RECURSOS_DE_ACESSIBILIDADE,
+  type Bairro,
+  type LocalDoMedico,
+  type LocalNaLista,
+} from "@/lib/painel/locais";
+
+const INICIAL: EstadoDoLocal = { erros: {}, salvo: false };
+
+const CAMPO =
+  "w-full rounded-controle border border-line bg-surface px-4 py-3 text-[16px] " +
+  "text-ink-900 outline-none focus-visible:border-ami-green-600";
+
+/*
+  Telefone e WhatsApp primeiro entre os opcionais, com rótulo maior: não são
+  detalhe do endereço, são o objetivo dele. O site leva até o especialista,
+  quem fecha o encaminhamento é o contato.
+*/
+function CamposDeLocal({
+  idPrefix,
+  listaDeBairros,
+  erros,
+  valores,
+}: {
+  idPrefix: string;
+  listaDeBairros: Bairro[];
+  erros: Record<string, string>;
+  valores?: {
+    logradouro?: string;
+    numero?: string;
+    complemento?: string;
+    bairroId?: number;
+    cep?: string;
+    telefone?: string;
+    whatsapp?: string;
+    estacionamento?: boolean;
+  };
+}) {
+  return (
+    <>
+      <div>
+        <label htmlFor={`logradouro-${idPrefix}`} className="block text-[14px] font-medium text-ink-600">
+          Rua
+        </label>
+        <input
+          id={`logradouro-${idPrefix}`}
+          name="logradouro"
+          defaultValue={valores?.logradouro ?? ""}
+          required
+          className={`mt-1 ${CAMPO}`}
+        />
+        <p aria-live="polite" className="min-h-5 text-[14px] text-warn">
+          {erros.logradouro ?? ""}
+        </p>
+      </div>
+
+      <div>
+        <label htmlFor={`telefone-${idPrefix}`} className="block text-[16px] font-semibold text-ink-900">
+          Telefone
+        </label>
+        <input
+          id={`telefone-${idPrefix}`}
+          name="telefone"
+          defaultValue={valores?.telefone ?? ""}
+          className={`mt-1 ${CAMPO}`}
+        />
+        <p aria-live="polite" className="min-h-5 text-[14px] text-warn">
+          {erros.telefone ?? ""}
+        </p>
+      </div>
+
+      <div>
+        <label htmlFor={`whatsapp-${idPrefix}`} className="block text-[16px] font-semibold text-ink-900">
+          WhatsApp
+        </label>
+        <input
+          id={`whatsapp-${idPrefix}`}
+          name="whatsapp"
+          defaultValue={valores?.whatsapp ?? ""}
+          className={`mt-1 ${CAMPO}`}
+        />
+        <p aria-live="polite" className="min-h-5 text-[14px] text-warn">
+          {erros.whatsapp ?? ""}
+        </p>
+      </div>
+
+      <div>
+        <label htmlFor={`bairroId-${idPrefix}`} className="block text-[14px] font-medium text-ink-600">
+          Bairro
+        </label>
+        <select
+          id={`bairroId-${idPrefix}`}
+          name="bairroId"
+          defaultValue={valores?.bairroId ?? ""}
+          className={`mt-1 ${CAMPO}`}
+        >
+          <option value="" disabled>
+            Escolha um bairro
+          </option>
+          {listaDeBairros.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.nome}
+            </option>
+          ))}
+        </select>
+        <p aria-live="polite" className="min-h-5 text-[14px] text-warn">
+          {erros.bairroId ?? ""}
+        </p>
+      </div>
+
+      <div className="flex gap-4">
+        <div className="flex-1">
+          <label htmlFor={`numero-${idPrefix}`} className="block text-[14px] font-medium text-ink-600">
+            Número
+          </label>
+          <input
+            id={`numero-${idPrefix}`}
+            name="numero"
+            defaultValue={valores?.numero ?? ""}
+            className={`mt-1 ${CAMPO}`}
+          />
+        </div>
+        <div className="flex-1">
+          <label htmlFor={`complemento-${idPrefix}`} className="block text-[14px] font-medium text-ink-600">
+            Complemento
+          </label>
+          <input
+            id={`complemento-${idPrefix}`}
+            name="complemento"
+            defaultValue={valores?.complemento ?? ""}
+            className={`mt-1 ${CAMPO}`}
+          />
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor={`cep-${idPrefix}`} className="block text-[14px] font-medium text-ink-600">
+          CEP
+        </label>
+        <input id={`cep-${idPrefix}`} name="cep" defaultValue={valores?.cep ?? ""} className={`mt-1 ${CAMPO}`} />
+      </div>
+
+      <label className="flex items-center gap-2 text-[15px] text-ink-900">
+        <input
+          type="checkbox"
+          name="estacionamento"
+          defaultChecked={valores?.estacionamento ?? false}
+          className="size-4 accent-ami-green-600"
+        />
+        Estacionamento
+      </label>
+    </>
+  );
+}
+
+/** O que identifica um consultório para quem está escolhendo na lista. */
+function rotuloDoLocal(local: LocalNaLista): string {
+  const numero = local.numero ? `, ${local.numero}` : "";
+  return `${local.logradouro}${numero} — ${local.bairro}`;
+}
+
+function CartaoDeLocal({
+  local,
+  medicoId,
+  listaDeBairros,
+}: {
+  local: LocalDoMedico;
+  medicoId: number;
+  listaDeBairros: Bairro[];
+}) {
+  const [estado, acao, pendente] = useActionState(salvarLocal, INICIAL);
+  const [estadoTirar, acaoTirar, pendenteTirar] = useActionState(desligarLocal, INICIAL);
+  const [estadoAcessibilidade, acaoAcessibilidade, pendenteAcessibilidade] = useActionState(
+    salvarAcessibilidade,
+    INICIAL,
+  );
+
+  return (
+    <div className="mt-6 rounded-bloco border border-line p-6">
+      {local.quantosMedicos > 1 ? (
+        <p className="mb-4 rounded-bloco border border-line bg-surface px-4 py-3 text-[15px] text-ink-600">
+          Este endereço é usado por {local.quantosMedicos} médicos. Corrigir aqui
+          corrige para todos eles.
+        </p>
+      ) : null}
+
+      <form action={acao} className="space-y-4">
+        <input type="hidden" name="localId" value={local.id} />
+
+        <CamposDeLocal
+          idPrefix={String(local.id)}
+          listaDeBairros={listaDeBairros}
+          erros={estado.erros}
+          valores={{
+            logradouro: local.logradouro,
+            numero: local.numero ?? "",
+            complemento: local.complemento ?? "",
+            bairroId: local.bairro.id,
+            cep: local.cep ?? "",
+            telefone: local.telefone ?? "",
+            whatsapp: local.whatsapp ?? "",
+            estacionamento: local.estacionamento,
+          }}
+        />
+
+        <p aria-live="polite" className="min-h-5 text-[14px] text-warn">
+          {estado.erros.geral ?? ""}
+        </p>
+
+        <button
+          type="submit"
+          disabled={pendente}
+          className="pressiona rounded-controle bg-ami-green-600 px-5 py-3 text-[15px] font-semibold text-white hover:bg-ami-green-700"
+        >
+          {pendente ? "Salvando…" : "Salvar"}
+        </button>
+
+        <p aria-live="polite" className="min-h-5 text-[14px] text-ink-600">
+          {estado.salvo ? "Salvo." : ""}
+        </p>
+      </form>
+
+      <form action={acaoAcessibilidade} className="mt-6 border-t border-line pt-4">
+        <input type="hidden" name="localId" value={local.id} />
+
+        <fieldset>
+          <legend className="text-[14px] font-medium text-ink-600">Acessibilidade</legend>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {RECURSOS_DE_ACESSIBILIDADE.map((r) => (
+              <label key={r.valor} className="flex items-center gap-2 text-[15px] text-ink-900">
+                <input
+                  type="checkbox"
+                  name="recurso"
+                  value={r.valor}
+                  defaultChecked={local.acessibilidade.includes(r.valor)}
+                  className="size-4 accent-ami-green-600"
+                />
+                {r.rotulo}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <p aria-live="polite" className="mt-2 min-h-5 text-[14px] text-warn">
+          {estadoAcessibilidade.erros.geral ?? ""}
+        </p>
+
+        <button
+          type="submit"
+          disabled={pendenteAcessibilidade}
+          className="pressiona mt-2 rounded-controle border border-line px-4 py-3 text-[15px] font-medium text-ink-600 hover:text-ink-900"
+        >
+          {pendenteAcessibilidade ? "Salvando…" : "Salvar acessibilidade"}
+        </button>
+
+        <p aria-live="polite" className="min-h-5 text-[14px] text-ink-600">
+          {estadoAcessibilidade.salvo ? "Salvo." : ""}
+        </p>
+      </form>
+
+      <form action={acaoTirar} className="mt-6 border-t border-line pt-4">
+        <input type="hidden" name="medicoId" value={medicoId} />
+        <input type="hidden" name="localId" value={local.id} />
+        <button
+          type="submit"
+          disabled={pendenteTirar}
+          className="text-[14px] text-ink-400 underline hover:text-ink-900"
+        >
+          {pendenteTirar ? "Tirando…" : "Tirar deste consultório"}
+        </button>
+        <p className="mt-1 text-[13px] text-ink-400">
+          Tira o médico daqui. O consultório continua existindo.
+        </p>
+        <p aria-live="polite" className="min-h-5 text-[14px] text-warn">
+          {estadoTirar.erros.geral ?? ""}
+        </p>
+      </form>
+    </div>
+  );
+}
+
+export function BlocoLocais({
+  medicoId,
+  locais,
+  listaDeBairros,
+  todosOsLocais,
+}: {
+  medicoId: number;
+  locais: LocalDoMedico[];
+  listaDeBairros: Bairro[];
+  todosOsLocais: LocalNaLista[];
+}) {
+  const [estadoNovo, acaoNovo, pendenteNovo] = useActionState(criarLocal, INICIAL);
+  const [estadoLigar, acaoLigar, pendenteLigar] = useActionState(ligarLocalExistente, INICIAL);
+
+  const jaTem = new Set(locais.map((l) => l.id));
+  const disponiveisParaLigar = todosOsLocais.filter((l) => !jaTem.has(l.id));
+
+  return (
+    <section className="mt-12 max-w-[640px]">
+      <h2 className="text-[20px] font-semibold text-ink-900">Consultórios</h2>
+      <p className="mt-1 text-[15px] text-ink-600">
+        Telefone e WhatsApp são o que fecha o encaminhamento: o site leva até o
+        especialista, mas quem agenda é a própria pessoa, por contato direto.
+      </p>
+
+      {locais.length === 0 ? (
+        <p className="mt-6 text-[16px] text-ink-600">
+          Nenhum consultório ainda. Sem pelo menos um, este médico não aparece
+          com endereço em nenhuma busca do site.
+        </p>
+      ) : (
+        locais.map((local) => (
+          <CartaoDeLocal
+            key={local.id}
+            local={local}
+            medicoId={medicoId}
+            listaDeBairros={listaDeBairros}
+          />
+        ))
+      )}
+
+      <div className="mt-8 rounded-bloco border border-line p-6">
+        <h3 className="text-[16px] font-semibold text-ink-900">Consultório já cadastrado</h3>
+        <p className="mt-1 text-[14px] text-ink-600">
+          O mesmo endereço pode servir vários médicos. Ligar a um já existente
+          evita cadastrar a mesma clínica duas vezes.
+        </p>
+
+        <form action={acaoLigar} className="mt-4 flex flex-wrap items-end gap-3">
+          <input type="hidden" name="medicoId" value={medicoId} />
+          <div className="flex-1">
+            <label htmlFor="localId-existente" className="block text-[14px] font-medium text-ink-600">
+              Escolha um consultório
+            </label>
+            {/*
+              Abre vazio, não no primeiro endereço da lista. Aberto no
+              primeiro, quem clicasse em "Ligar" sem escolher ligava o médico
+              ao consultório de outra pessoa — e isso vai ao ar na página
+              pública. A ação recusa id vazio em português; isto é a outra
+              metade. Mesmo desenho do `select` de bairro acima.
+            */}
+            <select
+              id="localId-existente"
+              name="localId"
+              defaultValue=""
+              disabled={disponiveisParaLigar.length === 0}
+              className={`mt-1 ${CAMPO}`}
+            >
+              <option value="" disabled>
+                Escolha um consultório
+              </option>
+              {disponiveisParaLigar.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {rotuloDoLocal(l)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="submit"
+            disabled={disponiveisParaLigar.length === 0 || pendenteLigar}
+            className="pressiona rounded-controle border border-line px-4 py-3 text-[15px] font-medium text-ink-600 hover:text-ink-900"
+          >
+            {pendenteLigar ? "Ligando…" : "Ligar a este consultório"}
+          </button>
+        </form>
+        <p aria-live="polite" className="min-h-5 text-[14px] text-warn">
+          {estadoLigar.erros.geral ?? ""}
+        </p>
+      </div>
+
+      <div className="mt-8 rounded-bloco border border-line p-6">
+        <h3 className="text-[16px] font-semibold text-ink-900">Novo consultório</h3>
+
+        <form action={acaoNovo} className="mt-4 space-y-4">
+          <input type="hidden" name="medicoId" value={medicoId} />
+
+          <CamposDeLocal
+            idPrefix="novo"
+            listaDeBairros={listaDeBairros}
+            erros={estadoNovo.erros}
+          />
+
+          <p aria-live="polite" className="min-h-5 text-[14px] text-warn">
+            {estadoNovo.erros.geral ?? ""}
+          </p>
+
+          <button
+            type="submit"
+            disabled={pendenteNovo}
+            className="pressiona rounded-controle bg-ami-green-600 px-5 py-3 text-[15px] font-semibold text-white hover:bg-ami-green-700"
+          >
+            {pendenteNovo ? "Criando…" : "Criar consultório"}
+          </button>
+
+          {/*
+            O aviso toma o lugar do "Salvo." quando existe: ele diz que deu
+            certo E que deu certo de um jeito diferente do que quem preencheu
+            pediu — o endereço já estava cadastrado, e o médico foi ligado ao
+            que existia. "Salvo." sozinho esconderia isso.
+          */}
+          <p aria-live="polite" className="min-h-5 text-[14px] text-ink-600">
+            {estadoNovo.salvo ? (estadoNovo.aviso ?? "Salvo.") : ""}
+          </p>
+        </form>
+      </div>
+    </section>
+  );
+}

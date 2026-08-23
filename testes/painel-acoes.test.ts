@@ -7,6 +7,12 @@ import { fonte, semComentarios } from "@/testes/apoio";
   Varredura em vez de lista à mão: a fatia 2 acrescenta várias ações, e uma
   lista literal é garantia que apodrece sozinha — este arquivo já ficou duas
   tarefas cobrindo dois terços do que dizia cobrir.
+
+  Qualquer `acoes*.ts`, não só o nome exato `acoes.ts`. A igualdade estrita
+  que estava aqui achava três dos cinco arquivos, e os dois que ela pulava —
+  `acoes-especialidade.ts` e `acoes-local.ts` — são justamente os únicos do
+  repositório que chamam `.delete()`. A varredura escrita para não apodrecer
+  já nasceu podre.
 */
 function acoesDoPainel(relativo: string): string[] {
   const dir = fileURLToPath(new URL(relativo, import.meta.url));
@@ -15,7 +21,7 @@ function acoesDoPainel(relativo: string): string[] {
   for (const entrada of readdirSync(dir, { withFileTypes: true })) {
     const caminho = `${relativo}/${entrada.name}`;
     if (entrada.isDirectory()) achados.push(...acoesDoPainel(caminho));
-    else if (entrada.name === "acoes.ts") achados.push(caminho);
+    else if (/^acoes[\w-]*\.ts$/.test(entrada.name)) achados.push(caminho);
   }
 
   return achados;
@@ -24,8 +30,15 @@ function acoesDoPainel(relativo: string): string[] {
 const ACOES = acoesDoPainel("../app/painel");
 
 describe("as ações do painel", () => {
-  it("a varredura acha os três arquivos de ação", () => {
-    expect(ACOES.length).toBeGreaterThanOrEqual(3);
+  it("a varredura acha os cinco arquivos de ação", () => {
+    expect(ACOES.length).toBeGreaterThanOrEqual(5);
+    /*
+      Os dois que a igualdade estrita pulava, nomeados: são os que removem, e
+      um `>= 5` sozinho voltaria a ficar verde se a varredura passasse a achar
+      cinco arquivos errados.
+    */
+    expect(ACOES).toContain("../app/painel/medico/[id]/acoes-especialidade.ts");
+    expect(ACOES).toContain("../app/painel/medico/[id]/acoes-local.ts");
   });
 
   for (const caminho of ACOES) {
@@ -34,12 +47,30 @@ describe("as ações do painel", () => {
     });
   }
 
-  it("nenhuma ação remove nada", () => {
-    /* Não existe política de remoção no banco, então uma chamada de remoção
-       aqui falharia — mas falharia em tempo de execução, e o teste é mais
-       barato que descobrir assim. */
+  it("remoção só nas três tabelas de ligação", () => {
+    /*
+      A fatia 2 concede remoção em profissional_especialidade, atendimento e
+      local_acessibilidade, e em mais nada. Este teste vigia o lado do código:
+      a política do banco é a outra metade, em painel-migracao.test.ts.
+    */
+    const PERMITIDAS = [
+      "profissional_especialidade",
+      "atendimento",
+      "local_acessibilidade",
+    ];
+
     for (const caminho of ACOES) {
-      expect(semComentarios(fonte(caminho))).not.toMatch(/\.delete\s*\(/);
+      const codigo = semComentarios(fonte(caminho));
+      const tabelas = [...codigo.matchAll(/from\(["'](\w+)["']\)([\s\S]*?)(?=from\(["']|$)/g)];
+
+      for (const [, tabela, trecho] of tabelas) {
+        if (/\.delete\s*\(/.test(trecho)) {
+          expect(
+            PERMITIDAS,
+            `${caminho} remove de ${tabela}, que não permite remoção`,
+          ).toContain(tabela);
+        }
+      }
     }
   });
 });

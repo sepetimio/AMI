@@ -512,7 +512,7 @@ Esperado: FALHA em "não concede remoção em nenhuma tabela de cadastro". **Apa
 
       for (const caminho of ACOES) {
         const codigo = semComentarios(fonte(caminho));
-        const tabelas = [...codigo.matchAll(/from\("(\w+)"\)([\s\S]*?)(?=from\("|\z)/g)];
+        const tabelas = [...codigo.matchAll(/from\("(\w+)"\)([\s\S]*?)(?=from\("|$)/g)];
 
         for (const [, tabela, trecho] of tabelas) {
           if (/\.delete\s*\(/.test(trecho)) {
@@ -1038,7 +1038,7 @@ describe("acoes-especialidade.ts", () => {
   });
 
   it("só remove de profissional_especialidade", () => {
-    const tabelas = [...codigo.matchAll(/from\("(\w+)"\)([\s\S]*?)(?=from\("|\z)/g)];
+    const tabelas = [...codigo.matchAll(/from\("(\w+)"\)([\s\S]*?)(?=from\("|$)/g)];
     for (const [, tabela, trecho] of tabelas) {
       if (/\.delete\s*\(/.test(trecho)) {
         expect(tabela).toBe("profissional_especialidade");
@@ -1821,7 +1821,7 @@ describe("acoes-local.ts", () => {
   const codigo = semComentarios(fonte("../app/painel/medico/[id]/acoes-local.ts"));
 
   it("nunca remove da tabela local", () => {
-    const tabelas = [...codigo.matchAll(/from\("(\w+)"\)([\s\S]*?)(?=from\("|\z)/g)];
+    const tabelas = [...codigo.matchAll(/from\("(\w+)"\)([\s\S]*?)(?=from\("|$)/g)];
     for (const [, tabela, trecho] of tabelas) {
       if (/\.delete\s*\(/.test(trecho)) expect(tabela).toBe("atendimento");
     }

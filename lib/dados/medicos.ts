@@ -16,7 +16,6 @@ const SELECAO = `
     especialidade ( nome, slug )
   ),
   atendimento (
-    horario ( dia_semana, abre, fecha ),
     local (
       id, logradouro, numero, telefone, whatsapp, estacionamento,
       bairro ( id, nome, slug ),
@@ -24,10 +23,6 @@ const SELECAO = `
     )
   )
 `;
-
-/* O Postgres devolve `time` como "08:00:00"; a interface e os testes
-   trabalham com "HH:MM". */
-const hhmm = (t: string) => t.slice(0, 5);
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function paraDominio(linha: any): Medico {
@@ -54,10 +49,10 @@ function paraDominio(linha: any): Medico {
       suspensório: garante a mesma ordem independentemente do que o banco
       devolver, e continua correto mesmo que a consulta mude no futuro e
       perca aquele `.order`. Sem isso, `locais[0]` — que `LinhaMedico`,
-      `jsonld.ts` e a página de perfil usam para decidir bairro, telefone,
-      selo de aberto/fechado e endereço do JSON-LD — poderia apontar para um
-      consultório diferente a cada renderização de um médico com dois
-      endereços, e o ISR congelaria essa escolha arbitrária por uma hora.
+      `jsonld.ts` e a página de perfil usam para decidir bairro, telefone
+      e endereço do JSON-LD — poderia apontar para um consultório diferente
+      a cada renderização de um médico com dois endereços, e o ISR
+      congelaria essa escolha arbitrária por uma hora.
     */
     locais: (linha.atendimento ?? [])
       .map((a: any) => ({
@@ -71,11 +66,6 @@ function paraDominio(linha: any): Medico {
         acessibilidade: (a.local.local_acessibilidade ?? []).map(
           (r: any) => r.recurso as RecursoAcessibilidade,
         ),
-        horarios: (a.horario ?? []).map((h: any) => ({
-          diaSemana: h.dia_semana,
-          abre: hhmm(h.abre),
-          fecha: hhmm(h.fecha),
-        })),
       }))
       .sort((a: { id: number }, b: { id: number }) => a.id - b.id),
   };

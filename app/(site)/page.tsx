@@ -30,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: "Associação Médica de Imperatriz",
     description:
       `${total} médicos e ${especialidades.length} especialidades em ` +
-      `Imperatriz - MA. Filtre por especialidade e bairro, e veja horários.`,
+      `Imperatriz - MA. Filtre por especialidade e bairro.`,
     alternates: { canonical: "/" },
   };
 }
@@ -253,9 +253,9 @@ export default async function Home() {
               verificada.
             </p>
             <p className="coluna-leitura mt-4 text-ink-600">
-              Cada perfil traz nome, número de inscrição no CRM, endereço de
-              atendimento e horário. Sem nota, sem classificação e sem destaque
-              pago: a ordem é a mesma para todo mundo.
+              Cada perfil traz nome, número de inscrição no CRM e endereço de
+              atendimento. Sem nota, sem classificação e sem destaque pago: a
+              ordem é a mesma para todo mundo.
             </p>
             <p className="mt-8">
               <Link

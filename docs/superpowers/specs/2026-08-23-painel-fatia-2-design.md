@@ -282,9 +282,16 @@ Remover tira o médico do consultório. O consultório continua existindo.
 
 **Atravessando tudo**
 
-6. **Célula vazia nunca apaga.** Salvar o formulário com o telefone em branco mantém o
-   telefone que estava lá. Apagar é ação explícita, com botão próprio. É a mesma regra
-   que `lib/importador/plano.ts:46` já segue, e vale a pena ser igual nos dois lugares
+6. **Célula vazia nunca apaga — no importador. No formulário do painel, apaga.**
+   Numa planilha, célula em branco significa "não tenho essa informação", e é por isso
+   que `lib/importador/plano.ts:46` ignora o vazio em vez de apagar o que já estava lá.
+   Num formulário **pré-preenchido** o vazio significa outra coisa: o campo chegou à
+   tela com o telefone que o banco tem, e o operador o esvaziou de propósito — é uma
+   afirmação, "este consultório não tem telefone", exatamente o raciocínio que já vale
+   para a caixa de marcar desmarcada. Aplicar aqui a regra do importador tornaria o
+   telefone inapagável pela tela, sem nenhum outro caminho para corrigi-lo.
+   *(Corrigido em 23/08/2026: a regra tinha sido escrita para os dois lugares, e o
+   código do painel, que já gravava o vazio, estava certo.)*
 7. Todos os erros de um formulário voltam de uma vez, não um por vez — como
    `validarMedico` já faz
 8. **Toda gravação pede as linhas afetadas de volta** e falha alto quando não vem
@@ -381,3 +388,14 @@ nenhuma página pode referenciar um componente que não existe mais. Um `grep` p
   corrige o telefone achando que mexe só no seu médico e mexe em seis
 - **A tabela `horario` fica no banco sem uso.** Decisão deliberada: apagar dado é pior
   que deixá-lo parado, e as 246 linhas somem junto com os fictícios no lançamento
+- **Tirar o médico de um consultório apaga linhas de `horario`, por cascata.**
+  `horario.atendimento_id` referencia `atendimento` com `on delete cascade`, em
+  `0001_diretorio.sql`. Remover uma linha de `atendimento` é permitido nesta fatia, e o
+  Postgres apaga junto os horários daquele vínculo — `horario` está na lista do "nunca
+  remove", mas **cascata de integridade referencial não passa por política de linha**:
+  nenhuma política impede, e nenhuma poderia. **Fica como está**, e é escolha
+  registrada: os horários saíram do produto nesta mesma fatia, as 246 linhas são dos
+  médicos fictícios, nada as lê, e alterar a chave estrangeira de uma tabela já
+  aplicada custa mais que o dano. A garantia da lista vale para escrita direta, e o
+  comentário de `NUNCA_REMOVE`, em `testes/painel-migracao.test.ts`, diz isso no lugar
+  onde alguém iria confiar nela

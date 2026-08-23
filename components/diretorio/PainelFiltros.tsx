@@ -41,7 +41,6 @@ export function PainelFiltros({
   const ativos = [
     sp.get("bairro"),
     sp.get("telemedicina"),
-    sp.get("sabado"),
     sp.get("associados"),
     ...sp.getAll("acessibilidade"),
   ].filter(Boolean).length;
@@ -142,15 +141,6 @@ export function PainelFiltros({
               className="size-5 accent-ami-green-600"
             />
             Atende por telemedicina
-          </label>
-          <label className="-mx-2 flex min-h-11 cursor-pointer items-center gap-2.5 rounded-controle px-2 text-[15px] transition-colors duration-150 hover:bg-ami-mint-100">
-            <input
-              type="checkbox"
-              checked={sp.get("sabado") === "1"}
-              onChange={(e) => aplicar({ atendeSabado: e.target.checked })}
-              className="size-5 accent-ami-green-600"
-            />
-            Atende aos sábados
           </label>
         </fieldset>
 

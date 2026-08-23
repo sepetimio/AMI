@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { Chip } from "@/components/base/Chip";
-import { GradeHorarios } from "@/components/diretorio/GradeHorarios";
 import { Placa } from "@/components/diretorio/Placa";
 import { LinhaMedico } from "@/components/diretorio/LinhaMedico";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -126,11 +125,11 @@ export default async function PaginaPerfil({ params }: Props) {
           {m.locais.map((l) => (
             /* Cada endereço em painel próprio. Antes eram duas colunas soltas
                separadas por espaço em branco, e com dois consultórios ficava
-               ambíguo qual horário pertencia a qual endereço. O painel é o que
-               responde essa pergunta sem uma palavra de explicação. */
+               ambíguo qual telefone pertencia a qual endereço. O painel é o
+               que responde essa pergunta sem uma palavra de explicação. */
             <div
               key={l.id}
-              className="grid gap-6 rounded-bloco border border-line bg-surface p-5 shadow-apoio md:grid-cols-[1fr_auto] md:gap-10 md:p-6"
+              className="rounded-bloco border border-line bg-surface p-5 shadow-apoio md:p-6"
             >
               <div>
                 <h3>{l.bairro.nome}</h3>
@@ -140,17 +139,30 @@ export default async function PaginaPerfil({ params }: Props) {
                   {l.bairro.nome}, Imperatriz - MA
                 </address>
 
-                {l.telefone ? (
-                  <p className="mt-4">
-                    <a
-                      href={`tel:+55${l.telefone.replace(/\D/g, "")}`}
-                      className="pressiona inline-flex min-h-11 items-center rounded-controle bg-ami-green-600 px-5 font-semibold text-white shadow-apoio hover:bg-ami-green-700 hover:shadow-erguido"
-                    >
-                      Ligar&nbsp;
-                      <span className="registro">
-                        {formatarTelefone(l.telefone)}
-                      </span>
-                    </a>
+                {l.telefone || l.whatsapp ? (
+                  <p className="mt-4 flex flex-wrap gap-3">
+                    {l.telefone ? (
+                      <a
+                        href={`tel:+55${l.telefone.replace(/\D/g, "")}`}
+                        className="pressiona inline-flex min-h-11 items-center rounded-controle bg-ami-green-600 px-5 font-semibold text-white shadow-apoio hover:bg-ami-green-700 hover:shadow-erguido"
+                      >
+                        Ligar&nbsp;
+                        <span className="registro">
+                          {formatarTelefone(l.telefone)}
+                        </span>
+                      </a>
+                    ) : null}
+                    {l.whatsapp ? (
+                      <a
+                        href={`https://wa.me/55${l.whatsapp.replace(/\D/g, "")}`}
+                        className="pressiona inline-flex min-h-11 items-center rounded-controle border border-line bg-canvas px-5 font-semibold text-ami-green-600 hover:border-ami-green-600 hover:bg-ami-mint-100"
+                      >
+                        WhatsApp&nbsp;
+                        <span className="registro">
+                          {formatarTelefone(l.whatsapp)}
+                        </span>
+                      </a>
+                    ) : null}
                   </p>
                 ) : null}
 
@@ -168,11 +180,6 @@ export default async function PaginaPerfil({ params }: Props) {
                     ) : null}
                   </ul>
                 ) : null}
-              </div>
-
-              <div className="md:w-[300px]">
-                <h3 className="sr-only">Horários em {l.bairro.nome}</h3>
-                <GradeHorarios horarios={l.horarios} />
               </div>
             </div>
           ))}

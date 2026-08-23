@@ -89,7 +89,7 @@ O site tem um link para o perfil oficial da AMI numa rede social. É apenas um l
 
 ### Os dados dos médicos publicados
 
-O diretório publica dados profissionais dos médicos associados: nome, número de inscrição no Conselho Regional de Medicina, especialidade, registro de qualificação de especialista quando houver, endereço de atendimento, telefone do consultório e horário.
+O diretório publica dados profissionais dos médicos associados: nome, número de inscrição no Conselho Regional de Medicina, especialidade, registro de qualificação de especialista quando houver, endereço de atendimento e telefone do consultório.
 
 São dados de exercício profissional, de natureza pública, e a publicação atende à finalidade institucional da associação de tornar seus associados localizáveis pela população. Nenhum dado pessoal de natureza privada do médico é publicado.
 
@@ -130,7 +130,7 @@ Este texto pode mudar quando o site mudar. A data de atualização aparece no al
 
 Este site é mantido pela Associação Médica de Imperatriz, associação privada, inscrita no CNPJ sob o número 06.651.376/0001-42, com sede na Rua Coriolano Milhomem, 39, Centro, Imperatriz - MA, CEP 65900-330.
 
-É um diretório de consulta pública, criado para que a população de Imperatriz e da região encontre médicos que atendem na cidade, com endereço, telefone e horário.
+É um diretório de consulta pública, criado para que a população de Imperatriz e da região encontre médicos que atendem na cidade, com endereço e telefone.
 
 ### O que este site não é
 
@@ -150,7 +150,7 @@ Essa vedação atende à Resolução CFM 2.336/2023 e é decisão permanente de 
 
 ### De onde vêm os dados, e como corrigir
 
-As informações de cada profissional são fornecidas por ele e revisadas pela AMI. Ainda assim, dado desatualizado acontece: consultório muda de endereço, telefone muda, horário muda.
+As informações de cada profissional são fornecidas por ele e revisadas pela AMI. Ainda assim, dado desatualizado acontece: consultório muda de endereço, telefone muda.
 
 Confirme por telefone antes de se deslocar.
 

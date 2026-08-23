@@ -12,16 +12,6 @@ import { AMI } from "@/lib/ami";
   e premiação.
 */
 
-const DIAS = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
-
 function enderecoDaAmi() {
   return {
     "@type": "PostalAddress",
@@ -70,25 +60,6 @@ export function physician(m: Medico, siteUrl: string) {
   const principal = m.especialidades.find((e) => e.principal) ?? m.especialidades[0];
   const local = m.locais[0];
 
-  /*
-    Horário sai APENAS do local cujo endereço está sendo declarado.
-    Agregar os horários de todos os consultórios sob um endereço só faria o
-    Google ler expediente que não acontece naquele lugar — dado estruturado
-    errado é pior que dado estruturado ausente.
-
-    Dia fora de 0..6 é descartado em vez de virar dayOfWeek indefinido, que
-    JSON.stringify apagaria sem avisar. A coluna tem CHECK no banco, então
-    isto é cinto e suspensório.
-  */
-  const horarios = (local?.horarios ?? [])
-    .filter((h) => DIAS[h.diaSemana] !== undefined)
-    .map((h) => ({
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: DIAS[h.diaSemana],
-      opens: h.abre,
-      closes: h.fecha,
-    }));
-
   return {
     "@context": "https://schema.org",
     "@type": "Physician",
@@ -120,7 +91,6 @@ export function physician(m: Medico, siteUrl: string) {
           ...(local.telefone ? { telephone: local.telefone } : {}),
         }
       : {}),
-    ...(horarios.length ? { openingHoursSpecification: horarios } : {}),
     ...(m.telemedicina
       ? { availableService: { "@type": "MedicalTherapy", name: "Telemedicina" } }
       : {}),

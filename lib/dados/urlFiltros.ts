@@ -34,7 +34,6 @@ export function filtrosDaQuery(sp: Query): Filtros {
   if (bairro) f.bairro = bairro;
 
   if (texto(sp.telemedicina) === "1") f.telemedicina = true;
-  if (texto(sp.sabado) === "1") f.atendeSabado = true;
   if (texto(sp.associados) === "1") f.somenteAssociados = true;
 
   const bruto = sp.acessibilidade;
@@ -70,7 +69,6 @@ export function queryDosFiltros(f: Filtros): string {
   if (f.termo) p.set("termo", f.termo);
   if (f.bairro) p.set("bairro", f.bairro);
   if (f.telemedicina) p.set("telemedicina", "1");
-  if (f.atendeSabado) p.set("sabado", "1");
   for (const r of RECURSOS) {
     if (f.acessibilidade?.includes(r)) p.append("acessibilidade", r);
   }

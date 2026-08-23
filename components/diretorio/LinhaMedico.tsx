@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Chip } from "@/components/base/Chip";
 import { Placa } from "@/components/diretorio/Placa";
-import { SeloAbertoAgora } from "@/components/diretorio/SeloAbertoAgora";
 import { formatarTelefone, identificacaoMedica } from "@/lib/formato";
 import { ROTULO_ACESSIBILIDADE, type Medico } from "@/lib/dados/tipos";
 
@@ -31,16 +30,11 @@ export function LinhaMedico({ medico }: { medico: Medico }) {
   const principal =
     medico.especialidades.find((e) => e.principal) ?? medico.especialidades[0];
   /*
-    Tudo nesta linha fala do MESMO consultório: o bairro, o telefone, a
-    acessibilidade e o selo de aberto. Agregar o horário de todos os endereços
-    faria a linha dizer "Aberto agora" por causa de um consultório que não é o
-    do telefone exibido, e quem liga cai na secretária eletrônica.
-
-    Quem atende em mais de um lugar tem todos eles no perfil, com o horário de
-    cada um. A linha de resultado mostra um, inteiro e coerente.
+    Tudo nesta linha fala do MESMO consultório: o bairro, o telefone e a
+    acessibilidade. Quem atende em mais de um lugar tem todos eles no perfil.
+    A linha de resultado mostra um, inteiro e coerente.
   */
   const local = medico.locais[0];
-  const horarios = local?.horarios ?? [];
   const acessibilidade = local?.acessibilidade ?? [];
   const outros = medico.locais.length - 1;
 
@@ -86,9 +80,9 @@ export function LinhaMedico({ medico }: { medico: Medico }) {
           ) : null}
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            {/* Ordem fixa: filiação, depois fatos do consultório, e o estado
-                por último. O olho aprende a ordem em duas linhas e para de
-                reler a fileira inteira em todas as outras. */}
+            {/* Ordem fixa: filiação, depois fatos do consultório. O olho
+                aprende a ordem em duas linhas e para de reler a fileira
+                inteira em todas as outras. */}
             {medico.associadoAmi ? (
               <Chip tom="associado">Associado AMI</Chip>
             ) : null}
@@ -97,9 +91,6 @@ export function LinhaMedico({ medico }: { medico: Medico }) {
             {acessibilidade.includes("acesso_cadeirante") ? (
               <Chip>{ROTULO_ACESSIBILIDADE.acesso_cadeirante}</Chip>
             ) : null}
-            {/* Sem consultório cadastrado não há o que afirmar. "Fechado
-                agora" pareceria informação e seria chute. */}
-            {local ? <SeloAbertoAgora horarios={horarios} /> : null}
           </div>
 
           {/* Saiu da fileira de pílulas: não é atributo do profissional, é

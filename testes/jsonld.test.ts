@@ -36,7 +36,6 @@ const medico: Medico = {
       whatsapp: "9933334444",
       estacionamento: true,
       acessibilidade: ["acesso_cadeirante"],
-      horarios: [{ diaSemana: 2, abre: "08:00", fecha: "12:00" }],
     },
   ],
 };
@@ -61,67 +60,12 @@ describe("physician", () => {
     expect(e.streetAddress).toContain("Rua Projetada 100");
   });
 
-  it("declara horário de funcionamento", () => {
-    expect(Array.isArray(p.openingHoursSpecification)).toBe(true);
-  });
-
   it("aponta a AMI como organização de origem", () => {
     expect(JSON.stringify(p.memberOf)).toContain("Associação Médica");
   });
 
   it("nunca traz nota agregada — não existem avaliações neste site", () => {
     expect(p.aggregateRating).toBeUndefined();
-  });
-
-  it("declara apenas o horário do endereço que declarou", () => {
-    /* Dois consultórios: o segundo abre num dia em que o primeiro não abre.
-       Se o horário do segundo aparecer sob o endereço do primeiro, o Google
-       lê expediente que não acontece ali. */
-    const comDois = physician(
-      {
-        ...medico,
-        locais: [
-          medico.locais[0],
-          {
-            ...medico.locais[0],
-            id: 2,
-            logradouro: "Rua Segunda",
-            horarios: [{ diaSemana: 5, abre: "14:00", fecha: "18:00" }],
-          },
-        ],
-      },
-      SITE,
-    ) as Record<string, unknown>;
-
-    const dias = (comDois.openingHoursSpecification as { dayOfWeek: string }[])
-      .map((h) => h.dayOfWeek);
-    expect(dias).toEqual(["Tuesday"]);
-    expect(dias).not.toContain("Friday");
-    expect(
-      (comDois.address as Record<string, string>).streetAddress,
-    ).toContain("Rua Projetada 100");
-  });
-
-  it("descarta dia da semana fora da faixa em vez de emitir indefinido", () => {
-    const torto = physician(
-      {
-        ...medico,
-        locais: [
-          {
-            ...medico.locais[0],
-            horarios: [
-              { diaSemana: 2, abre: "08:00", fecha: "12:00" },
-              { diaSemana: 9, abre: "08:00", fecha: "12:00" },
-            ],
-          },
-        ],
-      },
-      SITE,
-    ) as Record<string, unknown>;
-
-    const horas = torto.openingHoursSpecification as { dayOfWeek: string }[];
-    expect(horas).toHaveLength(1);
-    for (const h of horas) expect(h.dayOfWeek).toBeDefined();
   });
 });
 

@@ -18,6 +18,7 @@ export type CamposDoMedico = {
   crm: string;
   crmUf: string;
   telemedicina: boolean;
+  associadoAmi: boolean;
   situacao: string;
   bio: string;
   verificadoEm: string;
@@ -29,6 +30,7 @@ export type MedicoValidado = {
   crm: string;
   crm_uf: string;
   telemedicina: boolean;
+  associado_ami: boolean;
   situacao: "ativo" | "inativo";
   bio: string | null;
   verificado_em: string | null;
@@ -39,6 +41,41 @@ export type Validacao =
   | { ok: false; erros: Partial<Record<keyof CamposDoMedico, string>> };
 
 const SITUACOES = ["ativo", "inativo"] as const;
+
+/*
+  A ponte entre o formulário e a validação.
+
+  Extraída da ação por um motivo medido: com a leitura escrita dentro de
+  `salvarMedico`, trocar `dados.get("associadoAmi") === "on"` por `true`
+  passava a suíte inteira — todo médico salvo viraria associado, no campo de
+  que depende a decisão de nunca apagar médico. Ficando pura aqui, ela é
+  testável com um `FormData` de verdade, sem simular o Supabase (que este
+  projeto nunca fez, e não é aqui que começa).
+
+  Duas armadilhas que o teste vigia, e que o `?? ""` e o `=== "on"` existem
+  para evitar: campo ausente vira string vazia, não a palavra "null" — que é o
+  que `String(null)` devolve, e o que faria `validarMedico` aceitar "null"
+  como nome; e caixa desmarcada vira `false`, não `undefined` — o navegador
+  simplesmente não manda a caixa desmarcada, e um `undefined` ali gravaria
+  nulo numa coluna booleana.
+*/
+function texto(dados: FormData, campo: string, seVazio = ""): string {
+  const valor = dados.get(campo);
+  return valor === null ? seVazio : String(valor);
+}
+
+export function lerCamposDoMedico(dados: FormData): CamposDoMedico {
+  return {
+    nome: texto(dados, "nome"),
+    crm: texto(dados, "crm"),
+    crmUf: texto(dados, "crmUf"),
+    telemedicina: dados.get("telemedicina") === "on",
+    associadoAmi: dados.get("associadoAmi") === "on",
+    situacao: texto(dados, "situacao", "ativo"),
+    bio: texto(dados, "bio"),
+    verificadoEm: texto(dados, "verificadoEm"),
+  };
+}
 
 /** Data no formato que a coluna `date` do Postgres aceita. */
 function ehDataISO(s: string): boolean {
@@ -82,6 +119,12 @@ export function validarMedico(campos: CamposDoMedico): Validacao {
       crm,
       crm_uf: crmUf,
       telemedicina: campos.telemedicina,
+      /*
+        Caixa desmarcada é afirmação, não ausência: "não é associado". A regra
+        de célula vazia não se aplica a booleano, e trocar isto por um `||`
+        deixaria quem saiu da associação associado para sempre.
+      */
+      associado_ami: campos.associadoAmi,
       situacao: situacao as "ativo" | "inativo",
       /* Vazio vira nulo, não string vazia: no banco os dois significam coisas
          diferentes, e a tela do site testa `bio ? ... : null`. */

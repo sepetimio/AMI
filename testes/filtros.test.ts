@@ -27,7 +27,6 @@ const local = (bairroSlug: string, extras: Partial<Medico["locais"][0]> = {}) =>
   whatsapp: null,
   estacionamento: false,
   acessibilidade: [],
-  horarios: [{ diaSemana: 2, abre: "08:00", fecha: "12:00" }],
   ...extras,
 });
 
@@ -51,7 +50,6 @@ const ana = medico({
   locais: [
     local("bacuri", {
       acessibilidade: ["acesso_cadeirante"],
-      horarios: [{ diaSemana: 6, abre: "08:00", fecha: "12:00" }],
     }),
   ],
 });
@@ -75,11 +73,6 @@ describe("aplicarFiltros", () => {
 
   it("filtra por telemedicina", () => {
     expect(aplicarFiltros(todos, { telemedicina: true })).toHaveLength(1);
-  });
-
-  it("filtra por atendimento no sábado", () => {
-    const r = aplicarFiltros(todos, { atendeSabado: true });
-    expect(r.map((m) => m.nome)).toEqual(["Ana Bezerra"]);
   });
 
   it("filtra por acessibilidade", () => {
