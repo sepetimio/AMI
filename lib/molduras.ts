@@ -18,12 +18,17 @@ import type { Banner } from "@/lib/sanity/tipos";
   "demonstração" quando a variável nem está configurada.
 
   Com a chave falsa, nenhuma moldura sai, haja ou não conteúdo real: sem
-  banner o carrossel some, sem notícia o bloco some, e "Sua AMI" e a faixa de
-  parceiros, que não têm conteúdo real nenhum, somem sempre. É o
-  comportamento de antes, da spec.
+  banner o carrossel some, sem notícia o bloco some, e a faixa de parceiros,
+  que não tem conteúdo real nenhum, some sempre. É o comportamento de antes,
+  da spec. "Sua AMI" e "Seja associado" recebem a chave direto da home e
+  decidem sozinhos (components/home/SuaAmi.tsx e SejaAssociado.tsx).
 
   Arte real e provisória nunca se misturam: havendo um banner real, os três
   provisórios saem todos; havendo uma notícia real, as provisórias também.
+
+  Um banner real também pode trazer moldura: o slide de foto com texto
+  ("composto") cadastrado sem foto, cuja área de foto o carrossel desenha
+  como "a entrar". Na demonstração ele fica; fora dela, sai do carrossel.
 */
 
 /* Um banner que ainda não tem arte. `tipo: "provisorio"` é o que o carrossel
@@ -65,8 +70,6 @@ export const BANNERS_PROVISORIOS: BannerProvisorio[] = [
 export type MoldurasDaHome = {
   /** O que o carrossel recebe: os reais, os três provisórios, ou nada. */
   banners: ItemDoCarrossel[];
-  /** O quarto cartão de "Serviços da AMI". */
-  suaAmi: boolean;
   /** As quatro peças "Notícia a entrar" (destaque e lista) no lugar das últimas notícias. */
   noticiasProvisorias: boolean;
   /** A parte "Empresas parceiras da AMI" da faixa dos bairros. */
@@ -77,13 +80,18 @@ export function moldurasDaHome(
   demonstracao: boolean,
   real: { banners: Banner[]; temNoticia: boolean },
 ): MoldurasDaHome {
+  /* Fora da demonstração, o composto sem foto sai: a área da foto dele seria
+     moldura "a entrar". O carrossel usa o mesmo teste (`item.foto ?`). */
+  const reais = demonstracao
+    ? real.banners
+    : real.banners.filter((b) => b.tipo !== "composto" || Boolean(b.foto));
+
   let banners: ItemDoCarrossel[] = [];
-  if (real.banners.length > 0) banners = real.banners;
+  if (reais.length > 0) banners = reais;
   else if (demonstracao) banners = BANNERS_PROVISORIOS;
 
   return {
     banners,
-    suaAmi: demonstracao,
     noticiasProvisorias: demonstracao && !real.temNoticia,
     parceiros: demonstracao,
   };
@@ -94,8 +102,8 @@ export function moldurasDaHome(
 
   Foto com material real sai sempre. Foto ainda provisória sai como moldura
   "Fotografia a entrar" só no modo demonstração; fora dele não sai nada, e
-  quem a usa decide o que fazer com o vão (ver o bloco institucional em
-  app/(site)/page.tsx). Antes de 03/10/2026 a moldura de foto saía em
+  quem a usa decide o que fazer com o vão (ver "Seja associado", em
+  components/home/SejaAssociado.tsx). Antes de 03/10/2026 a moldura de foto saía em
   qualquer modo, e era a única "a entrar" que chegava ao público com a chave
   desligada.
 */
@@ -113,9 +121,8 @@ export function desenhoDaFotografia(
   Missão, visão e valores, os cartões de "Quem é a AMI?" na home.
 
   A AMI ainda não entregou nenhum dos três textos, e não há onde guardá-los:
-  a home vai passar os três como `null` quando montar o bloco (tarefa 10).
-  A mesma trava das outras molduras
-  decide o que sai. Texto real sai sempre. O que falta sai como "Texto da AMI
+  a home (app/(site)/page.tsx) passa os três como `null`. A mesma trava das
+  outras molduras decide o que sai. Texto real sai sempre. O que falta sai como "Texto da AMI
   a entrar." só no modo demonstração; fora dele o cartão não existe. A ordem
   é sempre missão, visão, valores, e texto em branco conta como nenhum.
 */

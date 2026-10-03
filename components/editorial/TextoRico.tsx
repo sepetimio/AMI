@@ -105,7 +105,8 @@ const componentes: PortableTextComponents = {
 
       return (
         <figure className="mt-9">
-          {/* Moldura concêntrica, a mesma do bloco institucional da home. */}
+          {/* Moldura concêntrica: casca com fio e respiro de 8px em volta da
+              imagem, para ela assentar na página, e não ficar colada. */}
           <div className="rounded-bloco border border-line bg-surface p-2 shadow-erguido">
             {/* eslint-disable-next-line @next/next/no-img-element --
                 o CDN do Sanity já redimensiona e converte formato; ver o

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fonte, semComentarios } from "@/testes/apoio";
-import { MENU, ehAtual } from "@/components/layout/MenuPrincipal";
+import { ehAtual } from "@/components/layout/MenuPrincipal";
+import { MENU, menuDoSite } from "@/lib/menu";
 import { deveFechar } from "@/lib/gaveta";
 
 const MENU_SRC = semComentarios(fonte("../components/layout/MenuPrincipal.tsx"));
@@ -24,6 +25,22 @@ describe("o cabecalho", () => {
     expect(MENU.map((m) => m.href)).toEqual([
       "/", "/associacao", "/busca", "/medicos", "/#sua-ami", "/noticias", "/contato",
     ]);
+  });
+
+  it("na demonstracao o menu e o aprovado inteiro; fora dela, sem Sua AMI", () => {
+    /* O bloco "Sua AMI" da home so existe na demonstracao; fora dela o
+       link levaria ao nada. A renderizacao nos dois modos esta em
+       testes/sua-ami-no-menu.test.ts. */
+    expect(menuDoSite(true)).toEqual(MENU);
+    expect(menuDoSite(false).map((m) => m.rotulo)).toEqual([
+      "Início", "A Associação", "Encontre um médico", "Especialidades", "Notícias", "Contato",
+    ]);
+  });
+
+  it("o cabecalho, que roda no servidor, passa ao menu a lista ja decidida pela chave", () => {
+    /* O menu e componente de cliente: ele nao le a chave, recebe a lista. */
+    expect(CAB).toContain("itens={menuDoSite(DADOS_DEMONSTRACAO)}");
+    expect(MENU_SRC).not.toMatch(/DADOS_DEMONSTRACAO|process\.env/);
   });
 
   it("e filho direto do layout, para ficar preso a pagina inteira", () => {

@@ -371,7 +371,9 @@ describe("a faixa dos bairros e dos parceiros", () => {
       expect(secao).toContain('id="bairros"');
       expect(secao).toContain('data-bloco="bairros"');
       expect(secao).toContain('aria-labelledby="bairros-titulo"');
-      expect(secao).toContain(`class="${estilosFaixa.faixa}"`);
+      /* A faixa, a marca de faixa que o rodapé lê e a entrada na tela. */
+      expect(secao).toContain(`class="revelar ${estilosFaixa.faixa}"`);
+      expect(secao).toContain('data-faixa=""');
       expect(saida).toMatch(/<span class="rotulo-secao" data-coluna="">Onde os médicos atendem<\/span>/);
       expect(saida).toMatch(/<h2 [^>]*id="bairros-titulo"[^>]*>Escolha o seu bairro<\/h2>/);
     }

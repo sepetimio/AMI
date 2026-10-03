@@ -9,9 +9,11 @@ const PILULAS = 7;
   "Encontre um médico": a faixa verde de ponta a ponta da home, com o campo
   de busca e as especialidades com mais médicos.
 
-  A faixa vai fora da caixa centralizada da página. O texto dela fica na
+  A faixa vai fora da caixa centralizada da página e leva `data-faixa`, a
+  marca das faixas de ponta a ponta (o rodapé a lê). O texto dela fica na
   mesma linha vertical do resto porque a margem lateral é `--borda-faixa`
-  (app/globals.css), a mesma do rodapé.
+  (app/globals.css), a mesma do rodapé. Entra na tela com a `.revelar`
+  global.
 
   O campo é um formulário HTML de verdade, GET para `/busca`: funciona sem
   JavaScript e o resultado vira uma URL que se compartilha. O nome do campo é
@@ -40,8 +42,9 @@ export function EncontreUmMedico({
     <section
       id="encontre"
       data-bloco="encontre"
+      data-faixa=""
       aria-labelledby="encontre-titulo"
-      className={`textura-verde ${styles.encontre}`}
+      className={`textura-verde revelar ${styles.encontre}`}
     >
       <div className="brilho" aria-hidden="true"></div>
 

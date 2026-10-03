@@ -6,7 +6,7 @@ import type { Medico } from "@/lib/dados/tipos";
 
 /*
   A porta da busca: os dois lugares do site público onde dá para DIGITAR —
-  o cartão "Encontre um médico", na home, e o painel de filtros de `/busca`.
+  o bloco "Encontre um médico", na home, e o painel de filtros de `/busca`.
   E um lugar onde NÃO dá: o mesmo painel nas páginas de especialidade.
 
   O maquinário de busca por texto está inteiro há muito tempo — `casaNoNome`
@@ -19,8 +19,9 @@ import type { Medico } from "@/lib/dados/tipos";
   digitar.
 
   Este arquivo pergunta. E pergunta pelo HTML RENDERIZADO, não pelo
-  texto-fonte: `<form>` dentro de `<a>` é a armadilha concreta deste cartão
-  (o navegador desmonta a árvore, e nada em `.tsx` denuncia isso), e uma
+  texto-fonte: `<form>` dentro de `<a>` foi a armadilha concreta do cartão
+  de antes, em que os vizinhos eram links inteiros (o navegador desmonta a
+  árvore, e nada em `.tsx` denuncia isso), e uma
   varredura de fonte não distingue um campo vivo de um campo dentro de
   `{false && …}` — ver o comentário no topo de testes/home.test.ts.
 
@@ -89,7 +90,7 @@ vi.mock("@/lib/dados/especialidades", () => ({
   bairrosComContagem: async () => [{ nome: "Centro", slug: "centro", total: 1 }],
 }));
 
-const { ServicosDaAmi } = await import("@/components/home/ServicosDaAmi");
+const { EncontreUmMedico } = await import("@/components/home/EncontreUmMedico");
 const { PainelFiltros } = await import("@/components/diretorio/PainelFiltros");
 const { default: PaginaBusca } = await import("@/app/(site)/busca/page");
 const { default: PaginaEspecialidade } = await import(
@@ -123,10 +124,8 @@ const BUSCA_PARAMS = {
 };
 
 const CARTOES = renderToString(
-  createElement(ServicosDaAmi, {
-    total: 24,
-    especialidades: 9,
-    ultimaNoticia: null,
+  createElement(EncontreUmMedico, {
+    especialidades: [{ nome: "Cardiologia", slug: "cardiologia", total: 1 }],
   }),
 );
 
@@ -150,7 +149,7 @@ function formularioDentroDeAncora(html: string): boolean {
   return false;
 }
 
-describe("o cartão Encontre um médico, na home", () => {
+describe("o bloco Encontre um médico, na home", () => {
   it("manda um termo digitado para /busca, por GET", () => {
     expect(CARTOES).toMatch(/<form[^>]*action="\/busca"/);
     expect(CARTOES).toMatch(/<form[^>]*method="get"/);
@@ -164,9 +163,8 @@ describe("o cartão Encontre um médico, na home", () => {
 
   it("o formulário não está dentro de um link", () => {
     /*
-      Os outros cartões da grade são `<Link>` inteiros, e a tentação é
-      manter a simetria. Se alguém devolver este a `<Link href="/medicos">`
-      sem tirar o formulário de dentro, o navegador desmonta a árvore e o
+      As pílulas e o "veja todas" do mesmo bloco são links. Se alguém
+      embrulhar o bloco num `<Link>`, o navegador desmonta a árvore e o
       campo deixa de enviar. Esta asserção é a que fica vermelha nesse dia.
     */
     expect(formularioDentroDeAncora(CARTOES)).toBe(false);

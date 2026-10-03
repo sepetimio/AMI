@@ -20,18 +20,18 @@ const ICONES: Record<CartaoInstitucional["titulo"], NomeIcone> = {
 
 /*
   "Seja associado" e "Quem é a AMI?": a faixa branca de ponta a ponta da
-  home. Ainda não está na página: na home, vai entrar depois de "Sua AMI"
-  (tarefa 10).
+  home, logo depois de "Sua AMI" (app/(site)/page.tsx).
 
-  A faixa vai ficar fora da caixa centralizada, como a busca verde; o texto fica na
-  mesma linha vertical do resto porque a margem lateral é `--borda-faixa`
-  (app/globals.css).
+  A faixa fica fora da caixa centralizada, como a busca verde, e leva
+  `data-faixa`, a marca das faixas de ponta a ponta (o rodapé a lê); o texto
+  fica na mesma linha vertical do resto porque a margem lateral é
+  `--borda-faixa` (app/globals.css). Entra na tela com a `.revelar` global.
 
   A foto dos associados obedece a trava de `desenhoDaFotografia`: sem foto
   real e fora da demonstração não sai nada, e então a grade não ganha a
-  segunda coluna e o texto ocupa a largura toda — o mesmo padrão do bloco
-  institucional de app/(site)/page.tsx. A pergunta é feita aqui, antes da
-  casca, porque `Fotografia` devolvendo `null` deixaria a casca vazia.
+  segunda coluna e o texto ocupa a largura toda. A pergunta é feita aqui,
+  antes da casca, porque `Fotografia` devolvendo `null` deixaria a casca
+  vazia.
 
   Os cartões de missão, visão e valores vêm de `quemEhAmi` (lib/molduras.ts).
   Sem cartão nenhum (fora da demonstração e sem texto da AMI), a introdução
@@ -53,7 +53,12 @@ export function SejaAssociado({
   const { cartoes } = quemEhAmi(demonstracao, texto);
 
   return (
-    <section data-bloco="associe" aria-labelledby="associe-titulo" className={styles.faixa}>
+    <section
+      data-bloco="associe"
+      data-faixa=""
+      aria-labelledby="associe-titulo"
+      className={`revelar ${styles.faixa}`}
+    >
       <div className={`${styles.duplo}${temFoto ? ` ${styles.comFoto}` : ""}`}>
         <div className={styles.corpo}>
           <span className="rotulo-secao" data-coluna="">

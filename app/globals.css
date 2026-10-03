@@ -79,15 +79,18 @@
   /* Onde cada verde escuro está HOJE, conferido por grep e não de memória.
      Os dois comentários anteriores descreviam um site que não é este: um
      dizia "cabeçalho", e nenhum cabeçalho é verde; o outro dizia "faixa de
-     seção" antes de existir uma — hoje existe, a da home, logo abaixo. */
+     seção" antes de existir uma — hoje existe, a busca verde da home, logo
+     abaixo. */
 
-  /* A faixa do topo da home (components/home/FaixaDaAmi.tsx), o bloco e a
-     tarja de legenda da moldura provisória (components/base/MolduraProvisoria.tsx,
-     usada por Fotografia.tsx, Carrossel.tsx e UltimasNoticias.tsx), o fundo
-     do destaque das notícias e o da notícia sem capa
-     (components/editorial/UltimasNoticias.module.css) e o rodapé
-     (components/layout/Rodape.tsx). O cabeçalho NÃO: Cabecalho.tsx
-     é `bg-surface/80` e Cabeceira.tsx é `bg-surface`.
+  /* A ponta do degradê da `.textura-verde` (mais abaixo neste arquivo),
+     que veste a busca verde da home (components/home/EncontreUmMedico.tsx)
+     e o rodapé (components/layout/Rodape.tsx); o bloco e a tarja de legenda
+     da moldura provisória (components/base/MolduraProvisoria.tsx, usada por
+     Fotografia.tsx, Carrossel.tsx e UltimasNoticias.tsx); o fundo do
+     destaque das notícias e o da notícia sem capa
+     (components/editorial/UltimasNoticias.module.css). O cabeçalho NÃO:
+     Cabecalho.module.css pinta o bloco com `--color-surface`, e
+     Cabeceira.tsx é `bg-surface`.
      Os pares com ele estão medidos em `testes/paleta.test.ts`. */
   --color-ami-green-900: #071A07;
 

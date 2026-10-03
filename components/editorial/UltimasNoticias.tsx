@@ -31,6 +31,9 @@ import type { ResumoNoticia } from "@/lib/sanity/tipos";
   link: não há página de notícia para elas. Havendo UMA notícia real, só a
   real sai, com ou sem `provisorias`: real e provisório nunca se misturam. O
   padrão `false` faz quem esquecer de passar a prop cair no null.
+
+  O bloco entra na tela com a `.revelar` global (app/globals.css), como os
+  outros da home.
 */
 export async function UltimasNoticias({
   provisorias = false,
@@ -78,7 +81,7 @@ export function NoticiasDaHome({
   };
 
   return (
-    <section data-bloco="noticias" aria-labelledby="noticias-titulo">
+    <section data-bloco="noticias" aria-labelledby="noticias-titulo" className="revelar">
       <div className={styles.cabSecao}>
         <div>
           <span className="rotulo-secao" data-coluna="">

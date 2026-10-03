@@ -4,10 +4,8 @@ import { Breadcrumb, type ItemTrilha } from "@/components/layout/Breadcrumb";
   Cabeceira das páginas internas: /medicos, /busca, cada especialidade e cada
   cruzamento de especialidade com bairro.
 
-  Sangra de borda a borda, como a faixa verde do topo da home
-  (components/home/FaixaDaAmi.tsx), e é isso que faz as páginas internas e a
-  home lerem como o mesmo sistema. A faixa da home é verde escuro, sem
-  símbolo, com o título no nível de display; aqui o fundo é a superfície
+  Sangra de borda a borda, como as faixas de ponta a ponta da home (a busca
+  verde, "Seja associado", bairros e parceiros). O fundo é a superfície
   clara, o título é um h1 comum, e o símbolo da AMI entra em máscara sobre o
   degradê de marca, a 5% de opacidade — o mesmo recurso de EstadoVazio.tsx e
   MolduraProvisoria.tsx.

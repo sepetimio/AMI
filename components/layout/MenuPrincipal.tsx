@@ -5,17 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icone } from "@/components/base/Icone";
 import { deveFechar } from "@/lib/gaveta";
+import type { ItemDoMenu } from "@/lib/menu";
 import styles from "@/components/layout/Cabecalho.module.css";
-
-export const MENU: { rotulo: string; href: string }[] = [
-  { rotulo: "Início", href: "/" },
-  { rotulo: "A Associação", href: "/associacao" },
-  { rotulo: "Encontre um médico", href: "/busca" },
-  { rotulo: "Especialidades", href: "/medicos" },
-  { rotulo: "Sua AMI", href: "/#sua-ami" },
-  { rotulo: "Notícias", href: "/noticias" },
-  { rotulo: "Contato", href: "/contato" },
-];
 
 /* Até esta largura (em px) o menu vira gaveta. O mesmo número está nas regras
    de `Cabecalho.module.css`; mude os dois juntos. */
@@ -40,8 +31,12 @@ export function ehAtual(caminho: string, href: string): boolean {
   Folha cliente isolada: o caminho atual e o estado da gaveta só existem no
   navegador. O resto do cabeçalho continua no servidor.
 
+  Os itens chegam prontos do cabeçalho, que roda no servidor e decide pela
+  chave de demonstração (`menuDoSite`, em lib/menu.ts): sete na
+  demonstração, seis fora dela, sem "Sua AMI". O menu não lê a chave.
+
   Acima de 1180px o menu é uma linha só. Abaixo, ele some e o botão abre uma
-  gaveta com os mesmos sete links. A gaveta fecha com o X (o próprio botão),
+  gaveta com os mesmos links. A gaveta fecha com o X (o próprio botão),
   com Esc (devolvendo o foco ao botão), com clique fora e ao escolher um
   item. Se a janela crescer além de 1180px com a gaveta aberta, ela fecha:
   senão o botão sumiria com `aria-expanded="true"`.
@@ -51,7 +46,13 @@ export function ehAtual(caminho: string, href: string): boolean {
 
   `children` é o botão "Seja associado", vindo do servidor.
 */
-export function MenuPrincipal({ children }: { children?: ReactNode }) {
+export function MenuPrincipal({
+  itens,
+  children,
+}: {
+  itens: ItemDoMenu[];
+  children?: ReactNode;
+}) {
   const caminho = usePathname();
   const [aberta, setAberta] = useState(false);
   const botao = useRef<HTMLButtonElement>(null);
@@ -92,7 +93,7 @@ export function MenuPrincipal({ children }: { children?: ReactNode }) {
   return (
     <>
       <nav aria-label="Principal" className={styles.menu}>
-        {MENU.map((item) => (
+        {itens.map((item) => (
           <Link
             key={item.href}
             href={item.href}
@@ -124,7 +125,7 @@ export function MenuPrincipal({ children }: { children?: ReactNode }) {
         className={styles.gaveta}
         data-aberta={aberta}
       >
-        {MENU.map((item) => (
+        {itens.map((item) => (
           <Link
             key={item.href}
             href={item.href}

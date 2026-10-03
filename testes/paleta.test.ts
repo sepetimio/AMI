@@ -53,9 +53,8 @@ const MINIMO = 4.5;
   `@theme inline` nem `--color-*: initial`, então a paleta padrão continua
   de pé ao lado da nossa).
 
-  `text-white` já é usado hoje sobre o verde escuro — a faixa do topo da
-  home (components/home/FaixaDaAmi.tsx) e o rodapé
-  (components/layout/Rodape.tsx) — e sobre o verde de ação dos botões, e
+  `text-white` já é usado hoje sobre o verde de ação dos botões (por
+  exemplo em components/diretorio/LinhaMedico.tsx), e
   por não ter `--color-white` em T a rede contra
   classe morta não os enxergava: nenhuma das duas expressões regulares
   deste arquivo casava `white`/`black`, e a classe escapava da varredura
@@ -242,8 +241,8 @@ const TEXTO_FORA_DO_TESTE: Record<string, string> = {
     "texto sobre fundo escuro, contra ami-green-800/900; sobre fundo claro " +
     "daria o par errado",
   "ink-300":
-    "placeholder dos dois campos de busca (components/home/ServicosDaAmi.tsx " +
-    "e components/diretorio/PainelFiltros.tsx) e separador aria-hidden " +
+    "placeholder do campo de busca de components/diretorio/PainelFiltros.tsx " +
+    "e separador aria-hidden " +
     "(components/layout/Breadcrumb.tsx) — isento de AA por desenho, e testado " +
     "à parte, para REPROVAR, logo abaixo",
 };
@@ -260,9 +259,10 @@ const FUNDOS_FORA_DO_TESTE: Record<string, string> = {
     "text-ami-lima-400 — o par real já é medido no describe texto sobre fundo " +
     "escuro, junto com canvas/surface sobre ami-green-800",
   "ami-green-900":
-    "fundo da faixa do topo da home (components/home/FaixaDaAmi.tsx), do " +
-    "rodapé (components/layout/Rodape.tsx) e do bloco e da tarja de legenda " +
-    "da moldura provisória (components/base/MolduraProvisoria.tsx), com " +
+    "ponta do degradê da `.textura-verde` (app/globals.css: o rodapé e a " +
+    "busca verde da home), fundo do destaque das notícias e da notícia sem capa " +
+    "(components/editorial/UltimasNoticias.module.css) e do bloco e da tarja " +
+    "de legenda da moldura provisória (components/base/MolduraProvisoria.tsx), com " +
     "text-ami-lima-400 ou text-white — o par real já é medido no describe " +
     "texto sobre fundo escuro, junto com canvas/surface sobre ami-green-900",
   warn:
@@ -483,7 +483,8 @@ describe("texto sobre fundo escuro", () => {
 
       Ela não escaneia componente nenhum. Testei isso na prática: pus
       `text-white` de propósito num `<h3>` dentro de um cartão `bg-surface`
-      real (`components/home/ServicosDaAmi.tsx`) e rodei a suíte inteira —
+      real (`components/home/ServicosDaAmi.tsx`, componente que já saiu do
+      site) e rodei a suíte inteira —
       nenhum teste ficou vermelho, nem este, nem a rede contra classe morta
       (CORES_PADRAO_TAILWIND isenta o token, de propósito, e a isenção não
       sabe qual fundo está por perto). Desfiz a isca depois de confirmar.

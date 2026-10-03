@@ -43,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     do que de fato está publicado.
 
     `/contato` fica em 0.7, o mesmo de `/associacao`: os dois são item do
-    menu principal (ver components/layout/MenuPrincipal.tsx), abaixo da home
+    menu principal (ver lib/menu.ts), abaixo da home
     e das duas listagens que trazem a busca.
   */
   const fixas: MetadataRoute.Sitemap = [

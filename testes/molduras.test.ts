@@ -5,7 +5,8 @@ import { Fotografia } from "@/components/base/Fotografia";
 import { UltimasNoticias } from "@/components/editorial/UltimasNoticias";
 import { Carrossel } from "@/components/home/Carrossel";
 import { BairrosEParceiros } from "@/components/home/BairrosEParceiros";
-import { ServicosDaAmi } from "@/components/home/ServicosDaAmi";
+import { SejaAssociado } from "@/components/home/SejaAssociado";
+import { SuaAmi } from "@/components/home/SuaAmi";
 import { ESPACOS, espacosProvisorios, type NomeEspaco } from "@/lib/imagens";
 import {
   BANNERS_PROVISORIOS,
@@ -111,70 +112,9 @@ describe("o carrossel com os três banners provisórios", () => {
   });
 });
 
-describe("o cartão provisório Sua AMI", () => {
-  const props = { total: 24, especialidades: 9, ultimaNoticia: null };
-  const com = html(createElement(ServicosDaAmi, { ...props, suaAmi: true }));
-  const sem = html(createElement(ServicosDaAmi, props));
-
-  /** O cartão inteiro, do `<a>` tracejado até o `</a>` dele. */
-  function cartao(saida: string): string {
-    const inicio = saida.lastIndexOf("<a", saida.indexOf("border-dashed"));
-    return saida.slice(inicio, saida.indexOf("</a>", inicio) + 4);
-  }
-
-  it("é um link para /contato, com título, texto e ação aprovados", () => {
-    const c = cartao(com);
-    /* Sem depender da ordem dos atributos: o `Link` imprime `class` antes
-       de `href`. */
-    expect(c).toMatch(/^<a [^>]*href="\/contato"/);
-    expect(c).toContain(">Sua AMI</h3>");
-    expect(c).toContain("Auditório e hall de eventos da AMI para alugar.");
-    expect(c).toContain("Consultar disponibilidade");
-  });
-
-  it("vem marcado como provisório", () => {
-    expect(cartao(com)).toContain("Serviço a entrar");
-  });
-
-  it("não inventa preço, capacidade, metragem nem horário, e não tem foto", () => {
-    /*
-      Todo o texto visível do cartão, tirado o HTML, comparado por inteiro.
-      A versão anterior só procurava algarismos, e uma revisão provou que
-      "Capacidade para cem pessoas, das oito às dezoito horas, a partir de
-      mil reais." passava com a suíte inteira verde: número por extenso não
-      é algarismo. Qualquer palavra a mais aqui é um fato que alguém pôs.
-    */
-    const visivel = cartao(com)
-      .replace(/<[^>]+>/g, "\n")
-      .split("\n")
-      .map((t) => t.trim())
-      .filter(Boolean);
-    expect(visivel).toEqual([
-      "Sua AMI",
-      "Serviço a entrar",
-      "Auditório e hall de eventos da AMI para alugar.",
-      "Consultar disponibilidade",
-    ]);
-    expect(cartao(com)).not.toMatch(/<img|role="img"/);
-  });
-
-  /** As classes da grade dos cartões, inteiras. */
-  function grade(saida: string): string {
-    return /class="mt-6 grid gap-4 ([^"]*)"/.exec(saida)?.[1].trim() ?? "(sem grade)";
-  }
-
-  it("com ele, a grade passa a 2 por linha do tablet para cima, nunca 4", () => {
-    /* Quatro lado a lado espremia o campo de busca para 128px a 1280 (226px
-       com três) — medido, ver o comentário no componente. */
-    expect(grade(com)).toBe("md:grid-cols-2");
-  });
-
-  it("sem ele, o cartão some e a grade volta a ser a de três", () => {
-    expect(sem).not.toContain("Sua AMI");
-    expect(sem).not.toContain("a entrar");
-    expect(grade(sem)).toBe("md:grid-cols-3");
-  });
-});
+/* O bloco "Sua AMI" (que substituiu o cartão provisório de mesmo nome) é
+   medido em testes/sua-ami-e-associe.test.ts: o texto visível inteiro,
+   sem número nenhum, e nada fora da demonstração. */
 
 describe("as quatro notícias provisórias", () => {
   it("sem notícia real e com provisorias, saem quatro peças Notícia a entrar", async () => {
@@ -246,11 +186,11 @@ describe("a parte de empresas parceiras", () => {
   A trava. É a parte que mais importa: nenhuma moldura "a entrar" pode
   chegar ao público no lançamento.
 
-  `home()` liga a saída de `moldurasDaHome` aos quatro componentes (os parceiros
-  dentro da faixa dos bairros), mais a
-  fotografia provisória do bloco institucional, do jeito
-  que app/(site)/page.tsx liga — a ligação de lá é conferida por texto-fonte
-  em testes/home.test.ts, porque a página busca dados e não renderiza aqui.
+  `home()` liga a saída de `moldurasDaHome` ao carrossel, às notícias e aos
+  parceiros (dentro da faixa dos bairros), e a chave a "Sua AMI" e a "Seja
+  associado", que decidem sozinhos, do jeito que app/(site)/page.tsx liga. A
+  página de verdade, com as mesmas peças, é renderizada em
+  testes/home-renderizada.test.ts.
 */
 async function home(
   demonstracao: boolean,
@@ -262,12 +202,11 @@ async function home(
   });
   return [
     html(createElement(Carrossel, { itens: m.banners })),
+    html(createElement(SuaAmi, { demonstracao })),
     html(
-      createElement(ServicosDaAmi, {
-        total: 24,
-        especialidades: 9,
-        ultimaNoticia: null,
-        suaAmi: m.suaAmi,
+      createElement(SejaAssociado, {
+        demonstracao,
+        texto: { missao: null, visao: null, valores: null },
       }),
     ),
     await noticias(real.publicadas, m.noticiasProvisorias),
@@ -277,7 +216,6 @@ async function home(
         parceiros: m.parceiros,
       }),
     ),
-    html(createElement(Fotografia, { espaco: "sede", demonstracao })),
   ].join("\n");
 }
 
@@ -285,12 +223,35 @@ async function home(
 const MARCAS = [
   "Arte a entrar",
   "Sua AMI",
-  "Serviço a entrar",
+  "Texto da AMI a entrar",
   "Notícia a entrar",
   "Empresas parceiras da AMI",
   "Logotipo a entrar",
   "Fotografia a entrar",
 ];
+
+/* Um slide de foto com texto, sem a foto ainda. */
+const COMPOSTO_SEM_FOTO: Banner = {
+  tipo: "composto",
+  id: "composto",
+  nome: "Os médicos de Imperatriz",
+  foto: null,
+  foco: null,
+  fotoAlt: "",
+  rotulo: null,
+  titulo: "Os médicos de Imperatriz",
+  texto: null,
+  botao: null,
+  destino: "/busca",
+  ordem: 20,
+};
+
+const COMPOSTO_COM_FOTO: Banner = {
+  ...COMPOSTO_SEM_FOTO,
+  id: "composto-com-foto",
+  foto: "https://exemplo.test/medicos.jpg",
+  fotoAlt: "Médicos reunidos no auditório da AMI",
+};
 
 describe("a trava", () => {
   it("com a chave falsa e sem conteúdo real, nenhuma moldura sai — nem a da foto", async () => {
@@ -309,7 +270,6 @@ describe("a trava", () => {
       for (const temNoticia of [false, true]) {
         const m = moldurasDaHome(false, { banners, temNoticia });
         expect(m.banners).toEqual(banners);
-        expect(m.suaAmi).toBe(false);
         expect(m.noticiasProvisorias).toBe(false);
         expect(m.parceiros).toBe(false);
       }
@@ -340,22 +300,29 @@ describe("a trava", () => {
   });
 
   it("um banner com foto e texto também conta como real: tira os provisórios", () => {
-    const composto: Banner = {
-      tipo: "composto",
-      id: "composto",
-      nome: "Os médicos de Imperatriz",
-      foto: null,
-      foco: null,
-      fotoAlt: "",
-      rotulo: null,
-      titulo: "Os médicos de Imperatriz",
-      texto: null,
-      botao: null,
-      destino: "/busca",
-      ordem: 20,
-    };
-    const m = moldurasDaHome(true, { banners: [REAL, composto], temNoticia: false });
-    expect(m.banners).toEqual([REAL, composto]);
+    const m = moldurasDaHome(true, { banners: [REAL, COMPOSTO_SEM_FOTO], temNoticia: false });
+    expect(m.banners).toEqual([REAL, COMPOSTO_SEM_FOTO]);
+  });
+
+  it("fora da demonstração, o slide de foto com texto sem foto sai do carrossel", () => {
+    /* Dentro dela, a área da foto vira moldura (o caso de cima); fora, uma
+       moldura seria "a entrar" chegando ao público. O com foto fica. */
+    const m = moldurasDaHome(false, {
+      banners: [REAL, COMPOSTO_SEM_FOTO, COMPOSTO_COM_FOTO],
+      temNoticia: false,
+    });
+    expect(m.banners).toEqual([REAL, COMPOSTO_COM_FOTO]);
+  });
+
+  it("fora da demonstração, só com slides sem foto, o carrossel fica vazio e some", () => {
+    /* Vazio, e não os provisórios: fora da demonstração eles nunca saem. */
+    expect(
+      moldurasDaHome(false, { banners: [COMPOSTO_SEM_FOTO], temNoticia: false }).banners,
+    ).toEqual([]);
+    /* Na demonstração, o mesmo slide fica, e os provisórios não entram. */
+    expect(
+      moldurasDaHome(true, { banners: [COMPOSTO_SEM_FOTO], temNoticia: false }).banners,
+    ).toEqual([COMPOSTO_SEM_FOTO]);
   });
 
   it("uma notícia real tira as provisórias, mesmo com a chave verdadeira", () => {

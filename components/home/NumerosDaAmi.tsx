@@ -16,7 +16,8 @@ import { AMI } from "@/lib/ami";
   para que serve o botão.
 
   O bloco não tem margem própria: quem o põe na página (a home) decide o
-  espaço de cima, com `--ritmo`, e o põe dentro da caixa centralizada.
+  espaço de cima, com `--ritmo`, e o põe na coluna centralizada. Entra na
+  tela com a `.revelar` global.
 */
 export function NumerosDaAmi({
   anos,
@@ -72,7 +73,11 @@ export function NumerosDaAmi({
   ];
 
   return (
-    <section data-bloco="numeros" aria-label="A AMI em números" className={styles.numeros}>
+    <section
+      data-bloco="numeros"
+      aria-label="A AMI em números"
+      className={`revelar ${styles.numeros}`}
+    >
       {itens.map((item) => (
         <div key={item.icone} className={styles.numero}>
           <LadrilhoIcone nome={item.icone} />

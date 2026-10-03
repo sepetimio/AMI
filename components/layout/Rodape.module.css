@@ -8,8 +8,8 @@
 */
 
 .rodape {
-  /* A home é refeita na tarefa 10 e tira esta margem, porque termina numa
-     faixa branca que emenda no verde. Nas outras páginas ela fica. */
+  /* O espaço entre o último bloco e o rodapé, como entre dois blocos. A
+     regra logo abaixo o tira quando a página termina numa faixa. */
   margin-top: var(--ritmo);
   padding: 64px 0 28px;
   font-size: 14px;
@@ -19,6 +19,26 @@
      texto de baixo (`.base`) fica mais longe da luz e sobre fundo mais escuro,
      e 70% dá pelo menos 5,12:1 ali. */
   color: rgba(255, 255, 255, 0.92);
+}
+
+/*
+  O rodapé emenda na faixa de ponta a ponta de cima (spec, seção 6, item 8),
+  sem espaço entre as duas, mas SÓ quando a página termina numa faixa.
+
+  Faixa é o bloco que leva `data-faixa` (a busca verde, "Seja associado" e
+  bairros e parceiros, na home). A regra pergunta se o último elemento do
+  `<main>` é uma faixa, ou se o último elemento do último filho dele é (a
+  home põe os blocos dentro de um invólucro, app/(site)/page.tsx). Quando o
+  bloco que fecharia a página some (a home fora da demonstração e sem bairro
+  no banco, em que `BairrosEParceiros` devolve `null`), o último passa a ser
+  outro; se não for faixa, a regra não casa e o `--ritmo` fica.
+
+  O rodapé vem logo depois do `<main>` (app/(site)/layout.tsx), por isso o
+  `+`. Navegador sem `:has` ignora a regra inteira e fica com o espaço: o
+  erro barato.
+*/
+:global(main):has(> [data-faixa]:last-child, > :last-child > [data-faixa]:last-child) + .rodape {
+  margin-top: 0;
 }
 
 /*

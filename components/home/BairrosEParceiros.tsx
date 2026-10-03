@@ -12,7 +12,9 @@ type Item = { nome: string; slug: string; total: number };
 
   A margem lateral é `--borda-faixa` (app/globals.css), a mesma da busca
   verde, de "Seja associado" e do rodapé: o texto fica na coluna dos outros
-  blocos. Não há margem embaixo: o rodapé emenda na faixa.
+  blocos. Não há margem embaixo: a faixa leva `data-faixa`, e o rodapé emenda
+  nela quando ela fecha a página (components/layout/Rodape.module.css).
+  Entra na tela com a `.revelar` global.
 
   `parceiros` vem de `moldurasDaHome` (lib/molduras.ts): só no modo
   demonstração, porque hoje a parte inteira é provisória.
@@ -35,8 +37,9 @@ export function BairrosEParceiros({
     <section
       id="bairros"
       data-bloco="bairros"
+      data-faixa=""
       aria-labelledby={temBairros ? "bairros-titulo" : "parceiros-titulo"}
-      className={styles.faixa}
+      className={`revelar ${styles.faixa}`}
     >
       {temBairros ? (
         <>

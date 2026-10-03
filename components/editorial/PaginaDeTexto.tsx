@@ -11,8 +11,8 @@ const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 /*
   Corpo de uma página de PROSA PURA vinda do Sanity: as subpáginas de
-  /associacao (benefícios, estatuto, política editorial) e, na tarefa 10, as
-  três páginas legais. Todas têm a mesma natureza: sem o documento do Studio
+  /associacao (benefícios, estatuto, política editorial) e as três páginas
+  legais. Todas têm a mesma natureza: sem o documento do Studio
   não sobra nada para mostrar, então a ausência vira 404. Uma página de
   estatuto sem estatuto não é uma página, é casca vazia que o Google indexaria
   como conteúdo raso.

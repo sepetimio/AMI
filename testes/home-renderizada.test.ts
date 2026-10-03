@@ -28,9 +28,12 @@ import type { Banner, ResumoNoticia } from "@/lib/sanity/tipos";
   prova: qual valor a build de produção recebeu.
 */
 
+const CENTRO = { nome: "Centro", slug: "centro", total: 4 };
+
 const dados = vi.hoisted(() => ({
   banners: [] as Banner[],
   noticias: [] as ResumoNoticia[],
+  bairros: [] as { nome: string; slug: string; total: number }[],
 }));
 
 vi.mock("@/lib/dados/especialidades", () => ({
@@ -38,7 +41,7 @@ vi.mock("@/lib/dados/especialidades", () => ({
     { nome: "Cardiologia", slug: "cardiologia", total: 3 },
     { nome: "Pediatria", slug: "pediatria", total: 2 },
   ],
-  bairrosComContagem: async () => [{ nome: "Centro", slug: "centro", total: 4 }],
+  bairrosComContagem: async () => dados.bairros,
 }));
 vi.mock("@/lib/dados/medicos", () => ({
   buscarMedicos: async () => Array.from({ length: 24 }, (_, i) => ({ id: i })),
@@ -73,10 +76,15 @@ const NOTICIA: ResumoNoticia = {
 
 async function renderizarHome(
   chave: string | undefined,
-  conteudo: { banners?: Banner[]; noticias?: ResumoNoticia[] } = {},
+  conteudo: {
+    banners?: Banner[];
+    noticias?: ResumoNoticia[];
+    bairros?: { nome: string; slug: string; total: number }[];
+  } = {},
 ): Promise<string> {
   dados.banners = conteudo.banners ?? [];
   dados.noticias = conteudo.noticias ?? [];
+  dados.bairros = conteudo.bairros ?? [CENTRO];
   if (chave === undefined) vi.stubEnv("NEXT_PUBLIC_DADOS_DEMONSTRACAO", undefined);
   else vi.stubEnv("NEXT_PUBLIC_DADOS_DEMONSTRACAO", chave);
   vi.resetModules();
@@ -120,10 +128,10 @@ function emOrdem(html: string, marcas: string[]) {
 /* As seções que existem com ou sem chave: se alguma sumir, a home quebrou. */
 const SEMPRE = [
   "<h1",
-  ">Serviços da AMI</h2>",
-  'id="especialidades"',
-  'id="institucional"',
-  'id="bairros"',
+  'data-bloco="numeros"',
+  'data-bloco="encontre"',
+  'data-bloco="associe"',
+  'data-bloco="bairros"',
 ];
 
 describe("a home renderizada", () => {
@@ -134,17 +142,19 @@ describe("a home renderizada", () => {
       "Arte a entrar: <!-- -->Seja associado",
       "Arte a entrar: <!-- -->Encontre um médico",
       "Arte a entrar: <!-- -->Sua AMI",
-      ">Serviços da AMI</h2>",
-      ">Sua AMI</h3>",
-      'id="especialidades"',
-      "Fotografia a entrar",
-      'id="institucional"',
+      'data-bloco="numeros"',
+      'id="encontre"',
+      'id="sua-ami"',
+      'data-bloco="associe"',
+      "Texto da AMI a entrar.",
+      "Texto da AMI a entrar.",
+      "Texto da AMI a entrar.",
       'data-bloco="noticias"',
       ">Notícia a entrar</h3>",
       ">Notícia a entrar</h3>",
       ">Notícia a entrar</h3>",
       ">Notícia a entrar</h3>",
-      'id="bairros"',
+      'data-bloco="bairros"',
       'id="parceiros"',
       ">Logotipo a entrar</li>",
     ]);
@@ -155,9 +165,11 @@ describe("a home renderizada", () => {
     expect(html.match(/a entrar/gi) ?? [], "moldura com a chave falsa").toEqual([]);
     for (const provisoria of [
       'aria-label="Destaques da AMI"',
+      'id="sua-ami"',
       "Sua AMI",
       'data-bloco="noticias"',
       'id="parceiros"',
+      "Logotipo",
       'role="img"',
     ]) {
       expect(html, `${provisoria} saiu com a chave falsa`).not.toContain(provisoria);
@@ -165,12 +177,24 @@ describe("a home renderizada", () => {
     emOrdem(html, SEMPRE);
   });
 
+  it("um único <h1>, com o nome da associação, só para leitor de tela", async () => {
+    /* Quem desenha o nome é o logotipo; o <h1> existe para o leitor de tela
+       e para o Google (spec, seção 6). Nos dois modos. */
+    for (const chave of ["true", "false"]) {
+      const html = await renderizarHome(chave);
+      expect(html.match(/<h1\b/g) ?? [], `chave ${chave}`).toHaveLength(1);
+      expect(html, `chave ${chave}`).toMatch(
+        /<h1 class="sr-only">Associação Médica de Imperatriz<\/h1>/,
+      );
+    }
+  });
+
   it("a variável ausente vale como demonstração", async () => {
     /* Logo depois do caso "false", de propósito: se aquele valor vazasse
        para cá (stub não desfeito, módulo não reavaliado), este fica vermelho. */
     const html = await renderizarHome(undefined);
     expect(html).toContain('id="parceiros"');
-    expect(html).toContain(">Sua AMI</h3>");
+    expect(html).toContain('id="sua-ami"');
   });
 
   it("chave verdadeira com banner e notícia reais: só o real, sem mistura", async () => {
@@ -186,9 +210,71 @@ describe("a home renderizada", () => {
     expect(bloco).toContain("Assembleia geral ordinária");
     expect(bloco).not.toContain("Notícia a entrar");
 
-    /* Sua AMI, parceiros e a foto da sede não têm conteúdo real nenhum: no
-       modo demonstração eles continuam, e é isso que se espera. */
-    expect(html).toContain(">Sua AMI</h3>");
+    /* Sua AMI, os textos de missão, visão e valores e os parceiros não têm
+       conteúdo real nenhum: no modo demonstração eles continuam, e é isso
+       que se espera. */
+    expect(html).toContain('id="sua-ami"');
+    expect(html).toContain("Texto da AMI a entrar.");
     expect(html).toContain('id="parceiros"');
+  });
+});
+
+/** A tag de abertura de cada bloco de primeiro nível, na ordem do HTML. */
+function blocos(html: string): { nome: string; faixa: boolean }[] {
+  return [...html.matchAll(/<[a-z]+ [^>]*data-bloco="([^"]+)"[^>]*>/g)].map((m) => ({
+    nome: m[1],
+    faixa: m[0].includes("data-faixa"),
+  }));
+}
+
+describe("as faixas de ponta a ponta e o fim da página", () => {
+  /*
+    O rodapé emenda na faixa de cima só quando a página termina numa faixa
+    (a regra com `:has` em components/layout/Rodape.module.css, que olha o
+    ÚLTIMO elemento). Aqui se confere o lado da home: quais blocos são
+    faixa, e qual bloco fecha a página em cada caso. A medida na tela está
+    no relatório da tarefa.
+  */
+  it("a busca, Seja associado e bairros levam data-faixa, e só eles", async () => {
+    const html = await renderizarHome("true");
+    expect(blocos(html).map((b) => b.nome)).toEqual([
+      "carrossel",
+      "numeros",
+      "encontre",
+      "sua-ami",
+      "associe",
+      "noticias",
+      "bairros",
+    ]);
+    expect(blocos(html).filter((b) => b.faixa).map((b) => b.nome)).toEqual([
+      "encontre",
+      "associe",
+      "bairros",
+    ]);
+  });
+
+  it("todo bloco entra na tela com a .revelar, menos o carrossel", async () => {
+    /* O desenho anima cada seção ao entrar, menos o carrossel, que já está
+       na tela quando a página abre. Quem pede menos movimento não vê nada
+       disso: a regra de app/globals.css só vale com `no-preference`. */
+    const html = await renderizarHome("true");
+    const tags = [...html.matchAll(/<[a-z]+ [^>]*data-bloco="([^"]+)"[^>]*>/g)];
+    const comRevelar = tags
+      .filter((m) => /class="(?:[^"]* )?revelar[ "]/.test(m[0]))
+      .map((m) => m[1]);
+    expect(comRevelar).toEqual(["numeros", "encontre", "sua-ami", "associe", "noticias", "bairros"]);
+  });
+
+  it("com bairros, a página termina na faixa dos bairros", async () => {
+    const html = await renderizarHome("false");
+    expect(blocos(html).at(-1)).toEqual({ nome: "bairros", faixa: true });
+    /* E nada depois dela além do fecho do invólucro. */
+    expect(html.trimEnd().endsWith("</section></div>")).toBe(true);
+  });
+
+  it("fora da demonstração e sem bairro, termina nas notícias, que não são faixa", async () => {
+    const html = await renderizarHome("false", { bairros: [], noticias: [NOTICIA] });
+    expect(html).not.toContain('data-bloco="bairros"');
+    expect(blocos(html).at(-1)).toEqual({ nome: "noticias", faixa: false });
   });
 });

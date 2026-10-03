@@ -19,8 +19,12 @@ import styles from "@/components/home/SuaAmi.module.css";
   No computador a foto cobre o bloco e o cartão assenta no canto de baixo.
   No celular a foto fica em cima, e o cartão sobe 40px sobre a borda dela.
 
-  O bloco não tem margem própria: a home, quando o montar (tarefa 10), vai
-  pô-lo na caixa centralizada e decidir o espaço de cima com `--ritmo`.
+  O bloco não tem margem própria: a home (app/(site)/page.tsx) o põe na
+  coluna centralizada e decide o espaço de cima com `--ritmo`. Entra na tela
+  com a `.revelar` global.
+
+  Fora da demonstração, o item "Sua AMI" do menu e do rodapé, que leva a
+  `#sua-ami`, também sai (lib/menu.ts e components/layout/Rodape.tsx).
 */
 export function SuaAmi({ demonstracao }: { demonstracao: boolean }) {
   if (!demonstracao) return null;
@@ -30,7 +34,7 @@ export function SuaAmi({ demonstracao }: { demonstracao: boolean }) {
       id="sua-ami"
       data-bloco="sua-ami"
       aria-labelledby="sua-ami-titulo"
-      className={styles.vitrine}
+      className={`revelar ${styles.vitrine}`}
     >
       <div className={styles.fundo}>
         <Fotografia

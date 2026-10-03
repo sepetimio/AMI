@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Fotografia } from "@/components/base/Fotografia";
-import { IndiceEspecialidades } from "@/components/diretorio/IndiceEspecialidades";
+import styles from "@/app/(site)/inicio.module.css";
 import { UltimasNoticias } from "@/components/editorial/UltimasNoticias";
 import { BairrosEParceiros } from "@/components/home/BairrosEParceiros";
 import { Carrossel } from "@/components/home/Carrossel";
-import { FaixaDaAmi } from "@/components/home/FaixaDaAmi";
-import { ServicosDaAmi } from "@/components/home/ServicosDaAmi";
+import { EncontreUmMedico } from "@/components/home/EncontreUmMedico";
+import { NumerosDaAmi } from "@/components/home/NumerosDaAmi";
+import { SejaAssociado } from "@/components/home/SejaAssociado";
+import { SuaAmi } from "@/components/home/SuaAmi";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { AMI, anosDeAmi } from "@/lib/ami";
 import { organizationAmi } from "@/lib/seo/jsonld";
 import {
   bairrosComContagem,
@@ -15,14 +16,19 @@ import {
 } from "@/lib/dados/especialidades";
 import { buscarMedicos } from "@/lib/dados/medicos";
 import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
-import { ESPACOS } from "@/lib/imagens";
-import { desenhoDaFotografia, moldurasDaHome } from "@/lib/molduras";
+import { moldurasDaHome, type TextoInstitucional } from "@/lib/molduras";
 import { bannersAtivos } from "@/lib/sanity/banners";
 import { listarNoticias } from "@/lib/sanity/consultas";
 
 export const revalidate = 3600;
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+/* Missão, visão e valores: a AMI ainda não entregou os textos, e não há
+   onde guardá-los. Com `null`, "Quem é a AMI?" mostra "Texto da AMI a
+   entrar." na demonstração e nenhum cartão fora dela (`quemEhAmi`, em
+   lib/molduras.ts). */
+const TEXTO_DA_AMI: TextoInstitucional = { missao: null, visao: null, valores: null };
 
 export async function generateMetadata(): Promise<Metadata> {
   /* Não soma as contagens por especialidade: quem tem duas especialidades
@@ -43,6 +49,20 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+/*
+  A home, na ordem da spec da reforma visual (seção 6): carrossel, números,
+  a busca verde, "Sua AMI", "Seja associado" com "Quem é a AMI?", notícias,
+  bairros e parceiros. O rodapé vem do layout.
+
+  Os blocos são filhos diretos de um só invólucro. Os da coluna centralizada
+  (carrossel, números, "Sua AMI", notícias) ganham a largura da coluna pelo
+  CSS; as faixas de ponta a ponta (a busca, "Seja associado", bairros, as
+  três com `data-faixa`) ficam com a largura da página. O espaço entre os
+  blocos é um só, `--ritmo`. As regras e o porquê estão em inicio.module.css.
+
+  Cada bloco que pode faltar devolve `null` sozinho, e então não sobra nada
+  dele na página: nem caixa vazia, nem espaço.
+*/
 export default async function Home() {
   /* Mesmo raciocínio do `generateMetadata`: o total vem da contagem de
      profissionais, não da soma por especialidade, que double-conta quem tem
@@ -56,150 +76,41 @@ export default async function Home() {
   ]);
 
   /* As molduras "a entrar" e a trava que as segura: só no modo
-     demonstração, e nunca misturadas a conteúdo real. A decisão inteira
-     mora em lib/molduras.ts; aqui só entra o valor da chave. */
+     demonstração, e nunca misturadas a conteúdo real. A decisão do
+     carrossel, das notícias e dos parceiros mora em lib/molduras.ts; "Sua
+     AMI" e "Seja associado" recebem a chave e decidem sozinhos. */
   const molduras = moldurasDaHome(DADOS_DEMONSTRACAO, {
     banners,
     temNoticia: noticias.length > 0,
   });
-  const fotoDaSede =
-    desenhoDaFotografia(ESPACOS.sede.provisoria, DADOS_DEMONSTRACAO) !== "nada";
 
   return (
-    <>
+    <div className={styles.home}>
       <JsonLd dados={organizationAmi(SITE)} />
 
-      {/* =====================================================
-          1. FAIXA DA AMI
-          Substitui o herói de tela cheia. O <h1> mora dentro do
-          próprio componente — ver components/home/FaixaDaAmi.tsx.
-          ===================================================== */}
-      <FaixaDaAmi
-        total={total}
+      {/* O nome da associação, para o leitor de tela e o Google. Na tela,
+          quem o diz é o logotipo do cabeçalho. Fica logo antes do primeiro
+          bloco: é por ele que o CSS acha o primeiro. */}
+      <h1 className="sr-only">{AMI.razaoSocial}</h1>
+
+      <Carrossel itens={molduras.banners} />
+
+      <NumerosDaAmi
+        anos={anosDeAmi(new Date())}
+        medicos={total}
         especialidades={especialidades.length}
         bairros={bairros.length}
       />
 
-      {/* =====================================================
-          2. CARROSSEL DE BANNERS
-          ===================================================== */}
-      {/* A caixa de 1240px do desenho, até a tarefa 10 montar a home nova. */}
-      <div className="mx-auto max-w-[1240px] px-3 min-[701px]:px-6">
-        <Carrossel itens={molduras.banners} />
-      </div>
+      <EncontreUmMedico especialidades={especialidades} />
 
-      {/* =====================================================
-          3. SERVIÇOS DA AMI
-          "Encontre um médico" — antes o título da página inteira —
-          vira o primeiro dos cartões. "Sua AMI", o quarto, é
-          provisório.
-          ===================================================== */}
-      <ServicosDaAmi
-        total={total}
-        especialidades={especialidades.length}
-        ultimaNoticia={
-          noticias[0] ? { titulo: noticias[0].titulo, slug: noticias[0].slug } : null
-        }
-        suaAmi={molduras.suaAmi}
-      />
+      <SuaAmi demonstracao={DADOS_DEMONSTRACAO} />
 
-      {/* =====================================================
-          4. ÍNDICE DE ESPECIALIDADES
-          Fluxo em colunas, como o índice de um anuário impresso.
-          ===================================================== */}
-      <section
-        aria-labelledby="especialidades"
-        className="revelar mx-auto max-w-[1200px] px-4 pb-4 pt-16 md:px-6 md:pt-24"
-      >
-        <div className="flex items-baseline justify-between gap-4 pb-1">
-          <h2 id="especialidades">Especialidades</h2>
-          <Link
-            href="/medicos"
-            className="pressiona shrink-0 text-[15px] font-semibold text-ami-green-600 hover:underline"
-          >
-            Ver todas
-          </Link>
-        </div>
+      <SejaAssociado demonstracao={DADOS_DEMONSTRACAO} texto={TEXTO_DA_AMI} />
 
-        <IndiceEspecialidades itens={especialidades} />
-      </section>
+      <UltimasNoticias provisorias={molduras.noticiasProvisorias} />
 
-      {/* =====================================================
-          5. INSTITUCIONAL
-          Claro, com fotografia. Antes era uma segunda faixa verde
-          escura com texto solto dentro, o que fazia o verde virar
-          decoração em vez de estrutura.
-          ===================================================== */}
-      <section
-        aria-labelledby="institucional"
-        className="revelar mx-auto max-w-[1200px] px-4 py-20 md:px-6 md:py-28"
-      >
-        {/* Sem foto (provisória fora do modo demonstração), a casca e a
-            segunda coluna saem juntas: o texto fica sozinho, e não ao lado de
-            uma moldura vazia. */}
-        <div
-          className={`grid items-center gap-10 md:gap-16 ${fotoDaSede ? "md:grid-cols-2" : ""}`}
-        >
-          {/* Moldura concêntrica: casca externa com fio e respiro de 8px,
-              miolo com o raio descontado da espessura da casca. É o que faz a
-              foto parecer assentada numa moldura, e não colada na página. */}
-          {fotoDaSede ? (
-            <div className="rounded-bloco border border-line bg-surface p-2 shadow-erguido">
-              <Fotografia
-                espaco="sede"
-                sizes="(min-width: 768px) 46vw, 92vw"
-                className="h-auto w-full object-cover"
-              />
-            </div>
-          ) : null}
-
-          <div>
-            <h2 id="institucional">
-              A entidade que representa os médicos de Imperatriz
-            </h2>
-            <p className="coluna-leitura mt-5 text-ink-600">
-              A AMI reúne os profissionais que atendem em Imperatriz e na região
-              sul do Maranhão. Este diretório existe para que a população
-              encontre quem atende perto de casa, com informação correta e
-              verificada.
-            </p>
-            <p className="coluna-leitura mt-4 text-ink-600">
-              Cada perfil traz nome, número de inscrição no CRM e endereço de
-              atendimento. Sem nota, sem classificação e sem destaque pago: a
-              ordem é a mesma para todo mundo.
-            </p>
-            <p className="mt-8">
-              <Link
-                href="/associacao"
-                className="pressiona inline-flex min-h-12 items-center rounded-controle bg-ami-green-600 px-6 font-semibold text-white shadow-apoio hover:bg-ami-green-700 hover:shadow-erguido"
-              >
-                Conhecer a Associação
-              </Link>
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================
-          6. ÚLTIMAS NOTÍCIAS
-          Sem matéria publicada no Sanity, some sozinha (devolve null) —
-          a não ser no modo demonstração, em que saem quatro peças
-          "Notícia a entrar" no lugar.
-          ===================================================== */}
-      {/* A caixa de 1240px do desenho, até a tarefa 10 montar a home nova. */}
-      <div className="mx-auto max-w-[1240px] px-3 min-[701px]:px-6">
-        <UltimasNoticias provisorias={molduras.noticiasProvisorias} />
-      </div>
-
-      {/* =====================================================
-          7. BAIRROS E EMPRESAS PARCEIRAS DA AMI
-          Uma faixa branca de ponta a ponta. Os parceiros, hoje
-          inteiramente provisórios, só saem no modo demonstração.
-          O espaço acima dela é provisório, até a tarefa 10.
-          ===================================================== */}
-      <div className="mt-[var(--ritmo)]">
-        <BairrosEParceiros bairros={bairros} parceiros={molduras.parceiros} />
-      </div>
-    </>
+      <BairrosEParceiros bairros={bairros} parceiros={molduras.parceiros} />
+    </div>
   );
 }

@@ -18,8 +18,12 @@ import styles from "@/components/layout/Rodape.module.css";
   "Especialidades" leva ao índice `/medicos`, que lista as especialidades e os
   bairros, e "Bairros" leva a `/busca`, onde os bairros são pílulas.
 
-  Quem emenda no rodapé decide o espaço de cima: ele vem com `--ritmo` de
-  margem, e a home, que termina numa faixa branca, a tira.
+  O espaço de cima é `--ritmo`, menos quando a página termina numa faixa de
+  ponta a ponta (um bloco com `data-faixa`): aí o rodapé emenda nela, sem
+  espaço. A regra, com `:has`, está em Rodape.module.css.
+
+  "Sua AMI" só aparece no modo demonstração, como o bloco `#sua-ami` da home
+  a que ele leva; a mesma regra do menu (`menuDoSite`, em lib/menu.ts).
 */
 export function Rodape() {
   return (
@@ -40,7 +44,7 @@ export function Rodape() {
             <Link href="/associacao/diretoria">Diretoria</Link>
             <Link href="/noticias">Notícias</Link>
             <Link href="/associacao/seja-associado">Seja associado</Link>
-            <Link href="/#sua-ami">Sua AMI</Link>
+            {DADOS_DEMONSTRACAO ? <Link href="/#sua-ami">Sua AMI</Link> : null}
           </nav>
 
           <nav aria-labelledby="rodape-medicos" className={styles.coluna}>

@@ -72,6 +72,18 @@ describe("o rodape", () => {
     expect(regra(CSS_ROD, ".rodape")).toMatch(/margin-top:\s*var\(--ritmo\)/);
   });
 
+  it("emenda sem espaco so quando a pagina termina numa faixa de ponta a ponta", () => {
+    /* Regra de CSS: quem a aplica é o navegador, e a medida dos dois casos
+       (termina em faixa, não termina) está no relatório da tarefa 10. Aqui
+       se confere que ela existe, com o seletor que pergunta pelo ÚLTIMO
+       bloco, e não por qualquer faixa da página. Que as faixas levam a
+       marca, e qual bloco fecha a home, está em
+       testes/home-renderizada.test.ts. */
+    const sel =
+      ":global(main):has(> [data-faixa]:last-child, > :last-child > [data-faixa]:last-child) + .rodape";
+    expect(regra(CSS_ROD, sel)).toMatch(/margin-top:\s*0;/);
+  });
+
   it("no celular deixa 100px mais a area segura embaixo, para a barra nao cobrir o fim", () => {
     expect(regra(noCelular(CSS_ROD), ".rodape")).toMatch(
       /padding:\s*44px 0 calc\(100px \+ env\(safe-area-inset-bottom\)\)/,

@@ -10,19 +10,16 @@ import { fonte, semComentarios } from "@/testes/apoio";
   PEGA — o componente foi removido do arquivo, teve o nome trocado, ou a
   ordem em que as seções aparecem no código mudou.
 
-  NÃO PEGA, AQUI — que o componente RENDERIZE alguma coisa. Envolver a
-  faixa em `{false && <FaixaDaAmi … />}` deixa os oito testes deste arquivo
-  VERDES: a substring "<FaixaDaAmi" continua no arquivo. Medido de novo em
-  03/10/2026, com a mutação aplicada. `null` devolvido de dentro do próprio
-  componente passa pelo mesmo motivo.
+  NÃO PEGA, AQUI — que o componente RENDERIZE alguma coisa. Envolver a busca
+  em `{false && <EncontreUmMedico … />}` deixa os testes deste arquivo
+  VERDES: a substring "<EncontreUmMedico" continua no arquivo. `null`
+  devolvido de dentro do próprio componente passa pelo mesmo motivo.
 
   ESSE BURACO ESTÁ COBERTO em testes/home-renderizada.test.ts, que importa
   esta página de verdade, troca só as quatro fontes de dados (especialidades,
-  médicos, banners, notícias) e confere o HTML que sai. A mesma mutação da
-  faixa deixa dois testes de lá vermelhos ("falta \"<h1\""); embrulhar o
-  carrossel, as notícias ou os parceiros também. Lá a cobertura vale para o
-  que aquele arquivo procura: o <h1> da faixa, o carrossel, os títulos e os
-  `id` das seções, e as molduras — com dados de mentira, não com o banco.
+  médicos, banners, notícias) e confere o HTML que sai. Lá a cobertura vale
+  para o que aquele arquivo procura: o <h1>, a marca `data-bloco` de cada
+  seção, os `id` e as molduras — com dados de mentira, não com o banco.
 
   NÃO PEGA, em nenhum dos dois — ordem VISUAL. `indexOf` mede posição no
   texto (aqui, no arquivo; lá, no HTML), não na tela: um `order-*` do
@@ -34,90 +31,60 @@ import { fonte, semComentarios } from "@/testes/apoio";
 */
 const HOME = semComentarios(fonte("../app/(site)/page.tsx"));
 
+/* A ordem da spec da reforma visual, seção 6. */
+const ORDEM = [
+  "<Carrossel",
+  "<NumerosDaAmi",
+  "<EncontreUmMedico",
+  "<SuaAmi",
+  "<SejaAssociado",
+  "<UltimasNoticias",
+  "<BairrosEParceiros",
+];
+
 describe("a home", () => {
-  it("monta as tres secoes novas", () => {
-    for (const c of ["FaixaDaAmi", "Carrossel", "ServicosDaAmi"]) {
-      expect(HOME, `falta <${c}> na home`).toContain(`<${c}`);
-    }
-  });
-
-  it("mantem as secoes que ja existiam", () => {
-    /* Os ladrilhos de bairro moram, desde a tarefa 9, dentro de
-       <BairrosEParceiros>. */
-    for (const c of ["IndiceEspecialidades", "UltimasNoticias", "BairrosEParceiros"]) {
-      expect(HOME, `a home perdeu <${c}>`).toContain(`<${c}`);
-    }
-  });
-
-  it("o titulo da pagina nao fala mais de buscar medico", () => {
-    /*
-      O <h1> era "Encontre um médico em Imperatriz" e ocupava a tela inteira.
-      Ele desceu para o cartao de servico. Se voltar ao topo, o site voltou a
-      ser a busca em vez da porta da associacao.
-    */
-    expect(HOME).not.toMatch(/<h1[^>]*>\s*Encontre um médico/);
-  });
-
-  it("a faixa vem antes do carrossel, e o carrossel antes dos servicos", () => {
-    const faixa = HOME.indexOf("<FaixaDaAmi");
-    const carrossel = HOME.indexOf("<Carrossel");
-    const servicos = HOME.indexOf("<ServicosDaAmi");
-    expect(faixa).toBeLessThan(carrossel);
-    expect(carrossel).toBeLessThan(servicos);
-  });
-});
-
-describe("a home, depois das molduras provisórias", () => {
-  it("monta a faixa dos bairros e das empresas parceiras", () => {
-    expect(HOME, "falta <BairrosEParceiros> na home").toContain("<BairrosEParceiros");
-  });
-
-  it("tem as secoes na ordem aprovada, com bairros e parceiros por ultimo", () => {
-    /* Mesma limitação do resto do arquivo: posição no texto-fonte, não na
-       tela. As seções sem componente próprio entram pelo `id` do título. */
-    const ordem = [
-      "<FaixaDaAmi",
-      "<Carrossel",
-      "<ServicosDaAmi",
-      'id="especialidades"',
-      'id="institucional"',
-      "<UltimasNoticias",
-      "<BairrosEParceiros",
-    ];
-    const posicoes = ordem.map((marca) => HOME.indexOf(marca));
-    for (const [i, marca] of ordem.entries()) {
+  it("monta as sete secoes da spec, nesta ordem", () => {
+    const posicoes = ORDEM.map((marca) => HOME.indexOf(marca));
+    for (const [i, marca] of ORDEM.entries()) {
       expect(posicoes[i], `falta ${marca} na home`).toBeGreaterThanOrEqual(0);
       if (i > 0) {
-        expect(posicoes[i], `${marca} veio antes de ${ordem[i - 1]}`).toBeGreaterThan(
+        expect(posicoes[i], `${marca} veio antes de ${ORDEM[i - 1]}`).toBeGreaterThan(
           posicoes[i - 1],
         );
       }
     }
   });
 
+  it("nao monta mais as pecas que sairam", () => {
+    /* A faixa do topo, os quatro cartoes de servico, o indice em grade e o
+       bloco institucional com a foto da sede (spec, secao 6: "Sai da home
+       atual"). */
+    for (const c of ["FaixaDaAmi", "ServicosDaAmi", "IndiceEspecialidades", "Fotografia"]) {
+      expect(HOME, `a home ainda cita ${c}`).not.toContain(c);
+    }
+    expect(HOME).not.toContain('id="institucional"');
+  });
+
+  it("o titulo da pagina nao fala de buscar medico", () => {
+    /*
+      O <h1> foi "Encontre um médico em Imperatriz" e ocupava a tela inteira.
+      Se voltar, o site volta a ser a busca em vez da porta da associacao.
+    */
+    expect(HOME).not.toMatch(/<h1[^>]*>\s*Encontre um médico/);
+  });
+
   it("a trava recebe a chave de verdade, e cada moldura sai da decisão dela", () => {
     /*
       O teste de testes/molduras.test.ts prova a decisão e os componentes,
       mas não vê esta página. Aqui se confere, por texto, que a página passa
-      `DADOS_DEMONSTRACAO` — e não um `true` escrito à mão — e que cada uma
-      das quatro molduras sai da saída de `moldurasDaHome`.
+      `DADOS_DEMONSTRACAO` — e não um `true` escrito à mão — à trava e aos
+      blocos que decidem sozinhos.
     */
     expect(HOME).toMatch(/moldurasDaHome\(\s*DADOS_DEMONSTRACAO\s*,/);
     expect(HOME).toContain("<Carrossel itens={molduras.banners}");
-    expect(HOME).toMatch(/suaAmi=\{molduras\.suaAmi\}/);
+    expect(HOME).toContain("<SuaAmi demonstracao={DADOS_DEMONSTRACAO}");
+    expect(HOME).toMatch(/<SejaAssociado\s+demonstracao=\{DADOS_DEMONSTRACAO\}/);
     expect(HOME).toContain("<UltimasNoticias provisorias={molduras.noticiasProvisorias}");
     expect(HOME).toContain("<BairrosEParceiros bairros={bairros} parceiros={molduras.parceiros}");
-  });
-
-  it("a casca da foto da sede pergunta a mesma trava antes de existir", () => {
-    /*
-      `Fotografia` devolve null sozinha fora do modo demonstração, mas a casca
-      em volta (fio, respiro, sombra) é da página. Sem esta condição, a casca
-      ficaria vazia na home de produção.
-    */
-    expect(HOME).toMatch(
-      /fotoDaSede\s*=\s*desenhoDaFotografia\(\s*ESPACOS\.sede\.provisoria\s*,\s*DADOS_DEMONSTRACAO\s*\)\s*!==\s*"nada"/,
-    );
-    expect(HOME).toMatch(/\{fotoDaSede \? \(\s*<div className="rounded-bloco[^"]*"[^>]*>\s*<Fotografia/);
   });
 });
