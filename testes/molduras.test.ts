@@ -129,8 +129,24 @@ describe("o cartão provisório Sua AMI", () => {
   });
 
   it("não inventa preço, capacidade, metragem nem horário, e não tem foto", () => {
-    const texto = cartao(com).replace(/<[^>]+>/g, " ");
-    expect(texto, "número no cartão").not.toMatch(/\d/);
+    /*
+      Todo o texto visível do cartão, tirado o HTML, comparado por inteiro.
+      A versão anterior só procurava algarismos, e uma revisão provou que
+      "Capacidade para cem pessoas, das oito às dezoito horas, a partir de
+      mil reais." passava com a suíte inteira verde: número por extenso não
+      é algarismo. Qualquer palavra a mais aqui é um fato que alguém pôs.
+    */
+    const visivel = cartao(com)
+      .replace(/<[^>]+>/g, "\n")
+      .split("\n")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    expect(visivel).toEqual([
+      "Sua AMI",
+      "Serviço a entrar",
+      "Auditório e hall de eventos da AMI para alugar.",
+      "Consultar disponibilidade",
+    ]);
     expect(cartao(com)).not.toMatch(/<img|role="img"/);
   });
 
