@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Cabeceira } from "@/components/layout/Cabeceira";
-import { ListaMedicos } from "@/components/diretorio/ListaMedicos";
+import { GradeMedicos } from "@/components/diretorio/GradeMedicos";
 import { LadrilhosBairros } from "@/components/diretorio/LadrilhosBairros";
-import { PainelFiltros } from "@/components/diretorio/PainelFiltros";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbList, comoItensDeLista, itemList } from "@/lib/seo/jsonld";
 import {
@@ -13,7 +12,6 @@ import {
   paragrafoDeAbertura,
   resumirFaceta,
 } from "@/lib/dados/facetas";
-import { filtrosDaQuery } from "@/lib/dados/urlFiltros";
 import { buscarMedicos } from "@/lib/dados/medicos";
 import {
   bairrosComContagem,
@@ -71,14 +69,10 @@ export async function generateMetadata({
   };
 }
 
-export default async function PaginaEspecialidade({
-  params,
-  searchParams,
-}: Props) {
+export default async function PaginaEspecialidade({ params }: Props) {
   const { especialidade } = await params;
   const esp = await especialidadePorSlug(especialidade);
 
-  const filtros = filtrosDaQuery(await searchParams);
   const [todosDaEspecialidade, bairros, relacionadas] = await Promise.all([
     buscarMedicos({ especialidade }),
     bairrosComContagem(especialidade),
@@ -94,7 +88,7 @@ export default async function PaginaEspecialidade({
   */
   if (!esp || todosDaEspecialidade.length === 0) notFound();
 
-  const medicos = await buscarMedicos({ ...filtros, especialidade });
+  const medicos = todosDaEspecialidade;
 
   const resumo = resumirFaceta(todosDaEspecialidade, esp.nome);
 
@@ -137,22 +131,15 @@ export default async function PaginaEspecialidade({
       </Cabeceira>
 
       <div className="mx-auto max-w-[1200px] px-4 md:px-6">
-      <div className="grid gap-8 py-10 md:grid-cols-[260px_1fr]">
-        <PainelFiltros bairros={bairros} total={medicos.length} />
-        <div>
-          <h2 className="sr-only">Resultados</h2>
-          <ListaMedicos
-            medicos={medicos}
-            filtroMaisRestritivo={
-              filtros.acessibilidade?.length
-                ? "acessibilidade"
-                : filtros.bairro
-                  ? "bairro"
-                  : undefined
-            }
-          />
-        </div>
-      </div>
+      {/* A grade de cartões da busca, sem filtro: a página já é a
+          especialidade, e os filtros de bairro, telemedicina, acessibilidade
+          e associados saíram do site. */}
+      <section aria-labelledby="medicos-da-especialidade" className="py-10">
+        <h2 id="medicos-da-especialidade" className="sr-only">
+          {`Médicos de ${esp.nome}`}
+        </h2>
+        <GradeMedicos medicos={medicos} />
+      </section>
 
       {/* Conteúdo informativo com autoria creditada: sem isso, um site de
           saúde não passa no critério YMYL do Google. */}

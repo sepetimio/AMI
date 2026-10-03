@@ -7,7 +7,8 @@ import type { Medico } from "@/lib/dados/tipos";
 /*
   A porta da busca: os dois lugares do site público onde dá para DIGITAR —
   o bloco "Encontre um médico", na home, e o painel de filtros de `/busca`.
-  E um lugar onde NÃO dá: o mesmo painel nas páginas de especialidade.
+  E um lugar onde NÃO dá: a página de especialidade, que já é a
+  especialidade e não tem painel de filtros.
 
   O maquinário de busca por texto está inteiro há muito tempo — `casaNoNome`
   em lib/dados/filtros.ts, `filtros.termo` lido em app/(site)/busca/page.tsx,
@@ -25,10 +26,10 @@ import type { Medico } from "@/lib/dados/tipos";
   varredura de fonte não distingue um campo vivo de um campo dentro de
   `{false && …}` — ver o comentário no topo de testes/home.test.ts.
 
-  O painel é perguntado pelas duas PÁGINAS de verdade que o usam
-  (app/(site)/busca/page.tsx e app/(site)/medicos/[especialidade]/page.tsx),
-  com as fontes de dados trocadas por dublês, e não pelo componente solto:
-  quem decide se o campo aparece é a página, pela prop `campoDeTermo`.
+  As PÁGINAS de verdade (app/(site)/busca/page.tsx e
+  app/(site)/medicos/[especialidade]/page.tsx) são renderizadas com as
+  fontes de dados trocadas por dublês: quem decide se o campo aparece é a
+  página, pela prop `campoDeTermo` do painel, ou por não ter painel.
 */
 
 /* O painel é componente de cliente e lê a URL por hooks do Next. Aqui não há
@@ -198,27 +199,18 @@ describe("o painel de filtros, em /busca", () => {
   });
 });
 
-describe("o painel de filtros, numa página de especialidade", () => {
-  it("não tem o campo de texto", () => {
-    /*
-      A página já está presa a uma especialidade, e o rótulo "Nome ou
-      especialidade" prometia outra coisa: `?termo=pediatria` em
-      Cardiologia dava "Nenhum médico" com o contador de filtros em zero.
-      O campo entrou aqui por acidente, quando foi posto no painel para
-      `/busca`; ninguém o decidiu para esta página.
-
-      A conferência de que o painel saiu (o seletor de bairro) existe para
-      que este teste não passe só porque a página quebrou e não desenhou
-      painel nenhum.
-    */
-    expect(ESPECIALIDADE).toContain('id="filtro-bairro"');
+describe("a página de especialidade", () => {
+  it("não tem campo de texto nem painel de filtros: ela já é a especialidade", () => {
     expect(ESPECIALIDADE).not.toMatch(/name="termo"/);
-    expect(ESPECIALIDADE).not.toContain("Nome ou especialidade");
+    expect(ESPECIALIDADE).not.toContain('id="filtro-bairro"');
+    /* E não passou só porque a página quebrou: o cartão do médico está lá. */
+    expect(ESPECIALIDADE).toContain('href="/medico/mayara-exemplo"');
+    expect(ESPECIALIDADE).toContain("MÉDICO · CRM/MA 1234");
   });
+});
 
-  it("o painel sem a prop não desenha o campo", () => {
-    /* O padrão é desligado: uma terceira página que passe a usar o painel
-       não herda o campo sem que alguém decida. */
+describe("o painel de filtros, solto", () => {
+  it("sem a prop, não desenha o campo", () => {
     const solto = renderToString(
       createElement(PainelFiltros, {
         bairros: [{ nome: "Centro", slug: "centro" }],

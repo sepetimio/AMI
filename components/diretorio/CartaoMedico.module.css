@@ -1,0 +1,198 @@
+/*
+  O cartão do médico, transcrito do desenho aprovado
+  (docs/desenho-aprovado/encontre/busca.html: `.medico`, `.medico:hover`,
+  `.medico-foto`, `.medico-corpo`, `.medico-texto`, `.medico-nome`,
+  `.medico-nome a::after`, `.medico-crm`, `.medico-esp`, `.rqe`,
+  `.botao-ligar`, e os @media de 700 e 380px). A foto e as iniciais são de
+  FotoDoMedico.module.css; aqui só o tamanho do espaço dela no cartão.
+
+  Retrato no computador (foto 4:5 em cima); deitado no celular (foto de
+  116px na lateral esquerda, de cima a baixo). O "Ligar" fica no pé do
+  cartão (`margin-top: auto`), e quem não tem telefone guarda o mesmo
+  espaço (`.semLigar`): os botões de uma fileira ficam na mesma altura.
+*/
+
+.medico {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--color-surface);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: var(--shadow-erguido);
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 0.35s;
+}
+
+.medico:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 18px 40px rgba(16, 24, 40, 0.1);
+}
+
+.foto {
+  aspect-ratio: 4 / 5;
+  --tamanho-iniciais: 96px;
+}
+
+.medico:hover .foto img {
+  transform: scale(1.04);
+}
+
+.corpo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px 20px;
+}
+
+.texto {
+  padding-bottom: 18px;
+}
+
+.nome {
+  font-size: 21px;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+/* O cartão inteiro leva ao perfil: o link do nome se estica por ele. */
+.nome a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.crm {
+  margin-top: 8px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-400);
+}
+
+.esp {
+  margin-top: 6px;
+  font-size: 14.5px;
+  line-height: 1.45;
+  font-weight: 600;
+  color: var(--color-ink-900);
+}
+
+.rqe {
+  white-space: nowrap;
+  font-weight: 500;
+  font-size: 13.5px;
+  color: var(--color-ink-400);
+  margin-left: 4px;
+}
+
+/* Por cima do link esticado do nome: o toque no "Ligar" liga. */
+.ligar {
+  position: relative;
+  z-index: 2;
+  margin-top: auto;
+  width: 100%;
+  height: 44px;
+}
+
+.semLigar {
+  margin-top: auto;
+  height: 44px;
+}
+
+.medico :where(a, button):focus-visible {
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  .medico {
+    flex-direction: row;
+    border-radius: 16px;
+  }
+
+  .medico:hover {
+    transform: none;
+  }
+
+  .foto {
+    flex: none;
+    width: 116px;
+    aspect-ratio: auto;
+    align-self: stretch;
+    min-height: 156px;
+    --tamanho-iniciais: 42px;
+  }
+
+  .foto img {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* No espaço estreito a luz ocupa outra posição; mais específica que a de
+     FotoDoMedico.module.css, para não depender da ordem dos arquivos. */
+  .medico .foto :global(.brilho) {
+    width: 220%;
+    height: 120%;
+    top: -40%;
+    right: -120%;
+  }
+
+  .corpo {
+    min-width: 0;
+    padding: 14px 16px;
+  }
+
+  .texto {
+    padding-bottom: 12px;
+  }
+
+  .nome {
+    font-size: 18.5px;
+  }
+
+  .crm {
+    margin-top: 5px;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+  }
+
+  .esp {
+    margin-top: 4px;
+    font-size: 14px;
+  }
+
+  .rqe {
+    font-size: 13px;
+  }
+
+  .ligar {
+    width: auto;
+    align-self: flex-start;
+    height: 40px;
+    padding: 0 20px;
+    font-size: 14px;
+    gap: 8px;
+  }
+
+  .ligar svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .semLigar {
+    height: 40px;
+  }
+}
+
+@media (max-width: 380px) {
+  .foto {
+    width: 112px;
+  }
+}
