@@ -91,9 +91,9 @@ export function physician(m: Medico, siteUrl: string) {
           ...(local.telefone ? { telephone: local.telefone } : {}),
         }
       : {}),
-    ...(m.telemedicina
-      ? { availableService: { "@type": "MedicalTherapy", name: "Telemedicina" } }
-      : {}),
+    /* Sem `availableService` de telemedicina: o perfil não mostra isso na
+       tela, e dado estruturado sem o equivalente visível é marcação
+       enganosa. O dado continua no banco e no painel. */
     memberOf: {
       "@type": "Organization",
       name: "Associação Médica de Imperatriz",

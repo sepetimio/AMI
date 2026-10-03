@@ -48,9 +48,9 @@ function paraDominio(linha: any): Medico {
       ordem estável em recursos aninhados, então este sort é cinto e
       suspensório: garante a mesma ordem independentemente do que o banco
       devolver, e continua correto mesmo que a consulta mude no futuro e
-      perca aquele `.order`. Sem isso, `locais[0]` — que `LinhaMedico`,
-      `jsonld.ts` e a página de perfil usam para decidir bairro, telefone
-      e endereço do JSON-LD — poderia apontar para um consultório diferente
+      perca aquele `.order`. Sem isso, `locais[0]` — o consultório
+      principal do perfil (`consultorioPrincipal`, lib/encontre.ts) e o
+      endereço do JSON-LD (`jsonld.ts`) — poderia apontar para um consultório diferente
       a cada renderização de um médico com dois endereços, e o ISR
       congelaria essa escolha arbitrária por uma hora.
     */
@@ -93,8 +93,8 @@ const todosVisiveis = cache(async (): Promise<Medico[]> => {
     .eq("situacao", "ativo")
     /*
       Sem ordem explícita, o PostgREST não promete estabilidade nos registros
-      de um recurso aninhado — `LinhaMedico`, `jsonld.ts` e a página de
-      perfil tomam `locais[0]` como "o" consultório do médico, e um médico com
+      de um recurso aninhado — o perfil e `jsonld.ts` tomam `locais[0]` como
+      o consultório principal, e um médico com
       dois endereços poderia alternar entre um e outro a cada renderização.
       Ordenar pelo id do próprio `atendimento` torna a resposta determinística
       na origem; `paraDominio` ainda reordena por id do local como garantia

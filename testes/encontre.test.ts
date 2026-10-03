@@ -7,6 +7,7 @@ import {
   iniciais,
   linkDoMapa,
   linkDoWhatsapp,
+  numeroPreenchido,
   opcoesDeEspecialidade,
   outrosMedicos,
   paragrafosDaBio,
@@ -132,6 +133,12 @@ describe("o endereço e os links do consultório", () => {
   });
   it("WhatsApp que já vem com o 55 não fica com 55 duas vezes", () => {
     expect(linkDoWhatsapp("+55 (99) 98802-0205")).toBe("https://wa.me/5599988020205");
+  });
+  it("número sem nenhum dígito é número nenhum: o botão não sai", () => {
+    for (const vazio of [null, undefined, "", "   ", " - ", "()"]) {
+      expect(numeroPreenchido(vazio), JSON.stringify(vazio)).toBeNull();
+    }
+    expect(numeroPreenchido("(99) 3018-9994")).toBe("(99) 3018-9994");
   });
 });
 

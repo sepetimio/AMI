@@ -645,6 +645,44 @@
     transform: translateX(4px);
   }
 
+  /* Botão de contorno: pílula branca de 48px, na altura do `.botao`, para
+     WhatsApp e Como chegar ao lado do "Ligar" (o `.botao-linha` tem 38px).
+     No mouse, a borda escurece e o botão sobe 1px; não fica verde. #B9BFC8
+     é a borda escura do desenho e só existe aqui. */
+  .botao-contorno {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 48px;
+    padding: 0 24px;
+    border: 1px solid var(--color-line-strong);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: var(--color-ami-green-800);
+    font-family: var(--font-corpo);
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    transition:
+      border-color 250ms var(--ease-resposta),
+      box-shadow 250ms var(--ease-resposta),
+      transform 250ms var(--ease-resposta);
+  }
+
+  .botao-contorno:hover {
+    border-color: #B9BFC8;
+    box-shadow: 0 6px 16px rgba(12, 14, 18, 0.08);
+    transform: translateY(-1px);
+  }
+
+  .botao-contorno svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+  }
+
   /* O rótulo pequeno em caixa alta que abre cada seção. */
   .rotulo-secao {
     display: block;

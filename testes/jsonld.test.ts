@@ -67,6 +67,12 @@ describe("physician", () => {
   it("nunca traz nota agregada — não existem avaliações neste site", () => {
     expect(p.aggregateRating).toBeUndefined();
   });
+
+  it("não diz telemedicina: o perfil não mostra isso na tela", () => {
+    expect(medico.telemedicina).toBe(true);
+    expect(p.availableService).toBeUndefined();
+    expect(JSON.stringify(p).toLowerCase()).not.toContain("telemedicina");
+  });
 });
 
 describe("organizationAmi", () => {

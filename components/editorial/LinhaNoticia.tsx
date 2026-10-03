@@ -6,10 +6,8 @@ import type { ResumoNoticia } from "@/lib/sanity/tipos";
 /*
   Item do índice de notícias.
 
-  Linha com miniatura à esquerda, e não grade de cartões: é a mesma gramática
-  de `LinhaMedico`, e o site inteiro fica coerente. Grade de cartões também
-  obrigaria toda matéria a ter capa, e a AMI vai publicar comunicado curto sem
-  imagem.
+  Linha com miniatura à esquerda, e não grade de cartões: grade obrigaria
+  toda matéria a ter capa, e a AMI vai publicar comunicado curto sem imagem.
 
   A assinatura traz CRM porque a Resolução CFM 2.336/2023 exige a inscrição ao
   lado do nome do médico, e conteúdo de saúde assinado sem CRM é exatamente o
@@ -62,9 +60,9 @@ export function LinhaNoticia({ noticia }: { noticia: ResumoNoticia }) {
     : "";
 
   return (
-    /* `min-w-0`: ver o comentário equivalente em LinhaMedico. Item de grade
-        não encolhe abaixo do conteúdo sem isto, e uma palavra longa sem
-        espaço no resumo vira rolagem lateral da página. */
+    /* `min-w-0`: item de grade nasce com `min-width: auto` e não encolhe
+        abaixo do conteúdo sem isto, e uma palavra longa sem espaço no resumo
+        vira rolagem lateral da página. */
     <li className="pressiona eleva group min-w-0 rounded-bloco border border-line bg-surface shadow-apoio hover:border-line-strong">
       <Link
         href={`/noticias/${noticia.slug}`}

@@ -54,7 +54,7 @@ const MINIMO = 4.5;
   de pé ao lado da nossa).
 
   `text-white` já é usado hoje sobre o verde de ação dos botões (por
-  exemplo em components/diretorio/LinhaMedico.tsx), e
+  exemplo em components/painel/BlocoEspecialidades.tsx), e
   por não ter `--color-white` em T a rede contra
   classe morta não os enxergava: nenhuma das duas expressões regulares
   deste arquivo casava `white`/`black`, e a classe escapava da varredura

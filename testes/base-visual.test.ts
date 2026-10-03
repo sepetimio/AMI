@@ -46,7 +46,7 @@ describe("a base visual", () => {
   });
 
   it("existem as pecas que as secoes usam", () => {
-    for (const c of [".botao", ".botao-linha", ".rotulo-secao", ".ladrilho-icone", ".textura-verde", ".brilho"]) {
+    for (const c of [".botao", ".botao-linha", ".botao-contorno", ".rotulo-secao", ".ladrilho-icone", ".textura-verde", ".brilho"]) {
       expect(CSS, `falta ${c}`).toContain(`${c} {`);
     }
   });

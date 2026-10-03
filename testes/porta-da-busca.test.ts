@@ -201,10 +201,10 @@ describe("a página de especialidade", () => {
   });
 
   it("mostra a grade de cartões da busca, e não a linha antiga", () => {
-    /* A linha antiga (components/diretorio/LinhaMedico.tsx) também escreve o
-       link do perfil e o CRM: com ela de volta, o teste de cima passaria.
-       Este não: a classe da grade some, e aparece o selo "Associado AMI",
-       que só a linha antiga mostra. */
+    /* A linha antiga do diretório (já apagada) também escrevia o link do
+       perfil e o CRM: com ela de volta, o teste de cima passaria. Este não:
+       a classe da grade some, e aparece o selo "Associado AMI", que só a
+       linha antiga mostrava. */
     expect(ESPECIALIDADE).toContain(`<ul class="${estilosGrade.grade}">`);
     expect(ESPECIALIDADE).not.toContain("Associado AMI");
   });

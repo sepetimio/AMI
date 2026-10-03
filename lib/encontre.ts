@@ -79,6 +79,15 @@ export function linkDoWhatsapp(numero: string): string {
 }
 
 /**
+ * O número de um botão (Ligar, WhatsApp), quando ele tem algum dígito; vazio,
+ * só espaço ou só pontuação, null. Sem isto, um campo em branco no cadastro
+ * viraria um "WhatsApp" que abre `wa.me/55` sem número.
+ */
+export function numeroPreenchido(numero: string | null | undefined): string | null {
+  return numero && /\d/.test(numero) ? numero : null;
+}
+
+/**
  * "Outros médicos de {especialidade}", no perfil: até `limite` médicos cuja
  * especialidade principal é a mesma deste, sem ele, em ordem alfabética.
  * Médico sem especialidade não tem outros.

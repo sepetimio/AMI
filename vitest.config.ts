@@ -31,7 +31,8 @@ import { fileURLToPath } from "node:url";
    bairros e os parceiros da home. `testes/cartao-medico.test.ts` renderiza
    com `renderToString` o cartão, a foto e a grade de médicos, e
    `testes/busca.test.ts`, com `renderToPipeableStream` (pelo `htmlDe` de
-   testes/renderizar.ts), a página `/busca` inteira. */
+   testes/renderizar.ts), a página `/busca` inteira, e `testes/perfil.test.ts`,
+   pelo mesmo caminho, o perfil do médico. */
 export default defineConfig({
   test: {
     include: ["testes/**/*.test.ts"],
