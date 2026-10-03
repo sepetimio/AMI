@@ -4,12 +4,13 @@ import { Breadcrumb, type ItemTrilha } from "@/components/layout/Breadcrumb";
   Cabeceira das páginas internas: /medicos, /busca, cada especialidade e cada
   cruzamento de especialidade com bairro.
 
-  É a mesma gramática do herói da home, uma oitava abaixo. Lá o símbolo é
-  verde de marca sobre verde escuro, a 30% de opacidade, e o título sai no
-  nível de display. Aqui o símbolo é o mesmo degradê a 7% sobre branco, e o
-  título é um h1 comum. A cabeceira sangra de borda a borda em ambos os casos,
-  o que é o que faz as duas lerem como o mesmo sistema em vez de como duas
-  páginas feitas em dias diferentes.
+  Sangra de borda a borda, como a faixa verde do topo da home
+  (components/home/FaixaDaAmi.tsx), e é isso que faz as páginas internas e a
+  home lerem como o mesmo sistema. A faixa da home é verde escuro, sem
+  símbolo, com o título no nível de display; aqui o fundo é a superfície
+  clara, o título é um h1 comum, e o símbolo da AMI entra em máscara sobre o
+  degradê de marca, a 5% de opacidade — o mesmo recurso de EstadoVazio.tsx e
+  MolduraProvisoria.tsx.
 
   A contagem sai grande, à esquerda, em monoespaçada de registro: num
   diretório é a primeira coisa que a pessoa quer saber, antes de qualquer

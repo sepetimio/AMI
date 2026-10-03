@@ -54,9 +54,10 @@ function porNome(nome: string) {
 }
 
 describe("schemas do Sanity", () => {
-  it("registra os três tipos de documento", () => {
+  it("registra os quatro tipos de documento", () => {
     expect(tipos.map((t) => t.name).sort()).toEqual([
       "autor",
+      "banner",
       "noticia",
       "paginaInstitucional",
     ]);
@@ -79,6 +80,18 @@ describe("schemas do Sanity", () => {
         "atualizadoEm",
         "corpo",
       ]),
+    );
+  });
+
+  it("banner tem os campos que a consulta projeta", () => {
+    /* Contrato entre a tarefa 2 e a tarefa 3 (o carrossel), que já consome
+       `imagem`, `alt` (dentro de `imagem`) e `destino` — mesmo raciocínio do
+       teste de notícia acima. Renomear `imagem` para `arte` no Studio, por
+       exemplo, não quebra nada em tempo de compilação: GROQ_BANNERS devolve
+       `undefined` calado, e o carrossel perde a arte sem erro nenhum. */
+    const campos = porNome("banner").fields.map((c) => c.name);
+    expect(campos).toEqual(
+      expect.arrayContaining(["nome", "imagem", "destino", "ordem", "expiraEm"]),
     );
   });
 

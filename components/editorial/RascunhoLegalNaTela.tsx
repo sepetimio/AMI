@@ -17,6 +17,12 @@ import type { ItemTrilha } from "@/components/layout/Breadcrumb";
   do primeiro parágrafo, que aquele texto ainda não foi revisado por
   advogado.
 
+  O texto do aviso vem do próprio rascunho (`rascunho.aviso`, ver
+  `AvisoDoRascunho` em lib/rascunhosLegais.ts), não daqui. Os três textos
+  legais usam `AVISO_DE_TEXTO_LEGAL`, o de advogado. Seja associado também
+  passa por este componente, mas não é peça jurídica: usa o seu próprio
+  aviso, que diz só que a página é provisória.
+
   Assim que a AMI publicar o documento correspondente no Studio, o conteúdo
   de lá entra no lugar deste e o aviso some junto: a página decide qual dos
   dois renderizar, e o revisado sempre vence.
@@ -44,12 +50,10 @@ export function RascunhoLegalNaTela({
           className="mt-10 rounded-bloco border border-warn/30 bg-warn/5 p-5 md:p-6"
         >
           <p className="text-[17px] font-semibold text-ink-900">
-            Este texto é um rascunho e ainda não foi revisado por advogado
+            {rascunho.aviso.titulo}
           </p>
           <p className="coluna-leitura mt-2 text-[16px] text-ink-600">
-            Ele foi redigido a partir do funcionamento real deste site, para
-            servir de ponto de partida à revisão jurídica, e está publicado
-            para que a página não fique vazia. Não use como peça definitiva.
+            {rascunho.aviso.texto}
           </p>
         </div>
 

@@ -9,7 +9,8 @@
   Enquanto a AMI não entrega o material, cada espaço renderiza uma MOLDURA FPO
   ("for position only"), que é o que um designer coloca numa apresentação:
   ocupa o lugar exato da foto, com a proporção exata, e diz por escrito qual
-  foto vai ali.
+  foto vai ali. Só no modo demonstração: fora dele, espaço provisório não
+  desenha nada (ver `desenhoDaFotografia` em lib/molduras.ts).
 
   Foi uma decisão contra o caminho automático. O primeiro recorte usava
   fotografia de banco por semente fixa, e o resultado foi uma montanha nevada

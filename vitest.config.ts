@@ -8,8 +8,22 @@ import { fileURLToPath } from "node:url";
    nenhuma, e ele se exercita com um `NextRequest` de verdade, sem mock. Uma
    convenção não pode deixar a rota exposta sem teste.
 
-   Não há teste de interface: o custo de manter não se paga num site deste
-   porte. */
+   Não há teste de interface no sentido usual — nada de clicar, digitar ou
+   afirmar sobre pixel: o custo de manter não se paga num site deste porte.
+   `testes/carrossel.test.ts` é a segunda exceção, e não é disso que ele
+   trata: ele renderiza o carrossel com `renderToString` só para comparar
+   duas saídas de servidor entre si, porque compatibilidade de hidratação não
+   dá para ler no código nem o `npm run build` verifica.
+   `testes/porta-da-busca.test.ts`, `testes/molduras.test.ts`,
+   `testes/fotografia-trava.test.ts` e `testes/aviso-do-rascunho.test.ts`
+   também
+   renderizam com `renderToString`, e também sem clicar nem medir pixel: só
+   leem o HTML de servidor, para saber se um campo ou uma moldura saiu.
+   `testes/home-renderizada.test.ts` faz o mesmo com a home inteira, com
+   `renderToPipeableStream` e as fontes de dados trocadas por dublês;
+   `testes/porta-da-busca.test.ts` também renderiza assim `/busca` e uma
+   página de especialidade, e `testes/caminhos-de-filiacao.test.ts`, com
+   `renderToString`, `/contato` e `/associacao`. */
 export default defineConfig({
   test: {
     include: ["testes/**/*.test.ts"],

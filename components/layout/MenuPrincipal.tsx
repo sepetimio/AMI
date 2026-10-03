@@ -5,13 +5,20 @@ import { usePathname } from "next/navigation";
 
 /*
   `curto` é o rótulo do celular. "Buscar médicos" sozinho não cabe: com a
-  marca, os três itens e os respiros, a barra pedia 428px numa tela de 375, e
-  o excesso empurrava a página inteira para o lado. Medido, não estimado.
+  marca, os três itens originais e os respiros, a barra pedia 428px numa tela
+  de 375, e o excesso empurrava a página inteira para o lado. Medido, não
+  estimado.
+
+  "Contato" entrou depois dessa medição, como quarto item. Não foi remedido —
+  a rolagem horizontal da barra, comentada mais abaixo, existe justamente
+  para conter esse excesso sem empurrar a página, que é o mesmo problema que
+  a medição original documentou.
 */
 const MENU = [
   { rotulo: "Buscar médicos", curto: "Médicos", href: "/medicos" },
   { rotulo: "Notícias", curto: "Notícias", href: "/noticias" },
   { rotulo: "A Associação", curto: "Associação", href: "/associacao" },
+  { rotulo: "Contato", curto: "Contato", href: "/contato" },
 ];
 
 /*

@@ -9,6 +9,7 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbList, physician } from "@/lib/seo/jsonld";
 import { buscarMedicos, medicoPorSlug, slugsDeMedicos } from "@/lib/dados/medicos";
 import { descricaoMedico, tituloMedico } from "@/lib/seo/metadados";
+import { hrefTelefone } from "@/lib/ami";
 import { formatarTelefone, identificacaoMedica } from "@/lib/formato";
 import { ROTULO_ACESSIBILIDADE } from "@/lib/dados/tipos";
 
@@ -143,7 +144,7 @@ export default async function PaginaPerfil({ params }: Props) {
                   <p className="mt-4 flex flex-wrap gap-3">
                     {l.telefone ? (
                       <a
-                        href={`tel:+55${l.telefone.replace(/\D/g, "")}`}
+                        href={hrefTelefone(l.telefone)}
                         className="pressiona inline-flex min-h-11 items-center rounded-controle bg-ami-green-600 px-5 font-semibold text-white shadow-apoio hover:bg-ami-green-700 hover:shadow-erguido"
                       >
                         Ligar&nbsp;

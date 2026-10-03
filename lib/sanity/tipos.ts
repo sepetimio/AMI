@@ -43,3 +43,18 @@ export type PaginaInstitucional = {
   atualizadoEm: string;
   corpo: PortableTextBlock[];
 };
+
+/*
+  Banner da home. Ao contrário de `ResumoNoticia`/`Noticia`, `imagem` já vem
+  como endereço pronto (não `ImagemSanity`): quem lê este tipo é o carrossel
+  da home, que só desenha um `<img src>` e não escolhe largura por contexto
+  como `TextoRico` escolhe para o corpo de uma matéria.
+*/
+export type Banner = {
+  id: string;
+  nome: string;
+  imagem: string;
+  alt: string;
+  destino: string | null;
+  ordem: number;
+};

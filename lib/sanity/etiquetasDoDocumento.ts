@@ -3,6 +3,7 @@ import {
   etiquetaDeNoticia,
   etiquetaDePagina,
 } from "@/lib/sanity/consultas";
+import { ETIQUETA_BANNERS } from "@/lib/sanity/banners";
 
 type DocumentoDoWebhook = {
   _type?: string;
@@ -33,6 +34,12 @@ export function etiquetasDoDocumento(doc: DocumentoDoWebhook): string[] {
       /* Ver o comentário longo no teste: o autor vem resolvido dentro de cada
          notícia, e o webhook não sabe quais ele assinou. */
       return [ETIQUETA_NOTICIAS];
+
+    case "banner":
+      /* Os banners saem numa consulta só, a do carrossel da home, então
+         qualquer banner publicado, despublicado ou com a validade trocada
+         invalida a lista inteira. Não há slug: banner não tem página. */
+      return [ETIQUETA_BANNERS];
 
     default:
       return [];

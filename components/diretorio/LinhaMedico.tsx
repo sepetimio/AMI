@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Chip } from "@/components/base/Chip";
 import { Placa } from "@/components/diretorio/Placa";
+import { hrefTelefone } from "@/lib/ami";
 import { formatarTelefone, identificacaoMedica } from "@/lib/formato";
 import { ROTULO_ACESSIBILIDADE, type Medico } from "@/lib/dados/tipos";
 
@@ -111,7 +112,7 @@ export function LinhaMedico({ medico }: { medico: Medico }) {
             </Link>
             {local?.telefone ? (
               <a
-                href={`tel:+55${local.telefone.replace(/\D/g, "")}`}
+                href={hrefTelefone(local.telefone)}
                 className="pressiona inline-flex min-h-12 items-center rounded-controle border border-line bg-canvas px-6 text-[15px] font-semibold text-ami-green-600 hover:border-ami-green-600 hover:bg-ami-lima-100"
               >
                 Ligar&nbsp;

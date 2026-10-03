@@ -62,7 +62,7 @@ export default async function PaginaBusca({ searchParams }: Props) {
 
       <div className="mx-auto max-w-[1200px] px-4 md:px-6">
       <div className="grid gap-8 pb-16 md:grid-cols-[260px_1fr]">
-        <PainelFiltros bairros={bairros} total={medicos.length} />
+        <PainelFiltros bairros={bairros} total={medicos.length} campoDeTermo />
         <div>
           <h2 className="sr-only">Resultados</h2>
           <ListaMedicos
