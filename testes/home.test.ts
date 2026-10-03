@@ -8,27 +8,29 @@ import { fonte, semComentarios } from "@/testes/apoio";
   aqui renderiza a home, monta árvore de React ou olha para HTML. Então:
 
   PEGA — o componente foi removido do arquivo, teve o nome trocado, ou a
-  ordem em que os três aparecem no código mudou.
+  ordem em que as seções aparecem no código mudou.
 
-  NÃO PEGA — que o componente RENDERIZE alguma coisa. Envolver a faixa em
-  `{false && (<FaixaDaAmi … />)}` deixa os quatro testes abaixo VERDES: a
-  substring "<FaixaDaAmi" continua no arquivo. Isso não é raciocínio, é
-  medido — a mutação foi aplicada e a suíte rodou assim. `null` devolvido de
-  dentro do próprio componente passa pelo mesmo motivo, e
-  `UltimasNoticias` faz exatamente isso quando não há notícia
-  (components/editorial/UltimasNoticias.tsx: `if (noticias.length === 0)
-  return null;`) — de propósito, e sem que nada aqui saiba.
+  NÃO PEGA, AQUI — que o componente RENDERIZE alguma coisa. Envolver a
+  faixa em `{false && <FaixaDaAmi … />}` deixa os oito testes deste arquivo
+  VERDES: a substring "<FaixaDaAmi" continua no arquivo. Medido de novo em
+  03/10/2026, com a mutação aplicada. `null` devolvido de dentro do próprio
+  componente passa pelo mesmo motivo.
 
-  NÃO PEGA, também — ordem VISUAL. `indexOf` mede posição no arquivo, não na
-  tela: um `order-*` do Tailwind, um `flex-col-reverse` ou um wrapper que
-  reposicione qualquer uma das seções deixaria estas asserções verdes com a
-  página de cabeça para baixo.
+  ESSE BURACO ESTÁ COBERTO em testes/home-renderizada.test.ts, que importa
+  esta página de verdade, troca só as quatro fontes de dados (especialidades,
+  médicos, banners, notícias) e confere o HTML que sai. A mesma mutação da
+  faixa deixa dois testes de lá vermelhos ("falta \"<h1\""); embrulhar o
+  carrossel, as notícias ou os parceiros também. Lá a cobertura vale para o
+  que aquele arquivo procura: o <h1> da faixa, o carrossel, os títulos e os
+  `id` das seções, e as molduras — com dados de mentira, não com o banco.
 
-  Nada disto é motivo para apagar o arquivo — o modo de falhar que ele cobre
-  (alguém apaga uma seção ao mexer na home, como já aconteceu neste ramo com
-  a busca) é real e barato de pegar. É motivo para não confundir "os testes
-  da home passam" com "a home aparece". A segunda coisa só se prova abrindo
-  a página num servidor.
+  NÃO PEGA, em nenhum dos dois — ordem VISUAL. `indexOf` mede posição no
+  texto (aqui, no arquivo; lá, no HTML), não na tela: um `order-*` do
+  Tailwind, um `flex-col-reverse` ou um wrapper que reposicione uma seção
+  deixaria as asserções verdes com a página de cabeça para baixo.
+
+  Este arquivo continua porque é o mais barato de ler quando falha: diz qual
+  nome sumiu do texto-fonte, sem renderizar nada.
 */
 const HOME = semComentarios(fonte("../app/(site)/page.tsx"));
 
