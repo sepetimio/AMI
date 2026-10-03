@@ -33,7 +33,10 @@ export function Rodape() {
         <div className={styles.colunas}>
           <div>
             <p className={styles.lema}>{AMI.razaoSocial}</p>
-            <div className="registro">CNPJ {AMI.cnpj}</div>
+            {/* CNPJ e telefones na fonte do texto, com algarismos tabulares,
+                como no desenho: a monoespaçada fica só no registro do médico
+                (spec, seção 4). */}
+            <div className={`numero-tabular ${styles.cnpj}`}>CNPJ {AMI.cnpj}</div>
           </div>
 
           <nav aria-labelledby="rodape-associacao" className={styles.coluna}>
@@ -77,7 +80,7 @@ export function Rodape() {
                 ligar é a ação mais provável de quem chegou até aqui. */}
             <div className={styles.telefones}>
               {AMI.telefones.map((t) => (
-                <a key={t} href={hrefTelefone(t)} className="registro">
+                <a key={t} href={hrefTelefone(t)} className="numero-tabular">
                   {t}
                 </a>
               ))}

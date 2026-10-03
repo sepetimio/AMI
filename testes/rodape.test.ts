@@ -1,11 +1,23 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { fonte, semComentarios } from "@/testes/apoio";
+import { renderizar } from "@/testes/renderizar";
+import estilos from "@/components/layout/Rodape.module.css";
+import { AMI } from "@/lib/ami";
 import {
   ROLAGEM_SEM_CARROSSEL,
   destinoDaBusca,
   deveMostrarBarra,
   passouDoTopo,
 } from "@/lib/barra-do-pe";
+
+/* O menu do cabeçalho lê o caminho; aqui não há roteador (testes/renderizar.ts). */
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/",
+}));
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 const ROD = semComentarios(fonte("../components/layout/Rodape.tsx"));
 const BARRA = semComentarios(fonte("../components/layout/BarraDoPe.tsx"));
@@ -143,6 +155,19 @@ describe("o rodape", () => {
   it("o texto do corpo e branco a 92%, nao 82%, por contraste", () => {
     expect(regra(CSS_ROD, ".rodape")).toMatch(/color:\s*rgba\(255, 255, 255, 0\.92\)/);
     expect(regra(CSS_ROD, ".base")).toMatch(/color:\s*rgba\(255, 255, 255, 0\.7\)/);
+  });
+});
+
+describe("o rodape renderizado", () => {
+  it("CNPJ e telefones na fonte do texto, com algarismos tabulares, nao na monoespacada", async () => {
+    /* A spec (seção 4) deixa a monoespaçada só no registro do médico; no
+       desenho, CNPJ e telefones são `.num`, algarismos tabulares. */
+    const { rodape } = await renderizar("true");
+    expect(rodape).not.toContain("registro");
+    expect(rodape).toContain(`<div class="numero-tabular ${estilos.cnpj}">CNPJ <!-- -->${AMI.cnpj}</div>`);
+    const telefones = [...rodape.matchAll(/<a href="tel:[^"]+" class="([^"]*)">/g)].map((m) => m[1]);
+    expect(telefones.length).toBeGreaterThan(0);
+    for (const classe of telefones) expect(classe).toBe("numero-tabular");
   });
 });
 

@@ -31,6 +31,17 @@ describe("a base visual", () => {
     expect(FONTES).toMatch(/Geist_Mono\(/);
   });
 
+  it("a Geist Mono nao e pre-carregada: a home e o rodape nao a usam", () => {
+    /* `preload` é opção do next/font (node_modules/next/dist/docs, Font):
+       com `false`, o <link rel="preload"> some do <head> de toda página. */
+    const mono = FONTES.slice(FONTES.indexOf("Geist_Mono({"));
+    expect(mono.slice(0, mono.indexOf("});"))).toMatch(/preload:\s*false,/);
+    for (const outra of ["Plus_Jakarta_Sans({", "Bricolage_Grotesque({"]) {
+      const bloco = FONTES.slice(FONTES.indexOf(outra));
+      expect(bloco.slice(0, bloco.indexOf("});")), outra).not.toContain("preload");
+    }
+  });
+
   it("existem as pecas que as secoes usam", () => {
     for (const c of [".botao", ".botao-linha", ".botao-arte", ".rotulo-secao", ".ladrilho-icone", ".textura-verde", ".brilho"]) {
       expect(CSS, `falta ${c}`).toContain(`${c} {`);

@@ -105,6 +105,11 @@
   font-style: normal;
 }
 
+/* O CNPJ do desenho, um passo abaixo do corpo do rodapé. */
+.cnpj {
+  font-size: 13px;
+}
+
 .telefones {
   margin-top: 12px;
 }

@@ -368,8 +368,10 @@
 }
 
 /*
-  O dado cartorial: CRM, RQE, telefone, CNPJ. A razão de existir está em
-  lib/fontes.ts, no comentário de `fonteRegistro`.
+  O número de registro do médico (CRM, RQE), em monoespaçada. As páginas
+  internas que a reforma ainda não alcançou a usam também em telefone, data,
+  contagem e CNPJ; o rodapé não (`numero-tabular`, logo abaixo). A razão de
+  existir está em lib/fontes.ts, no comentário de `fonteRegistro`.
 */
 @utility registro {
   font-family: var(--font-registro);
@@ -378,6 +380,8 @@
   letter-spacing: -0.01em;
 }
 
+/* Algarismos de largura igual, na fonte do texto: o CNPJ e os telefones do
+   rodapé, como no desenho (`.num`), e as contagens das pílulas de bairro. */
 @utility numero-tabular {
   font-variant-numeric: tabular-nums;
 }

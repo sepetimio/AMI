@@ -1,6 +1,5 @@
-import { createElement } from "react";
-import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { renderizar } from "@/testes/renderizar";
 
 /*
   "Sua AMI" no menu e no rodapé, nos dois modos, medido no HTML de servidor.
@@ -10,11 +9,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
   dela, o link apontaria para o nada; por isso ele sai do menu e do rodapé
   junto com o bloco.
 
-  A chave é controlada como em testes/home-renderizada.test.ts: `vi.stubEnv`
-  e `vi.resetModules()` antes de importar, para lib/demonstracao.ts ser
-  avaliado de novo com o valor novo. O menu é componente de cliente e lê o
-  caminho por `usePathname`; aqui não há roteador, e o dublê abaixo é o
-  mínimo que ele toca.
+  Quem renderiza, com a chave escolhida, é `renderizar` (testes/renderizar.ts).
+  O menu é componente de cliente e lê o caminho por `usePathname`; aqui não
+  há roteador, e o dublê abaixo é o mínimo que ele toca.
 */
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",
@@ -23,17 +20,6 @@ vi.mock("next/navigation", () => ({
 afterEach(() => {
   vi.unstubAllEnvs();
 });
-
-async function renderizar(chave: string) {
-  vi.stubEnv("NEXT_PUBLIC_DADOS_DEMONSTRACAO", chave);
-  vi.resetModules();
-  const { Cabecalho } = await import("@/components/layout/Cabecalho");
-  const { Rodape } = await import("@/components/layout/Rodape");
-  return {
-    cabecalho: renderToString(createElement(Cabecalho)),
-    rodape: renderToString(createElement(Rodape)),
-  };
-}
 
 function vezes(texto: string, trecho: string): number {
   return texto.split(trecho).length - 1;

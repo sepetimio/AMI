@@ -32,7 +32,7 @@ export const fonteTitulo = Bricolage_Grotesque({
 });
 
 /*
-  Monoespaçada para o dado cartorial: CRM, RQE, telefone, CNPJ.
+  Monoespaçada para o número de registro do médico: CRM e RQE.
 
   A razão de existir uma monoespaçada aqui está inalterada e continua valendo:
   um diretório médico é um registro público, e o número de inscrição é o que
@@ -41,12 +41,22 @@ export const fonteTitulo = Bricolage_Grotesque({
   corrido lê como texto de marketing que por acaso tem dígitos.
 
   Geist Mono não tem mais irmã de texto: a Plus Jakarta Sans não é da mesma
-  família. A monoespaçada fica só no número de registro, onde o contraste com
-  o texto ao redor é justamente o que faz o CRM ler como assento de registro.
+  família. A spec da reforma (seção 4) a deixa só no número de registro, onde
+  o contraste com o texto ao redor é justamente o que faz o CRM ler como
+  assento de registro. O rodapé já segue isso: CNPJ e telefones estão na fonte
+  do texto, com algarismos tabulares. As páginas internas que a reforma ainda
+  não alcançou continuam usando a classe `registro` (app/globals.css) também
+  em telefones, datas, contagens e no CNPJ de /associacao e /contato.
+
+  `preload: false`: a home e o rodapé de toda página não a usam mais, e com o
+  pré-carregamento toda página baixaria a fonte antes de precisar dela. Ela
+  baixa quando uma página a usa (`display: swap` mostra o número na fonte
+  reserva até ela chegar).
 */
 export const fonteRegistro = Geist_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   display: "swap",
+  preload: false,
   variable: "--fonte-registro",
 });
