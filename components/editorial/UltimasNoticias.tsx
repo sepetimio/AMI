@@ -32,9 +32,9 @@ import type { ResumoNoticia } from "@/lib/sanity/tipos";
   real sai, com ou sem `provisorias`: real e provisório nunca se misturam. O
   padrão `false` faz quem esquecer de passar a prop cair no null.
 
-  O bloco entra na tela com a `.revelar` global (app/globals.css). Na home,
-  só os blocos que nunca abrem na primeira tela a usam (ver
-  app/(site)/inicio.module.css).
+  O bloco entra na tela com a `.revelar` global (app/globals.css): se abrir
+  abaixo da tela, entra ao rolar; se já abrir nela, fica parado
+  (components/layout/Revelar.tsx).
 */
 export async function UltimasNoticias({
   provisorias = false,

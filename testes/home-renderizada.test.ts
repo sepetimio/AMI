@@ -254,20 +254,27 @@ describe("as faixas de ponta a ponta e o fim da página", () => {
     ]);
   });
 
-  it("só os blocos que nunca abrem na primeira tela entram com a .revelar", async () => {
-    /* A `.revelar` é presa à rolagem: um bloco já na primeira tela ficava
-       parado no meio dela, desbotado e borrado, até a pessoa rolar. Medido
-       de 390×844 a 2560×1440, com e sem carrossel, os números, a busca e
-       "Seja associado" podem abrir na primeira tela; ficam sem ela, como o
-       carrossel (app/(site)/inicio.module.css). Quem pede menos movimento
-       não vê animação nenhuma: a regra de app/globals.css só vale com
-       `no-preference`. */
+  it("todo bloco menos o carrossel entra com a .revelar, como no desenho", async () => {
+    /* A `.revelar` só marca o bloco. Quem decide é
+       components/layout/Revelar.tsx, no navegador: o bloco que já abre na
+       primeira tela fica parado, e só o que abre abaixo dela anima. Por
+       isso os números, a busca e "Seja associado" podem levá-la. */
     const html = await renderizarHome("true");
     const tags = [...html.matchAll(/<[a-z]+ [^>]*data-bloco="([^"]+)"[^>]*>/g)];
     const comRevelar = tags
       .filter((m) => /class="(?:[^"]* )?revelar[ "]/.test(m[0]))
       .map((m) => m[1]);
-    expect(comRevelar).toEqual(["sua-ami", "noticias", "bairros"]);
+    expect(comRevelar).toEqual(["numeros", "encontre", "sua-ami", "associe", "noticias", "bairros"]);
+  });
+
+  it("o HTML do servidor não esconde nada: nenhum bloco sai com data-revelar", async () => {
+    /* O estado escondido é `data-revelar="espera"`, e só o navegador o põe.
+       Sem JavaScript, a página inteira aparece. */
+    for (const chave of ["true", "false"]) {
+      const html = await renderizarHome(chave, { banners: [BANNER], noticias: [NOTICIA] });
+      expect(html).toContain("revelar");
+      expect(html).not.toContain("data-revelar");
+    }
   });
 
   it("os blocos ficam no invólucro que leva a coluna e o ritmo", async () => {

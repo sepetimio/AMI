@@ -12,12 +12,9 @@
   O `100%` de `--borda-faixa`, no padding das faixas, vale a largura de
   `.home`, que é a da página: nem `.home` nem o `<main>` têm margem lateral.
 
-  A entrada ao rolar (`.revelar`, app/globals.css) é presa à posição na
-  tela: um bloco que já abre na primeira tela fica parado no meio dela até a
-  pessoa rolar, desbotado e borrado. Por isso só a usam os blocos que nunca
-  abrem na primeira tela, medido de 390×844 a 2560×1440, com e sem
-  carrossel: "Sua AMI", as notícias e bairros. Os números, a busca e "Seja
-  associado" não a usam.
+  Todo bloco menos o carrossel leva a entrada ao rolar (`.revelar`), como
+  no desenho. Ela dispara uma vez só e só para o bloco que abre abaixo da
+  tela; o que já abre nela fica parado (components/layout/Revelar.tsx).
 
   As medidas desta folha estão travadas em testes/home.test.ts.
 */

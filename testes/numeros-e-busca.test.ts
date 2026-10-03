@@ -418,7 +418,7 @@ describe("encontre um medico", () => {
   });
 
   it("e a faixa verde com a luz, e o rotulo marca a coluna da auditoria", () => {
-    expect(html).toMatch(/<section[^>]*data-bloco="encontre"[^>]*class="textura-verde /);
+    expect(html).toMatch(/<section[^>]*data-bloco="encontre"[^>]*class="revelar textura-verde /);
     expect(html).toContain('<div class="brilho" aria-hidden="true"></div>');
     expect(html).toMatch(/<span class="rotulo-secao [^"]+" data-coluna="">Encontre um médico<\/span>/);
     expect(html).toContain("Quem atende em Imperatriz, num só lugar");

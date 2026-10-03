@@ -14,8 +14,11 @@
   aparece parado na primeira tela.
 
   O que confere:
-  - nenhum bloco visível na primeira tela abre desbotado ou borrado (a
-    `.revelar` presa à rolagem, Ruling 38);
+  - nenhum bloco visível na primeira tela abre desbotado ou borrado: a
+    entrada ao rolar (`.revelar`, components/layout/Revelar.tsx) só pode
+    esconder o que abre abaixo da tela;
+  - depois de rolar a página inteira, todo bloco que esperava entrou e
+    terminou com opacidade 1 e sem `filter`;
   - nada passa da borda, a não ser dentro de uma fileira que desliza;
   - nenhum `.botao`, `.botao-linha` ou `.botao-arte` quebra linha ou vaza;
   - um único `h1`, nenhum `id` repetido, nenhuma imagem quebrada;
@@ -73,7 +76,7 @@
      presa à rolagem. Um enfeite com opacidade baixa de propósito (a marca
      d'água da Cabeceira) não entra: ele não está no meio de uma animação. */
   const candidatos = new Set([
-    ...document.querySelectorAll(".revelar, [data-bloco]"),
+    ...document.querySelectorAll(".revelar, [data-revelar], [data-bloco]"),
     ...document
       .getAnimations()
       .filter((a) => a.timeline && !(a.timeline instanceof DocumentTimeline))
@@ -96,11 +99,9 @@
   if (presos.length)
     problemas.push("preso na primeira tela: " + presos.join(" | "));
 
-  /* Daqui em diante, a medida não pode depender da rolagem: a entrada da
-     `.revelar` desloca o bloco 28px enquanto anima. */
+  /* A rolagem pelo script vai direto ao ponto, sem a rolagem suave do site. */
   const semAnimacao = document.createElement("style");
-  semAnimacao.textContent =
-    ".revelar{animation:none!important}html{scroll-behavior:auto!important}";
+  semAnimacao.textContent = "html{scroll-behavior:auto!important}";
   document.head.append(semAnimacao);
 
   /* O carrossel parado pelo botão, para nada se mover durante a medida. */
@@ -112,10 +113,34 @@
     : null;
   botaoPausa?.click();
 
-  /* 2. Uma volta pela página inteira, para as imagens preguiçosas baixarem. */
+  /* 2. Uma volta pela página inteira, para as imagens preguiçosas baixarem
+     e os blocos em espera entrarem. Daí em diante nenhuma medida depende da
+     rolagem: a entrada dispara uma vez só, e a transição dela (0,9s) já
+     terminou quando a volta acaba. */
   for (let y = 0; y < raiz.scrollHeight; y += H * 0.8) await rolar(y, 150);
   await rolar(raiz.scrollHeight, 600);
-  await rolar(0, 300);
+  await rolar(0, 1200);
+  const naoEntraram = [...document.querySelectorAll(".revelar, [data-revelar]")]
+    .filter((e) => R(e).height > 0)
+    .filter((e) => {
+      const cs = getComputedStyle(e);
+      return (
+        e.dataset.revelar === "espera" ||
+        Number(cs.opacity) < 1 ||
+        cs.filter !== "none"
+      );
+    });
+  if (naoEntraram.length)
+    problemas.push(
+      "não entrou depois de rolar: " +
+        naoEntraram
+          .map(
+            (e) =>
+              `${e.dataset.bloco ?? e.tagName.toLowerCase()} (${e.dataset.revelar ?? "sem atributo"}, opacity ${getComputedStyle(e).opacity}, filter ${getComputedStyle(e).filter})`,
+          )
+          .join(" | "),
+    );
+  info.revelar = `${document.querySelectorAll('[data-revelar="entrou"]').length} entraram ao rolar, ${document.querySelectorAll(".revelar:not([data-revelar])").length} abriram à vista`;
 
   /* 3. Nada passa da borda, e nada fica cortado nela. Um elemento cortado
      por um ancestral (overflow diferente de visible) conta se a parte que

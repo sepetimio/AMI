@@ -416,43 +416,41 @@
      ========================================================= */
 
   /*
-    Entrada por rolagem sem uma linha de JavaScript, pela linha do tempo de
-    rolagem nativa do CSS. Isso importa por três razões, nesta ordem:
+    Entrada dos blocos ao rolar, uma vez só. A classe `.revelar` só marca o
+    bloco; quem decide e observa é components/layout/Revelar.tsx, que põe
+    `data-revelar="espera"` no bloco que abre abaixo da tela e troca para
+    `"entrou"` quando ele aparece. O que está na tela na abertura nunca
+    recebe o atributo e nunca anima.
 
-    1. Não existe ouvinte de `scroll`, que roda a cada quadro e é o modo mais
-       comum de matar o desempenho de rolagem no celular.
-    2. Nada aqui precisa virar Client Component. A página segue no servidor.
-    3. Custo de bytes zero. Nenhuma biblioteca de animação entra no pacote.
-
-    O @supports é o que torna isso seguro: só quem tem `view()` recebe o
-    estado inicial invisível. Sem a checagem, um navegador sem suporte
-    aplicaria `opacity: 0` e rodaria a animação como animação comum de tempo,
-    e conteúdo abaixo da dobra apareceria e sumiria fora de vista.
+    O HTML do servidor não traz o atributo: sem JavaScript, nada fica
+    escondido. O estado escondido só vale para quem não pediu menos
+    movimento, e o impresso mostra tudo.
 
     O desfoque de 6px na entrada é o detalhe que separa "aparecer" de
     "chegar": o elemento entra fora de foco e assenta, como objeto que vem de
-    trás do plano.
+    trás do plano. No estado final não sobra `filter` nenhum. A curva e a
+    duração são as do desenho aprovado (`.rv`).
   */
-  @supports (animation-timeline: view()) {
-    @media (prefers-reduced-motion: no-preference) {
-      .revelar {
-        animation: revelar-entrada linear both;
-        animation-timeline: view();
-        animation-range: entry 0% cover 26%;
-      }
-    }
+  [data-revelar] {
+    transition:
+      opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1),
+      transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1),
+      filter 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
 
-  @keyframes revelar-entrada {
-    from {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-revelar="espera"] {
       opacity: 0;
       transform: translateY(28px);
       filter: blur(6px);
     }
-    to {
-      opacity: 1;
-      transform: none;
-      filter: blur(0);
+  }
+
+  @media print {
+    [data-revelar] {
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
     }
   }
 

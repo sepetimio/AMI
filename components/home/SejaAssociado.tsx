@@ -27,10 +27,9 @@ const ICONES: Record<CartaoInstitucional["titulo"], NomeIcone> = {
   fica na mesma linha vertical do resto porque a margem lateral é
   `--borda-faixa` (app/globals.css).
 
-  Sem a `.revelar`: sem carrossel, numa tela alta, esta faixa já aparece na
-  primeira tela, e a animação presa à rolagem a deixava parada no meio até a
-  pessoa rolar (medido a 2560×1440: opacidade 0,73 e desfoque de 1,6px).
-  Nada abre borrado.
+  Entra na tela com a `.revelar` global, como no desenho. Sem carrossel,
+  numa tela alta, esta faixa pode abrir na primeira tela, e aí fica parada:
+  só o bloco que abre abaixo da tela anima (components/layout/Revelar.tsx).
 
   A foto dos associados obedece a trava de `desenhoDaFotografia`: sem foto
   real e fora da demonstração não sai nada, e então a grade não ganha a
@@ -62,7 +61,7 @@ export function SejaAssociado({
       data-bloco="associe"
       data-faixa=""
       aria-labelledby="associe-titulo"
-      className={styles.faixa}
+      className={`revelar ${styles.faixa}`}
     >
       <div className={`${styles.duplo}${temFoto ? ` ${styles.comFoto}` : ""}`}>
         <div className={styles.corpo}>

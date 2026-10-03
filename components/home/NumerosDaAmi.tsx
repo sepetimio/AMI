@@ -18,10 +18,9 @@ import { AMI } from "@/lib/ami";
   O bloco não tem margem própria: quem o põe na página (a home) decide o
   espaço de cima, com `--ritmo`, e o põe na coluna centralizada.
 
-  Sem a `.revelar`: ela é animação presa à rolagem, e um bloco que já está
-  na primeira tela ficava parado no meio dela até a pessoa rolar (medido a
-  1440×900 com o carrossel: opacidade 0,63 e desfoque de 2,2px). Os números
-  estão sempre na primeira tela, e nada abre borrado.
+  Entra na tela com a `.revelar` global, como no desenho. Quando os números
+  já abrem na primeira tela (quase sempre), ficam parados: só o bloco que
+  abre abaixo da tela anima (components/layout/Revelar.tsx).
 */
 export function NumerosDaAmi({
   anos,
@@ -80,7 +79,7 @@ export function NumerosDaAmi({
     <section
       data-bloco="numeros"
       aria-label="A AMI em números"
-      className={styles.numeros}
+      className={`revelar ${styles.numeros}`}
     >
       {itens.map((item) => (
         <div key={item.icone} className={styles.numero}>
