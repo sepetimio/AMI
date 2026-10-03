@@ -21,21 +21,15 @@ import { desenhoDaFotografia } from "@/lib/molduras";
   Com material real, sai `next/image`. Largura e altura declaradas em ambos os
   casos: sem elas a imagem empurra o texto quando termina de carregar, que é a
   maior fonte de deslocamento de layout num site com foto.
-
-  `prioridade` marca a imagem que aparece antes da primeira rolagem. Só uma
-  por página pode receber, porque é a que o navegador busca primeiro, e marcar
-  duas é o mesmo que não marcar nenhuma.
 */
 export function Fotografia({
   espaco,
   className = "",
-  prioridade = false,
   sizes = "100vw",
   demonstracao = DADOS_DEMONSTRACAO,
 }: {
   espaco: NomeEspaco;
   className?: string;
-  prioridade?: boolean;
   sizes?: string;
   demonstracao?: boolean;
 }) {
@@ -66,7 +60,6 @@ export function Fotografia({
       width={largura}
       height={altura}
       sizes={sizes}
-      priority={prioridade}
       className={className}
     />
   );
