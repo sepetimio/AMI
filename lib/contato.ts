@@ -11,15 +11,19 @@
 */
 
 /**
- * O número brasileiro só com dígitos, sem o 55 do país: DDD e número, 10
- * dígitos no fixo e 11 no celular. O 55 do começo só sai quando sobram 10
- * ou 11 dígitos depois dele; "55 3018-9994" é um fixo do DDD 55, do Rio
- * Grande do Sul, e fica como está.
+ * O número brasileiro só com dígitos, sem o 55 do país e sem o 0 da
+ * ligação de longa distância: DDD e número, 10 dígitos no fixo e 11 no
+ * celular. Cada prefixo só sai quando sobram 10 ou 11 dígitos depois dele:
+ * "55 3018-9994" é um fixo do DDD 55, do Rio Grande do Sul, e fica como
+ * está; "(099) 3018-9994" fica sem o 0. Nenhum DDD começa com 0.
  */
 export function numeroNacional(numero: string): string {
   const digitos = numero.replace(/\D/g, "");
-  const comPais = (digitos.length === 12 || digitos.length === 13) && digitos.startsWith("55");
-  return comPais ? digitos.slice(2) : digitos;
+  const sobra = (prefixo: string) =>
+    digitos.startsWith(prefixo) && [10, 11].includes(digitos.length - prefixo.length);
+  if (sobra("55")) return digitos.slice(2);
+  if (sobra("0")) return digitos.slice(1);
+  return digitos;
 }
 
 /** O link do WhatsApp: `wa.me/55` mais o número de `numeroNacional`. */
