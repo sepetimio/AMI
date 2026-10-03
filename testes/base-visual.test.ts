@@ -53,6 +53,17 @@ describe("a base visual", () => {
     }
   });
 
+  it("a ancora para abaixo do cabecalho preso: 88px no computador, 76px no celular", () => {
+    /* O cabeçalho preso termina a 72px do topo (60px no celular), medido no
+       navegador; a âncora fica 16px abaixo. */
+    const html = CSS.match(/\n {2}html \{[^}]*\}/)?.[0] ?? "";
+    expect(html, "nao achei a regra html da base").not.toBe("");
+    expect(html).toMatch(/scroll-padding-top:\s*88px;/);
+    const celular = CSS.match(/@media \(max-width: 700px\) \{\s*html \{[^}]*\}/)?.[0] ?? "";
+    expect(celular, "nao achei o html do celular").not.toBe("");
+    expect(celular).toMatch(/scroll-padding-top:\s*76px;/);
+  });
+
   it("a textura e uma imagem pequena, nao filtro SVG", () => {
     expect(CSS).toContain("/textura/grao.png");
     expect(CSS).not.toContain("feTurbulence");

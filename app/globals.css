@@ -173,6 +173,17 @@
     /* Zoom nunca bloqueado. */
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    /* O cabeçalho fica preso no topo: uma âncora (`#encontre`, `#por-bairro`)
+       pararia atrás dele. Preso, ele termina a 72px do topo da janela no
+       computador e no tablet e a 60px no celular (medido no navegador, de
+       375 a 1920px); a âncora para 16px abaixo disso. */
+    scroll-padding-top: 88px;
+  }
+
+  @media (max-width: 700px) {
+    html {
+      scroll-padding-top: 76px;
+    }
   }
 
   body {
