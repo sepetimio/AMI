@@ -1,0 +1,449 @@
+import { describe, expect, it, vi } from "vitest";
+import { renderToString } from "react-dom/server";
+import { createElement } from "react";
+import { AMI, anosDeAmi } from "@/lib/ami";
+import { DURACAO_DO_CONTADOR, easeOutCubic, valorNoInstante } from "@/lib/contador";
+import { LadrilhoIcone } from "@/components/base/Icone";
+import { NumerosDaAmi } from "@/components/home/NumerosDaAmi";
+import { EncontreUmMedico } from "@/components/home/EncontreUmMedico";
+import estilosNum from "@/components/home/NumerosDaAmi.module.css";
+import estilosBusca from "@/components/home/EncontreUmMedico.module.css";
+import { fonte, semComentarios } from "@/testes/apoio";
+
+/*
+  Os números da AMI e o bloco "Encontre um médico", medidos no HTML de
+  servidor (`renderToString`) e, na lógica, por função pura.
+
+  Duas coisas aqui só se leem do código-fonte, porque só existem no
+  navegador: a ligação do `Contador` com o `IntersectionObserver` e a
+  preferência de menos movimento, e o CSS (quem aplica é o navegador). Nesses
+  casos o teste lê o arquivo, regra por regra.
+*/
+
+const CSS_NUM = fonte("../components/home/NumerosDaAmi.module.css");
+const CSS_BUSCA = fonte("../components/home/EncontreUmMedico.module.css");
+const CSS_GLOBAL = fonte("../app/globals.css");
+const CSS_ROD = fonte("../components/layout/Rodape.module.css");
+const CONTADOR = semComentarios(fonte("../components/home/Contador.tsx"));
+
+/* Sem comentários de CSS, para a prosa que explica uma regra não casar com a
+   asserção que a procura. */
+const semNotas = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, "");
+
+/* O conteúdo entre as chaves de um bloco que começa com `abre` (um @media),
+   contando chaves, para pegar o bloco inteiro e só ele. */
+function bloco(css: string, abre: string): string {
+  const ini = css.indexOf(`${abre} {`);
+  expect(ini, `falta o bloco ${abre}`).toBeGreaterThan(-1);
+  let nivel = 0;
+  for (let i = css.indexOf("{", ini); i < css.length; i++) {
+    if (css[i] === "{") nivel++;
+    if (css[i] === "}" && --nivel === 0) return css.slice(css.indexOf("{", ini) + 1, i);
+  }
+  throw new Error(`bloco ${abre} sem fim`);
+}
+
+/* Todos os blocos que começam com `abre`, juntos: em globals.css há mais de
+   um @media de 700px. */
+function blocos(css: string, abre: string): string {
+  const partes: string[] = [];
+  for (let i = css.indexOf(`${abre} {`); i > -1; i = css.indexOf(`${abre} {`, i + 1)) {
+    partes.push(bloco(css.slice(i), abre));
+  }
+  return partes.join("\n");
+}
+
+/* O corpo de uma regra `seletor { ... }`, com o seletor exato começando a
+   linha (o de várias linhas vai com a quebra e o recuo), para a asserção
+   olhar a regra certa e não o arquivo todo. */
+function regra(css: string, seletor: string): string {
+  const alvo = `${seletor} {`;
+  for (let k = css.indexOf(alvo); k > -1; k = css.indexOf(alvo, k + 1)) {
+    if (css.slice(css.lastIndexOf("\n", k - 1) + 1, k).trim() === "") {
+      return css.slice(k, css.indexOf("}", k));
+    }
+  }
+  throw new Error(`falta a regra ${seletor}`);
+}
+
+/* O CSS fora de qualquer @media: o que vale no computador. */
+function base(css: string): string {
+  let saida = "";
+  let i = 0;
+  while (i < css.length) {
+    const m = css.indexOf("@media", i);
+    if (m === -1) return saida + css.slice(i);
+    saida += css.slice(i, m);
+    let nivel = 0;
+    let j = css.indexOf("{", m);
+    for (; j < css.length; j++) {
+      if (css[j] === "{") nivel++;
+      if (css[j] === "}" && --nivel === 0) break;
+    }
+    i = j + 1;
+  }
+  return saida;
+}
+
+describe("anos de AMI", () => {
+  it("e calculado do ano de fundacao, nao escrito a mao", () => {
+    expect(anosDeAmi(new Date("2026-10-03T12:00:00-03:00"))).toBe(51);
+    expect(anosDeAmi(new Date("2030-01-02T12:00:00-03:00"))).toBe(55);
+  });
+
+  it("conta o ano pelo relogio de Imperatriz, nao pelo do servidor", () => {
+    /* 22h do dia 31 em Imperatriz já é dia 1º em UTC. */
+    expect(anosDeAmi(new Date("2026-12-31T22:00:00-03:00"))).toBe(51);
+    expect(anosDeAmi(new Date("2027-01-01T00:30:00-03:00"))).toBe(52);
+  });
+});
+
+describe("a conta do contador", () => {
+  it("dura 1,4s e usa a curva easeOutCubic", () => {
+    expect(DURACAO_DO_CONTADOR).toBe(1400);
+    expect(easeOutCubic(0)).toBe(0);
+    expect(easeOutCubic(0.5)).toBe(0.875);
+    expect(easeOutCubic(1)).toBe(1);
+  });
+
+  it("comeca em 0, termina no valor final e fica nele", () => {
+    expect(valorNoInstante(51, 0)).toBe(0);
+    expect(valorNoInstante(51, -50)).toBe(0);
+    expect(valorNoInstante(51, 1400)).toBe(51);
+    expect(valorNoInstante(51, 5000)).toBe(51);
+  });
+
+  it("no meio, o valor da curva arredondado para inteiro", () => {
+    /* 51 × 0,875 = 44,625 → 45; 24 × (1 − 0,75³) = 13,875 → 14. */
+    expect(valorNoInstante(51, 700)).toBe(45);
+    expect(valorNoInstante(24, 350)).toBe(14);
+    for (let t = 0; t <= 1400; t += 70) {
+      expect(Number.isInteger(valorNoInstante(8, t)), `t=${t}`).toBe(true);
+    }
+  });
+});
+
+describe("o contador no navegador", () => {
+  it("so conta quando o numero entra na tela, e para de observar depois", () => {
+    expect(CONTADOR).toMatch(/new IntersectionObserver\(/);
+    expect(CONTADOR).toMatch(/\.observe\(/);
+    /* Uma vez na entrada e outra na limpeza do efeito. */
+    expect(CONTADOR.match(/\.disconnect\(\)/g)?.length).toBeGreaterThanOrEqual(2);
+    expect(CONTADOR).toMatch(/return \(\) => \{[^}]*\.disconnect\(\)[^}]*cancelAnimationFrame/);
+  });
+
+  it("quem pede menos movimento ve o numero parado", () => {
+    expect(CONTADOR).toMatch(
+      /if \(window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)\.matches \|\| valor <= 0\) return;/,
+    );
+  });
+
+  it("a conta de cada quadro e a da funcao pura", () => {
+    expect(CONTADOR).toContain("valorNoInstante(valor,");
+    expect(CONTADOR).toContain("DURACAO_DO_CONTADOR");
+  });
+});
+
+describe("os numeros", () => {
+  const html = renderToString(createElement(NumerosDaAmi, { anos: 51, medicos: 24, especialidades: 14, bairros: 8 }));
+  it("saem com o valor final no HTML (sem JavaScript, o numero certo ja esta la)", () => {
+    for (const n of ["51", "24", "14", "8"]) expect(html).toContain(`>${n}<`);
+  });
+  it("com os rotulos aprovados", () => {
+    for (const r of ["anos de AMI", "médicos no diretório", "especialidades", "bairros atendidos"]) expect(html).toContain(r);
+  });
+  it("marca o bloco para a auditoria", () => {
+    expect(html).toContain('data-bloco="numeros"');
+  });
+
+  it("cada numero com seu rotulo, nesta ordem", () => {
+    const par = new RegExp(
+      `<div class="${estilosNum.grande}"><span>(\\d+)</span></div><div class="${estilosNum.rotulo}">([^<]+)<`,
+      "g",
+    );
+    const pares = [...html.matchAll(par)].map((m) => [m[1], m[2]]);
+    expect(pares).toEqual([
+      ["51", "anos de AMI"],
+      ["24", "médicos no diretório"],
+      ["14", "especialidades"],
+      ["8", "bairros atendidos"],
+    ]);
+  });
+
+  it("os quatro botoes, com seus destinos, nesta ordem", () => {
+    const botoes = [...html.matchAll(/<a class="botao-linha" href="([^"]+)">([^<]+)<\/a>/g)].map((m) => [m[2], m[1]]);
+    expect(botoes).toEqual([
+      ["Conheça a história", "/associacao"],
+      ["Ver os médicos", "/busca"],
+      ["Ver especialidades", "/medicos"],
+      ["Ver bairros", "/medicos"],
+    ]);
+  });
+
+  it("os icones selo, estetoscopio, batimento e mapa, nesta ordem", () => {
+    const posicoes = (["selo", "estetoscopio", "batimento", "mapa"] as const).map((nome) =>
+      html.indexOf(renderToString(createElement(LadrilhoIcone, { nome }))),
+    );
+    for (const p of posicoes) expect(p).toBeGreaterThan(-1);
+    expect([...posicoes].sort((a, b) => a - b)).toEqual(posicoes);
+  });
+
+  it("o ano de fundacao vem de lib/ami.ts; os bairros nao sao escritos a mao", () => {
+    expect(html).toContain(`Em atividade desde ${AMI.fundadaEm}, reunindo`);
+    expect(html).toContain("Encontre quem atende perto de casa.");
+    expect(html).not.toContain("Vila Lobão");
+  });
+
+  it("o ano do texto muda junto com o de lib/ami.ts", async () => {
+    /* Com o ano de fundação trocado no módulo, o texto tem de acompanhar: um
+       "1975" escrito à mão no componente não passaria aqui. */
+    vi.resetModules();
+    vi.doMock("@/lib/ami", async (original) => {
+      const real = await original<typeof import("@/lib/ami")>();
+      return { ...real, AMI: { ...real.AMI, fundadaEm: "1999" } };
+    });
+    try {
+      const { NumerosDaAmi: ComOutroAno } = await import("@/components/home/NumerosDaAmi");
+      const h = renderToString(createElement(ComOutroAno, { anos: 1, medicos: 1, especialidades: 1, bairros: 1 }));
+      expect(h).toContain("Em atividade desde 1999, reunindo");
+    } finally {
+      vi.doUnmock("@/lib/ami");
+      vi.resetModules();
+    }
+  });
+
+  it("no singular quando o banco devolve um", () => {
+    const um = renderToString(createElement(NumerosDaAmi, { anos: 51, medicos: 1, especialidades: 1, bairros: 1 }));
+    for (const r of ["médico no diretório", "especialidade<", "bairro atendido"]) expect(um).toContain(r);
+    for (const r of ["médicos no diretório", "bairros atendidos"]) expect(um).not.toContain(r);
+  });
+});
+
+describe("o CSS dos numeros", () => {
+  const css = semNotas(CSS_NUM);
+
+  it("no computador, quatro colunas com fio entre elas e os botoes no pe da coluna", () => {
+    expect(regra(base(css), ".numeros")).toMatch(/grid-template-columns:\s*repeat\(4, 1fr\)/);
+    expect(regra(base(css), ".numero")).toMatch(/border-left:\s*1px solid var\(--color-line-strong\)/);
+    expect(regra(base(css), ".numero :global(.botao-linha)")).toMatch(/margin-top:\s*auto/);
+  });
+
+  it("sem caixa: nenhum fundo nem sombra no bloco do computador", () => {
+    expect(regra(base(css), ".numeros")).not.toMatch(/background|box-shadow/);
+    expect(regra(base(css), ".numero")).not.toMatch(/background|box-shadow/);
+  });
+
+  it("no tablet, dois por linha", () => {
+    expect(regra(bloco(css, "@media (max-width: 980px)"), ".numeros")).toMatch(/grid-template-columns:\s*1fr 1fr/);
+  });
+
+  it("no celular, quatro cartoezinhos brancos sem descricao e sem botao", () => {
+    const cel = bloco(css, "@media (max-width: 700px)");
+    expect(regra(cel, ".numeros")).toMatch(/grid-template-columns:\s*1fr 1fr/);
+    const cartao = regra(cel, ".numero,\n  .numero:first-child,\n  .numero:last-child");
+    expect(cartao).toMatch(/background:\s*var\(--color-surface\)/);
+    expect(cartao).toMatch(/box-shadow:\s*var\(--shadow-erguido\)/);
+    expect(regra(cel, ".apoio,\n  .numero :global(.botao-linha)")).toMatch(/display:\s*none/);
+  });
+});
+
+describe("encontre um medico", () => {
+  const itens = Array.from({ length: 14 }, (_, i) => ({ nome: `E${i}`, slug: `e${i}`, total: 14 - i }));
+  const html = renderToString(createElement(EncontreUmMedico, { especialidades: itens }));
+  it("e um formulario de verdade para /busca, com o campo termo", () => {
+    expect(html).toMatch(/<form[^>]*action="\/busca"/);
+    expect(html).toContain('name="termo"');
+  });
+  it("mostra as sete especialidades com mais medicos e o link para todas", () => {
+    expect(html.match(/href="\/medicos\/e\d+"/g)?.length).toBe(7);
+    expect(html).toContain("veja todas as 14 especialidades");
+  });
+  it("tem o id que a barra do pe e o menu usam", () => {
+    expect(html).toContain('id="encontre"');
+  });
+
+  it("escolhe as sete com mais medicos mesmo fora de ordem, sem as vazias", () => {
+    const embaralhadas = [
+      { nome: "Pouca", slug: "pouca", total: 1 },
+      { nome: "Vazia", slug: "vazia", total: 0 },
+      ...itens.slice(0, 7).reverse(),
+      { nome: "Outra", slug: "outra", total: 2 },
+    ];
+    const h = renderToString(createElement(EncontreUmMedico, { especialidades: embaralhadas }));
+    const slugs = [...h.matchAll(/href="\/medicos\/([a-z0-9]+)"/g)].map((m) => m[1]);
+    expect(slugs).toEqual(["e0", "e1", "e2", "e3", "e4", "e5", "e6"]);
+    expect(h).not.toContain("/medicos/vazia");
+
+    /* Com menos de sete com médicos, a vazia continua de fora. */
+    const poucas = renderToString(
+      createElement(EncontreUmMedico, {
+        especialidades: [
+          { nome: "Uma", slug: "uma", total: 3 },
+          { nome: "Vazia", slug: "vazia", total: 0 },
+        ],
+      }),
+    );
+    expect([...poucas.matchAll(/href="\/medicos\/([a-z]+)"/g)].map((m) => m[1])).toEqual(["uma"]);
+  });
+
+  it("cada pilula com o nome e o numero de medicos", () => {
+    expect(html).toMatch(/href="\/medicos\/e0">E0 <span[^>]*>14<span class="sr-only"> médicos<\/span><\/span><\/a>/);
+  });
+
+  it("o link para todas leva ao indice /medicos", () => {
+    expect(html).toMatch(/<a href="\/medicos">veja todas as 14 especialidades<\/a>/);
+  });
+
+  it("o formulario pede GET, o campo tem rotulo e o exemplo e o curto", () => {
+    expect(html).toMatch(/<form[^>]*method="get"/);
+    expect(html).toMatch(/<label for="encontre-termo"[^>]*>Nome do médico ou especialidade<\/label>/);
+    expect(html).toMatch(/<input[^>]*id="encontre-termo"/);
+    expect(html).toMatch(/<input[^>]*placeholder="Nome ou especialidade"/);
+  });
+
+  it("o botao envia, diz Buscar e leva a seta sem classe de cor (fica branca como o texto)", () => {
+    const botao = html.match(/<button[^>]*>[\s\S]*?<\/button>/)?.[0] ?? "";
+    expect(botao).toMatch(/^<button type="submit" class="botao [^"]+">Buscar/);
+    expect(botao).toMatch(/<svg[^>]*class=""/);
+  });
+
+  it("a lupa leva a classe que a pinta de cinza, e so ela", () => {
+    expect(html).toContain(`class="${estilosBusca.lupa}"`);
+    expect(html.match(new RegExp(estilosBusca.lupa, "g"))?.length).toBe(1);
+  });
+
+  it("e a faixa verde com a luz, e o rotulo marca a coluna da auditoria", () => {
+    expect(html).toMatch(/<section[^>]*data-bloco="encontre"[^>]*class="textura-verde /);
+    expect(html).toContain('<div class="brilho" aria-hidden="true"></div>');
+    expect(html).toMatch(/<span class="rotulo-secao [^"]+" data-coluna="">Encontre um médico<\/span>/);
+    expect(html).toContain("Quem atende em Imperatriz, num só lugar");
+  });
+
+  it("com uma especialidade so, nao diz 'todas as 1'", () => {
+    const h = renderToString(createElement(EncontreUmMedico, { especialidades: [{ nome: "A", slug: "a", total: 1 }] }));
+    expect(h).not.toContain("todas as 1 ");
+    expect(h).toMatch(/<a href="\/medicos">veja as especialidades<\/a>/);
+  });
+});
+
+describe("o CSS da busca", () => {
+  const css = semNotas(CSS_BUSCA);
+  const cel = bloco(css, "@media (max-width: 700px)");
+
+  it("e faixa de ponta a ponta: a margem lateral e a das faixas", () => {
+    expect(regra(base(css), ".encontre")).toMatch(/padding:\s*96px var\(--borda-faixa\)/);
+    expect(regra(cel, ".encontre")).toMatch(/padding:\s*44px var\(--borda-faixa\)/);
+  });
+
+  it("duas colunas no computador, uma abaixo de 1180px", () => {
+    expect(regra(base(css), ".encontre")).toMatch(/grid-template-columns:\s*1fr 1\.25fr/);
+    expect(regra(bloco(css, "@media (max-width: 1180px)"), ".encontre")).toMatch(/grid-template-columns:\s*1fr;/);
+  });
+
+  it("no celular as pilulas deslizam numa fileira, alinhadas pela margem das faixas", () => {
+    const chips = regra(cel, ".chips");
+    expect(chips).toMatch(/flex-wrap:\s*nowrap/);
+    expect(chips).toMatch(/overflow-x:\s*auto/);
+    expect(chips).toMatch(/margin:\s*16px calc\(-1 \* var\(--borda-faixa\)\) 0/);
+    expect(chips).toMatch(/padding:\s*2px var\(--borda-faixa\)/);
+    expect(chips).toMatch(/scroll-padding-inline:\s*var\(--borda-faixa\)/);
+  });
+
+  it("no celular o botao fica so com a seta, com alvo de 44px", () => {
+    const b = regra(cel, ".buscar");
+    expect(b).toMatch(/width:\s*44px/);
+    expect(b).toMatch(/height:\s*44px/);
+    expect(b).toMatch(/font-size:\s*0/);
+  });
+
+  it("nenhuma regra pinta o svg do botao: a seta fica branca", () => {
+    /* Numa rodada do desenho a seta saiu cinza porque a regra da lupa pegava
+       todo ícone do campo. Aqui a lupa tem classe própria. */
+    for (const m of css.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+      if (/svg/.test(m[1])) expect(m[2], m[1].trim()).not.toMatch(/(?<![-\w])color:/);
+    }
+    expect(regra(base(css), ".lupa")).toMatch(/color:\s*var\(--color-ink-400\)/);
+  });
+});
+
+/*
+  Contraste do texto sobre o verde da busca.
+
+  O fundo não é uma cor só: é um degradê com dois brilhos fixos, o grão e a
+  luz que passeia (`.brilho`), que cruza o bloco em 18s. Os fundos abaixo são
+  o ponto mais claro que cada texto chega a ter atrás de si, medidos no
+  navegador em 03/10/2026 (relatório da tarefa 7): a posição real de cada
+  linha de texto, a 320, 360, 390, 430, 768, 1024, 1180, 1280, 1440 e
+  1920px, com a luz em 21 pontos do caminho dela e o grão pelo efeito médio
+  (branco em `overlay`, alfa médio 115/255, opacidade 0,22). Quem mudar a
+  textura, a luz ou o layout mede de novo.
+
+  As cores do texto são lidas do CSS, não escritas aqui.
+*/
+describe("o texto sobre o verde passa em AA (4,5:1)", () => {
+  const css = semNotas(CSS_BUSCA);
+  const lima = /--color-ami-lima-400:\s*(#[0-9A-Fa-f]{6})/.exec(CSS_GLOBAL)![1];
+
+  const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const lin = (c: number) => ((c /= 255) <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  const lum = ([r, g, b]: number[]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  const razao = (a: number[], b: number[]) => {
+    const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+    return (x + 0.05) / (y + 0.05);
+  };
+  const sobre = (fundo: number[], cor: number[], alfa: number) => fundo.map((v, i) => v + alfa * (cor[i] - v));
+  const BRANCO = [255, 255, 255];
+
+  /* Fundo mais claro atrás de cada texto (r, g, b), já com o branco a 5% da
+     pílula onde há pílula. */
+  const PIOR = {
+    rotuloForaDoCelular: [35, 78, 27], // 768px
+    rotuloNoCelular: [57, 101, 42], // 320px
+    texto: [53, 95, 38], // 430px
+    pilula: [61, 94, 47], // 1440px
+    rodape: [36, 84, 28], // 430px
+    link: [34, 79, 27], // 430px
+  };
+
+  it("o rotulo: lima fora do celular, lima clareado no celular", () => {
+    expect(razao(hex(lima), PIOR.rotuloForaDoCelular)).toBeGreaterThanOrEqual(4.5);
+    const m = /color-mix\(in srgb, var\(--color-ami-lima-400\) (\d+)%, white\)/.exec(
+      regra(bloco(css, "@media (max-width: 700px)"), ".sobre"),
+    );
+    expect(m, "o rotulo do celular nao e mais o lima clareado").not.toBeNull();
+    const clareado = sobre(hex(lima), BRANCO, 1 - Number(m![1]) / 100);
+    expect(razao(clareado, PIOR.rotuloNoCelular)).toBeGreaterThanOrEqual(4.5);
+    /* E prova que o clareado faz falta: o lima puro reprova ali. */
+    expect(razao(hex(lima), PIOR.rotuloNoCelular)).toBeLessThan(4.5);
+  });
+
+  it("o texto, a pilula e a frase de baixo", () => {
+    const cor = (seletor: string) => hex(/color:\s*(#[0-9a-fA-F]{6})/.exec(regra(base(css), seletor))![1]);
+    expect(razao(cor(".texto"), PIOR.texto)).toBeGreaterThanOrEqual(4.5);
+    expect(razao(cor(".chip"), PIOR.pilula)).toBeGreaterThanOrEqual(4.5);
+    expect(razao(cor(".rodapeBusca"), PIOR.rodape)).toBeGreaterThanOrEqual(4.5);
+    expect(razao(hex(lima), PIOR.link)).toBeGreaterThanOrEqual(4.5);
+    expect(regra(base(css), ".rodapeBusca a")).toMatch(/color:\s*var\(--color-ami-lima-400\)/);
+  });
+
+  it("o numero da pilula, branco translucido, passa no ponto mais claro", () => {
+    const a = Number(/color:\s*rgba\(255, 255, 255, ([\d.]+)\)/.exec(regra(base(css), ".num"))![1]);
+    expect(razao(sobre(PIOR.pilula, BRANCO, a), PIOR.pilula)).toBeGreaterThanOrEqual(4.5);
+    /* Os 55% do desenho reprovavam. */
+    expect(razao(sobre(PIOR.pilula, BRANCO, 0.55), PIOR.pilula)).toBeLessThan(4.5);
+  });
+});
+
+describe("a margem das faixas de ponta a ponta", () => {
+  it("e global, ao lado de --m e --ritmo, com a formula do desenho", () => {
+    expect(CSS_GLOBAL).toMatch(
+      /--borda-faixa:\s*max\(\s*calc\(24px \+ var\(--m\)\),\s*calc\(\(100% - 1240px\) \/ 2 \+ 24px \+ var\(--m\)\)\s*\);/,
+    );
+    expect(blocos(CSS_GLOBAL, "@media (max-width: 700px)")).toMatch(/--borda-faixa:\s*calc\(12px \+ var\(--m\)\);/);
+  });
+
+  it("o rodape le a global e nao tem mais a local", () => {
+    expect(regra(CSS_ROD, ".caixa")).toMatch(/padding:\s*0 var\(--borda-faixa\)/);
+    expect(semNotas(CSS_ROD)).not.toMatch(/--borda:/);
+  });
+});

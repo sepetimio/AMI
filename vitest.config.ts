@@ -24,7 +24,8 @@ import { fileURLToPath } from "node:url";
    `renderToPipeableStream` e as fontes de dados trocadas por dublês;
    `testes/porta-da-busca.test.ts` também renderiza assim `/busca` e uma
    página de especialidade, e `testes/caminhos-de-filiacao.test.ts`, com
-   `renderToString`, `/contato` e `/associacao`. */
+   `renderToString`, `/contato` e `/associacao`. `testes/numeros-e-busca.test.ts`
+   renderiza assim os números da home e o bloco "Encontre um médico". */
 export default defineConfig({
   test: {
     include: ["testes/**/*.test.ts"],

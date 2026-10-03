@@ -7,17 +7,7 @@
   Cor só por token ou por branco translúcido; sombra nenhuma.
 */
 
-/*
-  A margem interna do conteúdo acompanha a das faixas da página: a mesma
-  `--m` das réguas, mais os 24px (12px no celular) da caixa de 1240px,
-  centralizada. Assim o texto do rodapé fica na mesma coluna do cabeçalho e
-  dos blocos.
-*/
 .rodape {
-  --borda: max(
-    calc(24px + var(--m)),
-    calc((100% - 1240px) / 2 + 24px + var(--m))
-  );
   /* A home é refeita na tarefa 10 e tira esta margem, porque termina numa
      faixa branca que emenda no verde. Nas outras páginas ela fica. */
   margin-top: var(--ritmo);
@@ -31,8 +21,15 @@
   color: rgba(255, 255, 255, 0.92);
 }
 
+/*
+  A margem interna do conteúdo é a das faixas de ponta a ponta,
+  `--borda-faixa` (app/globals.css): a mesma `--m` das réguas, mais os 24px
+  (12px no celular) da caixa de 1240px, centralizada. Assim o texto do rodapé
+  fica na mesma coluna do cabeçalho, dos blocos e da busca verde da home. O
+  `100%` da fórmula, aqui, vale a largura do rodapé, que é a da página.
+*/
 .caixa {
-  padding: 0 var(--borda);
+  padding: 0 var(--borda-faixa);
 }
 
 /* A luz do canto: a posição é a do desenho, o resto é o `.brilho` global. */
@@ -145,7 +142,6 @@
 
 @media (max-width: 700px) {
   .rodape {
-    --borda: calc(12px + var(--m));
     /* O fim do rodapé não pode ficar atrás da barra do pé: 100px é a altura
        dela mais a folga, e a área segura do aparelho entra por cima. */
     padding: 44px 0 calc(100px + env(safe-area-inset-bottom));

@@ -49,6 +49,22 @@ export const AMI = {
   },
 } as const;
 
+/**
+ * Anos de AMI no instante `agora`, contados do ano de fundação: o número da
+ * home é calculado, nunca escrito à mão.
+ *
+ * O ano é o do relógio de Imperatriz (America/Fortaleza, UTC−3, o mesmo de
+ * lib/formato.ts), e não o do servidor: num servidor em UTC, das 21h às 24h
+ * do dia 31 de dezembro `getFullYear()` já daria o ano seguinte.
+ */
+export function anosDeAmi(agora: Date): number {
+  const ano = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Fortaleza",
+    year: "numeric",
+  }).format(agora);
+  return Number(ano) - Number(AMI.fundadaEm);
+}
+
 /** Endereço em uma linha, para uso corrido. */
 export function enderecoEmLinha(): string {
   const e = AMI.endereco;
