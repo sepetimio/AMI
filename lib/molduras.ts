@@ -108,3 +108,45 @@ export function desenhoDaFotografia(
   if (!provisoria) return "foto";
   return demonstracao ? "moldura" : "nada";
 }
+
+/*
+  Missão, visão e valores, os cartões de "Quem é a AMI?" na home.
+
+  A AMI ainda não entregou nenhum dos três textos, e não há onde guardá-los:
+  a página passa os três como `null`. A mesma trava das outras molduras
+  decide o que sai. Texto real sai sempre. O que falta sai como "Texto da AMI
+  a entrar." só no modo demonstração; fora dele o cartão não existe. A ordem
+  é sempre missão, visão, valores, e texto em branco conta como nenhum.
+*/
+export type TextoInstitucional = {
+  missao: string | null;
+  visao: string | null;
+  valores: string | null;
+};
+
+export type CartaoInstitucional = {
+  titulo: "Missão" | "Visão" | "Valores";
+  texto: string;
+  /** Verdadeiro quando o texto é o "a entrar", e não o da AMI. */
+  provisorio: boolean;
+};
+
+export const TEXTO_A_ENTRAR = "Texto da AMI a entrar.";
+
+export function quemEhAmi(
+  demonstracao: boolean,
+  texto: TextoInstitucional,
+): { cartoes: CartaoInstitucional[] } {
+  const ordem: Array<[CartaoInstitucional["titulo"], string | null]> = [
+    ["Missão", texto.missao],
+    ["Visão", texto.visao],
+    ["Valores", texto.valores],
+  ];
+  const cartoes: CartaoInstitucional[] = [];
+  for (const [titulo, bruto] of ordem) {
+    const real = bruto?.trim() ?? "";
+    if (real) cartoes.push({ titulo, texto: real, provisorio: false });
+    else if (demonstracao) cartoes.push({ titulo, texto: TEXTO_A_ENTRAR, provisorio: true });
+  }
+  return { cartoes };
+}

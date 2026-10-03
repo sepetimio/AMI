@@ -1,0 +1,253 @@
+/*
+  "Seja associado" e "Quem é a AMI?", transcritos do desenho aprovado
+  (docs/desenho-aprovado/home-aprovada.html: `.faixa-branca`, `.faixa-int`,
+  `.duplo`, `.corpo`, `.foto`, `.quem`, `.quem-intro`, `.cartao`, `.ordem`, e
+  os @media de 980, 700 e 560px). As cores do desenho viram tokens; as
+  sombras são as do desenho, cinza-azuladas.
+
+  Faixa de ponta a ponta: sem canto nem sombra, e a margem lateral é
+  `--borda-faixa` (app/globals.css), a mesma da busca verde e do rodapé.
+
+  Os cartões ficam em branco (`surface`) com fio `line`, sobre a faixa
+  também branca: nenhum tom creme ou amarelado atrás deles, que o cliente
+  recusou duas vezes.
+*/
+
+.faixa {
+  padding: 96px var(--borda-faixa);
+  background: var(--color-surface);
+}
+
+/* Texto à esquerda, foto à direita. Só com foto a grade ganha a segunda
+   coluna; sem ela, o texto fica sozinho na largura toda. */
+.duplo {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--m);
+  align-items: center;
+}
+
+.duplo.comFoto {
+  grid-template-columns: 1fr 1fr;
+}
+
+.duplo > div {
+  min-width: 0;
+}
+
+.corpo {
+  padding: 0 24px 0 0;
+}
+
+.titulo {
+  max-width: 19ch;
+  margin-top: 14px;
+}
+
+.texto {
+  max-width: 30em;
+  margin-top: 16px;
+  color: var(--color-ink-600);
+  text-wrap: pretty;
+}
+
+.acao {
+  margin-top: 28px;
+}
+
+.foto {
+  overflow: hidden;
+  aspect-ratio: 16 / 11;
+  border-radius: 16px;
+}
+
+/* A foto ou a moldura enchem a casca, na proporção da casca. */
+.fotografia {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* O zoom ao passar o mouse vale só para a foto de verdade (`img`): na
+   moldura ele empurraria a tarja "a entrar" para a borda. */
+img.fotografia {
+  transition: transform 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.duplo:hover img.fotografia {
+  transform: scale(1.05);
+}
+
+/* Quem é a AMI?: a introdução numa coluna mais larga e uma coluna por
+   cartão. `--cartoes` vem do componente, e só existe quando há cartão. */
+.quem {
+  display: grid;
+  grid-template-columns: 1.35fr repeat(var(--cartoes), 1fr);
+  gap: 14px;
+  align-items: stretch;
+  margin-top: 64px;
+  padding-top: 64px;
+  border-top: 1px solid var(--color-line);
+}
+
+.quem.soIntro {
+  grid-template-columns: 1fr;
+}
+
+.intro {
+  padding: 4px 24px 0 0;
+}
+
+.introTitulo {
+  margin: 14px 0;
+  font-size: 32px;
+  line-height: 1.05;
+}
+
+.introTexto {
+  max-width: 26em;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-ink-600);
+}
+
+.cartao {
+  position: relative;
+  overflow: hidden;
+  padding: 24px 24px 26px;
+  border: 1px solid var(--color-line);
+  border-radius: 18px;
+  background: var(--color-surface);
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 0.35s,
+    border-color 0.35s;
+}
+
+/* Ao passar o mouse, o cartão sobe 3px, o fio escurece e ganha sombra
+   cinza; não fica verde. */
+.cartao:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-line-strong);
+  box-shadow: 0 14px 30px rgba(12, 14, 18, 0.07);
+}
+
+/* O ordinal é enfeite e fica fora do leitor de tela. Em ink-400 (5,38:1
+   no branco), e não o #9AA1AA do desenho (2,61:1). */
+.ordem {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  font-family: var(--font-titulo);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-400);
+}
+
+.cartaoTitulo {
+  margin: 20px 0 6px;
+  font-family: var(--font-corpo);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0;
+  color: var(--color-ami-green-800);
+}
+
+.cartaoTexto {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-ink-600);
+}
+
+/* O texto "a entrar": mais claro e em itálico, para ler como lacuna. */
+.falta {
+  color: var(--color-ink-400);
+  font-style: italic;
+}
+
+/* Tablet: o texto em cima e a foto embaixo; a introdução numa linha só e
+   os cartões lado a lado embaixo dela. */
+@media (max-width: 980px) {
+  .faixa {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  .duplo.comFoto {
+    grid-template-columns: 1fr;
+  }
+
+  .corpo {
+    padding: 0;
+  }
+
+  .quem {
+    grid-template-columns: repeat(var(--cartoes), 1fr);
+    margin-top: 40px;
+    padding-top: 40px;
+  }
+
+  .intro {
+    grid-column: 1 / -1;
+    padding: 0 0 10px;
+  }
+}
+
+/* Celular: a foto vai para cima, e os cartões viram linhas compactas, com o
+   ícone à esquerda. */
+@media (max-width: 700px) {
+  .faixa {
+    padding: 44px var(--borda-faixa);
+  }
+
+  .duplo {
+    gap: 22px;
+  }
+
+  .foto {
+    order: -1;
+    aspect-ratio: 16 / 10;
+  }
+
+  .quem {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 36px;
+    padding-top: 36px;
+  }
+
+  .intro {
+    padding: 0 0 8px;
+  }
+
+  .introTitulo {
+    font-size: 26px;
+  }
+
+  .cartao {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    column-gap: 14px;
+    align-items: center;
+    padding: 16px 18px;
+  }
+
+  .cartao > :global(.ladrilho-icone) {
+    grid-row: 1 / 3;
+  }
+
+  .cartaoTitulo {
+    margin: 0;
+  }
+
+  .cartaoTexto {
+    grid-column: 2;
+  }
+
+  .ordem {
+    top: 14px;
+    right: 16px;
+  }
+}

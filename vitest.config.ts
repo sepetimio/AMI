@@ -25,7 +25,9 @@ import { fileURLToPath } from "node:url";
    `testes/porta-da-busca.test.ts` também renderiza assim `/busca` e uma
    página de especialidade, e `testes/caminhos-de-filiacao.test.ts`, com
    `renderToString`, `/contato` e `/associacao`. `testes/numeros-e-busca.test.ts`
-   renderiza assim os números da home e o bloco "Encontre um médico". */
+   renderiza assim os números da home e o bloco "Encontre um médico", e
+   `testes/sua-ami-e-associe.test.ts`, "Sua AMI", "Seja associado" e
+   "Quem é a AMI?". */
 export default defineConfig({
   test: {
     include: ["testes/**/*.test.ts"],

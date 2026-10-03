@@ -6,10 +6,12 @@ import { UltimasNoticias } from "@/components/editorial/UltimasNoticias";
 import { Carrossel } from "@/components/home/Carrossel";
 import { EmpresasParceiras } from "@/components/home/EmpresasParceiras";
 import { ServicosDaAmi } from "@/components/home/ServicosDaAmi";
+import { ESPACOS, espacosProvisorios, type NomeEspaco } from "@/lib/imagens";
 import {
   BANNERS_PROVISORIOS,
   desenhoDaFotografia,
   moldurasDaHome,
+  quemEhAmi,
 } from "@/lib/molduras";
 import type { Banner, ResumoNoticia } from "@/lib/sanity/tipos";
 
@@ -362,9 +364,11 @@ describe("a fotografia provisória obedece a mesma trava", () => {
     expect(desenhoDaFotografia(false, true)).toBe("foto");
   });
 
-  it("chave falsa + foto provisória = nada desenhado, nos dois espaços", () => {
-    for (const espaco of ["sede", "cidade"] as const) {
-      expect(html(createElement(Fotografia, { espaco, demonstracao: false }))).toBe("");
+  it("chave falsa + foto provisória = nada desenhado, em todos os espaços", () => {
+    const espacos = Object.keys(ESPACOS) as NomeEspaco[];
+    expect(espacos).toEqual(["sede", "cidade", "salao", "associados"]);
+    for (const espaco of espacos) {
+      expect(html(createElement(Fotografia, { espaco, demonstracao: false })), espaco).toBe("");
     }
   });
 
@@ -372,6 +376,89 @@ describe("a fotografia provisória obedece a mesma trava", () => {
     const saida = html(createElement(Fotografia, { espaco: "sede", demonstracao: true }));
     expect(saida).toContain("Fotografia a entrar: <!-- -->Fachada da sede da AMI");
     expect(saida).toContain("aspect-ratio:1280 / 960");
+  });
+});
+
+describe("os dois espaços de foto da tarefa 8", () => {
+  it("auditório e associados, nas proporções do desenho, ainda provisórios", () => {
+    const { salao, associados } = ESPACOS;
+    expect([salao.largura, salao.altura, salao.rotulo, salao.provisoria]).toEqual([
+      2000,
+      1125,
+      "Auditório da AMI",
+      true,
+    ]);
+    expect([associados.largura, associados.altura, associados.rotulo, associados.provisoria]).toEqual([
+      1600,
+      1100,
+      "Associados da AMI",
+      true,
+    ]);
+  });
+
+  it("entram na lista de pendências da AMI, cada um dizendo o que falta", () => {
+    const pendentes = espacosProvisorios().map(([nome]) => nome);
+    expect(pendentes).toContain("salao");
+    expect(pendentes).toContain("associados");
+    /* O `precisa` é o pedido que a AMI lê: diz o assunto e a largura
+       mínima, como os dois de antes. */
+    expect(ESPACOS.salao.precisa).toMatch(/auditório/i);
+    expect(ESPACOS.salao.precisa).toMatch(/no mínimo \d+px de largura/);
+    expect(ESPACOS.associados.precisa).toMatch(/associados/i);
+    expect(ESPACOS.associados.precisa).toMatch(/no mínimo \d+px de largura/);
+  });
+
+  it("com a chave verdadeira, as molduras saem na proporção da foto", () => {
+    const salao = html(createElement(Fotografia, { espaco: "salao", demonstracao: true }));
+    expect(salao).toContain("Fotografia a entrar: <!-- -->Auditório da AMI");
+    expect(salao).toContain("aspect-ratio:2000 / 1125");
+    const associados = html(createElement(Fotografia, { espaco: "associados", demonstracao: true }));
+    expect(associados).toContain("Fotografia a entrar: <!-- -->Associados da AMI");
+    expect(associados).toContain("aspect-ratio:1600 / 1100");
+  });
+});
+
+describe("quem e a AMI", () => {
+  const vazio = { missao: null, visao: null, valores: null };
+
+  it("sem texto e em demonstracao, os tres cartoes saem como 'Texto da AMI a entrar'", () => {
+    expect(quemEhAmi(true, vazio).cartoes.map((c) => [c.titulo, c.texto, c.provisorio])).toEqual([
+      ["Missão", "Texto da AMI a entrar.", true],
+      ["Visão", "Texto da AMI a entrar.", true],
+      ["Valores", "Texto da AMI a entrar.", true],
+    ]);
+  });
+
+  it("sem texto e fora da demonstracao, nenhum cartao sai", () => {
+    expect(quemEhAmi(false, vazio).cartoes).toEqual([]);
+  });
+
+  it("com texto, sai o texto, nos dois modos", () => {
+    const t = { missao: "M", visao: null, valores: "V" };
+    expect(quemEhAmi(false, t).cartoes.map((c) => c.titulo)).toEqual(["Missão", "Valores"]);
+    expect(quemEhAmi(false, t).cartoes.map((c) => [c.texto, c.provisorio])).toEqual([
+      ["M", false],
+      ["V", false],
+    ]);
+    /* Na demonstração o que falta vira moldura no lugar dele, e o real
+       continua real: a ordem é sempre missão, visão, valores. */
+    expect(quemEhAmi(true, t).cartoes.map((c) => [c.titulo, c.texto, c.provisorio])).toEqual([
+      ["Missão", "M", false],
+      ["Visão", "Texto da AMI a entrar.", true],
+      ["Valores", "V", false],
+    ]);
+  });
+
+  it("texto em branco conta como texto nenhum", () => {
+    const branco = { missao: "", visao: "   ", valores: null };
+    expect(quemEhAmi(false, branco).cartoes).toEqual([]);
+    expect(quemEhAmi(true, branco).cartoes.every((c) => c.provisorio)).toBe(true);
+  });
+
+  it("o texto real sai aparado, sem os espaços das pontas", () => {
+    expect(quemEhAmi(false, { missao: "  Cuidar.\n", visao: null, valores: null }).cartoes).toEqual([
+      { titulo: "Missão", texto: "Cuidar.", provisorio: false },
+    ]);
   });
 });
 
