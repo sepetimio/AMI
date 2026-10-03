@@ -1,9 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { MolduraProvisoria } from "@/components/base/MolduraProvisoria";
 import type { ItemDoCarrossel } from "@/lib/molduras";
+import {
+  SEM_PAUSA,
+  aplicarEvento,
+  parado,
+  rotuloDoBotao,
+} from "@/lib/pausaDoCarrossel";
 
 const INTERVALO = 6000;
 
@@ -50,7 +62,9 @@ function falso() {
   e a posição é o próprio `scrollLeft`. O JavaScript só empurra.
 
   A rotação para em quatro situações: alguém pausa, o mouse entra, o teclado
-  chega, ou a aba sai da frente — não faz sentido girar para ninguém.
+  chega, ou a aba sai da frente — não faz sentido girar para ninguém. A pausa
+  do botão é a única que continua depois que o mouse ou o foco saem; a regra
+  e o porquê estão em lib/pausaDoCarrossel.ts.
 
   Quem liga "reduzir movimento" no sistema NÃO recebe rotação nenhuma. Quem
   liga isso costuma ter enxaqueca, vertigem ou epilepsia fotossensível: para
@@ -76,7 +90,7 @@ function falso() {
 export function Carrossel({ banners }: { banners: ItemDoCarrossel[] }) {
   const trilho = useRef<HTMLDivElement>(null);
   const [atual, setAtual] = useState(0);
-  const [pausado, setPausado] = useState(false);
+  const [pausa, avisar] = useReducer(aplicarEvento, SEM_PAUSA);
   /*
     `useSyncExternalStore`, e não `useState`, porque as duas árvores precisam
     bater.
@@ -118,7 +132,8 @@ export function Carrossel({ banners }: { banners: ItemDoCarrossel[] }) {
   */
   const abaOculta = useSyncExternalStore(assinarAba, lerAba, falso);
 
-  const gira = banners.length > 1 && !semMovimento && !pausado && !abaOculta;
+  const gira =
+    banners.length > 1 && !semMovimento && !parado(pausa) && !abaOculta;
 
   /*
     `[gira, atual, banners.length]`, não `[]`.
@@ -163,10 +178,10 @@ export function Carrossel({ banners }: { banners: ItemDoCarrossel[] }) {
     <section
       aria-label="Destaques da AMI"
       className="mx-auto max-w-[1200px] px-4 md:px-6"
-      onMouseEnter={() => setPausado(true)}
-      onMouseLeave={() => setPausado(false)}
-      onFocusCapture={() => setPausado(true)}
-      onBlurCapture={() => setPausado(false)}
+      onMouseEnter={() => avisar("mouseEntrou")}
+      onMouseLeave={() => avisar("mouseSaiu")}
+      onFocusCapture={() => avisar("focoEntrou")}
+      onBlurCapture={() => avisar("focoSaiu")}
     >
       <div className="relative">
         <div
@@ -245,10 +260,10 @@ export function Carrossel({ banners }: { banners: ItemDoCarrossel[] }) {
           {semMovimento ? null : (
             <button
               type="button"
-              onClick={() => setPausado((p) => !p)}
+              onClick={() => avisar("botao")}
               className="pressiona ml-2 rounded-controle border border-line px-3 py-2 text-[14px] font-medium text-ink-600 hover:text-ink-900"
             >
-              {pausado ? "Retomar" : "Pausar"}
+              {rotuloDoBotao(pausa)}
             </button>
           )}
         </div>
