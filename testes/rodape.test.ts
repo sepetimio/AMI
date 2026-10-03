@@ -87,6 +87,51 @@ describe("o rodape", () => {
   it("nao ha cor em codigo hexadecimal: so tokens e branco translucido", () => {
     expect(CSS_ROD).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
   });
+
+  it("os links das colunas, com seus destinos, nesta ordem", () => {
+    const links = [...ROD.matchAll(/<Link href="([^"]+)">([^<]+)<\/Link>/g)].map((m) => [m[2], m[1]]);
+    expect(links).toEqual([
+      ["Quem somos", "/associacao"],
+      ["Diretoria", "/associacao/diretoria"],
+      ["Notícias", "/noticias"],
+      ["Seja associado", "/associacao/seja-associado"],
+      ["Sua AMI", "/#sua-ami"],
+      ["Buscar", "/busca"],
+      ["Especialidades", "/medicos"],
+      ["Bairros", "/busca"],
+    ]);
+  });
+
+  it("os tres links legais, com seus destinos, nesta ordem", () => {
+    const legais = [...ROD.matchAll(/rotulo: "([^"]+)", href: "([^"]+)"/g)].map((m) => [m[1], m[2]]);
+    expect(legais).toEqual([
+      ["Política de privacidade", "/politica-de-privacidade"],
+      ["Termos de uso", "/termos-de-uso"],
+      ["Política de cookies", "/politica-de-cookies"],
+    ]);
+  });
+
+  it("os contatos ligam de verdade: telefone, Instagram e CEP vem de lib/ami.ts", () => {
+    expect(ROD).toContain("href={hrefTelefone(t)}");
+    expect(ROD).toContain("href={AMI.redes.instagram}");
+    expect(ROD).toContain("{AMI.endereco.cep}");
+  });
+
+  it("o brilho e enfeite: fica fora da arvore de acessibilidade", () => {
+    expect(ROD).toMatch(/className=\{`brilho \$\{styles\.luz\}`\} aria-hidden/);
+  });
+
+  /*
+    A cor do texto do corpo é 92% de branco, e NÃO os 82% do desenho aprovado.
+    Foi decisão: a luz do canto passa por baixo do texto, e no ponto mais claro
+    do fundo 82% dava 4,04:1 (abaixo dos 4,5:1 do AA) e 92% dá 4,60:1, calculado
+    à mão. Quem quiser voltar aos 82% do desenho precisa medir de novo antes de
+    mexer neste número; o texto de baixo (`.base`, 70%) tem a mesma amarra.
+  */
+  it("o texto do corpo e branco a 92%, nao 82%, por contraste", () => {
+    expect(regra(CSS_ROD, ".rodape")).toMatch(/color:\s*rgba\(255, 255, 255, 0\.92\)/);
+    expect(regra(CSS_ROD, ".base")).toMatch(/color:\s*rgba\(255, 255, 255, 0\.7\)/);
+  });
 });
 
 describe("a barra do pe", () => {
@@ -130,6 +175,38 @@ describe("a barra do pe", () => {
   it("desfaz o observador e o ouvinte de rolagem ao sair", () => {
     expect(BARRA).toContain("observador?.disconnect()");
     expect(BARRA).toMatch(/removeEventListener\("scroll", atualizar\)/);
+  });
+
+  it("o observador le a entrada, e a decisao recebe o que ele leu", () => {
+    expect(BARRA).toContain("buscaNaTela = entradas[0].isIntersecting");
+    expect(BARRA).toContain("deveMostrarBarra(passou, buscaNaTela)");
+    expect(BARRA).toContain("observador?.observe(blocoDeBusca!)");
+  });
+
+  it("a classe que mostra a barra e posta quando ela deve aparecer", () => {
+    expect(BARRA).toContain("visivel ? styles.visivel");
+  });
+
+  it("o ouvinte de rolagem entra e sai em par", () => {
+    expect(BARRA).toContain('window.addEventListener("scroll", atualizar, { passive: true })');
+    expect(BARRA).toContain('window.removeEventListener("scroll", atualizar)');
+  });
+
+  it("o toque na home foca o campo", () => {
+    expect(BARRA).toContain("onClick={focarOCampo}");
+  });
+
+  it("o efeito se refaz a cada pagina: o layout persiste entre elas", () => {
+    expect(BARRA).toMatch(/\},\s*\[caminho\]\);/);
+  });
+
+  it("o link de ligar diz para quem liga", () => {
+    expect(BARRA).toContain('aria-label="Ligar para a AMI"');
+  });
+
+  it("escondida some so depois da animacao; ao aparecer, na hora", () => {
+    expect(regra(noCelular(CSS_BARRA), ".barra")).toMatch(/visibility 0s linear 0\.45s/);
+    expect(regra(noCelular(CSS_BARRA), ".visivel")).toMatch(/transition-delay:\s*0s/);
   });
 
   it("e um nav com nome, para o leitor de tela", () => {

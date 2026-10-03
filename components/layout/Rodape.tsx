@@ -14,9 +14,9 @@ import styles from "@/components/layout/Rodape.module.css";
 
   As listas de todas as especialidades e de todos os bairros saíram daqui, como
   no desenho aprovado: o rodapé ficaria uma parede de texto, e elas deixam de
-  ser lidas à toa a cada página. A ligação interna não se perde: "Especialidades"
-  e "Bairros" levam ao índice `/medicos`, que lista as duas, e a busca tem os
-  bairros em pílulas.
+  ser lidas à toa a cada página. A ligação interna não se perde:
+  "Especialidades" leva ao índice `/medicos`, que lista as especialidades e os
+  bairros, e "Bairros" leva a `/busca`, onde os bairros são pílulas.
 
   Quem emenda no rodapé decide o espaço de cima: ele vem com `--ritmo` de
   margem, e a home, que termina numa faixa branca, a tira.
@@ -38,6 +38,7 @@ export function Rodape() {
             </h2>
             <Link href="/associacao">Quem somos</Link>
             <Link href="/associacao/diretoria">Diretoria</Link>
+            <Link href="/noticias">Notícias</Link>
             <Link href="/associacao/seja-associado">Seja associado</Link>
             <Link href="/#sua-ami">Sua AMI</Link>
           </nav>
@@ -48,7 +49,7 @@ export function Rodape() {
             </h2>
             <Link href="/busca">Buscar</Link>
             <Link href="/medicos">Especialidades</Link>
-            <Link href="/medicos">Bairros</Link>
+            <Link href="/busca">Bairros</Link>
           </nav>
 
           <div className={styles.coluna}>
