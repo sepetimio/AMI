@@ -98,6 +98,43 @@ export const ARTE_CELULAR = { largura: 1080, altura: 1350 } as const;
 const LARGURA_DA_FOTO = 1600;
 
 /*
+  As larguras do `srcset` de cada imagem, todas pedidas ao CDN com o mesmo
+  `urlDaImagem`. A maior de cada lista é a medida de cima, e o endereço dela
+  vai no `src`. Quem diz ao navegador em que largura cada imagem aparece (o
+  `sizes`) é o carrossel, por lib/carrossel.ts: com isso, um celular baixa a
+  arte de 800px, e não a de 3000.
+*/
+export const LARGURAS_DA_ARTE = [800, 1200, 1800, 2400, ARTE_LARGA.largura] as const;
+export const LARGURAS_DA_ARTE_CELULAR = [540, ARTE_CELULAR.largura] as const;
+export const LARGURAS_DA_FOTO = [600, 1000, LARGURA_DA_FOTO] as const;
+
+/* O endereço na maior largura e o `srcset` com todas, ou `null` se a
+   imagem não existe ou o CDN não monta o endereço de alguma largura. */
+export function imagemComSrcset(
+  imagem: { asset: ImagemSanity["asset"] } | null | undefined,
+  larguras: readonly number[],
+): { url: string; srcset: string } | null {
+  if (!imagem?.asset) return null;
+  const urls = larguras.map((w) => urlDaImagem(imagem as ImagemSanity, w));
+  if (urls.some((u) => !u)) return null;
+  return {
+    url: urls[urls.length - 1],
+    srcset: urls.map((u, i) => `${u} ${larguras[i]}w`).join(", "),
+  };
+}
+
+/* O hotspot do Sanity guarda o centro do ponto de interesse como fração da
+   imagem. Fora de 0 a 1, ou incompleto, é lixo: sem foco, e o site recorta
+   pelo meio como se nada tivesse sido marcado. */
+function focoDe(imagem: ImagemCru | null | undefined): Foco | null {
+  const x = imagem?.hotspot?.x;
+  const y = imagem?.hotspot?.y;
+  if (typeof x !== "number" || typeof y !== "number") return null;
+  if (!(x >= 0 && x <= 1 && y >= 0 && y <= 1)) return null;
+  return { x, y };
+}
+
+/*
   Pura e exportada, no mesmo espírito de `estaNoAr`, para poder testar sem
   rede: monta um `Banner` a partir do que o GROQ devolveu, ou devolve `null`
   quando não dá.
@@ -121,36 +158,19 @@ const LARGURA_DA_FOTO = 1600;
   O composto não olha `imagem`: quem troca o tipo no Studio deixa a arte
   antiga guardada, só escondida, e ela não pode virar o banner.
 */
-function urlOuNull(
-  imagem: { asset: ImagemSanity["asset"] } | null | undefined,
-  largura: number,
-): string | null {
-  if (!imagem?.asset) return null;
-  return urlDaImagem(imagem as ImagemSanity, largura) || null;
-}
-
-/* O hotspot do Sanity guarda o centro do ponto de interesse como fração da
-   imagem. Fora de 0 a 1, ou incompleto, é lixo: sem foco, e o site recorta
-   pelo meio como se nada tivesse sido marcado. */
-function focoDe(imagem: ImagemCru | null | undefined): Foco | null {
-  const x = imagem?.hotspot?.x;
-  const y = imagem?.hotspot?.y;
-  if (typeof x !== "number" || typeof y !== "number") return null;
-  if (!(x >= 0 && x <= 1 && y >= 0 && y <= 1)) return null;
-  return { x, y };
-}
-
 export function paraBanner(b: BannerCru): Banner | null {
   const destino = b.destino ?? null;
   const ordem = b.ordem ?? 0;
 
   if ((b.tipo ?? "arte") === "composto") {
     if (!b.titulo) return null;
+    const foto = imagemComSrcset(b.foto, LARGURAS_DA_FOTO);
     return {
       tipo: "composto",
       id: b.id,
       nome: b.nome,
-      foto: urlOuNull(b.foto, LARGURA_DA_FOTO),
+      foto: foto?.url ?? null,
+      fotoSrcset: foto?.srcset ?? null,
       foco: focoDe(b.foto),
       fotoAlt: b.foto?.alt ?? "",
       rotulo: b.rotulo ?? null,
@@ -162,15 +182,18 @@ export function paraBanner(b: BannerCru): Banner | null {
     };
   }
 
-  const imagem = urlOuNull(b.imagem, ARTE_LARGA.largura);
+  const imagem = imagemComSrcset(b.imagem, LARGURAS_DA_ARTE);
   if (!imagem) return null;
+  const celular = imagemComSrcset(b.imagemCelular, LARGURAS_DA_ARTE_CELULAR);
 
   return {
     tipo: "arte",
     id: b.id,
     nome: b.nome,
-    imagem,
-    imagemCelular: urlOuNull(b.imagemCelular, ARTE_CELULAR.largura),
+    imagem: imagem.url,
+    imagemSrcset: imagem.srcset,
+    imagemCelular: celular?.url ?? null,
+    imagemCelularSrcset: celular?.srcset ?? null,
     foco: focoDe(b.imagem),
     alt: b.imagem?.alt ?? "",
     tema: b.tema === "claro" ? "claro" : "escuro",

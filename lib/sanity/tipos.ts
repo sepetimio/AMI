@@ -50,10 +50,11 @@ export type PaginaInstitucional = {
   - "arte": uma imagem pronta que cobre o slide, com versão própria de celular.
   - "composto": foto com texto montado no site (rótulo, título, texto, botão).
 
-  Em ambos, as imagens já vêm como endereço pronto (não `ImagemSanity`): quem
-  lê estes tipos é o carrossel da home, que só desenha um `<img src>` e não
-  escolhe largura por contexto como `TextoRico` escolhe para o corpo de uma
-  matéria.
+  Em ambos, as imagens já vêm como endereço pronto (não `ImagemSanity`),
+  junto do `srcset` com as larguras que o CDN entrega
+  (lib/sanity/banners.ts): quem lê estes tipos é o carrossel da home, que só
+  desenha um `<img>` e diz ao navegador, pelo `sizes`, em que largura cada
+  imagem aparece (lib/carrossel.ts).
 */
 /* O ponto de interesse que a AMI marca na imagem (o "hotspot" do Sanity):
    o centro da área que não pode ser cortada. */
@@ -65,8 +66,12 @@ export type BannerArte = {
   nome: string;
   /** Arte larga, 3000 × 1288 (proporção 2,33:1 do carrossel no computador). */
   imagem: string;
+  /** A arte larga em 800, 1200, 1800, 2400 e 3000px, no formato do `srcset`. */
+  imagemSrcset: string;
   /** Arte de celular, 1080 × 1350 (4:5). Null: o site recorta a larga. */
   imagemCelular: string | null;
+  /** A arte de celular em 540 e 1080px, no formato do `srcset`. Null junto com `imagemCelular`. */
+  imagemCelularSrcset: string | null;
   /** Ponto de interesse da arte larga, de 0 a 1 (esquerda→direita, cima→baixo). Null: sem marcação. */
   foco: Foco | null;
   alt: string;
@@ -82,6 +87,8 @@ export type BannerComposto = {
   nome: string;
   /** Null: a área da foto vira moldura no modo demonstração (ver lib/molduras.ts). */
   foto: string | null;
+  /** A foto em 600, 1000 e 1600px, no formato do `srcset`. Null junto com `foto`. */
+  fotoSrcset: string | null;
   /** Ponto de interesse da foto, de 0 a 1. Null: sem marcação. */
   foco: Foco | null;
   fotoAlt: string;

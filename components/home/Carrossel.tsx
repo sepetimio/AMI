@@ -17,6 +17,9 @@ import { MolduraProvisoria } from "@/components/base/MolduraProvisoria";
 import styles from "@/components/home/Carrossel.module.css";
 import {
   INTERVALO,
+  TAMANHO_DA_ARTE,
+  TAMANHO_DA_ARTE_CELULAR,
+  TAMANHO_DA_FOTO,
   type Destino,
   destinoDoPasso,
   direcaoDoDedo,
@@ -126,8 +129,9 @@ const FOTO = { largura: 1600, altura: 1200 };
 
   As imagens chegam como endereço pronto (ver o comentário de `Banner` em
   lib/sanity/tipos.ts), não como referência do Sanity — por isso é `<img>`
-  puro, não `next/image`: o CDN do Sanity já entrega cada imagem na largura
-  certa (lib/sanity/banners.ts), e `next.config.ts` não registra
+  puro, não `next/image`: o CDN do Sanity já entrega cada imagem nas larguras
+  do `srcset` (lib/sanity/banners.ts), o `sizes` de cada uma vem de
+  lib/carrossel.ts, e `next.config.ts` não registra
   `cdn.sanity.io` em `images.remotePatterns` — nenhum outro consumidor de
   imagem do Sanity no site usa `next/image` pelo mesmo motivo (ver
   components/editorial/LinhaNoticia.tsx e TextoRico.tsx).
@@ -580,6 +584,8 @@ function Slide({
                Carrossel. */
             <img
               src={item.foto}
+              srcSet={item.fotoSrcset ?? undefined}
+              sizes={item.fotoSrcset ? TAMANHO_DA_FOTO : undefined}
               alt={item.fotoAlt}
               width={FOTO.largura}
               height={FOTO.altura}
@@ -620,10 +626,11 @@ function Slide({
   } else {
     peca = (
       <picture>
-        {item.imagemCelular ? (
+        {item.imagemCelularSrcset ? (
           <source
             media="(max-width: 700px)"
-            srcSet={item.imagemCelular}
+            srcSet={item.imagemCelularSrcset}
+            sizes={TAMANHO_DA_ARTE_CELULAR}
             width={CELULAR.largura}
             height={CELULAR.altura}
           />
@@ -633,6 +640,8 @@ function Slide({
             Next não reclama, por isso não há eslint-disable aqui.) */}
         <img
           src={item.imagem}
+          srcSet={item.imagemSrcset}
+          sizes={TAMANHO_DA_ARTE}
           alt={item.alt}
           width={LARGA.largura}
           height={LARGA.altura}

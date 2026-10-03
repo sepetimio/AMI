@@ -37,8 +37,10 @@ function arte(id: string, extra: Partial<BannerArte> = {}): BannerArte {
     id,
     nome: id,
     imagem: `https://exemplo.test/${id}.jpg`,
+    imagemSrcset: `https://exemplo.test/${id}-800.jpg 800w, https://exemplo.test/${id}.jpg 3000w`,
     alt: `Arte ${id}`,
     imagemCelular: null,
+    imagemCelularSrcset: null,
     tema: "escuro",
     foco: null,
     destino: null,
@@ -53,6 +55,7 @@ function composto(id: string, extra: Partial<BannerComposto> = {}): BannerCompos
     id,
     nome: id,
     foto: `https://exemplo.test/${id}.jpg`,
+    fotoSrcset: `https://exemplo.test/${id}-600.jpg 600w, https://exemplo.test/${id}.jpg 1600w`,
     foco: null,
     fotoAlt: `Foto ${id}`,
     rotulo: "Associação Médica de Imperatriz",
@@ -62,6 +65,14 @@ function composto(id: string, extra: Partial<BannerComposto> = {}): BannerCompos
     destino: "/associacao/seja-associado",
     ordem: 1,
     ...extra,
+  };
+}
+
+/* A versão de celular de uma arte: o endereço e o `srcset` dela. */
+function celular(id: string): Partial<BannerArte> {
+  return {
+    imagemCelular: `https://exemplo.test/${id}.jpg`,
+    imagemCelularSrcset: `https://exemplo.test/${id}-540.jpg 540w, https://exemplo.test/${id}.jpg 1080w`,
   };
 }
 
@@ -211,7 +222,7 @@ describe("a fita", () => {
     const imagens = saida.match(/<img [^>]*>/g) ?? [];
     expect(imagens).toHaveLength(5);
     for (const img of imagens) expect(img).not.toContain("loading=");
-    const comCelular = html([arte("a", { imagemCelular: "https://exemplo.test/m.jpg" }), composto("b"), arte("c")]);
+    const comCelular = html([arte("a", celular("m")), composto("b"), arte("c")]);
     expect(comCelular).not.toContain("loading=");
   });
 
@@ -289,7 +300,7 @@ describe("o slide com foto e texto montado no site", () => {
   });
 
   it("a foto se recorta pelo ponto de interesse", () => {
-    expect(real).toMatch(/<img src="https:\/\/exemplo.test\/a.jpg" alt="Foto a"[^>]*style="object-position:25% 60%"/);
+    expect(real).toMatch(/<img src="https:\/\/exemplo.test\/a.jpg" [^>]*alt="Foto a"[^>]*style="object-position:25% 60%"/);
   });
 
   it("sem ponto de interesse, o centro (nenhum object-position)", () => {
@@ -313,10 +324,10 @@ describe("o slide com foto e texto montado no site", () => {
 describe("o slide de arte pronta", () => {
   it("com versão de celular, sai <picture> com ela para até 700px", () => {
     const real = slides(
-      html([arte("a", { imagemCelular: "https://exemplo.test/a-celular.jpg", foco: { x: 0.1, y: 0.2 } }), arte("b")]),
+      html([arte("a", { ...celular("a-celular"), foco: { x: 0.1, y: 0.2 } }), arte("b")]),
     )[1];
     expect(real).toMatch(
-      /<picture><source media="\(max-width: 700px\)" srcSet="https:\/\/exemplo.test\/a-celular.jpg"[^>]*\/><img src="https:\/\/exemplo.test\/a.jpg" alt="Arte a"/,
+      /<picture><source media="\(max-width: 700px\)" srcSet="https:\/\/exemplo.test\/a-celular-540.jpg 540w, https:\/\/exemplo.test\/a-celular.jpg 1080w"[^>]*\/><img src="https:\/\/exemplo.test\/a.jpg" [^>]*alt="Arte a"/,
     );
     /* A larga também é recortada no tablet (3:2): o ponto de interesse vale. */
     expect(real).toMatch(/<img src="https:\/\/exemplo.test\/a.jpg"[^>]*style="object-position:10% 20%"/);
@@ -330,7 +341,7 @@ describe("o slide de arte pronta", () => {
 
   it("as medidas reservadas são as que o CDN entrega", () => {
     const real = slides(
-      html([arte("a", { imagemCelular: "https://exemplo.test/a-celular.jpg" }), arte("b")]),
+      html([arte("a", celular("a-celular")), arte("b")]),
     )[1];
     expect(real).toContain(`width="${ARTE_CELULAR.largura}" height="${ARTE_CELULAR.altura}"`);
     expect(real).toContain(`width="${ARTE_LARGA.largura}" height="${ARTE_LARGA.altura}"`);
@@ -343,6 +354,37 @@ describe("o slide de arte pronta", () => {
 
   it("sem destino, link nenhum", () => {
     expect(slides(html([arte("a"), arte("b")]))[1]).not.toContain("<a ");
+  });
+});
+
+describe("o srcset e o sizes das imagens do carrossel", () => {
+  /* Os atributos de uma tag, para conferir cada um pelo nome. */
+  function atributos(tag: string): Record<string, string> {
+    return Object.fromEntries([...tag.matchAll(/ ([a-zA-Z]+)="([^"]*)"/g)].map((m) => [m[1], m[2]]));
+  }
+
+  it("a arte larga leva o srcset dela e o sizes da coluna da home", () => {
+    const real = slides(html([arte("a"), arte("b")]))[1];
+    const img = atributos(/<img [^>]*>/.exec(real)![0]);
+    expect(img.srcSet).toBe("https://exemplo.test/a-800.jpg 800w, https://exemplo.test/a.jpg 3000w");
+    expect(img.sizes).toBe("(min-width: 1240px) 1192px, calc(100vw - 48px)");
+  });
+
+  it("a arte de celular leva o srcset dela e o sizes da coluna do celular", () => {
+    const real = slides(html([arte("a", celular("a-celular")), arte("b")]))[1];
+    const fonte = atributos(/<source [^>]*>/.exec(real)![0]);
+    expect(fonte.srcSet).toBe("https://exemplo.test/a-celular-540.jpg 540w, https://exemplo.test/a-celular.jpg 1080w");
+    expect(fonte.sizes).toBe("calc(100vw - 24px)");
+  });
+
+  it("a foto do composto leva o srcset dela e o sizes da coluna da foto", () => {
+    const real = slides(html([composto("a"), arte("b")]))[1];
+    const img = atributos(/<img [^>]*>/.exec(real)![0]);
+    expect(img.srcSet).toBe("https://exemplo.test/a-600.jpg 600w, https://exemplo.test/a.jpg 1600w");
+    expect(img.sizes).toBe(
+      "(min-width: 1240px) 549px, (min-width: 981px) calc(51.22vw - 86px), " +
+        "(min-width: 701px) calc(50vw - 62px), calc(100vw - 24px)",
+    );
   });
 });
 

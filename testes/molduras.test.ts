@@ -55,8 +55,10 @@ const REAL: Banner = {
   id: "real",
   nome: "Assembleia",
   imagem: "https://exemplo.test/assembleia.jpg",
+  imagemSrcset: "https://exemplo.test/assembleia.jpg 3000w",
   alt: "Assembleia geral no dia 12 de março, às 19h, na sede da AMI",
   imagemCelular: null,
+  imagemCelularSrcset: null,
   tema: "escuro",
   foco: null,
   destino: null,
@@ -236,6 +238,7 @@ const COMPOSTO_SEM_FOTO: Banner = {
   id: "composto",
   nome: "Os médicos de Imperatriz",
   foto: null,
+  fotoSrcset: null,
   foco: null,
   fotoAlt: "",
   rotulo: null,
@@ -250,6 +253,7 @@ const COMPOSTO_COM_FOTO: Banner = {
   ...COMPOSTO_SEM_FOTO,
   id: "composto-com-foto",
   foto: "https://exemplo.test/medicos.jpg",
+  fotoSrcset: "https://exemplo.test/medicos.jpg 1600w",
   fotoAlt: "Médicos reunidos no auditório da AMI",
 };
 

@@ -71,6 +71,30 @@ export function precisaSaltar(posicao: number, n: number): number | null {
 /** Quanto a bolinha do slide atual leva para encher, em milissegundos. */
 export const INTERVALO = 6000;
 
+/*
+  O `sizes` das imagens do carrossel: a largura em que cada uma aparece, para
+  o navegador escolher no `srcset` (lib/sanity/banners.ts) a menor que basta.
+
+  A arte cobre o slide, e o slide é a coluna da home
+  (app/(site)/inicio.module.css): 1192px a partir de 1240px de janela, e a
+  janela menos 48px abaixo disso. No celular, a versão 4:5 tem o próprio
+  `sizes`: lá a coluna é a janela menos 24px.
+
+  A foto do slide com texto é a segunda coluna do slide
+  (components/home/Carrossel.module.css), medida no navegador:
+  - a partir de 1240px: (1192 − 48 − 24 − 48) × 1,05 / 2,05 = 549px;
+  - de 981 a 1239px: o mesmo com a coluna da home, (janela − 168) × 0,5122;
+  - de 701 a 980px (tablet, duas colunas iguais, gap e margem de 28px,
+    respiro de 20px): (janela − 48 − 28 − 20 − 28) / 2 = metade da janela
+    menos 62px;
+  - até 700px a foto cobre o cartão inteiro: a janela menos 24px.
+*/
+export const TAMANHO_DA_ARTE = "(min-width: 1240px) 1192px, calc(100vw - 48px)";
+export const TAMANHO_DA_ARTE_CELULAR = "calc(100vw - 24px)";
+export const TAMANHO_DA_FOTO =
+  "(min-width: 1240px) 549px, (min-width: 981px) calc(51.22vw - 86px), " +
+  "(min-width: 701px) calc(50vw - 62px), calc(100vw - 24px)";
+
 /** Quanto o dedo precisa andar de lado, em pixels, para trocar o slide. */
 export const LIMIAR_DO_DEDO = 45;
 

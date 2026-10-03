@@ -1,5 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ARTE_CELULAR, ARTE_LARGA, GROQ_BANNERS, estaNoAr, paraBanner } from "@/lib/sanity/banners";
+import {
+  ARTE_CELULAR,
+  ARTE_LARGA,
+  GROQ_BANNERS,
+  LARGURAS_DA_ARTE,
+  LARGURAS_DA_ARTE_CELULAR,
+  LARGURAS_DA_FOTO,
+  estaNoAr,
+  imagemComSrcset,
+  paraBanner,
+} from "@/lib/sanity/banners";
 import { tipos } from "@/sanity/schemas";
 
 const AGORA = new Date("2026-08-23T12:00:00Z");
@@ -227,6 +237,65 @@ describe("paraBanner, dois tipos", () => {
        escondida). O composto nao pode virar arte por causa disso. */
     const b = paraBanner({ id: "c", nome: "y", tipo: "composto", titulo: "Assembleia", imagem: IMAGEM_OK, destino: null, ordem: 20, expiraEm: null } as never);
     expect(b?.tipo).toBe("composto");
+  });
+});
+
+describe("o srcset das imagens do carrossel", () => {
+  const IMAGEM = { asset: { _ref: "image-abc123def456-3000x1288-jpg" }, alt: "Arte" };
+  const CELULAR = { asset: { _ref: "image-fed654cba321-1080x1350-jpg" } };
+  const FOTO = { asset: { _ref: "image-0a1b2c3d4e5f-1600x1200-jpg" }, alt: "Foto" };
+  const QUEBRADA = { asset: { _ref: "nao-e-um-ref-valido" } };
+
+  beforeEach(() => {
+    vi.stubEnv("NEXT_PUBLIC_SANITY_PROJECT_ID", "abcd1234");
+  });
+
+  /* Cada entrada do srcset: o endereço e a largura que ele declara. */
+  function entradas(srcset: string | null | undefined): { url: string; w: number }[] {
+    expect(srcset, "sem srcset").toBeTruthy();
+    return srcset!.split(", ").map((e) => {
+      const [url, w] = e.split(" ");
+      return { url, w: Number(/^(\d+)w$/.exec(w)?.[1]) };
+    });
+  }
+
+  /* A largura declarada é a que o endereço pede ao CDN, e o `src` é a maior. */
+  function confere(srcset: string | null | undefined, src: string | null | undefined, larguras: number[]) {
+    const lista = entradas(srcset);
+    expect(lista.map((e) => e.w)).toEqual(larguras);
+    for (const { url, w } of lista) {
+      expect(url).toContain("cdn.sanity.io");
+      expect(new URL(url).searchParams.get("w")).toBe(String(w));
+    }
+    expect(src).toBe(lista.at(-1)!.url);
+  }
+
+  it("as listas de larguras", () => {
+    expect(LARGURAS_DA_ARTE).toEqual([800, 1200, 1800, 2400, 3000]);
+    expect(LARGURAS_DA_ARTE_CELULAR).toEqual([540, 1080]);
+    expect(LARGURAS_DA_FOTO).toEqual([600, 1000, 1600]);
+  });
+
+  it("a arte larga em 800, 1200, 1800, 2400 e 3000; a de celular em 540 e 1080", () => {
+    const b = paraBanner({ id: "a", nome: "x", tipo: "arte", imagem: IMAGEM, imagemCelular: CELULAR, destino: null, ordem: 1, expiraEm: null } as never);
+    if (!b || b.tipo !== "arte") throw new Error("devia ser arte");
+    confere(b.imagemSrcset, b.imagem, [800, 1200, 1800, 2400, 3000]);
+    confere(b.imagemCelularSrcset, b.imagemCelular, [540, 1080]);
+  });
+
+  it("a foto do composto em 600, 1000 e 1600", () => {
+    const b = paraBanner({ id: "c", nome: "y", tipo: "composto", titulo: "T", foto: FOTO, destino: null, ordem: 1, expiraEm: null } as never);
+    if (!b || b.tipo !== "composto") throw new Error("devia ser composto");
+    confere(b.fotoSrcset, b.foto, [600, 1000, 1600]);
+  });
+
+  it("sem a imagem, ou com ela quebrada, o srcset some junto com o endereço", () => {
+    const sem = paraBanner({ id: "a", nome: "x", tipo: "arte", imagem: IMAGEM, imagemCelular: QUEBRADA, destino: null, ordem: 1, expiraEm: null } as never);
+    expect(sem).toMatchObject({ imagemCelular: null, imagemCelularSrcset: null });
+    const semFoto = paraBanner({ id: "c", nome: "y", tipo: "composto", titulo: "T", destino: null, ordem: 1, expiraEm: null } as never);
+    expect(semFoto).toMatchObject({ foto: null, fotoSrcset: null });
+    expect(imagemComSrcset(QUEBRADA, LARGURAS_DA_FOTO)).toBeNull();
+    expect(imagemComSrcset(null, LARGURAS_DA_FOTO)).toBeNull();
   });
 });
 
