@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import type { IconWeight } from "@phosphor-icons/react";
 import {
   SealCheck,
   Stethoscope,
@@ -40,7 +41,7 @@ export type NomeIcone =
   | "fechar"
   | "telefone";
 
-const iconMap: Record<NomeIcone, typeof SealCheck> = {
+const mapaDeIcones: Record<NomeIcone, typeof SealCheck> = {
   selo: SealCheck,
   estetoscopio: Stethoscope,
   batimento: Heartbeat,
@@ -65,17 +66,20 @@ export function Icone({
   nome,
   tamanho = 20,
   duotone = false,
+  className = "",
 }: {
   nome: NomeIcone;
   tamanho?: number;
   duotone?: boolean;
+  className?: string;
 }): ReactNode {
-  const IconComponent = iconMap[nome];
-  const weight = (duotone ? "duotone" : "regular") as never;
+  const IconComponent = mapaDeIcones[nome];
+  const weight: IconWeight = duotone ? "duotone" : "regular";
   return (
     <IconComponent
       size={tamanho}
       weight={weight}
+      className={className}
       aria-hidden="true"
     />
   );
