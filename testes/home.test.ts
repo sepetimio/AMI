@@ -105,4 +105,16 @@ describe("a home, depois das molduras provisórias", () => {
     expect(HOME).toContain("<UltimasNoticias provisorias={molduras.noticiasProvisorias}");
     expect(HOME).toContain("{molduras.parceiros ? <EmpresasParceiras");
   });
+
+  it("a casca da foto da sede pergunta a mesma trava antes de existir", () => {
+    /*
+      `Fotografia` devolve null sozinha fora do modo demonstração, mas a casca
+      em volta (fio, respiro, sombra) é da página. Sem esta condição, a casca
+      ficaria vazia na home de produção.
+    */
+    expect(HOME).toMatch(
+      /fotoDaSede\s*=\s*desenhoDaFotografia\(\s*ESPACOS\.sede\.provisoria\s*,\s*DADOS_DEMONSTRACAO\s*\)\s*!==\s*"nada"/,
+    );
+    expect(HOME).toMatch(/\{fotoDaSede \? \(\s*<div className="rounded-bloco[^"]*"[^>]*>\s*<Fotografia/);
+  });
 });

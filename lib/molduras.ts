@@ -86,3 +86,23 @@ export function moldurasDaHome(
     parceiros: demonstracao,
   };
 }
+
+/*
+  A mesma trava, para as fotografias de lib/imagens.ts.
+
+  Foto com material real sai sempre. Foto ainda provisória sai como moldura
+  "Fotografia a entrar" só no modo demonstração; fora dele não sai nada, e
+  quem a usa decide o que fazer com o vão (ver o bloco institucional em
+  app/(site)/page.tsx). Antes de 03/10/2026 a moldura de foto saía em
+  qualquer modo, e era a única "a entrar" que chegava ao público com a chave
+  desligada.
+*/
+export type DesenhoDaFotografia = "foto" | "moldura" | "nada";
+
+export function desenhoDaFotografia(
+  provisoria: boolean,
+  demonstracao: boolean,
+): DesenhoDaFotografia {
+  if (!provisoria) return "foto";
+  return demonstracao ? "moldura" : "nada";
+}

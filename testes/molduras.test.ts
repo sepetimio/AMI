@@ -1,11 +1,16 @@
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import { Fotografia } from "@/components/base/Fotografia";
 import { UltimasNoticias } from "@/components/editorial/UltimasNoticias";
 import { Carrossel } from "@/components/home/Carrossel";
 import { EmpresasParceiras } from "@/components/home/EmpresasParceiras";
 import { ServicosDaAmi } from "@/components/home/ServicosDaAmi";
-import { BANNERS_PROVISORIOS, moldurasDaHome } from "@/lib/molduras";
+import {
+  BANNERS_PROVISORIOS,
+  desenhoDaFotografia,
+  moldurasDaHome,
+} from "@/lib/molduras";
 import type { Banner, ResumoNoticia } from "@/lib/sanity/tipos";
 
 /* `UltimasNoticias` busca as notícias ela mesma. Aqui não há Sanity: este
@@ -207,7 +212,8 @@ describe("a faixa de empresas parceiras", () => {
   A trava. É a parte que mais importa: nenhuma moldura "a entrar" pode
   chegar ao público no lançamento.
 
-  `home()` liga a saída de `moldurasDaHome` aos quatro componentes do jeito
+  `home()` liga a saída de `moldurasDaHome` aos quatro componentes, mais a
+  fotografia provisória do bloco institucional, do jeito
   que app/(site)/page.tsx liga — a ligação de lá é conferida por texto-fonte
   em testes/home.test.ts, porque a página busca dados e não renderiza aqui.
 */
@@ -231,6 +237,7 @@ async function home(
     ),
     await noticias(real.publicadas, m.noticiasProvisorias),
     m.parceiros ? html(createElement(EmpresasParceiras)) : "",
+    html(createElement(Fotografia, { espaco: "sede", demonstracao })),
   ].join("\n");
 }
 
@@ -242,10 +249,11 @@ const MARCAS = [
   "Notícia a entrar",
   "Empresas parceiras da AMI",
   "Logotipo a entrar",
+  "Fotografia a entrar",
 ];
 
 describe("a trava", () => {
-  it("com a chave falsa e sem conteúdo real, nenhuma das quatro molduras sai", async () => {
+  it("com a chave falsa e sem conteúdo real, nenhuma moldura sai — nem a da foto", async () => {
     const saida = await home(false, { banners: [], publicadas: [] });
     for (const marca of MARCAS) {
       expect(saida, `"${marca}" saiu com a chave falsa`).not.toContain(marca);
@@ -268,7 +276,7 @@ describe("a trava", () => {
     }
   });
 
-  it("com a chave verdadeira e sem conteúdo real, as quatro saem", async () => {
+  it("com a chave verdadeira e sem conteúdo real, todas saem, a da foto também", async () => {
     /* O outro lado: sem ele, um teste que nunca mostra moldura nenhuma
        passaria o de cima de graça. */
     const saida = await home(true, { banners: [], publicadas: [] });
@@ -285,6 +293,28 @@ describe("a trava", () => {
   it("uma notícia real tira as provisórias, mesmo com a chave verdadeira", () => {
     const m = moldurasDaHome(true, { banners: [], temNoticia: true });
     expect(m.noticiasProvisorias).toBe(false);
+  });
+});
+
+describe("a fotografia provisória obedece a mesma trava", () => {
+  it("a decisão: provisória só vira moldura com a chave verdadeira", () => {
+    expect(desenhoDaFotografia(true, false)).toBe("nada");
+    expect(desenhoDaFotografia(true, true)).toBe("moldura");
+    /* Material real sai sempre, com ou sem demonstração. */
+    expect(desenhoDaFotografia(false, false)).toBe("foto");
+    expect(desenhoDaFotografia(false, true)).toBe("foto");
+  });
+
+  it("chave falsa + foto provisória = nada desenhado, nos dois espaços", () => {
+    for (const espaco of ["sede", "cidade"] as const) {
+      expect(html(createElement(Fotografia, { espaco, demonstracao: false }))).toBe("");
+    }
+  });
+
+  it("chave verdadeira: a moldura de antes, na proporção da foto", () => {
+    const saida = html(createElement(Fotografia, { espaco: "sede", demonstracao: true }));
+    expect(saida).toContain("Fotografia a entrar: <!-- -->Fachada da sede da AMI");
+    expect(saida).toContain("aspect-ratio:1280 / 960");
   });
 });
 

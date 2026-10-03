@@ -16,7 +16,8 @@ import {
 } from "@/lib/dados/especialidades";
 import { buscarMedicos } from "@/lib/dados/medicos";
 import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
-import { moldurasDaHome } from "@/lib/molduras";
+import { ESPACOS } from "@/lib/imagens";
+import { desenhoDaFotografia, moldurasDaHome } from "@/lib/molduras";
 import { bannersAtivos } from "@/lib/sanity/banners";
 import { listarNoticias } from "@/lib/sanity/consultas";
 
@@ -62,6 +63,8 @@ export default async function Home() {
     banners,
     temNoticia: noticias.length > 0,
   });
+  const fotoDaSede =
+    desenhoDaFotografia(ESPACOS.sede.provisoria, DADOS_DEMONSTRACAO) !== "nada";
 
   return (
     <>
@@ -129,17 +132,24 @@ export default async function Home() {
         aria-labelledby="institucional"
         className="revelar mx-auto max-w-[1200px] px-4 py-20 md:px-6 md:py-28"
       >
-        <div className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
+        {/* Sem foto (provisória fora do modo demonstração), a casca e a
+            segunda coluna saem juntas: o texto fica sozinho, e não ao lado de
+            uma moldura vazia. */}
+        <div
+          className={`grid items-center gap-10 md:gap-16 ${fotoDaSede ? "md:grid-cols-2" : ""}`}
+        >
           {/* Moldura concêntrica: casca externa com fio e respiro de 8px,
               miolo com o raio descontado da espessura da casca. É o que faz a
               foto parecer assentada numa moldura, e não colada na página. */}
-          <div className="rounded-bloco border border-line bg-surface p-2 shadow-erguido">
-            <Fotografia
-              espaco="sede"
-              sizes="(min-width: 768px) 46vw, 92vw"
-              className="h-auto w-full object-cover"
-            />
-          </div>
+          {fotoDaSede ? (
+            <div className="rounded-bloco border border-line bg-surface p-2 shadow-erguido">
+              <Fotografia
+                espaco="sede"
+                sizes="(min-width: 768px) 46vw, 92vw"
+                className="h-auto w-full object-cover"
+              />
+            </div>
+          ) : null}
 
           <div>
             <h2 id="institucional">

@@ -14,7 +14,8 @@ import { fileURLToPath } from "node:url";
    trata: ele renderiza o carrossel com `renderToString` só para comparar
    duas saídas de servidor entre si, porque compatibilidade de hidratação não
    dá para ler no código nem o `npm run build` verifica.
-   `testes/porta-da-busca.test.ts` e `testes/molduras.test.ts` também
+   `testes/porta-da-busca.test.ts`, `testes/molduras.test.ts` e
+   `testes/fotografia-trava.test.ts` também
    renderizam com `renderToString`, e também sem clicar nem medir pixel: só
    leem o HTML de servidor, para saber se um campo ou uma moldura saiu. */
 export default defineConfig({
