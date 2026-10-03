@@ -2,6 +2,7 @@ import { Writable } from "node:stream";
 import type { ReactNode } from "react";
 import { renderToPipeableStream } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import estilosDaHome from "@/app/(site)/inicio.module.css";
 import type { Banner, ResumoNoticia } from "@/lib/sanity/tipos";
 
 /*
@@ -253,16 +254,30 @@ describe("as faixas de ponta a ponta e o fim da página", () => {
     ]);
   });
 
-  it("todo bloco entra na tela com a .revelar, menos o carrossel", async () => {
-    /* O desenho anima cada seção ao entrar, menos o carrossel, que já está
-       na tela quando a página abre. Quem pede menos movimento não vê nada
-       disso: a regra de app/globals.css só vale com `no-preference`. */
+  it("só os blocos que nunca abrem na primeira tela entram com a .revelar", async () => {
+    /* A `.revelar` é presa à rolagem: um bloco já na primeira tela ficava
+       parado no meio dela, desbotado e borrado, até a pessoa rolar. Medido
+       de 390×844 a 2560×1440, com e sem carrossel, os números, a busca e
+       "Seja associado" podem abrir na primeira tela; ficam sem ela, como o
+       carrossel (app/(site)/inicio.module.css). Quem pede menos movimento
+       não vê animação nenhuma: a regra de app/globals.css só vale com
+       `no-preference`. */
     const html = await renderizarHome("true");
     const tags = [...html.matchAll(/<[a-z]+ [^>]*data-bloco="([^"]+)"[^>]*>/g)];
     const comRevelar = tags
       .filter((m) => /class="(?:[^"]* )?revelar[ "]/.test(m[0]))
       .map((m) => m[1]);
-    expect(comRevelar).toEqual(["numeros", "encontre", "sua-ami", "associe", "noticias", "bairros"]);
+    expect(comRevelar).toEqual(["sua-ami", "noticias", "bairros"]);
+  });
+
+  it("os blocos ficam no invólucro que leva a coluna e o ritmo", async () => {
+    /* As regras de app/(site)/inicio.module.css só valem para filhos de
+       `.home`: sem a classe, todo espaço entre blocos some. */
+    const html = await renderizarHome("true");
+    expect(estilosDaHome.home).toBeTruthy();
+    expect(html).toMatch(new RegExp(`<div class="${estilosDaHome.home}">`));
+    /* E o primeiro bloco vem logo depois do <h1>, que é por onde o CSS o acha. */
+    expect(html).toMatch(/<\/h1><section [^>]*data-bloco="carrossel"/);
   });
 
   it("com bairros, a página termina na faixa dos bairros", async () => {

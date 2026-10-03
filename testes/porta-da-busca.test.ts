@@ -123,7 +123,7 @@ const BUSCA_PARAMS = {
   searchParams: Promise.resolve({ termo: "Mayara", bairro: "centro" }),
 };
 
-const CARTOES = renderToString(
+const BLOCO_DA_BUSCA = renderToString(
   createElement(EncontreUmMedico, {
     especialidades: [{ nome: "Cardiologia", slug: "cardiologia", total: 1 }],
   }),
@@ -151,14 +151,14 @@ function formularioDentroDeAncora(html: string): boolean {
 
 describe("o bloco Encontre um médico, na home", () => {
   it("manda um termo digitado para /busca, por GET", () => {
-    expect(CARTOES).toMatch(/<form[^>]*action="\/busca"/);
-    expect(CARTOES).toMatch(/<form[^>]*method="get"/);
+    expect(BLOCO_DA_BUSCA).toMatch(/<form[^>]*action="\/busca"/);
+    expect(BLOCO_DA_BUSCA).toMatch(/<form[^>]*method="get"/);
   });
 
   it("o campo se chama termo, que é o que a busca lê", () => {
     /* `filtrosDaQuery` lê `sp.termo`. Qualquer outro nome manda o valor para
        uma chave que ninguém lê, e a busca volta vazia sem erro nenhum. */
-    expect(CARTOES).toMatch(/<input[^>]*name="termo"/);
+    expect(BLOCO_DA_BUSCA).toMatch(/<input[^>]*name="termo"/);
   });
 
   it("o formulário não está dentro de um link", () => {
@@ -167,13 +167,13 @@ describe("o bloco Encontre um médico, na home", () => {
       embrulhar o bloco num `<Link>`, o navegador desmonta a árvore e o
       campo deixa de enviar. Esta asserção é a que fica vermelha nesse dia.
     */
-    expect(formularioDentroDeAncora(CARTOES)).toBe(false);
+    expect(formularioDentroDeAncora(BLOCO_DA_BUSCA)).toBe(false);
   });
 
   it("quem não sabe o nome de ninguém ainda chega ao índice", () => {
     /* O campo não substitui `/medicos`: o índice por especialidade e bairro
        é o caminho de quem não tem um nome para digitar. */
-    expect(CARTOES).toMatch(/href="\/medicos"/);
+    expect(BLOCO_DA_BUSCA).toMatch(/href="\/medicos"/);
   });
 });
 

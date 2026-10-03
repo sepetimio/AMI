@@ -116,8 +116,8 @@ export default async function PaginaEspecialidade({
         cinza da página, indistinguível do resultado de busca livre logo ao
         lado. A faixa clara de borda a borda, com o símbolo em máscara, é a
         `Cabeceira` que abre as páginas internas (o perfil do médico tem a sua própria) — o comentário de
-        components/layout/Cabeceira.tsx diz como ela conversa com a faixa
-        verde do topo da home.
+        components/layout/Cabeceira.tsx diz como ela conversa com as faixas
+        de ponta a ponta da home.
 
         A contagem sai grande, em monoespaçada de registro. É a informação que
         a pessoa veio buscar antes de qualquer outra: quantos existem.

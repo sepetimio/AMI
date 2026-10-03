@@ -12,8 +12,12 @@ const PILULAS = 7;
   A faixa vai fora da caixa centralizada da página e leva `data-faixa`, a
   marca das faixas de ponta a ponta (o rodapé a lê). O texto dela fica na
   mesma linha vertical do resto porque a margem lateral é `--borda-faixa`
-  (app/globals.css), a mesma do rodapé. Entra na tela com a `.revelar`
-  global.
+  (app/globals.css), a mesma do rodapé.
+
+  Sem a `.revelar`: sem carrossel (fora da demonstração e sem banner), a
+  busca abre na primeira tela, e a animação presa à rolagem a deixava parada
+  no meio até a pessoa rolar (medido a 1366×768: opacidade 0,72 e desfoque
+  de 1,7px). Nada abre borrado.
 
   O campo é um formulário HTML de verdade, GET para `/busca`: funciona sem
   JavaScript e o resultado vira uma URL que se compartilha. O nome do campo é
@@ -44,7 +48,7 @@ export function EncontreUmMedico({
       data-bloco="encontre"
       data-faixa=""
       aria-labelledby="encontre-titulo"
-      className={`textura-verde revelar ${styles.encontre}`}
+      className={`textura-verde ${styles.encontre}`}
     >
       <div className="brilho" aria-hidden="true"></div>
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { arranjoDasNoticias, tamanhosDasCapas } from "@/lib/arranjo-das-noticias";
 import { fonte, semComentarios } from "@/testes/apoio";
 
 /*
@@ -41,6 +42,66 @@ const ORDEM = [
   "<UltimasNoticias",
   "<BairrosEParceiros",
 ];
+
+/*
+  O CSS da home: o espaço entre os blocos e a coluna. É regra de CSS, que só
+  o navegador aplica, então se lê o arquivo; as distâncias medidas na tela
+  estão no relatório da tarefa 10. Espaço desigual entre blocos é a queixa
+  central do cliente: estas asserções são as que ficam vermelhas se alguém
+  trocar a régua de um deles.
+*/
+const CSS_HOME = semComentarios(fonte("../app/(site)/inicio.module.css"));
+
+/** O corpo de `seletor { ... }` dentro de `css`. */
+function regra(css: string, seletor: string): string {
+  const ini = css.indexOf(`${seletor} {`);
+  expect(ini, `falta a regra ${seletor}`).toBeGreaterThan(-1);
+  return css.slice(ini, css.indexOf("}", ini));
+}
+
+/** O que vem depois de `@media (max-width: 700px) {`: o último bloco do arquivo. */
+function noCelular(css: string): string {
+  const ini = css.indexOf("@media (max-width: 700px) {");
+  expect(ini, "falta o @media (max-width: 700px)").toBeGreaterThan(-1);
+  return css.slice(ini);
+}
+
+describe("o CSS da home", () => {
+  it("todo bloco fica a --ritmo do anterior", () => {
+    expect(regra(CSS_HOME, ".home > [data-bloco]")).toMatch(/margin-top:\s*var\(--ritmo\);/);
+  });
+
+  it("o primeiro bloco fica a --gap do cabecalho", () => {
+    expect(regra(CSS_HOME, ".home > h1 + [data-bloco]")).toMatch(/margin-top:\s*var\(--gap\);/);
+  });
+
+  it("nao ha outro margin-top no arquivo: nenhuma excecao ao ritmo", () => {
+    expect(CSS_HOME.match(/margin-top:[^;]*;/g)).toEqual([
+      "margin-top: var(--ritmo);",
+      "margin-top: var(--gap);",
+    ]);
+  });
+
+  it("a coluna e a caixa de 1240px com 24px de folga (12px no celular)", () => {
+    const coluna = regra(CSS_HOME, ".home > [data-bloco]:not([data-faixa])");
+    expect(coluna).toMatch(/width:\s*min\(100% - 48px, 1192px\);/);
+    expect(coluna).toMatch(/margin-inline:\s*auto;/);
+    expect(regra(noCelular(CSS_HOME), ".home > [data-bloco]:not([data-faixa])")).toMatch(
+      /width:\s*calc\(100% - 24px\);/,
+    );
+  });
+
+  it("a coluna menos --m dos dois lados e a largura que o sizes das capas usa", () => {
+    /* 1192px de coluna menos os 48px de `--m` de cada lado das notícias: o
+       W de lib/arranjo-das-noticias.ts. Se um mudar sem o outro, o navegador
+       baixa a capa no tamanho errado. */
+    const coluna = Number(/min\(100% - 48px, (\d+)px\)/.exec(CSS_HOME)?.[1]);
+    const capas = tamanhosDasCapas(arranjoDasNoticias(1)!).destaque;
+    const w = Number(/\(min-width: 1240px\) (\d+)px/.exec(capas)?.[1]);
+    expect(w).toBe(1096);
+    expect(coluna - 2 * 48).toBe(w);
+  });
+});
 
 describe("a home", () => {
   it("monta as sete secoes da spec, nesta ordem", () => {

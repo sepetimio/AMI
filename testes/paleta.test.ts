@@ -418,15 +418,15 @@ describe("texto sobre fundo escuro", () => {
     Uso real, conferido por grep em 03/10/2026: NENHUM dos dois fundos
     claros aparece como letra sobre o verde — não há `text-canvas` nem
     `text-surface` no código. O que existe é fundo claro e verde lado a lado
-    na mesma tela (seções em `bg-canvas` e `bg-surface` coladas à faixa do
-    topo da home e ao rodapé), e letra branca e lima sobre o verde. Os pares
+    na mesma tela (seções em `bg-canvas` e `bg-surface` coladas à busca
+    verde da home e ao rodapé), e letra branca e lima sobre o verde. Os pares
     continuam medidos porque a spec pede claro sobre o verde profundo;
     tirá-los ou não é decisão de quem cuida da paleta, não desta correção.
   */
   /*
     `white` entrou depois — rodada de correção da tarefa 4. Não é token do
     @theme (ver o comentário de CORES_PADRAO_TAILWIND, no topo do arquivo),
-    mas já é usado como texto sobre `ami-green-900` (a faixa do topo da home
+    mas já é usado como texto sobre `ami-green-900` (a busca verde da home
     e o rodapé; sobre `ami-green-800`, que só pinta a plaqueta de iniciais
     com letra lima, não há branco hoje), e a rede contra classe morta
     ganhou uma isenção para não
