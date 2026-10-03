@@ -15,15 +15,39 @@ describe("os icones", () => {
     expect(html).toContain('class="x"');
   });
 
+  it("aria-hidden no SVG do Icone", () => {
+    const html = renderToString(createElement(Icone, { nome: "selo" }));
+    expect(html).toContain('aria-hidden="true"');
+  });
+
   it("o ladrilho tem aria-hidden no span externo", () => {
     const html = renderToString(createElement(LadrilhoIcone, { nome: "selo" }));
     expect(html).toContain('<span class="ladrilho-icone" aria-hidden="true">');
   });
 
-  it("cada icone renderiza um SVG diferente", () => {
-    const html1 = renderToString(createElement(Icone, { nome: "selo" }));
-    const html2 = renderToString(createElement(Icone, { nome: "seta" }));
-    expect(html1).not.toBe(html2);
+  it("todos os 18 icones renderizam SVGs diferentes", () => {
+    const nomes: Array<"selo" | "estetoscopio" | "batimento" | "mapa" | "bandeira" | "olho" | "maoCoracao" | "predio" | "lupa" | "seta" | "setaDiagonal" | "anterior" | "proximo" | "pausar" | "retomar" | "menu" | "fechar" | "telefone"> = [
+      "selo",
+      "estetoscopio",
+      "batimento",
+      "mapa",
+      "bandeira",
+      "olho",
+      "maoCoracao",
+      "predio",
+      "lupa",
+      "seta",
+      "setaDiagonal",
+      "anterior",
+      "proximo",
+      "pausar",
+      "retomar",
+      "menu",
+      "fechar",
+      "telefone",
+    ];
+    const htmls = nomes.map((nome) => renderToString(createElement(Icone, { nome })));
+    expect(new Set(htmls).size).toBe(18);
   });
 
   it("duotone inclui opacity 0.2, regular nao", () => {
@@ -48,7 +72,7 @@ describe("os icones", () => {
   it("importa so os icones usados, pelo caminho de servidor", () => {
     const src = fonte("../components/base/Icone.tsx");
     expect(src).toContain("@phosphor-icons/react/dist/ssr");
-    expect(src).not.toMatch(/import\s+\*\s+from\s+"@phosphor-icons\/react/);
-    expect(src).not.toMatch(/import\s+\{[^}]*\}\s+from\s+"@phosphor-icons\/react";/);
+    expect(src).not.toMatch(/import\s+\*\s+as\s+\w+\s+from\s+["']@phosphor-icons\/react/);
+    expect(src).not.toMatch(/^import\s+\{[^}]*\}\s+from\s+["']@phosphor-icons\/react["']/m);
   });
 });
