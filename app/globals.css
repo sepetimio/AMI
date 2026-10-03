@@ -665,8 +665,9 @@
   }
 
   /* Fundo verde com degradê, dois brilhos e grão: o bloco de busca e o
-     rodapé. Só a matéria, sem layout. O grão é um PNG pequeno repetido
-     (scripts/gerar-grao.mjs); o desenho usava um filtro SVG de ruído, que o
+     rodapé. Só a matéria, sem layout. O grão é um PNG de 128 × 128px e 20KB,
+     repetido (scripts/gerar-grao.mjs). O rodapé está em toda página, então
+     esse arquivo também. O desenho usava um filtro SVG de ruído, que o
      navegador redesenha a cada rolagem. As duas camadas de trás ficam em
      z-index -1 dentro do próprio contexto de empilhamento (`isolation`), e
      por isso o conteúdo comum do bloco fica acima delas. */

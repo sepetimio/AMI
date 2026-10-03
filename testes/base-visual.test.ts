@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { fonte } from "@/testes/apoio";
 
@@ -78,5 +80,14 @@ describe("a base visual", () => {
   it("a textura e uma imagem pequena, nao filtro SVG", () => {
     expect(CSS).toContain("/textura/grao.png");
     expect(CSS).not.toContain("feTurbulence");
+  });
+
+  it("o grao tem 128px e no maximo 24KB: o rodape o carrega em toda pagina", () => {
+    /* Ruído não comprime: o ladrilho de 240px tinha 72KB. A largura e a
+       altura estão no cabeçalho IHDR do PNG, nos bytes 16 a 23. */
+    const png = readFileSync(fileURLToPath(new URL("../public/textura/grao.png", import.meta.url)));
+    expect(png.length).toBeLessThanOrEqual(24 * 1024);
+    expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([128, 128]);
+    expect(fonte("../scripts/gerar-grao.mjs")).toMatch(/\nconst L = 128;/);
   });
 });

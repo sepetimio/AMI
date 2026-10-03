@@ -2,10 +2,17 @@ import { deflateSync } from "node:zlib";
 import { mkdirSync, writeFileSync } from "node:fs";
 
 /* Textura granulada do verde (bloco de busca e rodapé). O desenho usava um
-   filtro SVG; no site é PNG pequeno repetido, porque o filtro é redesenhado
-   a cada rolagem. Semente fixa: rodar de novo gera o mesmo arquivo.
+   filtro SVG; no site é um PNG repetido, porque o filtro é redesenhado a
+   cada rolagem. Semente fixa: rodar de novo gera o mesmo arquivo.
+
+   Ladrilho de 128px, com o alfa sorteado de 0 a 230 como antes: o grão tem o
+   mesmo tamanho de ponto e a mesma força média (alfa médio perto de 115/255,
+   o valor com que foi medido o contraste do texto sobre o verde, em
+   testes/numeros-e-busca.test.ts), e o arquivo cai de 72KB (o ladrilho de
+   240px) para 20KB. Ruído não comprime: o tamanho acompanha o número de
+   pontos.
    Rode da raiz do projeto: node scripts/gerar-grao.mjs */
-const L = 240;
+const L = 128;
 let s = 20261003;
 const aleatorio = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32);
 
