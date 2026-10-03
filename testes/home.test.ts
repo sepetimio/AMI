@@ -51,6 +51,7 @@ const ORDEM = [
   trocar a régua de um deles.
 */
 const CSS_HOME = semComentarios(fonte("../app/(site)/inicio.module.css"));
+const CSS_GLOBAL = semComentarios(fonte("../app/globals.css"));
 
 /** O corpo de `seletor { ... }` dentro de `css`. */
 function regra(css: string, seletor: string): string {
@@ -71,8 +72,20 @@ describe("o CSS da home", () => {
     expect(regra(CSS_HOME, ".home > [data-bloco]")).toMatch(/margin-top:\s*var\(--ritmo\);/);
   });
 
-  it("o primeiro bloco fica a --gap do cabecalho", () => {
-    expect(regra(CSS_HOME, ".home > h1 + [data-bloco]")).toMatch(/margin-top:\s*var\(--gap\);/);
+  it("o carrossel, primeiro bloco, fica a --gap do cabecalho", () => {
+    expect(regra(CSS_HOME, '.home > h1 + [data-bloco="carrossel"]')).toMatch(
+      /margin-top:\s*var\(--gap\);/,
+    );
+  });
+
+  it("sem carrossel, o primeiro bloco fica a --ritmo: a --gap vale so para o carrossel", () => {
+    /* Os números logo abaixo do cabeçalho, a 12px no celular, liam como
+       caixa atrás de caixa. A única regra com `--gap` é a do carrossel; o
+       primeiro bloco que não é carrossel cai na regra geral, `--ritmo`. */
+    const seletores = [...CSS_HOME.matchAll(/([^{}]+)\{[^}]*margin-top:\s*var\(--gap\)/g)].map((m) =>
+      m[1].trim(),
+    );
+    expect(seletores).toEqual(['.home > h1 + [data-bloco="carrossel"]']);
   });
 
   it("nao ha outro margin-top no arquivo: nenhuma excecao ao ritmo", () => {
@@ -92,14 +105,18 @@ describe("o CSS da home", () => {
   });
 
   it("a coluna menos --m dos dois lados e a largura que o sizes das capas usa", () => {
-    /* 1192px de coluna menos os 48px de `--m` de cada lado das notícias: o
-       W de lib/arranjo-das-noticias.ts. Se um mudar sem o outro, o navegador
-       baixa a capa no tamanho errado. */
+    /* 1192px de coluna menos o `--m` do computador de cada lado das
+       notícias: o W de lib/arranjo-das-noticias.ts. Se um mudar sem o outro,
+       o navegador baixa a capa no tamanho errado. O `--m` é lido do primeiro
+       `:root` de app/globals.css, o do computador (os de 980 e 700px vêm
+       depois, dentro de @media). */
+    const m = Number(/:root\s*\{[^}]*--m:\s*(\d+)px;/.exec(CSS_GLOBAL)?.[1]);
+    expect(m, "falta o --m do :root em app/globals.css").toBeGreaterThan(0);
     const coluna = Number(/min\(100% - 48px, (\d+)px\)/.exec(CSS_HOME)?.[1]);
     const capas = tamanhosDasCapas(arranjoDasNoticias(1)!).destaque;
     const w = Number(/\(min-width: 1240px\) (\d+)px/.exec(capas)?.[1]);
     expect(w).toBe(1096);
-    expect(coluna - 2 * 48).toBe(w);
+    expect(coluna - 2 * m).toBe(w);
   });
 });
 

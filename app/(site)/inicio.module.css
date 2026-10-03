@@ -26,13 +26,16 @@
 }
 
 /*
-  O primeiro bloco fica a `--gap` do cabeçalho, como o carrossel no desenho
-  (`.secao`, `margin-top: var(--gap)`). O `<h1>` só para leitor de tela vem
-  logo antes dele, e é por ele que a regra acha o primeiro: com o carrossel,
-  é o carrossel; sem banner nenhum, são os números, que assim não colam no
-  cabeçalho.
+  O carrossel, quando é o primeiro bloco, fica a `--gap` do cabeçalho, como
+  no desenho (`.secao`, `margin-top: var(--gap)`). O `<h1>` só para leitor de
+  tela vem logo antes do primeiro bloco, e é por ele que a regra o acha.
+
+  Sem carrossel (lançamento sem banner), o primeiro bloco são os números, e
+  eles ficam a `--ritmo`, pela regra de cima: a `--gap` deixava os cartões
+  brancos dos números 12px abaixo do cartão branco do cabeçalho no celular,
+  e o par lia como caixa atrás de caixa.
 */
-.home > h1 + [data-bloco] {
+.home > h1 + [data-bloco="carrossel"] {
   margin-top: var(--gap);
 }
 
