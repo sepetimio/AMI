@@ -12,8 +12,8 @@ import type { EspecialidadeComContagem } from "@/lib/dados/tipos";
   especialidade escolhida, "Filtro: Cardiologia ×". O × é um link para a
   mesma busca sem a especialidade.
 
-  O `id="encontre"` é o da busca da home: o menu e a barra do pé do
-  celular procuram `#encontre`. `data-faixa` é a marca das faixas de ponta a
+  O `id="encontre"` é o da busca da home: a barra do pé do celular procura
+  `#encontre` (o menu leva a `/busca`). `data-faixa` é a marca das faixas de ponta a
   ponta (app/(site)/encontre.module.css não a põe na coluna).
   `data-abertura` diz à barra do pé do celular que ela aparece quando esta
   faixa sai da tela (components/layout/BarraDoPe.tsx).

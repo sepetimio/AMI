@@ -28,7 +28,8 @@ const PILULAS = 7;
   de 700px; o curto cabe em todas, dispensa o script e o rótulo completo
   continua lá, para quem lê a tela.
 
-  O `id="encontre"` é o destino do menu e da barra do pé do celular.
+  O `id="encontre"` é o destino da barra do pé do celular (o menu leva a
+  `/busca`).
 */
 export function EncontreUmMedico({
   especialidades,

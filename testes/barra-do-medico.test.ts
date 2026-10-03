@@ -82,7 +82,7 @@ describe("as duas barras", () => {
     expect(destinoDaBusca("/medico/aline-peixoto")).toBe("/busca");
   });
 
-  it("no celular, Ligar e WhatsApp meio a meio, e a barra padrão some quando a do médico existe", () => {
+  it("no celular, Ligar e WhatsApp dividem a sobra da linha, e a barra padrão some quando a do médico existe", () => {
     const cel = bloco(CSS, "@media (max-width: 700px)");
     expect(regra(cel, ".doMedico .ligar")).toMatch(/flex: 1/);
     expect(regra(cel, ":global(body:has([data-barra-do-medico])) .barra:not([data-barra-do-medico])")).toMatch(

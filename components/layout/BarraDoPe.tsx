@@ -26,7 +26,7 @@ import styles from "@/components/layout/BarraDoPe.module.css";
 
   Na home e na busca o botão leva ao bloco de busca da própria página e, passado o
   tempo do pulo, põe o cursor no campo para a pessoa já poder digitar. Fora
-  da home leva a `/busca`, e a página nova cuida do próprio foco.
+  da home e da busca leva a `/busca`, e a página nova cuida do próprio foco.
 */
 const ESPERA_DO_PULO_MS = 600;
 

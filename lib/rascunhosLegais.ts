@@ -201,7 +201,7 @@ export const TERMOS: RascunhoLegal = {
       titulo: "Sem classificação e sem destaque pago",
       paragrafos: [
         "O site não atribui nota, não faz ranking e não compara profissionais entre si. Não existe posição paga nem promoção de associado.",
-        "A ordem dos resultados é definida de forma verificável: correspondência do termo buscado no nome e na especialidade, com desempate alfabético. Sem termo digitado, a ordem é alfabética.",
+        "Os resultados aparecem em ordem alfabética; nenhuma ordenação depende de pagamento, avaliação ou destaque.",
         "Essa vedação atende à Resolução CFM 2.336/2023 e é decisão permanente de projeto, não configuração.",
       ],
     },

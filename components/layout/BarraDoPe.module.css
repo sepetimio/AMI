@@ -77,8 +77,10 @@
   }
 
   /* A barra do perfil (components/perfil/BarraDoMedico.tsx), com o desenho
-     desta: "Ligar" verde e "WhatsApp" branco, meio a meio, como no desenho
-     (`.barra-medico .ba-ligar`). */
+     desta: "Ligar" verde e "WhatsApp" branco, os dois com `flex: 1`,
+     dividindo a sobra da linha, como no desenho (`.barra-medico .ba-ligar`).
+     Não ficam meio a meio: o WhatsApp tem 18px de folga de cada lado, e o
+     Ligar, nenhuma. */
   .doMedico .ligar {
     flex: 1;
   }
