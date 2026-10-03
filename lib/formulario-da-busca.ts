@@ -17,6 +17,9 @@ import { enderecoDaBusca, filtrosDaQuery } from "@/lib/dados/urlFiltros";
     troca fica);
   - a URL não é de nenhum envio (o × do filtro, o voltar do navegador): o
     campo e a lista passam a ser os da URL.
+
+  E quando o roteador termina de navegar, o que sobrou na fila foi
+  descartado por ele e não chega mais: a fila esvazia (`aoTerminarDeNavegar`).
 */
 
 /** O texto do campo e a especialidade da lista; ou o que a URL diz deles. */
@@ -65,13 +68,33 @@ export function valoresAposNavegar(estado: EstadoDoFormulario, url: ValoresDaBus
     return { ...estado, daUrl: url, envios: estado.envios.slice(i + 1) };
   }
 
-  /* A lista não muda sem enviar, então na URL do último envio ela já é a
-     dessa URL. O campo muda sem enviar: o texto digitado depois do envio
-     fica. */
+  return fecharEspera(estado, url);
+}
+
+/**
+ * O roteador terminou de navegar. Envio que ainda está na fila não chega
+ * mais: o roteador o descartou (trocar para B e voltar para A, a URL atual,
+ * antes de B chegar; a URL nem muda). A fila esvazia, e a tela volta a
+ * mostrar a URL, menos o texto digitado depois do último envio. Sem isto, a
+ * fila ficaria presa, e uma URL de fora (o voltar) igual a um envio preso
+ * passaria por etapa intermediária: a lista mostraria um filtro que não
+ * está valendo.
+ */
+export function aoTerminarDeNavegar(estado: EstadoDoFormulario): EstadoDoFormulario {
+  return estado.envios.length === 0 ? estado : fecharEspera(estado, estado.daUrl);
+}
+
+/**
+ * Acabou a espera, com esta URL: a lista é a dela (a lista não muda sem
+ * enviar); o campo também, a não ser que a pessoa tenha digitado depois do
+ * último envio, e aí o texto dela fica.
+ */
+function fecharEspera(estado: EstadoDoFormulario, url: ValoresDaBusca): EstadoDoFormulario {
+  const ultimo = estado.envios[estado.envios.length - 1];
   const { termo } = estado.valores;
   return {
     valores: {
-      termo: termo === estado.envios[i].valores.termo ? url.termo : termo,
+      termo: termo === ultimo.valores.termo ? url.termo : termo,
       especialidade: url.especialidade,
     },
     daUrl: url,

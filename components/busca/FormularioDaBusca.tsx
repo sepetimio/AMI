@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Icone } from "@/components/base/Icone";
 import campo from "@/components/home/EncontreUmMedico.module.css";
@@ -8,6 +8,7 @@ import styles from "@/components/busca/FaixaDaBusca.module.css";
 import type { OpcaoDeEspecialidade } from "@/lib/encontre";
 import {
   aoEnviar,
+  aoTerminarDeNavegar,
   enderecoDosValores,
   estadoInicial,
   valoresAposNavegar,
@@ -34,6 +35,10 @@ import {
   ou `especialidade` mudam, `valoresAposNavegar` decide o que mostrar. A URL
   de um envio anterior ao último, que chega depois da escolha nova, não
   volta a lista; o × do filtro e o voltar do navegador, sim.
+
+  O `router.push` corre dentro de uma transição (`useTransition`), que só
+  termina quando a navegação termina. Terminada, o envio que ainda está na
+  fila foi descartado pelo roteador, e `aoTerminarDeNavegar` esvazia a fila.
 */
 export function FormularioDaBusca({
   termo,
@@ -45,15 +50,18 @@ export function FormularioDaBusca({
   opcoes: OpcaoDeEspecialidade[];
 }) {
   const router = useRouter();
+  const [navegando, iniciar] = useTransition();
   const [estado, setEstado] = useState(() => estadoInicial({ termo, especialidade }));
   if (estado.daUrl.termo !== termo || estado.daUrl.especialidade !== especialidade) {
     setEstado(valoresAposNavegar(estado, { termo, especialidade }));
+  } else if (!navegando && estado.envios.length > 0) {
+    setEstado(aoTerminarDeNavegar(estado));
   }
   const { valores } = estado;
 
   const ir = (novos: ValoresDaBusca) => {
     setEstado((atual) => aoEnviar(atual, novos));
-    router.push(enderecoDosValores(novos), { scroll: false });
+    iniciar(() => router.push(enderecoDosValores(novos), { scroll: false }));
   };
 
   return (

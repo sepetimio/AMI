@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   aoEnviar,
+  aoTerminarDeNavegar,
   enderecoDosValores,
   estadoInicial,
   valoresAposNavegar,
@@ -49,9 +50,50 @@ describe("aoEnviar", () => {
     expect(aoEnviar(estadoInicial(v("cardiologia")), v("cardiologia")).envios).toEqual([]);
   });
 
-  it("voltar à escolha da URL com outra a caminho espera as duas", () => {
+  it("voltar à escolha da URL com outra a caminho espera as duas enquanto a navegação corre", () => {
+    /* Se a URL de cardiologia chegar, é etapa intermediária; se o roteador
+       a descartar, quem esvazia a fila é `aoTerminarDeNavegar`. */
     const e = enviar(estadoInicial(v("")), v("cardiologia"), v(""));
     expect(e.envios.map((x) => x.endereco)).toEqual(["/busca?especialidade=cardiologia", "/busca"]);
+    expect(aoTerminarDeNavegar(e)).toEqual(estadoInicial(v("")));
+  });
+});
+
+describe("aoTerminarDeNavegar", () => {
+  it("B e depois A (a URL atual), sem URL nenhuma chegar: a fila esvazia, e a URL A que vem de fora depois manda na lista", () => {
+    /* A reprodução da busca: Cardiologia e, 20ms depois, Todas (o roteador
+       descarta a primeira); Cardiologia de novo, que chega; e o voltar. */
+    let e = enviar(estadoInicial(v("")), v("cardiologia"), v(""));
+    e = aoTerminarDeNavegar(e);
+    expect(e.envios).toEqual([]);
+    e = valoresAposNavegar(aoEnviar(e, v("cardiologia")), v("cardiologia"));
+    expect(e).toEqual(estadoInicial(v("cardiologia")));
+    e = valoresAposNavegar(e, v(""));
+    expect(e.valores).toEqual(v(""));
+  });
+
+  it("sem esvaziar, o voltar caía como etapa intermediária e a lista ficava no filtro que não vale", () => {
+    /* O defeito que esta função fecha, para o teste acima não passar por
+       acaso: a mesma sequência sem `aoTerminarDeNavegar`. */
+    let e = enviar(estadoInicial(v("")), v("cardiologia"), v(""));
+    e = valoresAposNavegar(aoEnviar(e, v("cardiologia")), v("cardiologia"));
+    expect(valoresAposNavegar(e, v("")).valores).toEqual(v("cardiologia"));
+  });
+
+  it("a lista volta à URL; o texto digitado depois do último envio fica", () => {
+    let e = enviar(estadoInicial(v("", "ana")), v("cardiologia", "ana"), v("", "ana"));
+    e = { ...e, valores: { ...e.valores, termo: "ana lima" } };
+    expect(aoTerminarDeNavegar(e)).toEqual({ ...estadoInicial(v("", "ana")), valores: v("", "ana lima") });
+  });
+
+  it("o campo não mexido depois do último envio volta ao da URL", () => {
+    const e = aoEnviar(estadoInicial(v("")), v("cardiologia", "  "));
+    expect(aoTerminarDeNavegar(e)).toEqual(estadoInicial(v("")));
+  });
+
+  it("sem fila, nada muda", () => {
+    const e = { ...estadoInicial(v("pediatria")), valores: v("pediatria", "rascunho") };
+    expect(aoTerminarDeNavegar(e)).toBe(e);
   });
 });
 

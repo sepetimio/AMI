@@ -197,7 +197,7 @@ describe("o formulário ligado ao navegador", () => {
 
   it("enviar não recarrega nem rola: vai para o endereço montado pelos filtros", () => {
     expect(FORM).toMatch(/onSubmit=\{\(e\) => \{\s*e\.preventDefault\(\);\s*ir\(valores\);/);
-    expect(FORM).toContain("router.push(enderecoDosValores(novos), { scroll: false });");
+    expect(FORM).toContain("router.push(enderecoDosValores(novos), { scroll: false })");
     expect(FORM.match(/router\.push\(/g)).toHaveLength(1);
   });
 
@@ -224,6 +224,16 @@ describe("o formulário ligado ao navegador", () => {
       /if \(estado\.daUrl\.termo !== termo \|\| estado\.daUrl\.especialidade !== especialidade\) \{\s*setEstado\(valoresAposNavegar\(estado, \{ termo, especialidade \}\)\);\s*\}/,
     );
     expect(FORM).toContain("setEstado((atual) => aoEnviar(atual, novos));");
+  });
+
+  it("a navegação corre numa transição, e a fila esvazia quando ela termina", () => {
+    /* A transição em volta de `router.push` só termina quando a navegação
+       termina; o que sobrou na fila foi descartado pelo roteador. */
+    expect(FORM).toContain("const [navegando, iniciar] = useTransition();");
+    expect(FORM).toContain("iniciar(() => router.push(enderecoDosValores(novos), { scroll: false }));");
+    expect(FORM).toMatch(
+      /\} else if \(!navegando && estado\.envios\.length > 0\) \{\s*setEstado\(aoTerminarDeNavegar\(estado\)\);\s*\}/,
+    );
   });
 });
 
