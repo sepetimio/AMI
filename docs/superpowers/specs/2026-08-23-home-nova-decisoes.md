@@ -30,7 +30,7 @@ possível para reorganizar.
 |---|---|---|
 | 1 | **Faixa da AMI** — quem somos, com os números vivos | nova, substitui o herói |
 | 2 | **Carrossel de banners** | nova |
-| 3 | **Serviços da AMI** — três cartões | nova |
+| 3 | **Serviços da AMI** — ~~três cartões~~ revertido em 03/10/2026: quatro no modo demonstração (o quarto é "Sua AMI", provisório), três fora dele | nova |
 | 4 | Especialidades | sem mudança |
 | 5 | **Últimas notícias** — três, com "Ver todas" | nova |
 | 6 | Institucional | sem mudança |
@@ -150,7 +150,7 @@ descrever finalidade, prazo e como apagar, e ela já espera advogado.
 | | por quê |
 |---|---|
 | Parceiros e patrocínios no carrossel | o dono tirou da lista |
-| "Sua AMI" e aluguel de espaços | ainda não existe; a grade já comporta |
+| ~~"Sua AMI" e aluguel de espaços~~ | ~~ainda não existe; a grade já comporta~~ — revertido em 03/10/2026: o serviço continua não existindo, mas o cartão entra como provisório no modo demonstração |
 | Formulário de filiação | WhatsApp resolve hoje, sem guardar dado pessoal |
 | Tratamento visual das seções novas | depende da fatia de paleta, que vem antes |
 
@@ -185,3 +185,12 @@ parceiros não aparecem. Arte real e provisória nunca se misturam: um banner re
 três provisórios, uma notícia real tira as três provisórias. A decisão mora numa função
 só, `moldurasDaHome` em `lib/molduras.ts`, testada dos dois lados em
 `testes/molduras.test.ts`.
+
+A moldura de fotografia ("Fotografia a entrar", de `lib/imagens.ts`) passou a obedecer a
+mesma chave, por `desenhoDaFotografia`: fora do modo demonstração, foto provisória não é
+desenhada, e o bloco institucional da home fica só com o texto.
+
+Na mesma rodada, medido: com os quatro cartões, a grade de Serviços fica em 2 por linha do
+tablet para cima, não 4 — com 4, o campo de busca caía de 226px para 128px a 1280. A faixa
+de parceiros fica em duas linhas de 3, não 6 — com 6, "Logotipo a entrar" quebrava em duas
+linhas a 1024.
