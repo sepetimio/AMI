@@ -1,8 +1,9 @@
 import { Breadcrumb, type ItemTrilha } from "@/components/layout/Breadcrumb";
 
 /*
-  Cabeceira das páginas internas: /medicos, /busca, cada especialidade e cada
-  cruzamento de especialidade com bairro.
+  Cabeceira das páginas internas que ainda não ganharam o desenho novo, como
+  /medicos e cada especialidade. A busca e o perfil do médico não a usam: o
+  cliente a recusou, e as duas abrem com o desenho delas.
 
   Sangra de borda a borda, como as faixas de ponta a ponta da home (a busca
   verde, "Seja associado", bairros e parceiros). O fundo é a superfície

@@ -7,6 +7,9 @@ import type { Filtros, Ordem, RecursoAcessibilidade } from "@/lib/dados/tipos";
   especialidade e o cruzamento especialidade + bairro. Todo o resto vive em
   QUERYSTRING e a página sai como `noindex, follow`. Filtros combinados geram
   milhares de endereços quase iguais, e indexar isso derruba o site inteiro.
+  Em `/busca` a especialidade também vai na querystring (a busca inteira é
+  `noindex`); a página indexável de cada especialidade continua sendo o
+  caminho `/medicos/<slug>`.
 */
 
 const RECURSOS: RecursoAcessibilidade[] = [
@@ -29,6 +32,9 @@ export function filtrosDaQuery(sp: Query): Filtros {
 
   const termo = texto(sp.termo)?.trim();
   if (termo) f.termo = termo;
+
+  const especialidade = texto(sp.especialidade)?.trim();
+  if (especialidade) f.especialidade = especialidade;
 
   const bairro = texto(sp.bairro)?.trim();
   if (bairro) f.bairro = bairro;
@@ -67,6 +73,7 @@ export function queryDosFiltros(f: Filtros): string {
   const p = new URLSearchParams();
 
   if (f.termo) p.set("termo", f.termo);
+  if (f.especialidade) p.set("especialidade", f.especialidade);
   if (f.bairro) p.set("bairro", f.bairro);
   if (f.telemedicina) p.set("telemedicina", "1");
   for (const r of RECURSOS) {
@@ -77,4 +84,9 @@ export function queryDosFiltros(f: Filtros): string {
 
   const s = p.toString();
   return s ? `?${s}` : "";
+}
+
+/** O endereço da busca com estes filtros: `/busca` e a querystring de `queryDosFiltros`. */
+export function enderecoDaBusca(f: Filtros): string {
+  return `/busca${queryDosFiltros(f)}`;
 }

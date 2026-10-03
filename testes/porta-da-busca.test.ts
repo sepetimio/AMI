@@ -6,12 +6,11 @@ import type { Medico } from "@/lib/dados/tipos";
 
 /*
   A porta da busca: os dois lugares do site público onde dá para DIGITAR —
-  o bloco "Encontre um médico", na home, e o painel de filtros de `/busca`.
-  E um lugar onde NÃO dá: a página de especialidade, que já é a
-  especialidade e não tem painel de filtros.
+  o bloco "Encontre um médico", na home, e a faixa verde de `/busca`. E um
+  lugar onde NÃO dá: a página de especialidade.
 
   O maquinário de busca por texto está inteiro há muito tempo — `casaNoNome`
-  em lib/dados/filtros.ts, `filtros.termo` lido em app/(site)/busca/page.tsx,
+  em lib/dados/filtros.ts, o `termo` lido em app/(site)/busca/page.tsx,
   a serialização em lib/dados/urlFiltros.ts, tudo com teste próprio. O que
   faltou uma vez foi a PORTA: a home perdeu o formulário que levava a
   `/busca`, e com ele o único campo de texto do site; `?termo=` continuou
@@ -26,23 +25,18 @@ import type { Medico } from "@/lib/dados/tipos";
   varredura de fonte não distingue um campo vivo de um campo dentro de
   `{false && …}` — ver o comentário no topo de testes/home.test.ts.
 
-  As PÁGINAS de verdade (app/(site)/busca/page.tsx e
-  app/(site)/medicos/[especialidade]/page.tsx) são renderizadas com as
-  fontes de dados trocadas por dublês: quem decide se o campo aparece é a
-  página, pela prop `campoDeTermo` do painel, ou por não ter painel.
+  As duas páginas (app/(site)/busca/page.tsx e
+  app/(site)/medicos/[especialidade]/page.tsx) são renderizadas de verdade,
+  com as fontes de dados trocadas por dublês.
 */
 
-/* O painel é componente de cliente e lê a URL por hooks do Next. Aqui não há
-   roteador: estes dublês são o mínimo que ele toca. `URLSearchParams` já tem
-   `get`, `getAll` e `keys`, que é tudo que o painel usa. `notFound` é o que
-   a página de especialidade importa do mesmo módulo; aqui ele só precisa
-   existir, porque os dublês abaixo nunca levam a página até ele. */
-const QUERY = new URLSearchParams("termo=Mayara&bairro=centro");
-
+/* O formulário da busca é componente de cliente e usa o roteador do Next.
+   Aqui não há roteador: estes dublês são o mínimo que ele toca. `notFound` é
+   o que a página de especialidade importa do mesmo módulo; aqui ele só
+   precisa existir, porque os dublês abaixo nunca levam a página até ele. */
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: () => {} }),
   usePathname: () => "/busca",
-  useSearchParams: () => QUERY,
   notFound: () => {
     throw new Error("notFound() não devia ser chamado neste teste");
   },
@@ -92,7 +86,6 @@ vi.mock("@/lib/dados/especialidades", () => ({
 }));
 
 const { EncontreUmMedico } = await import("@/components/home/EncontreUmMedico");
-const { PainelFiltros } = await import("@/components/diretorio/PainelFiltros");
 const { default: PaginaBusca } = await import("@/app/(site)/busca/page");
 const { default: PaginaEspecialidade } = await import(
   "@/app/(site)/medicos/[especialidade]/page"
@@ -121,7 +114,7 @@ function html(arvore: ReactNode): Promise<string> {
 }
 
 const BUSCA_PARAMS = {
-  searchParams: Promise.resolve({ termo: "Mayara", bairro: "centro" }),
+  searchParams: Promise.resolve({ termo: "Mayara", especialidade: "cardiologia", bairro: "centro" }),
 };
 
 const BLOCO_DA_BUSCA = renderToString(
@@ -178,23 +171,17 @@ describe("o bloco Encontre um médico, na home", () => {
   });
 });
 
-describe("o painel de filtros, em /busca", () => {
-  it("tem campo de texto, para quem chegou por link de bairro", () => {
-    /* `/busca` só é alcançável por link já filtrado (rodapé e ladrilhos da
-       home). Sem campo aqui, refinar por nome exige voltar à home. */
+describe("a faixa de /busca", () => {
+  it("tem campo de texto, para quem chegou por link de especialidade", () => {
     expect(BUSCA).toMatch(/<input[^>]*name="termo"/);
+    expect(formularioDentroDeAncora(BUSCA)).toBe(false);
   });
 
   it("o campo vem preenchido com o termo atual", () => {
-    /* Campo vazio numa página cujo H1 diz "Resultados para Mayara" faz o
-       usuário digitar de novo o que já buscou.
-
-       A asserção olha a TAG inteira, e não a sequência `name=…value=`: a
-       ordem em que o React imprime os atributos é detalhe de implementação
-       dele, e amarrar o teste a ela é combinar uma falha para o dia em que
-       essa ordem mudar. */
+    /* A asserção olha a TAG inteira, e não a sequência `name=…value=`: a
+       ordem em que o React imprime os atributos é detalhe dele. */
     const campo = /<input[^>]*name="termo"[^>]*>/.exec(BUSCA)?.[0] ?? "";
-    expect(campo, "não achei o campo de termo no painel").not.toBe("");
+    expect(campo, "não achei o campo de termo na faixa").not.toBe("");
     expect(campo).toContain('value="Mayara"');
   });
 });
@@ -206,18 +193,5 @@ describe("a página de especialidade", () => {
     /* E não passou só porque a página quebrou: o cartão do médico está lá. */
     expect(ESPECIALIDADE).toContain('href="/medico/mayara-exemplo"');
     expect(ESPECIALIDADE).toContain("MÉDICO · CRM/MA 1234");
-  });
-});
-
-describe("o painel de filtros, solto", () => {
-  it("sem a prop, não desenha o campo", () => {
-    const solto = renderToString(
-      createElement(PainelFiltros, {
-        bairros: [{ nome: "Centro", slug: "centro" }],
-        total: 3,
-      }),
-    );
-    expect(solto).toContain('id="filtro-bairro"');
-    expect(solto).not.toMatch(/name="termo"/);
   });
 });

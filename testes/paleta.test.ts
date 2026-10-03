@@ -241,10 +241,7 @@ const TEXTO_FORA_DO_TESTE: Record<string, string> = {
     "texto sobre fundo escuro, contra ami-green-800/900; sobre fundo claro " +
     "daria o par errado",
   "ink-300":
-    "placeholder do campo de busca de components/diretorio/PainelFiltros.tsx " +
-    "e separador aria-hidden " +
-    "(components/layout/Breadcrumb.tsx) — isento de AA por desenho, e testado " +
-    "à parte, para REPROVAR, logo abaixo",
+    "separador aria-hidden (components/layout/Breadcrumb.tsx) — isento de AA por desenho, e testado à parte, para REPROVAR, logo abaixo",
 };
 
 const FUNDOS_FORA_DO_TESTE: Record<string, string> = {

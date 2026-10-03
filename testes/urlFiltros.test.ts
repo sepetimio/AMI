@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filtrosDaQuery, queryDosFiltros } from "@/lib/dados/urlFiltros";
+import { enderecoDaBusca, filtrosDaQuery, queryDosFiltros } from "@/lib/dados/urlFiltros";
 
 describe("filtrosDaQuery", () => {
   it("lê os filtros não indexáveis da querystring", () => {
@@ -86,5 +86,28 @@ describe("queryDosFiltros", () => {
     expect(filtrosDaQuery({ ...sp, acessibilidade: ["elevador"] })).toEqual(
       original,
     );
+  });
+});
+
+describe("a especialidade na busca", () => {
+  it("filtrosDaQuery lê a especialidade da querystring", () => {
+    expect(filtrosDaQuery({ termo: "ana", especialidade: "cardiologia" })).toEqual({
+      termo: "ana",
+      especialidade: "cardiologia",
+    });
+    expect(filtrosDaQuery({ especialidade: "  " })).toEqual({});
+  });
+
+  it("queryDosFiltros escreve a especialidade logo depois do termo", () => {
+    expect(queryDosFiltros({ especialidade: "cardiologia", termo: "ana" })).toBe(
+      "?termo=ana&especialidade=cardiologia",
+    );
+  });
+
+  it("enderecoDaBusca é /busca com a querystring, ou só /busca", () => {
+    expect(enderecoDaBusca({ termo: "ana", especialidade: "cardiologia" })).toBe(
+      "/busca?termo=ana&especialidade=cardiologia",
+    );
+    expect(enderecoDaBusca({})).toBe("/busca");
   });
 });

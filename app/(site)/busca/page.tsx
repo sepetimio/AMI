@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { Cabeceira } from "@/components/layout/Cabeceira";
-import { ListaMedicos } from "@/components/diretorio/ListaMedicos";
-import { PainelFiltros } from "@/components/diretorio/PainelFiltros";
-import { filtrosDaQuery } from "@/lib/dados/urlFiltros";
+import styles from "@/app/(site)/encontre.module.css";
+import { FaixaDaBusca } from "@/components/busca/FaixaDaBusca";
+import { ResultadosDaBusca } from "@/components/busca/ResultadosDaBusca";
+import { especialidadesComContagem } from "@/lib/dados/especialidades";
 import { buscarMedicos } from "@/lib/dados/medicos";
-import { bairrosComContagem } from "@/lib/dados/especialidades";
-import { contagem } from "@/lib/formato";
+import { filtrosDaQuery } from "@/lib/dados/urlFiltros";
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -22,80 +21,32 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
-export default async function PaginaBusca({ searchParams }: Props) {
-  const filtros = filtrosDaQuery(await searchParams);
-  const temFiltro = Object.keys(filtros).some((c) => c !== "ordem");
-  const [medicos, bairros] = await Promise.all([
-    buscarMedicos(filtros),
-    bairrosComContagem(),
-  ]);
+/*
+  A busca: a faixa verde com o campo e a lista de especialidades, e a
+  contagem e a grade, em ordem alfabética. Sem a `Cabeceira` das outras
+  páginas internas: a busca abre com a faixa verde.
 
-  const trilha = [
-    { nome: "Início", caminho: "/" },
-    { nome: "Buscar", caminho: "/busca" },
-  ];
+  Da URL valem só `termo` e `especialidade`. Os outros filtros de antes
+  (bairro, telemedicina, acessibilidade, associados, ordem) não chegam ao
+  banco, e uma especialidade que não está na lista também não: a busca abre
+  sem eles, sem erro.
+*/
+export default async function PaginaBusca({ searchParams }: Props) {
+  const pedido = filtrosDaQuery(await searchParams);
+  const especialidades = await especialidadesComContagem();
+  const escolhida = especialidades.find((e) => e.slug === pedido.especialidade) ?? null;
+  const termo = pedido.termo ?? "";
+
+  const medicos = await buscarMedicos({
+    ...(termo ? { termo } : {}),
+    ...(escolhida ? { especialidade: escolhida.slug } : {}),
+    ordem: "nome",
+  });
 
   return (
-    <>
-      {/* Mesma cabeceira de /medicos e das páginas de especialidade. A busca
-          livre é a única tela do diretório que não recebia tratamento de
-          cabeça, e por isso lia como uma página de outro site. */}
-      <Cabeceira
-        trilha={trilha}
-        /* H1 dinâmico: quem chegou por uma busca precisa ver o que buscou. */
-        titulo={
-          filtros.termo
-            ? `Resultados para “${filtros.termo}”`
-            : "Buscar médicos em Imperatriz"
-        }
-        contagem={medicos.length}
-        rotuloContagem={
-          medicos.length === 1
-            ? "profissional encontrado"
-            : "profissionais encontrados"
-        }
-      >
-        {!filtros.termo && !temFiltro
-          ? "Use os filtros ao lado, ou escolha uma especialidade no índice."
-          : null}
-      </Cabeceira>
-
-      <div className="mx-auto max-w-[1200px] px-4 md:px-6">
-      <div className="grid gap-8 pb-16 md:grid-cols-[260px_1fr]">
-        <PainelFiltros bairros={bairros} total={medicos.length} campoDeTermo />
-        <div>
-          <h2 className="sr-only">Resultados</h2>
-          <ListaMedicos
-            medicos={medicos}
-            /*
-              Mesmo raciocínio da página de especialidade — acessibilidade,
-              depois bairro, depois o resto — só que a busca livre aceita mais
-              filtros, então a cadeia continua em vez de cair direto num
-              `undefined`. Sem checar o que está de fato ativo, uma busca só
-              por acessibilidade (`?acessibilidade=interprete_libras`) sugeria
-              remover um filtro de bairro que ninguém aplicou.
-            */
-            filtroMaisRestritivo={
-              filtros.acessibilidade?.length
-                ? "acessibilidade"
-                : filtros.bairro
-                  ? "bairro"
-                  : filtros.termo
-                    ? "termo digitado"
-                    : filtros.telemedicina
-                      ? "telemedicina"
-                      : filtros.somenteAssociados
-                        ? "associados"
-                        : undefined
-            }
-            saida={{
-              rotulo: "Ver todas as especialidades",
-              href: "/medicos",
-            }}
-          />
-        </div>
-      </div>
-      </div>
-    </>
+    <div className={styles.pagina}>
+      <FaixaDaBusca termo={termo} escolhida={escolhida} especialidades={especialidades} />
+      <ResultadosDaBusca medicos={medicos} escolhida={escolhida} />
+    </div>
   );
 }

@@ -1,0 +1,58 @@
+/*
+  A contagem, a grade e o estado vazio da busca, transcritos do desenho
+  aprovado (docs/desenho-aprovado/encontre/busca.html: `.cab-resultados`,
+  `.contagem`, `.cab-resultados .texto`, `.vazio`, `.vazio h3`, `.vazio p`,
+  e o @media de 700px). A grade é de GradeMedicos.module.css.
+*/
+
+.cab {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding: 0 var(--m) 32px;
+}
+
+.contagem {
+  font-size: 32px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ordem {
+  font-size: 14.5px;
+  color: var(--color-ink-600);
+}
+
+.vazio {
+  padding: 56px var(--m);
+}
+
+.vazio h3 {
+  font-size: 26px;
+}
+
+.vazio p {
+  margin: 10px 0 22px;
+  color: var(--color-ink-600);
+}
+
+@media (max-width: 700px) {
+  .cab {
+    padding: 0 var(--m) 16px;
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .contagem {
+    font-size: 24px;
+  }
+
+  .ordem {
+    font-size: 13.5px;
+  }
+
+  .vazio {
+    padding: 32px var(--m);
+  }
+}

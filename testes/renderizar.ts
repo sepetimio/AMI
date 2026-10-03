@@ -1,5 +1,7 @@
+import { Writable } from "node:stream";
 import { createElement } from "react";
-import { renderToString } from "react-dom/server";
+import type { ReactNode } from "react";
+import { renderToPipeableStream, renderToString } from "react-dom/server";
 import { vi } from "vitest";
 
 /*
@@ -26,4 +28,29 @@ export async function renderizar(chave: string) {
     cabecalho: renderToString(createElement(Cabecalho)),
     rodape: renderToString(createElement(Rodape)),
   };
+}
+
+/*
+  Uma página inteira renderizada no servidor, esperando as partes
+  assíncronas (`onAllReady`): o caminho de testes/home-renderizada.test.ts,
+  num lugar só para os testes de página que vieram depois.
+*/
+export function htmlDe(arvore: ReactNode): Promise<string> {
+  return new Promise<string>((pronto, falhou) => {
+    let html = "";
+    const destino = new Writable({
+      write(pedaco, _codificacao, seguir) {
+        html += pedaco.toString();
+        seguir();
+      },
+      final(seguir) {
+        pronto(html);
+        seguir();
+      },
+    });
+    const fluxo = renderToPipeableStream(arvore, {
+      onAllReady: () => fluxo.pipe(destino),
+      onError: falhou,
+    });
+  });
 }
