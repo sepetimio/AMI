@@ -4,17 +4,19 @@ import { describe, expect, it, vi } from "vitest";
 import { Fotografia } from "@/components/base/Fotografia";
 import { UltimasNoticias } from "@/components/editorial/UltimasNoticias";
 import { Carrossel } from "@/components/home/Carrossel";
+import { NumerosDaAmi } from "@/components/home/NumerosDaAmi";
 import { Parceiros } from "@/components/home/Parceiros";
 import { SejaAssociado } from "@/components/home/SejaAssociado";
 import { SuaAmi } from "@/components/home/SuaAmi";
 import { ESPACOS, espacosProvisorios, type NomeEspaco } from "@/lib/imagens";
 import {
   BANNERS_PROVISORIOS,
+  ESPACOS_DE_PARCEIRAS,
   desenhoDaFotografia,
   moldurasDaHome,
   quemEhAmi,
 } from "@/lib/molduras";
-import type { Banner, ResumoNoticia } from "@/lib/sanity/tipos";
+import type { Banner, EmpresaParceira, ResumoNoticia } from "@/lib/sanity/tipos";
 
 /* `UltimasNoticias` busca as notícias ela mesma. Aqui não há Sanity: este
    dublê devolve o que cada teste puser em `publicadas`. */
@@ -153,7 +155,7 @@ describe("as quatro notícias provisórias", () => {
 });
 
 describe("a parte de empresas parceiras", () => {
-  const saida = html(createElement(Parceiros, { parceiros: true }));
+  const saida = html(createElement(Parceiros, { parceiras: [], provisorias: true }));
   const parte = saida.slice(saida.indexOf('<section id="parceiros"'));
 
   it("tem o rótulo e o título aprovados e seis espaços de logotipo", () => {
@@ -184,22 +186,31 @@ describe("a parte de empresas parceiras", () => {
   A trava. É a parte que mais importa: nenhuma moldura "a entrar" pode
   chegar ao público no lançamento.
 
-  `home()` liga a saída de `moldurasDaHome` ao carrossel, às notícias e aos
-  parceiros, e a chave a "Sua AMI" e a "Seja
+  `home()` liga a saída de `moldurasDaHome` ao carrossel, aos números, às
+  notícias e aos parceiros, e a chave a "Sua AMI" e a "Seja
   associado", que decidem sozinhos, do jeito que app/(site)/page.tsx liga. A
   página de verdade, com as mesmas peças, é renderizada em
   testes/home-renderizada.test.ts.
 */
 async function home(
   demonstracao: boolean,
-  real: { banners: Banner[]; publicadas: ResumoNoticia[] },
+  real: { banners: Banner[]; publicadas: ResumoNoticia[]; parceiras?: EmpresaParceira[] },
 ) {
   const m = moldurasDaHome(demonstracao, {
     banners: real.banners,
     temNoticia: real.publicadas.length > 0,
+    parceiras: real.parceiras ?? [],
   });
   return [
     html(createElement(Carrossel, { itens: m.banners })),
+    html(
+      createElement(NumerosDaAmi, {
+        anos: 51,
+        medicos: 24,
+        especialidades: 14,
+        parceiras: m.numeroDeParceiras,
+      }),
+    ),
     html(createElement(SuaAmi, { demonstracao })),
     html(
       createElement(SejaAssociado, {
@@ -208,11 +219,18 @@ async function home(
       }),
     ),
     await noticias(real.publicadas, m.noticiasProvisorias),
-    html(createElement(Parceiros, { parceiros: m.parceiros })),
+    html(
+      createElement(Parceiros, {
+        parceiras: m.parceiras,
+        provisorias: m.parceirasProvisorias,
+      }),
+    ),
   ].join("\n");
 }
 
-/* Uma marca de cada moldura. Se alguma sair, a trava vazou. */
+/* Uma marca de cada moldura. Se alguma sair, a trava vazou. O quarto número
+   ("empresas parceiras", com o botão "Ver parceiras") entra aqui porque,
+   sem empresa cadastrada, ele conta os seis espaços provisórios. */
 const MARCAS = [
   "Arte a entrar",
   "Sua AMI",
@@ -221,6 +239,8 @@ const MARCAS = [
   "Empresas parceiras da AMI",
   "Logotipo a entrar",
   "Fotografia a entrar",
+  ">empresas parceiras<",
+  "Ver parceiras",
 ];
 
 /* Um slide de foto com texto, sem a foto ainda. */
@@ -263,10 +283,11 @@ describe("a trava", () => {
   it("com a chave falsa, nada provisório sai em nenhuma combinação de conteúdo", () => {
     for (const banners of [[], [REAL]]) {
       for (const temNoticia of [false, true]) {
-        const m = moldurasDaHome(false, { banners, temNoticia });
+        const m = moldurasDaHome(false, { banners, temNoticia, parceiras: [] });
         expect(m.banners).toEqual(banners);
         expect(m.noticiasProvisorias).toBe(false);
-        expect(m.parceiros).toBe(false);
+        expect(m.parceirasProvisorias).toBe(false);
+        expect(m.numeroDeParceiras).toBeNull();
       }
     }
   });
@@ -281,7 +302,7 @@ describe("a trava", () => {
   });
 
   it("um banner real tira os três provisórios, mesmo com a chave verdadeira", () => {
-    const m = moldurasDaHome(true, { banners: [REAL], temNoticia: false });
+    const m = moldurasDaHome(true, { banners: [REAL], temNoticia: false, parceiras: [] });
     expect(m.banners).toEqual([REAL]);
   });
 
@@ -295,7 +316,7 @@ describe("a trava", () => {
   });
 
   it("um banner com foto e texto também conta como real: tira os provisórios", () => {
-    const m = moldurasDaHome(true, { banners: [REAL, COMPOSTO_SEM_FOTO], temNoticia: false });
+    const m = moldurasDaHome(true, { banners: [REAL, COMPOSTO_SEM_FOTO], temNoticia: false, parceiras: [] });
     expect(m.banners).toEqual([REAL, COMPOSTO_SEM_FOTO]);
   });
 
@@ -305,6 +326,7 @@ describe("a trava", () => {
     const m = moldurasDaHome(false, {
       banners: [REAL, COMPOSTO_SEM_FOTO, COMPOSTO_COM_FOTO],
       temNoticia: false,
+      parceiras: [],
     });
     expect(m.banners).toEqual([REAL, COMPOSTO_COM_FOTO]);
   });
@@ -312,17 +334,82 @@ describe("a trava", () => {
   it("fora da demonstração, só com slides sem foto, o carrossel fica vazio e some", () => {
     /* Vazio, e não os provisórios: fora da demonstração eles nunca saem. */
     expect(
-      moldurasDaHome(false, { banners: [COMPOSTO_SEM_FOTO], temNoticia: false }).banners,
+      moldurasDaHome(false, { banners: [COMPOSTO_SEM_FOTO], temNoticia: false, parceiras: [] }).banners,
     ).toEqual([]);
     /* Na demonstração, o mesmo slide fica, e os provisórios não entram. */
     expect(
-      moldurasDaHome(true, { banners: [COMPOSTO_SEM_FOTO], temNoticia: false }).banners,
+      moldurasDaHome(true, { banners: [COMPOSTO_SEM_FOTO], temNoticia: false, parceiras: [] }).banners,
     ).toEqual([COMPOSTO_SEM_FOTO]);
   });
 
   it("uma notícia real tira as provisórias, mesmo com a chave verdadeira", () => {
-    const m = moldurasDaHome(true, { banners: [], temNoticia: true });
+    const m = moldurasDaHome(true, { banners: [], temNoticia: true, parceiras: [] });
     expect(m.noticiasProvisorias).toBe(false);
+  });
+});
+
+/* Empresas de mentira, com nomes que não existem. */
+function parceira(letra: string, site: string | null = null): EmpresaParceira {
+  return {
+    id: `parceira-${letra}`,
+    nome: `Empresa Exemplo ${letra}`,
+    logotipo: `https://exemplo.test/logo-${letra}.png`,
+    logotipoSrcset: `https://exemplo.test/logo-${letra}.png 640w`,
+    site,
+  };
+}
+const UMA = [parceira("A")];
+const SETE = ["A", "B", "C", "D", "E", "F", "G"].map((l) => parceira(l));
+
+describe("as empresas parceiras e o quarto número", () => {
+  const casos: [string, boolean, EmpresaParceira[], boolean, number | null][] = [
+    /* [caso, demonstração, reais, espaços provisórios, quarto número] */
+    ["nenhuma real, na demonstração: os seis espaços e o número 6", true, [], true, 6],
+    ["nenhuma real, fora da demonstração: nem faixa nem número", false, [], false, null],
+    ["uma real, na demonstração: a real e o número 1", true, UMA, false, 1],
+    ["uma real, fora da demonstração: a real e o número 1", false, UMA, false, 1],
+    ["sete reais, na demonstração: as sete e o número 7", true, SETE, false, 7],
+    ["sete reais, fora da demonstração: as sete e o número 7", false, SETE, false, 7],
+  ];
+  for (const [caso, demonstracao, reais, provisorias, numero] of casos) {
+    it(caso, () => {
+      const m = moldurasDaHome(demonstracao, { banners: [], temNoticia: false, parceiras: reais });
+      expect([m.parceiras, m.parceirasProvisorias, m.numeroDeParceiras]).toEqual([
+        reais,
+        provisorias,
+        numero,
+      ]);
+    });
+  }
+
+  it("o 6 da demonstração é o número de espaços que a faixa desenha", () => {
+    const m = moldurasDaHome(true, { banners: [], temNoticia: false, parceiras: [] });
+    const faixa = html(createElement(Parceiros, { parceiras: [], provisorias: true }));
+    expect(m.numeroDeParceiras).toBe(ESPACOS_DE_PARCEIRAS);
+    expect(vezes(faixa, ">Logotipo a entrar</li>")).toBe(ESPACOS_DE_PARCEIRAS);
+  });
+
+  it("há quarto número exatamente quando há faixa: o Ver parceiras sempre tem aonde levar", async () => {
+    for (const demonstracao of [true, false]) {
+      for (const parceiras of [[], UMA, SETE]) {
+        const saida = await home(demonstracao, { banners: [], publicadas: [], parceiras });
+        const caso = `demonstração ${demonstracao}, ${parceiras.length} reais`;
+        expect(saida.includes('href="/#parceiros"'), caso).toBe(saida.includes('id="parceiros"'));
+      }
+    }
+  });
+
+  it("com a chave falsa e empresas reais: os logotipos e o número delas, nada provisório", async () => {
+    const saida = await home(false, { banners: [], publicadas: [], parceiras: SETE });
+    for (const p of SETE) expect(saida).toContain(`alt="${p.nome}"`);
+    expect(saida).toContain("<span>7</span>");
+    expect(saida).not.toContain("Logotipo a entrar");
+  });
+
+  it("com a chave verdadeira e uma empresa real, os seis espaços saem todos", async () => {
+    const saida = await home(true, { banners: [], publicadas: [], parceiras: UMA });
+    expect(saida).toContain('alt="Empresa Exemplo A"');
+    expect(saida).not.toContain("Logotipo a entrar");
   });
 });
 
@@ -439,7 +526,8 @@ describe("quem e a AMI", () => {
   - A página em si. `home()` acima refaz a ligação de app/(site)/page.tsx;
     se a página ligar diferente, isto continua verde. A ligação de lá é
     conferida por texto-fonte em testes/home.test.ts, que não distingue
-    `{molduras.parceiros ? …}` de `{false && molduras.parceiros ? …}`.
+    `{molduras.noticiasProvisorias ? …}` de
+    `{false && molduras.noticiasProvisorias ? …}`.
   - O valor da chave em produção. `DADOS_DEMONSTRACAO` é `NEXT_PUBLIC_`, e o
     Next grava o valor no código durante `next build`: trocar a variável sem
     refazer a build não muda a home. O que este arquivo prova é a decisão

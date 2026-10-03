@@ -15,7 +15,7 @@ import { buscarMedicos } from "@/lib/dados/medicos";
 import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
 import { moldurasDaHome, type TextoInstitucional } from "@/lib/molduras";
 import { bannersAtivos } from "@/lib/sanity/banners";
-import { listarNoticias } from "@/lib/sanity/consultas";
+import { listarEmpresasParceiras, listarNoticias } from "@/lib/sanity/consultas";
 
 export const revalidate = 3600;
 
@@ -64,20 +64,23 @@ export default async function Home() {
   /* Mesmo raciocínio do `generateMetadata`: o total vem da contagem de
      profissionais, não da soma por especialidade, que double-conta quem tem
      mais de uma. */
-  const [especialidades, total, banners, noticias] = await Promise.all([
+  const [especialidades, total, banners, noticias, parceiras] = await Promise.all([
     especialidadesComContagem(),
     buscarMedicos().then((m) => m.length),
     bannersAtivos(),
     listarNoticias(1),
+    listarEmpresasParceiras(),
   ]);
 
   /* As molduras "a entrar" e a trava que as segura: só no modo
      demonstração, e nunca misturadas a conteúdo real. A decisão do
-     carrossel, das notícias e dos parceiros mora em lib/molduras.ts; "Sua
-     AMI" e "Seja associado" recebem a chave e decidem sozinhos. */
+     carrossel, das notícias, das parceiras e do quarto número mora em
+     lib/molduras.ts; "Sua AMI" e "Seja associado" recebem a chave e decidem
+     sozinhos. */
   const molduras = moldurasDaHome(DADOS_DEMONSTRACAO, {
     banners,
     temNoticia: noticias.length > 0,
+    parceiras,
   });
 
   return (
@@ -95,6 +98,7 @@ export default async function Home() {
         anos={anosDeAmi(new Date())}
         medicos={total}
         especialidades={especialidades.length}
+        parceiras={molduras.numeroDeParceiras}
       />
 
       <EncontreUmMedico especialidades={especialidades} />
@@ -105,7 +109,10 @@ export default async function Home() {
 
       <UltimasNoticias provisorias={molduras.noticiasProvisorias} />
 
-      <Parceiros parceiros={molduras.parceiros} />
+      <Parceiros
+        parceiras={molduras.parceiras}
+        provisorias={molduras.parceirasProvisorias}
+      />
     </div>
   );
 }

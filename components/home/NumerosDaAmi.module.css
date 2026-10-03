@@ -13,13 +13,21 @@
   depois no desenho, o sobrepõe com `!important`, e na tela o celular sempre
   mostra os cartõezinhos em duas colunas.
 
-  O desenho tem quatro números; aqui são três, em três colunas (o quarto,
-  bairros atendidos, saiu do site com os bairros).
+  São quatro números, como no desenho, ou três, quando o das empresas
+  parceiras falta (components/home/NumerosDaAmi.tsx). Quem diz quantos é o
+  atributo `data-quantos` do contêiner. Com quatro, vale o desenho aprovado
+  inteiro: quatro colunas, dois por linha no tablet e quatro cartõezinhos de
+  dois em dois no celular. Com três: três colunas, que continuam três no
+  tablet, e no celular dois cartõezinhos mais o terceiro na largura toda.
 */
 
 .numeros {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+}
+
+.numeros[data-quantos="4"] {
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .numero {
@@ -87,19 +95,32 @@
   margin-top: auto;
 }
 
-/* Tablet: continuam três por linha, com o fio entre eles; só a margem
-   interna encolhe. */
+/* Tablet: a margem interna encolhe. Com três, continuam três por linha, com
+   o fio entre eles. Com quatro, dois por linha, sem fio vertical; um fio
+   horizontal separa as duas linhas. */
 @media (max-width: 980px) {
   .numero,
   .numero:first-child,
   .numero:last-child {
     padding: 32px var(--m);
   }
+
+  .numeros[data-quantos="4"] {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .numeros[data-quantos="4"] .numero {
+    border-left: 0;
+  }
+
+  .numeros[data-quantos="4"] .numero:nth-child(n + 3) {
+    border-top: 1px solid var(--color-line-strong);
+  }
 }
 
-/* Celular: três cartõezinhos brancos, sem texto de apoio e sem botão; dois na
-   primeira linha e o terceiro na largura toda (três lado a lado não cabem
-   "especialidades" a 375px). */
+/* Celular: cartõezinhos brancos, sem texto de apoio e sem botão, dois por
+   linha. Com quatro, duas linhas de dois. Com três, o terceiro fica na
+   largura toda (três lado a lado não cabem "especialidades" a 375px). */
 @media (max-width: 700px) {
   .numeros {
     grid-template-columns: 1fr 1fr;
@@ -116,9 +137,12 @@
     box-shadow: var(--shadow-erguido);
   }
 
-  /* O terceiro só ocupa a linha toda quando é o último, sozinho na linha:
-     com um quarto número, os dois da segunda linha voltam a dividi-la. */
-  .numero:nth-child(3):last-child {
+  /* O fio do tablet entre as linhas não entra no cartãozinho. */
+  .numeros[data-quantos="4"] .numero:nth-child(n + 3) {
+    border-top: 0;
+  }
+
+  .numeros[data-quantos="3"] .numero:nth-child(3) {
     grid-column: 1 / -1;
   }
 

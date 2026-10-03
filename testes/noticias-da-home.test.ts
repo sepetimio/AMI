@@ -2,12 +2,13 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NoticiasDaHome, UltimasNoticias } from "@/components/editorial/UltimasNoticias";
+import { SIZES_DO_LOGOTIPO } from "@/components/home/EmpresasParceiras";
 import { Parceiros } from "@/components/home/Parceiros";
 import estilosNoticias from "@/components/editorial/UltimasNoticias.module.css";
 import estilosFaixa from "@/components/home/Parceiros.module.css";
 import estilosParceiros from "@/components/home/EmpresasParceiras.module.css";
 import { arranjoDasNoticias, tamanhosDasCapas } from "@/lib/arranjo-das-noticias";
-import type { ResumoNoticia } from "@/lib/sanity/tipos";
+import type { EmpresaParceira, ResumoNoticia } from "@/lib/sanity/tipos";
 import { fonte } from "@/testes/apoio";
 
 /*
@@ -323,7 +324,7 @@ describe("o bloco de notícias", () => {
 });
 
 describe("a faixa dos parceiros", () => {
-  const com = renderToString(createElement(Parceiros, { parceiros: true }));
+  const com = renderToString(createElement(Parceiros, { parceiras: [], provisorias: true }));
 
   it("é o bloco parceiros, faixa de ponta a ponta, nomeado pelo título, rótulo na coluna", () => {
     const secao = /^<section [^>]*>/.exec(com)?.[0] ?? "";
@@ -349,12 +350,72 @@ describe("a faixa dos parceiros", () => {
     ]);
   });
 
-  it("sem parceiros, a faixa não existe", () => {
-    expect(renderToString(createElement(Parceiros, { parceiros: false }))).toBe("");
+  it("sem empresa real e sem provisórias, a faixa não existe", () => {
+    expect(renderToString(createElement(Parceiros, { parceiras: [], provisorias: false }))).toBe("");
   });
 
   it("nenhum bairro", () => {
     expect(com).not.toMatch(/bairro/i);
+  });
+});
+
+describe("a faixa dos parceiros com empresas cadastradas", () => {
+  /* Nomes de mentira; o endereço de cada logotipo é o que
+     `paraEmpresasParceiras` (lib/sanity/consultas.ts) monta. */
+  const COM_SITE: EmpresaParceira = {
+    id: "a",
+    nome: "Empresa Exemplo A",
+    logotipo: "https://exemplo.test/a-640.png",
+    logotipoSrcset: "https://exemplo.test/a-160.png 160w, https://exemplo.test/a-640.png 640w",
+    site: "https://exemplo.test/",
+  };
+  const SEM_SITE: EmpresaParceira = {
+    id: "b",
+    nome: "Empresa Exemplo B",
+    logotipo: "https://exemplo.test/b-640.png",
+    logotipoSrcset: "https://exemplo.test/b-640.png 640w",
+    site: null,
+  };
+  /* `provisorias` verdadeiro de propósito: havendo real, ele não muda nada. */
+  const reais = renderToString(
+    createElement(Parceiros, { parceiras: [COM_SITE, SEM_SITE], provisorias: true }),
+  );
+  const soReais = renderToString(
+    createElement(Parceiros, { parceiras: [COM_SITE, SEM_SITE], provisorias: false }),
+  );
+
+  it("sai nos dois modos, com o mesmo rótulo e título, e nenhum espaço provisório", () => {
+    expect(soReais).toBe(reais);
+    expect(reais).toMatch(/^<section id="parceiros" data-bloco="parceiros" data-faixa=""/);
+    expect(visivel(reais)).toEqual(["Empresas parceiras da AMI", "Quem caminha com a AMI"]);
+    expect(reais).not.toContain(estilosParceiros.logoVazio);
+  });
+
+  it("cada empresa numa caixa da grade, na ordem dada", () => {
+    const itens = [...reais.matchAll(/<li class="([^"]+)">/g)].map((m) => m[1]);
+    expect(itens).toEqual([estilosParceiros.parceira, estilosParceiros.parceira]);
+    expect(reais.indexOf('alt="Empresa Exemplo A"')).toBeLessThan(reais.indexOf('alt="Empresa Exemplo B"'));
+    expect(reais).toContain(`<ul class="${estilosParceiros.parceiros}">`);
+  });
+
+  it("com site, a caixa é link para fora, em outra aba, e diz isso no nome", () => {
+    expect(reais).toContain(
+      `<a class="${estilosParceiros.logo}" href="https://exemplo.test/" target="_blank" rel="noopener noreferrer" aria-label="Empresa Exemplo A (abre em outra aba)">`,
+    );
+  });
+
+  it("sem site, a caixa não é link", () => {
+    const b = reais.slice(reais.lastIndexOf("<li", reais.indexOf('alt="Empresa Exemplo B"')));
+    expect(b).toMatch(new RegExp(`^<li class="${estilosParceiros.parceira}"><div class="${estilosParceiros.logo}"><img `));
+    expect(reais.match(/<a /g) ?? []).toHaveLength(1);
+  });
+
+  it("o logotipo: nome no alt, srcset do CDN, sizes pela caixa, carga preguiçosa", () => {
+    const img = /<img [^>]*alt="Empresa Exemplo A"[^>]*>/.exec(reais)?.[0] ?? "";
+    expect(img).toContain(`src="${COM_SITE.logotipo}"`);
+    expect(img).toContain(`srcSet="${COM_SITE.logotipoSrcset}"`);
+    expect(img).toContain(`sizes="${SIZES_DO_LOGOTIPO}"`);
+    expect(img).toContain('loading="lazy"');
   });
 });
 
@@ -532,6 +593,56 @@ describe("o CSS dos parceiros", () => {
     expect(CSS_PARCEIROS).not.toMatch(/overflow-x|scroll-snap/);
     expect(regra(base(CSS_PARCEIROS), ".logoVazio")).toMatch(/border: 1px dashed var\(--color-line-strong\)/);
     expect(regra(base(CSS_PARCEIROS), ".logoVazio")).toMatch(/color: var\(--color-ink-400\)/);
+  });
+
+  it("o logotipo real fica na caixa do espaço vazio: mesma proporção, canto e folga", () => {
+    const vazio = regra(base(CSS_PARCEIROS), ".logoVazio");
+    const logo = regra(base(CSS_PARCEIROS), ".logo");
+    for (const igual of [/aspect-ratio: 3 \/ 2;/, /border-radius: 12px;/]) {
+      expect(vazio).toMatch(igual);
+      expect(logo).toMatch(igual);
+    }
+    /* A folga do vazio é da caixa; a do logotipo é da imagem, onde o
+       `object-fit` a respeita. O mesmo valor nos dois, e no celular também. */
+    const img = regra(base(CSS_PARCEIROS), ".logo img");
+    expect(vazio).toMatch(/padding: 8px;/);
+    expect(img).toMatch(/padding: 8px;/);
+    const cel = media(CSS_PARCEIROS, "@media (max-width: 700px)");
+    expect(regra(cel, ".logoVazio")).toMatch(/padding: 6px;/);
+    expect(regra(cel, ".logo img")).toMatch(/padding: 6px;/);
+  });
+
+  it("o logotipo real: borda cheia clara, fundo branco, inteiro e sem distorcer", () => {
+    const logo = regra(base(CSS_PARCEIROS), ".logo");
+    expect(logo).toMatch(/border: 1px solid var\(--color-line\);/);
+    expect(logo).toMatch(/background: var\(--color-surface\);/);
+    const img = regra(base(CSS_PARCEIROS), ".logo img");
+    expect(img).toMatch(/object-fit: contain;/);
+    expect(img).toMatch(/width: 100%;/);
+    expect(img).toMatch(/height: 100%;/);
+  });
+
+  it("o mouse só mexe no link: borda line-strong, sombra neutra e 1px; nada de filtro nem verde", () => {
+    const mouse = regra(base(CSS_PARCEIROS), "a.logo:hover");
+    expect(mouse).toMatch(/border-color: var\(--color-line-strong\);/);
+    expect(mouse).toMatch(/box-shadow: 0 6px 16px rgba\(12, 14, 18, 0\.08\);/);
+    expect(mouse).toMatch(/transform: translateY\(-1px\);/);
+    expect(CSS_PARCEIROS.match(/:hover/g)).toEqual([":hover"]);
+    expect(CSS_PARCEIROS).not.toMatch(/filter|grayscale|green/);
+  });
+
+  it("o sizes do logotipo desconta da caixa a borda e a folga que o CSS desenha", () => {
+    /* A conta de cada faixa de tela está no comentário de SIZES_DO_LOGOTIPO;
+       aqui se confere que o desconto final (2 × folga + 2 × 1px de borda)
+       é o do CSS. A largura na tela foi medida no navegador. */
+    const folga = Number(/padding: (\d+)px;/.exec(regra(base(CSS_PARCEIROS), ".logo img"))?.[1]);
+    const folgaCel = Number(
+      /padding: (\d+)px;/.exec(regra(media(CSS_PARCEIROS, "@media (max-width: 700px)"), ".logo img"))?.[1],
+    );
+    expect(regra(base(CSS_PARCEIROS), ".logo")).toMatch(/border: 1px /);
+    expect(SIZES_DO_LOGOTIPO).toMatch(new RegExp(`^\\(max-width: 700px\\) calc\\([^)]+\\) / 3 - ${2 * folgaCel + 2}px\\), `));
+    expect(SIZES_DO_LOGOTIPO).toContain(`/ 3 - ${2 * folga + 2}px), (max-width: 1240px)`);
+    expect(SIZES_DO_LOGOTIPO).toContain(`/ 6 - ${2 * folga + 2}px), 155px`);
   });
 
   it("nenhum hex, só tokens neutros e os verdes da marca", () => {

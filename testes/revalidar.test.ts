@@ -42,6 +42,12 @@ describe("etiquetasDoDocumento", () => {
     expect(etiquetasDoDocumento({ _type: "banner" })).toEqual(["banners"]);
   });
 
+  it("uma empresa parceira invalida a lista de parceiras da home", () => {
+    /* A faixa de logotipos e o quarto número saem da mesma consulta, com a
+       etiqueta `ETIQUETA_PARCEIRAS` (lib/sanity/consultas.ts). */
+    expect(etiquetasDoDocumento({ _type: "empresaParceira" })).toEqual(["parceiras"]);
+  });
+
   it("documento sem slug não produz etiqueta específica", () => {
     expect(etiquetasDoDocumento({ _type: "noticia" })).toEqual(["noticias"]);
   });

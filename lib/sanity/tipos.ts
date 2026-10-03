@@ -101,3 +101,20 @@ export type BannerComposto = {
 };
 
 export type Banner = BannerArte | BannerComposto;
+
+/*
+  Uma empresa parceira da AMI, como a faixa "Quem caminha com a AMI" a
+  desenha (components/home/EmpresasParceiras.tsx). O logotipo já vem como
+  endereço pronto, com o `srcset`, como nos banners.
+*/
+export type EmpresaParceira = {
+  id: string;
+  /** O nome da empresa: o texto alternativo do logotipo. */
+  nome: string;
+  /** O logotipo na maior largura pedida ao CDN. */
+  logotipo: string;
+  /** O logotipo em todas as larguras de `LARGURAS_DO_LOGOTIPO`, no formato do `srcset`. */
+  logotipoSrcset: string;
+  /** Endereço de fora, só http ou https. Null: o logotipo não é link. */
+  site: string | null;
+};

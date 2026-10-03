@@ -4,8 +4,14 @@
   os @media de 980 e 700px, na versão final do celular).
 
   O tracejado do desenho (#D1D5DB) e o do hover (#C4C9D1) viram o mesmo
-  token, `line-strong`, e por isso não há regra de hover: ela não mudaria
-  nada.
+  token, `line-strong`, e por isso não há regra de hover no espaço vazio:
+  ela não mudaria nada.
+
+  O logotipo real (`.logo`) ocupa a mesma caixa do `.logo-vazio`: mesma
+  proporção, mesmo canto, mesma folga. A borda é cheia e clara (`line`), e o
+  fundo é branco. O logotipo fica com as cores dele: sem filtro cinza e sem
+  verde ao passar o mouse. Quando é link, o mouse escurece a borda, põe a
+  sombra neutra do `.botao-linha` (app/globals.css) e sobe a caixa 1px.
 */
 
 .parceiros {
@@ -30,6 +36,41 @@
   color: var(--color-ink-400);
 }
 
+.parceira {
+  display: grid;
+  min-width: 0;
+}
+
+.logo {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 2;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  background: var(--color-surface);
+  transition:
+    border-color 250ms var(--ease-resposta),
+    box-shadow 250ms var(--ease-resposta),
+    transform 250ms var(--ease-resposta);
+}
+
+/* A folga fica no `padding` da imagem, e não da caixa: o `object-fit`
+   encaixa o logotipo dentro da área sem a folga, inteiro e sem distorcer. */
+.logo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  object-fit: contain;
+}
+
+a.logo:hover {
+  border-color: var(--color-line-strong);
+  box-shadow: 0 6px 16px rgba(12, 14, 18, 0.08);
+  transform: translateY(-1px);
+}
+
 @media (max-width: 980px) {
   .parceiros {
     grid-template-columns: repeat(3, 1fr);
@@ -44,5 +85,9 @@
   .logoVazio {
     padding: 6px;
     font-size: 10px;
+  }
+
+  .logo img {
+    padding: 6px;
   }
 }

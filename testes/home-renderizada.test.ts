@@ -3,13 +3,13 @@ import type { ReactNode } from "react";
 import { renderToPipeableStream } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import estilosDaHome from "@/app/(site)/inicio.module.css";
-import type { Banner, ResumoNoticia } from "@/lib/sanity/tipos";
+import type { Banner, EmpresaParceira, ResumoNoticia } from "@/lib/sanity/tipos";
 
 /*
   A home de verdade, renderizada.
 
-  Importa o `app/(site)/page.tsx` real e troca SÓ as quatro fontes de dados:
-  especialidades, médicos, banners e notícias. Todo o resto é o código do
+  Importa o `app/(site)/page.tsx` real e troca SÓ as cinco fontes de dados:
+  especialidades, médicos, banners, notícias e empresas parceiras. Todo o resto é o código do
   site — os componentes, `moldurasDaHome`, `desenhoDaFotografia` e a leitura
   da chave em lib/demonstracao.ts. O HTML sai de `renderToPipeableStream`,
   que espera o `UltimasNoticias` assíncrono terminar.
@@ -32,6 +32,7 @@ import type { Banner, ResumoNoticia } from "@/lib/sanity/tipos";
 const dados = vi.hoisted(() => ({
   banners: [] as Banner[],
   noticias: [] as ResumoNoticia[],
+  parceiras: [] as EmpresaParceira[],
 }));
 
 vi.mock("@/lib/dados/especialidades", () => ({
@@ -48,6 +49,7 @@ vi.mock("@/lib/sanity/banners", () => ({
 }));
 vi.mock("@/lib/sanity/consultas", () => ({
   listarNoticias: async (limite = 20) => dados.noticias.slice(0, limite),
+  listarEmpresasParceiras: async () => dados.parceiras,
 }));
 
 const BANNER: Banner = {
@@ -78,10 +80,12 @@ async function renderizarHome(
   conteudo: {
     banners?: Banner[];
     noticias?: ResumoNoticia[];
+    parceiras?: EmpresaParceira[];
   } = {},
 ): Promise<string> {
   dados.banners = conteudo.banners ?? [];
   dados.noticias = conteudo.noticias ?? [];
+  dados.parceiras = conteudo.parceiras ?? [];
   if (chave === undefined) vi.stubEnv("NEXT_PUBLIC_DADOS_DEMONSTRACAO", undefined);
   else vi.stubEnv("NEXT_PUBLIC_DADOS_DEMONSTRACAO", chave);
   vi.resetModules();
@@ -212,6 +216,58 @@ describe("a home renderizada", () => {
     expect(html).toContain('id="sua-ami"');
     expect(html).toContain("Texto da AMI a entrar.");
     expect(html).toContain('id="parceiros"');
+  });
+});
+
+/* Duas empresas de mentira, como `listarEmpresasParceiras` as devolve. */
+const PARCEIRAS: EmpresaParceira[] = ["A", "B"].map((l) => ({
+  id: l,
+  nome: `Empresa Exemplo ${l}`,
+  logotipo: `https://exemplo.test/${l}.png`,
+  logotipoSrcset: `https://exemplo.test/${l}.png 640w`,
+  site: null,
+}));
+
+/** O bloco dos números, do começo da tag dele até o bloco seguinte. */
+function numeros(html: string): string {
+  const ini = html.lastIndexOf("<section", html.indexOf('data-bloco="numeros"'));
+  return html.slice(ini, html.indexOf('data-bloco="encontre"'));
+}
+
+describe("o quarto número e a faixa das parceiras, na home renderizada", () => {
+  it("chave verdadeira e nenhuma cadastrada: quatro números, o quarto conta os seis espaços", async () => {
+    const html = await renderizarHome("true");
+    const n = numeros(html);
+    expect(n).toContain('data-quantos="4"');
+    expect(n).toMatch(/<span>6<\/span><\/div><div class="[^"]+">empresas parceiras</);
+    expect(n).toContain('href="/#parceiros">Ver parceiras</a>');
+    expect(html.match(/>Logotipo a entrar<\/li>/g)).toHaveLength(6);
+  });
+
+  it("chave falsa e nenhuma cadastrada: três números, sem faixa", async () => {
+    const html = await renderizarHome("false");
+    const n = numeros(html);
+    expect(n).toContain('data-quantos="3"');
+    expect(n).not.toMatch(/parceira/i);
+    expect(html).not.toContain('id="parceiros"');
+  });
+
+  it("chave falsa e duas cadastradas: quatro números com o 2, e os dois logotipos", async () => {
+    const html = await renderizarHome("false", { parceiras: PARCEIRAS });
+    const n = numeros(html);
+    expect(n).toContain('data-quantos="4"');
+    expect(n).toMatch(/<span>2<\/span><\/div><div class="[^"]+">empresas parceiras</);
+    const faixa = html.slice(html.indexOf('id="parceiros"'));
+    expect(faixa).toContain('alt="Empresa Exemplo A"');
+    expect(faixa).toContain('alt="Empresa Exemplo B"');
+    expect(html.match(/a entrar/gi) ?? []).toEqual([]);
+  });
+
+  it("chave verdadeira e duas cadastradas: as reais, sem os espaços provisórios", async () => {
+    const html = await renderizarHome("true", { parceiras: PARCEIRAS });
+    expect(numeros(html)).toMatch(/<span>2<\/span><\/div><div class="[^"]+">empresas parceiras</);
+    expect(html).toContain('alt="Empresa Exemplo B"');
+    expect(html).not.toContain("Logotipo a entrar");
   });
 });
 

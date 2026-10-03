@@ -37,6 +37,7 @@ export default defineConfig({
       ? [visionTool({ defaultApiVersion: apiVersion })]
       : []),
   ],
-  /* Tipos definidos na tarefa 2: autor, noticia e paginaInstitucional. */
+  /* Os tipos de documento, listados em sanity/schemas/index.ts. Sem
+     estrutura própria: a ferramenta de estrutura mostra todos na lista. */
   schema: { types: tipos },
 });

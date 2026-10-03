@@ -140,9 +140,9 @@ describe("o rodape renderizado", () => {
     ]);
   });
 
-  it("as listas longas de especialidades e bairros sairam: so os links contados", async () => {
-    /* 7 nas colunas, os telefones, o Instagram e 3 legais. Uma lista de
-       especialidades ou de bairros de volta passaria desse número. */
+  it("tem so os links contados: 7 nas colunas, os telefones, o Instagram e 3 legais", async () => {
+    /* Uma lista longa de volta (de especialidades, de bairros, de qualquer
+       coisa) passaria desse número. */
     const { rodape } = await renderizar("true");
     expect(links(rodape)).toHaveLength(7 + AMI.telefones.length + 1 + 3);
     expect(rodape).toContain('href="/medicos"');

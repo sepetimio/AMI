@@ -1,7 +1,10 @@
 import { defineQuery } from "next-sanity";
+import { imagemComSrcset } from "@/lib/sanity/banners";
 import { obterCliente } from "@/lib/sanity/cliente";
 import { CAMINHO_DAS_PAGINAS } from "@/lib/sanity/paginas";
 import type {
+  EmpresaParceira,
+  ImagemSanity,
   Noticia,
   PaginaInstitucional,
   ResumoNoticia,
@@ -25,6 +28,7 @@ import type {
    etiqueta. Um slug absurdamente longo não é caso realista, mas etiqueta
    recusada faria a invalidação falhar em silêncio. */
 export const ETIQUETA_NOTICIAS = "noticias";
+export const ETIQUETA_PARCEIRAS = "parceiras";
 export const etiquetaDeNoticia = (slug: string) =>
   `noticia:${slug.slice(0, 200)}`;
 export const etiquetaDePagina = (slug: string) =>
@@ -183,4 +187,102 @@ export async function caminhosDePaginasPublicadas(): Promise<string[]> {
     { next: { tags: slugsConhecidos.map(etiquetaDePagina) } },
   );
   return publicados.map((slug) => CAMINHO_DAS_PAGINAS[slug]);
+}
+
+/* --- empresas parceiras --- */
+
+/*
+  As empresas parceiras da faixa "Quem caminha com a AMI" e do quarto número
+  da home. Sem nome ou sem logotipo, a empresa nem sai do banco: não há o
+  que desenhar, e ela não pode contar no número sem aparecer na faixa.
+
+  A ordem não é decidida aqui, e sim em `paraEmpresasParceiras`: o GROQ
+  compara texto letra a letra pelo código, e um nome com acento no começo
+  ("Óptica") iria para depois do "Z".
+*/
+export const GROQ_EMPRESAS_PARCEIRAS = defineQuery(`
+  *[_type == "empresaParceira" && defined(nome) && defined(logotipo.asset)]{
+    "id": _id,
+    nome,
+    logotipo{asset},
+    site,
+    ordem
+  }
+`);
+
+/* As larguras pedidas ao CDN. A caixa do logotipo tem até 266px de largura
+   útil (no tablet, a 980px de tela); 640 cobre essa caixa numa tela de
+   densidade 2. Quem diz ao navegador a largura de cada caixa é o `sizes` de
+   components/home/EmpresasParceiras.tsx. */
+export const LARGURAS_DO_LOGOTIPO = [160, 320, 480, 640] as const;
+
+export type EmpresaParceiraCrua = {
+  id: string;
+  nome: string | null;
+  logotipo: { asset: ImagemSanity["asset"] } | null;
+  site: string | null;
+  ordem: number | null;
+};
+
+/* Só endereço http ou https vira link. O campo `site` do Studio já recusa
+   outro esquema, mas é o site que põe o endereço num `href`: um
+   `javascript:` que passasse por fora do Studio seria código rodando no
+   clique. */
+export function siteSeguro(site: string | null | undefined): string | null {
+  if (!site) return null;
+  try {
+    const u = new URL(site);
+    return u.protocol === "http:" || u.protocol === "https:" ? u.href : null;
+  } catch {
+    return null;
+  }
+}
+
+/*
+  Pura, como `paraBanner`, para testar sem rede. Monta as parceiras a partir
+  do que o GROQ devolveu, nesta ordem: primeiro as que têm `ordem`, da menor
+  para a maior; depois as sem ordem. Em cada grupo, e no empate, pelo nome,
+  em ordem alfabética do português.
+
+  Nome em branco e logotipo cujo endereço o CDN não monta (o `_ref`
+  quebrado de `paraBanner`) tiram a empresa da lista.
+*/
+export function paraEmpresasParceiras(cruas: EmpresaParceiraCrua[]): EmpresaParceira[] {
+  const montadas: { parceira: EmpresaParceira; ordem: number | null }[] = [];
+  for (const c of cruas) {
+    const nome = c.nome?.trim() ?? "";
+    const logotipo = imagemComSrcset(c.logotipo, LARGURAS_DO_LOGOTIPO);
+    if (!nome || !logotipo) continue;
+    montadas.push({
+      parceira: {
+        id: c.id,
+        nome,
+        logotipo: logotipo.url,
+        logotipoSrcset: logotipo.srcset,
+        site: siteSeguro(c.site),
+      },
+      ordem: typeof c.ordem === "number" && Number.isFinite(c.ordem) ? c.ordem : null,
+    });
+  }
+
+  montadas.sort((a, b) => {
+    if (a.ordem !== b.ordem) {
+      if (a.ordem === null) return 1;
+      if (b.ordem === null) return -1;
+      return a.ordem - b.ordem;
+    }
+    return a.parceira.nome.localeCompare(b.parceira.nome, "pt-BR");
+  });
+
+  return montadas.map((m) => m.parceira);
+}
+
+export async function listarEmpresasParceiras(): Promise<EmpresaParceira[]> {
+  const cliente = await obterCliente();
+  const cruas: EmpresaParceiraCrua[] = await cliente.fetch(
+    GROQ_EMPRESAS_PARCEIRAS,
+    {},
+    { next: { tags: [ETIQUETA_PARCEIRAS] } },
+  );
+  return paraEmpresasParceiras(cruas ?? []);
 }

@@ -4,7 +4,7 @@ import {
   SealCheck,
   Stethoscope,
   Heartbeat,
-  MapPinArea,
+  Handshake,
   FlagBanner,
   Eye,
   HandHeart,
@@ -29,7 +29,7 @@ export type NomeIcone =
   | "selo"
   | "estetoscopio"
   | "batimento"
-  | "mapa"
+  | "parceria"
   | "bandeira"
   | "olho"
   | "maoCoracao"
@@ -53,7 +53,7 @@ const mapaDeIcones: Record<NomeIcone, typeof SealCheck> = {
   selo: SealCheck,
   estetoscopio: Stethoscope,
   batimento: Heartbeat,
-  mapa: MapPinArea,
+  parceria: Handshake,
   bandeira: FlagBanner,
   olho: Eye,
   maoCoracao: HandHeart,

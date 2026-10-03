@@ -1,3 +1,4 @@
+import { groupProblems, validateSchema } from "@sanity/schema/_internal";
 import { describe, expect, it } from "vitest";
 import { tipos } from "@/sanity/schemas";
 
@@ -54,13 +55,77 @@ function porNome(nome: string) {
 }
 
 describe("schemas do Sanity", () => {
-  it("registra os quatro tipos de documento", () => {
+  it("registra os cinco tipos de documento", () => {
     expect(tipos.map((t) => t.name).sort()).toEqual([
       "autor",
       "banner",
+      "empresaParceira",
       "noticia",
       "paginaInstitucional",
     ]);
+  });
+
+  it("passa na validação de schema do próprio Sanity, sem erro", () => {
+    /* A mesma chamada que o Studio faz ao montar o schema
+       (`validateSchema(schemaDef.types)`, no pacote `sanity`): um tipo de
+       campo que não existe ou um nome de campo repetido aparecem aqui, e não
+       só na tela do Studio. Avisos não reprovam. Não pega valor errado de
+       opção (um `hotspot: "sim"` passa). */
+    const problemas = groupProblems(validateSchema(tipos).getTypes());
+    const erros = problemas.flatMap((g) =>
+      g.problems
+        .filter((p) => p.severity === "error")
+        .map((p) => `${g.path.map((x) => ("name" in x ? x.name : "?")).join(".")}: ${p.message}`),
+    );
+    expect(erros).toEqual([]);
+  });
+
+  describe("empresa parceira", () => {
+    type Campo = {
+      name: string;
+      type: string;
+      validation?: (r: unknown) => unknown;
+    };
+    const campos = () => porNome("empresaParceira").fields as unknown as Campo[];
+    const campo = (nome: string): Campo => {
+      const c = campos().find((f) => f.name === nome);
+      if (!c) throw new Error(`empresaParceira sem o campo "${nome}"`);
+      return c;
+    };
+    /* Uma regra de mentira, como a dos banners: conta os `.required()` e
+       roda as funções `custom` com o valor dado. */
+    function rodar(c: Campo, valor: unknown) {
+      const saida = { obrigatorio: 0, max: [] as number[], erros: [] as unknown[] };
+      const regra: Record<string, unknown> = {
+        required: () => (saida.obrigatorio++, regra),
+        max: (n: number) => (saida.max.push(n), regra),
+        custom: (f: (v: unknown) => unknown) => (saida.erros.push(f(valor)), regra),
+      };
+      c.validation?.(regra);
+      return saida;
+    }
+
+    it("tem os quatro campos da spec, com os tipos que a consulta lê", () => {
+      expect(campos().map((c) => [c.name, c.type])).toEqual([
+        ["nome", "string"],
+        ["logotipo", "image"],
+        ["site", "url"],
+        ["ordem", "number"],
+      ]);
+    });
+
+    it("nome e logotipo são obrigatórios; site e ordem, não", () => {
+      expect(rodar(campo("nome"), "x").obrigatorio).toBe(1);
+      expect(rodar(campo("logotipo"), undefined).obrigatorio).toBe(1);
+      expect(campo("site").validation).toBeUndefined();
+      expect(campo("ordem").validation).toBeUndefined();
+    });
+
+    it("o logotipo sem arquivo não passa, mesmo com outros campos da imagem", () => {
+      expect(rodar(campo("logotipo"), undefined).erros).toEqual(["O logotipo é obrigatório"]);
+      expect(rodar(campo("logotipo"), { hotspot: {} }).erros).toEqual(["O logotipo é obrigatório"]);
+      expect(rodar(campo("logotipo"), { asset: { _ref: "x" } }).erros).toEqual([true]);
+    });
   });
 
   it("notícia tem os campos que as consultas projetam", () => {

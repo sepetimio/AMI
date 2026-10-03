@@ -236,7 +236,7 @@ describe("o contador ligado ao navegador", () => {
 });
 
 describe("os numeros", () => {
-  const html = renderToString(createElement(NumerosDaAmi, { anos: 51, medicos: 24, especialidades: 14 }));
+  const html = renderToString(createElement(NumerosDaAmi, { anos: 51, medicos: 24, especialidades: 14, parceiras: null }));
   it("saem com o valor final no HTML (sem JavaScript, o numero certo ja esta la)", () => {
     for (const n of ["51", "24", "14"]) expect(html).toContain(`>${n}<`);
   });
@@ -292,7 +292,7 @@ describe("os numeros", () => {
     });
     try {
       const { NumerosDaAmi: ComOutroAno } = await import("@/components/home/NumerosDaAmi");
-      const h = renderToString(createElement(ComOutroAno, { anos: 1, medicos: 1, especialidades: 1 }));
+      const h = renderToString(createElement(ComOutroAno, { anos: 1, medicos: 1, especialidades: 1, parceiras: null }));
       expect(h).toContain("Em atividade desde 1999, reunindo");
     } finally {
       vi.doUnmock("@/lib/ami");
@@ -315,9 +315,70 @@ describe("os numeros", () => {
   });
 
   it("no singular quando o banco devolve um", () => {
-    const um = renderToString(createElement(NumerosDaAmi, { anos: 51, medicos: 1, especialidades: 1 }));
+    const um = renderToString(createElement(NumerosDaAmi, { anos: 51, medicos: 1, especialidades: 1, parceiras: null }));
     const rotulos = [...um.matchAll(new RegExp(`<div class="${estilosNum.rotulo}">([^<]+)<`, "g"))].map((m) => m[1]);
     expect(rotulos).toEqual(["anos de AMI", "médico no diretório", "especialidade"]);
+  });
+
+  it("sem parceiras, sao tres, e o contêiner diz isso", () => {
+    expect(html).toMatch(/<section data-bloco="numeros" data-quantos="3" /);
+    expect(html.match(new RegExp(`class="${estilosNum.numero}"`, "g"))).toHaveLength(3);
+    expect(html).not.toContain("parceira");
+  });
+});
+
+describe("os numeros com as empresas parceiras", () => {
+  const html = renderToString(
+    createElement(NumerosDaAmi, { anos: 51, medicos: 24, especialidades: 14, parceiras: 6 }),
+  );
+
+  it("sao quatro, e o contêiner diz isso", () => {
+    expect(html).toMatch(/<section data-bloco="numeros" data-quantos="4" /);
+    expect(html.match(new RegExp(`class="${estilosNum.numero}"`, "g"))).toHaveLength(4);
+  });
+
+  it("o quarto e o das parceiras, com o valor dado, depois dos outros tres", () => {
+    const par = new RegExp(
+      `<div class="${estilosNum.grande}"><span>(\\d+)</span></div><div class="${estilosNum.rotulo}">([^<]+)<`,
+      "g",
+    );
+    expect([...html.matchAll(par)].map((m) => [m[1], m[2]])).toEqual([
+      ["51", "anos de AMI"],
+      ["24", "médicos no diretório"],
+      ["14", "especialidades"],
+      ["6", "empresas parceiras"],
+    ]);
+  });
+
+  it("o apoio nao promete beneficio, e o botao leva a faixa dos parceiros", () => {
+    expect(html).toContain(`<p class="${estilosNum.apoio}">Empresas que caminham com a AMI.</p>`);
+    const botoes = [...html.matchAll(/<a class="botao-linha" href="([^"]+)">([^<]+)<\/a>/g)].map((m) => [m[2], m[1]]);
+    expect(botoes.at(-1)).toEqual(["Ver parceiras", "/#parceiros"]);
+    expect(botoes).toHaveLength(4);
+  });
+
+  it("o icone do quarto e o aperto de mao, depois do batimento", () => {
+    const batimento = html.indexOf(renderToString(createElement(LadrilhoIcone, { nome: "batimento" })));
+    const parceria = html.indexOf(renderToString(createElement(LadrilhoIcone, { nome: "parceria" })));
+    expect(batimento).toBeGreaterThan(-1);
+    expect(parceria).toBeGreaterThan(batimento);
+  });
+
+  it("no singular com uma", () => {
+    const uma = renderToString(
+      createElement(NumerosDaAmi, { anos: 51, medicos: 24, especialidades: 14, parceiras: 1 }),
+    );
+    const rotulos = [...uma.matchAll(new RegExp(`<div class="${estilosNum.rotulo}">([^<]+)<`, "g"))].map((m) => m[1]);
+    expect(rotulos.at(-1)).toBe("empresa parceira");
+  });
+
+  it("zero parceiras e um numero, e nao a falta dele", () => {
+    /* `moldurasDaHome` nunca manda 0 (sem cadastro, manda 6 ou null), mas o
+       componente só some com o quarto número quando recebe null. */
+    const zero = renderToString(
+      createElement(NumerosDaAmi, { anos: 51, medicos: 24, especialidades: 14, parceiras: 0 }),
+    );
+    expect(zero).toContain('data-quantos="4"');
   });
 });
 
@@ -335,21 +396,47 @@ describe("o CSS dos numeros", () => {
     expect(regra(base(css), ".numero")).not.toMatch(/background|box-shadow/);
   });
 
-  it("no tablet, continuam tres por linha, com o fio entre eles", () => {
-    expect(bloco(css, "@media (max-width: 980px)")).not.toMatch(/grid-template-columns/);
-    expect(bloco(css, "@media (max-width: 980px)")).not.toMatch(/border-left:\s*0/);
+  it("com quatro, quatro colunas no computador, como no desenho", () => {
+    expect(regra(base(css), '.numeros[data-quantos="4"]')).toMatch(/grid-template-columns:\s*repeat\(4, 1fr\)/);
   });
 
-  it("no celular, tres cartoezinhos brancos, o terceiro na largura toda", () => {
+  it("no tablet, com tres, continuam tres por linha, com o fio entre eles", () => {
+    /* Toda troca de colunas e todo fio que sai, no tablet, são só do caso de
+       quatro: nenhuma regra do tablet vale para três. */
+    const tablet = bloco(css, "@media (max-width: 980px)");
+    const soDeQuatro = tablet.replace(/\.numeros\[data-quantos="4"\][^{]*\{[^}]*\}/g, "");
+    expect(soDeQuatro).not.toMatch(/grid-template-columns|border-left|border-top/);
+  });
+
+  it("no tablet, com quatro, dois por linha, sem fio vertical e com um fio entre as linhas", () => {
+    const tablet = bloco(css, "@media (max-width: 980px)");
+    expect(regra(tablet, '.numeros[data-quantos="4"]')).toMatch(/grid-template-columns:\s*1fr 1fr/);
+    expect(regra(tablet, '.numeros[data-quantos="4"] .numero')).toMatch(/border-left:\s*0/);
+    expect(regra(tablet, '.numeros[data-quantos="4"] .numero:nth-child(n + 3)')).toMatch(
+      /border-top:\s*1px solid var\(--color-line-strong\)/,
+    );
+  });
+
+  it("no celular, cartoezinhos brancos dois por linha; com tres, o terceiro na largura toda", () => {
     const cel = bloco(css, "@media (max-width: 700px)");
     expect(regra(cel, ".numeros")).toMatch(/grid-template-columns:\s*1fr 1fr/);
     const cartao = regra(cel, ".numero,\n  .numero:first-child,\n  .numero:last-child");
     expect(cartao).toMatch(/background:\s*var\(--color-surface\)/);
     expect(cartao).toMatch(/box-shadow:\s*var\(--shadow-erguido\)/);
     expect(regra(cel, ".apoio,\n  .numero :global(.botao-linha)")).toMatch(/display:\s*none/);
-    /* `:last-child` junto: o terceiro só ocupa a linha toda quando sobra
-       sozinho nela. Com um quarto número, ele volta a dividir a linha. */
-    expect(regra(cel, ".numero:nth-child(3):last-child")).toMatch(/grid-column:\s*1 \/ -1/);
+    expect(regra(cel, '.numeros[data-quantos="3"] .numero:nth-child(3)')).toMatch(/grid-column:\s*1 \/ -1/);
+  });
+
+  it("no celular, com quatro, o fio do tablet nao entra nos cartoezinhos", () => {
+    /* A regra do tablet vale também no celular (980px inclui 700px) e é mais
+       específica que a do cartãozinho: sem esta, o terceiro e o quarto
+       cartões ganhavam um fio em cima. */
+    const cel = bloco(css, "@media (max-width: 700px)");
+    expect(regra(cel, '.numeros[data-quantos="4"] .numero:nth-child(n + 3)')).toMatch(/border-top:\s*0/);
+  });
+
+  it("quem decide entre tres e quatro e o atributo, nao a contagem de filhos", () => {
+    expect(css).not.toMatch(/:has\(|nth-last-child|:nth-child\(\d\):last-child/);
   });
 });
 

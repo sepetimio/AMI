@@ -6,13 +6,22 @@ import { AMI } from "@/lib/ami";
 
 /*
   Os números da AMI, logo abaixo do carrossel: sem caixa, direto no fundo da
-  página, três colunas separadas por fio. No celular, três cartõezinhos
-  brancos só com ícone, número e rótulo.
+  página, em colunas separadas por fio. No celular, cartõezinhos brancos só
+  com ícone, número e rótulo.
+
+  São quatro, como no desenho aprovado: anos, médicos, especialidades e
+  empresas parceiras (o quarto era bairros atendidos, que saiu do site com
+  os bairros em 03/10/2026). O das parceiras pode faltar: com `parceiras`
+  nulo, que é o que `moldurasDaHome` (lib/molduras.ts) dá fora da
+  demonstração quando não há nenhuma cadastrada, ficam três. O contêiner
+  diz quantos são em `data-quantos`, e o CSS desenha cada caso por ele.
 
   Os números chegam por propriedade: os anos são calculados de `lib/ami.ts`
-  (`anosDeAmi`) e os outros dois saem do banco. Nenhum é escrito à mão aqui,
-  e nenhum texto de apoio afirma o que só o banco sabe: o das especialidades,
-  que no desenho nomeava especialidades, diz só para que serve o botão.
+  (`anosDeAmi`), médicos e especialidades saem do banco, e as parceiras do
+  Sanity. Nenhum é escrito à mão aqui, e nenhum texto de apoio afirma o que
+  só o banco sabe: o das especialidades, que no desenho nomeava
+  especialidades, diz só para que serve o botão, e o das parceiras não
+  promete benefício nenhum.
 
   O bloco não tem margem própria: quem o põe na página (a home) decide o
   espaço de cima, com `--ritmo`, e o põe na coluna centralizada.
@@ -20,27 +29,28 @@ import { AMI } from "@/lib/ami";
   Entra na tela com a `.revelar` global, como no desenho. Quando os números
   já abrem na primeira tela (quase sempre), ficam parados: só o bloco que
   abre abaixo da tela anima (components/layout/Revelar.tsx).
-
-  São três: o quarto, bairros atendidos, saiu do site junto com os bairros
-  (03/10/2026).
 */
+type Item = {
+  icone: NomeIcone;
+  valor: number;
+  rotulo: string;
+  apoio: string;
+  botao: string;
+  destino: string;
+};
+
 export function NumerosDaAmi({
   anos,
   medicos,
   especialidades,
+  parceiras,
 }: {
   anos: number;
   medicos: number;
   especialidades: number;
+  parceiras: number | null;
 }) {
-  const itens: {
-    icone: NomeIcone;
-    valor: number;
-    rotulo: string;
-    apoio: string;
-    botao: string;
-    destino: string;
-  }[] = [
+  const itens: Item[] = [
     {
       icone: "selo",
       valor: anos,
@@ -67,9 +77,21 @@ export function NumerosDaAmi({
     },
   ];
 
+  if (parceiras !== null) {
+    itens.push({
+      icone: "parceria",
+      valor: parceiras,
+      rotulo: parceiras === 1 ? "empresa parceira" : "empresas parceiras",
+      apoio: "Empresas que caminham com a AMI.",
+      botao: "Ver parceiras",
+      destino: "/#parceiros",
+    });
+  }
+
   return (
     <section
       data-bloco="numeros"
+      data-quantos={itens.length}
       aria-label="A AMI em números"
       className={`revelar ${styles.numeros}`}
     >

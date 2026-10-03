@@ -17,8 +17,8 @@ import { fonte, semComentarios } from "@/testes/apoio";
   devolvido de dentro do próprio componente passa pelo mesmo motivo.
 
   ESSE BURACO ESTÁ COBERTO em testes/home-renderizada.test.ts, que importa
-  esta página de verdade, troca só as quatro fontes de dados (especialidades,
-  médicos, banners, notícias) e confere o HTML que sai. Lá a cobertura vale
+  esta página de verdade, troca só as cinco fontes de dados (especialidades,
+  médicos, banners, notícias, empresas parceiras) e confere o HTML que sai. Lá a cobertura vale
   para o que aquele arquivo procura: o <h1>, a marca `data-bloco` de cada
   seção, os `id` e as molduras — com dados de mentira, não com o banco.
 
@@ -164,6 +164,9 @@ describe("a home", () => {
     expect(HOME).toContain("<SuaAmi demonstracao={DADOS_DEMONSTRACAO}");
     expect(HOME).toMatch(/<SejaAssociado\s+demonstracao=\{DADOS_DEMONSTRACAO\}/);
     expect(HOME).toContain("<UltimasNoticias provisorias={molduras.noticiasProvisorias}");
-    expect(HOME).toContain("<Parceiros parceiros={molduras.parceiros}");
+    expect(HOME).toMatch(
+      /<Parceiros\s+parceiras=\{molduras\.parceiras\}\s+provisorias=\{molduras\.parceirasProvisorias\}/,
+    );
+    expect(HOME).toMatch(/<NumerosDaAmi[^>]*\sparceiras=\{molduras\.numeroDeParceiras\}/);
   });
 });

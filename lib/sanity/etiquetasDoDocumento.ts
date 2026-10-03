@@ -1,5 +1,6 @@
 import {
   ETIQUETA_NOTICIAS,
+  ETIQUETA_PARCEIRAS,
   etiquetaDeNoticia,
   etiquetaDePagina,
 } from "@/lib/sanity/consultas";
@@ -40,6 +41,11 @@ export function etiquetasDoDocumento(doc: DocumentoDoWebhook): string[] {
          qualquer banner publicado, despublicado ou com a validade trocada
          invalida a lista inteira. Não há slug: banner não tem página. */
       return [ETIQUETA_BANNERS];
+
+    case "empresaParceira":
+      /* Mesmo caso do banner: as parceiras saem numa consulta só, a da home
+         (a faixa de logotipos e o quarto número). */
+      return [ETIQUETA_PARCEIRAS];
 
     default:
       return [];

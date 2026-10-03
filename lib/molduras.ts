@@ -1,4 +1,4 @@
-import type { Banner } from "@/lib/sanity/tipos";
+import type { Banner, EmpresaParceira } from "@/lib/sanity/tipos";
 
 /*
   As molduras provisórias da home, e a trava que as segura.
@@ -20,13 +20,16 @@ import type { Banner } from "@/lib/sanity/tipos";
   "demonstração" quando a variável nem está configurada.
 
   Com a chave falsa, nenhuma moldura sai, haja ou não conteúdo real: sem
-  banner o carrossel some, sem notícia o bloco some, e a faixa de parceiros,
-  que não tem conteúdo real nenhum, some sempre. É o comportamento de antes,
-  da spec. "Sua AMI" e "Seja associado" recebem a chave direto da home e
-  decidem sozinhos (components/home/SuaAmi.tsx e SejaAssociado.tsx).
+  banner o carrossel some, sem notícia o bloco some, e sem empresa parceira
+  cadastrada a faixa de parceiros some e o quarto número também. É o
+  comportamento de antes, da spec. "Sua AMI" e "Seja associado" recebem a
+  chave direto da home e decidem sozinhos (components/home/SuaAmi.tsx e
+  SejaAssociado.tsx).
 
   Arte real e provisória nunca se misturam: havendo um banner real, os três
-  provisórios saem todos; havendo uma notícia real, as provisórias também.
+  provisórios saem todos; havendo uma notícia real, as provisórias também;
+  havendo uma empresa parceira real, os seis espaços "Logotipo a entrar"
+  também.
 
   Um banner real também pode trazer moldura: o slide de foto com texto
   ("composto") cadastrado sem foto, cuja área de foto o carrossel desenha
@@ -69,18 +72,30 @@ export const BANNERS_PROVISORIOS: BannerProvisorio[] = [
   },
 ];
 
+/* Quantos espaços "Logotipo a entrar" a faixa de parceiros mostra quando
+   ainda não há empresa cadastrada, e por isso o número de parceiras que a
+   home mostra nesse caso: o número conta os espaços que estão na tela. */
+export const ESPACOS_DE_PARCEIRAS = 6;
+
 export type MoldurasDaHome = {
   /** O que o carrossel recebe: os reais, os três provisórios, ou nada. */
   banners: ItemDoCarrossel[];
   /** As quatro peças "Notícia a entrar" (destaque e lista) no lugar das últimas notícias. */
   noticiasProvisorias: boolean;
-  /** A faixa "Empresas parceiras da AMI", no fim da home. */
-  parceiros: boolean;
+  /** As empresas parceiras cadastradas, que a faixa desenha nos dois modos. */
+  parceiras: EmpresaParceira[];
+  /** Os seis espaços "Logotipo a entrar": só sem nenhuma real, e só na demonstração. */
+  parceirasProvisorias: boolean;
+  /**
+   * O quarto número da home: as cadastradas; sem nenhuma, os seis espaços na
+   * demonstração; fora dela, `null`, e a home fica com três números.
+   */
+  numeroDeParceiras: number | null;
 };
 
 export function moldurasDaHome(
   demonstracao: boolean,
-  real: { banners: Banner[]; temNoticia: boolean },
+  real: { banners: Banner[]; temNoticia: boolean; parceiras: EmpresaParceira[] },
 ): MoldurasDaHome {
   /* Fora da demonstração, o composto sem foto sai: a área da foto dele seria
      moldura "a entrar". O carrossel usa o mesmo teste (`item.foto ?`). */
@@ -92,10 +107,19 @@ export function moldurasDaHome(
   if (reais.length > 0) banners = reais;
   else if (demonstracao) banners = BANNERS_PROVISORIOS;
 
+  /* O número e a faixa andam juntos: o botão "Ver parceiras" do número leva
+     a `/#parceiros`, e a faixa existe exatamente quando há número. */
+  const temParceira = real.parceiras.length > 0;
+  let numeroDeParceiras: number | null = null;
+  if (temParceira) numeroDeParceiras = real.parceiras.length;
+  else if (demonstracao) numeroDeParceiras = ESPACOS_DE_PARCEIRAS;
+
   return {
     banners,
     noticiasProvisorias: demonstracao && !real.temNoticia,
-    parceiros: demonstracao,
+    parceiras: real.parceiras,
+    parceirasProvisorias: demonstracao && !temParceira,
+    numeroDeParceiras,
   };
 }
 

@@ -1,5 +1,6 @@
 import { EmpresasParceiras } from "@/components/home/EmpresasParceiras";
 import styles from "@/components/home/Parceiros.module.css";
+import type { EmpresaParceira } from "@/lib/sanity/tipos";
 
 /*
   "Quem caminha com a AMI": a faixa branca de ponta a ponta que fecha a home
@@ -11,12 +12,20 @@ import styles from "@/components/home/Parceiros.module.css";
   leva `data-faixa`, e o rodapé emenda nela quando ela fecha a página
   (components/layout/Rodape.module.css). Entra na tela com a `.revelar`.
 
-  `parceiros` vem de `moldurasDaHome` (lib/molduras.ts): só no modo
-  demonstração, porque hoje a parte inteira é provisória. Sem ela, a faixa
+  As duas propriedades vêm de `moldurasDaHome` (lib/molduras.ts). Com
+  empresas cadastradas no Sanity, a faixa mostra os logotipos delas, nos
+  dois modos. Sem nenhuma, mostra os seis espaços "Logotipo a entrar" só
+  quando `provisorias` é verdadeiro (o modo demonstração); senão, a faixa
   não existe.
 */
-export function Parceiros({ parceiros }: { parceiros: boolean }) {
-  if (!parceiros) return null;
+export function Parceiros({
+  parceiras,
+  provisorias,
+}: {
+  parceiras: EmpresaParceira[];
+  provisorias: boolean;
+}) {
+  if (parceiras.length === 0 && !provisorias) return null;
 
   return (
     <section
@@ -34,7 +43,7 @@ export function Parceiros({ parceiros }: { parceiros: boolean }) {
           Quem caminha com a AMI
         </h2>
       </div>
-      <EmpresasParceiras />
+      <EmpresasParceiras parceiras={parceiras} />
     </section>
   );
 }
