@@ -64,7 +64,7 @@ export function aplicarFiltros(medicos: Medico[], filtros: Filtros): Medico[] {
 }
 
 /** Alfabética em português: "Ângela" cai junto de "Angela", não no fim. */
-const porNome = (a: Medico, b: Medico) =>
+export const porNome = (a: Medico, b: Medico) =>
   a.nome.localeCompare(b.nome, "pt-BR");
 
 /**

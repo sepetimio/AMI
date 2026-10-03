@@ -5,9 +5,11 @@ import { fonte } from "@/testes/apoio";
 import { Icone, LadrilhoIcone, type NomeIcone } from "@/components/base/Icone";
 import type { Icon } from "@phosphor-icons/react";
 import {
+  ArrowLeft,
   ArrowRight,
   ArrowUpRight,
   Buildings,
+  CaretDown,
   CaretLeft,
   CaretRight,
   Eye,
@@ -16,12 +18,14 @@ import {
   Heartbeat,
   List,
   MagnifyingGlass,
+  MapPin,
   MapPinArea,
   Pause,
   Phone,
   Play,
   SealCheck,
   Stethoscope,
+  WhatsappLogo,
   X,
 } from "@phosphor-icons/react/dist/ssr";
 
@@ -70,6 +74,10 @@ describe("os icones", () => {
       menu: List,
       fechar: X,
       telefone: Phone,
+      whatsapp: WhatsappLogo,
+      comoChegar: MapPin,
+      voltar: ArrowLeft,
+      abaixo: CaretDown,
     };
     for (const [nome, Componente] of Object.entries(esperado) as [NomeIcone, Icon][]) {
       for (const duotone of [false, true]) {
@@ -85,9 +93,9 @@ describe("os icones", () => {
         expect(nosso, `${nome}${duotone ? " duotone" : ""}`).toBe(dele);
       }
     }
-    /* E os 18 são diferentes entre si: nenhum par repetido na tabela. */
+    /* E os 22 são diferentes entre si: nenhum par repetido na tabela. */
     const htmls = Object.keys(esperado).map((nome) => renderToString(createElement(Icone, { nome: nome as NomeIcone })));
-    expect(new Set(htmls).size).toBe(18);
+    expect(new Set(htmls).size).toBe(22);
   });
 
   it("duotone inclui opacity 0.2, regular nao", () => {

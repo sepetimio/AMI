@@ -19,6 +19,10 @@ import {
   List,
   X,
   Phone,
+  WhatsappLogo,
+  MapPin,
+  ArrowLeft,
+  CaretDown,
 } from "@phosphor-icons/react/dist/ssr";
 
 export type NomeIcone =
@@ -39,7 +43,11 @@ export type NomeIcone =
   | "retomar"
   | "menu"
   | "fechar"
-  | "telefone";
+  | "telefone"
+  | "whatsapp"
+  | "comoChegar"
+  | "voltar"
+  | "abaixo";
 
 const mapaDeIcones: Record<NomeIcone, typeof SealCheck> = {
   selo: SealCheck,
@@ -60,6 +68,10 @@ const mapaDeIcones: Record<NomeIcone, typeof SealCheck> = {
   menu: List,
   fechar: X,
   telefone: Phone,
+  whatsapp: WhatsappLogo,
+  comoChegar: MapPin,
+  voltar: ArrowLeft,
+  abaixo: CaretDown,
 };
 
 export function Icone({
