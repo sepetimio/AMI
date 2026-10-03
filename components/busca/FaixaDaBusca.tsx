@@ -50,7 +50,6 @@ export function FaixaDaBusca({
 
       <div>
         <FormularioDaBusca
-          key={`${termo}|${escolhida?.slug ?? ""}`}
           termo={termo}
           especialidade={escolhida?.slug ?? ""}
           opcoes={opcoesDeEspecialidade(especialidades)}

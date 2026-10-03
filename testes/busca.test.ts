@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import estilosFaixa from "@/components/busca/FaixaDaBusca.module.css";
 import estilosResultados from "@/components/busca/ResultadosDaBusca.module.css";
+import estilosPagina from "@/app/(site)/encontre.module.css";
 import estilosCampo from "@/components/home/EncontreUmMedico.module.css";
 import type { Medico } from "@/lib/dados/tipos";
 import { fonte, semComentarios } from "@/testes/apoio";
@@ -31,6 +32,7 @@ vi.mock("@/lib/dados/especialidades", () => ({
   especialidadesComContagem: async () => [
     { nome: "Pediatria", slug: "pediatria", total: 2 },
     { nome: "Cardiologia", slug: "cardiologia", total: 1 },
+    { nome: "Urologia", slug: "urologia", total: 0 },
   ],
 }));
 
@@ -103,7 +105,7 @@ describe("a busca", () => {
 
   it("sem JavaScript, o botão Aplicar dentro do noscript envia o formulário", async () => {
     const html = await busca({});
-    expect(html).toMatch(/<noscript><button type="submit" class="botao [^"]+">Aplicar<\/button><\/noscript>/);
+    expect(html).toMatch(/<noscript><button type="submit" class="botao">Aplicar<\/button><\/noscript>/);
   });
 
   it("a especialidade escolhida vira 'Filtro: X ×', e o × leva à mesma busca sem ela", async () => {
@@ -127,6 +129,8 @@ describe("a busca", () => {
   it("a contagem diz quantos e em quê, e a página diz a ordem", async () => {
     const um = await busca({ especialidade: "cardiologia" });
     expect(um).toMatch(/<h2 id="contagem"[^>]*>1 médico em Cardiologia<\/h2>/);
+    /* A contagem muda sem recarregar a página: quem lê a tela é avisado. */
+    expect(/<h2 id="contagem"[^>]*>/.exec(um)![0]).toContain('aria-live="polite"');
     expect(um).toContain(`<p class="${estilosResultados.ordem}">Em ordem alfabética</p>`);
     const todos = await busca({}, [medico(1), medico(2), medico(3)]);
     expect(todos).toMatch(/<h2 id="contagem"[^>]*>3 médicos<\/h2>/);
@@ -152,6 +156,15 @@ describe("a busca", () => {
     expect(html).toMatch(/<option value="" selected="">Todas as especialidades<\/option>/);
   });
 
+  it("especialidade sem nenhum médico vale como inexistente: não está na lista, não filtra", async () => {
+    const html = await busca({ termo: "Mayara", especialidade: "urologia" });
+    expect(dados.chamadas.at(-1)).toEqual({ termo: "Mayara", ordem: "nome" });
+    expect(html).not.toContain("Filtro:");
+    expect(html).not.toContain('value="urologia"');
+    expect(html).toMatch(/<option value="" selected="">Todas as especialidades<\/option>/);
+    expect(html).toMatch(/<h2 id="contagem"[^>]*>1 médico<\/h2>/);
+  });
+
   it("nenhum resultado: a mensagem e o botão que limpa a busca", async () => {
     const html = await busca({ termo: "ninguém" }, []);
     expect(html).toContain(">Nenhum médico encontrado</h3>");
@@ -170,24 +183,66 @@ describe("a busca", () => {
     const html = await busca({});
     const blocos = [...html.matchAll(/data-bloco="([^"]+)"/g)].map((m) => m[1]);
     expect(blocos).toEqual(["busca", "resultados"]);
-    expect(html).toMatch(/^<div class="[^"]+"><section id="encontre"/);
+    expect(html).toMatch(new RegExp(`^<div class="${estilosPagina.pagina}"><section id="encontre"`));
   });
 });
 
 describe("o formulário ligado ao navegador", () => {
   const FORM = semComentarios(fonte("../components/busca/FormularioDaBusca.tsx"));
+  const FAIXA = semComentarios(fonte("../components/busca/FaixaDaBusca.tsx"));
+  /* Os trechos de cada controle, por posição: o `=>` das funções tem um `>`,
+     então `[^>]*` não serve para achar o fim da tag. */
+  const CAMPO = FORM.slice(FORM.indexOf("<input"), FORM.indexOf("/>", FORM.indexOf("<input")));
+  const LISTA = FORM.slice(FORM.indexOf("<select"), FORM.indexOf("</select>"));
 
-  it("enviar não recarrega: vai para o endereço montado pelos filtros", () => {
+  it("enviar não recarrega nem rola: vai para o endereço montado pelos filtros", () => {
     expect(FORM).toMatch(/onSubmit=\{\(e\) => \{\s*e\.preventDefault\(\);\s*ir\(e\.currentTarget\);/);
-    expect(FORM).toContain("router.push(enderecoDaBusca(filtrosDaQuery(");
+    expect(FORM).toContain("router.push(enderecoDaBusca(filtrosDaQuery(campos)), { scroll: false });");
+    expect(FORM.match(/router\.push\(/g)).toHaveLength(1);
   });
 
   it("trocar a lista já busca; digitar no campo, não", () => {
-    /* Por posição, e não por `[^>]*`: o `=>` da função tem um `>`. */
-    const ouvinte = FORM.indexOf("onChange={(e) => ir(e.currentTarget.form!)}");
-    expect(ouvinte).toBeGreaterThan(FORM.indexOf("<select"));
-    expect(ouvinte).toBeLessThan(FORM.indexOf("</select>"));
-    expect(FORM.match(/onChange/g)).toHaveLength(1);
+    expect(LISTA).toMatch(/onChange=\{\(e\) => \{[^}]*\}\);\s*ir\(e\.currentTarget\.form!\);\s*\}\}/);
+    expect(CAMPO).toContain("onChange=");
+    expect(CAMPO).not.toContain("ir(");
+    expect(FORM.match(/onChange/g)).toHaveLength(2);
+  });
+
+  it("o formulário não é remontado a cada busca: quem usa teclado não perde o foco", () => {
+    /* Uma `key` que muda com a URL troca o campo e a lista por elementos
+       novos, e o foco cai no <body>. Os dois são controlados e acompanham a
+       URL ajustando o estado durante a renderização. */
+    const uso = FAIXA.slice(FAIXA.indexOf("<FormularioDaBusca"), FAIXA.indexOf("/>", FAIXA.indexOf("<FormularioDaBusca")));
+    expect(uso).not.toContain("key=");
+    expect(CAMPO).toContain("value={valores.termo}");
+    expect(LISTA).toContain("value={valores.especialidade}");
+    expect(FORM).not.toContain("defaultValue");
+    expect(FORM).toMatch(
+      /if \(daUrl\.termo !== termo \|\| daUrl\.especialidade !== especialidade\) \{\s*setDaUrl\(\{ termo, especialidade \}\);\s*setValores\(\{ termo, especialidade \}\);\s*\}/,
+    );
+  });
+});
+
+describe("o CSS da coluna e do ritmo da busca e do perfil", () => {
+  /* O mesmo que testes/home.test.ts trava em app/(site)/inicio.module.css:
+     espaço desigual entre blocos e desalinhamento são queixas do cliente. */
+  const css = semNotas(fonte("../app/(site)/encontre.module.css"));
+
+  it("todo bloco fica a --ritmo do anterior, e não há outro margin-top", () => {
+    expect(regra(base(css), ".pagina > [data-bloco]")).toMatch(/margin-top: var\(--ritmo\);/);
+    expect(css.match(/margin-top:[^;]*;/g)).toEqual(["margin-top: var(--ritmo);"]);
+  });
+
+  it("a coluna é a caixa de 1240px com 24px de folga, e a faixa fica fora dela", () => {
+    const coluna = regra(base(css), ".pagina > [data-bloco]:not([data-faixa])");
+    expect(coluna).toMatch(/width: min\(100% - 48px, 1192px\);/);
+    expect(coluna).toMatch(/margin-inline: auto;/);
+  });
+
+  it("no celular, 12px de folga de cada lado", () => {
+    expect(regra(bloco(css, "@media (max-width: 700px)"), ".pagina > [data-bloco]:not([data-faixa])")).toMatch(
+      /width: calc\(100% - 24px\);/,
+    );
   });
 });
 

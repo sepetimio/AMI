@@ -22,7 +22,9 @@ export function ResultadosDaBusca({
   return (
     <section data-bloco="resultados" aria-labelledby="contagem">
       <div className={styles.cab}>
-        <h2 id="contagem" className={styles.contagem} data-coluna="">
+        {/* `aria-live`: a busca troca a contagem sem recarregar a página, e
+            quem lê a tela ouve o resultado novo sem sair da lista. */}
+        <h2 id="contagem" className={styles.contagem} data-coluna="" aria-live="polite">
           {textoDaContagem(medicos.length, escolhida?.nome ?? null)}
         </h2>
         <p className={styles.ordem}>Em ordem alfabética</p>

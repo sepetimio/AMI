@@ -34,7 +34,10 @@ export const metadata: Metadata = {
 export default async function PaginaBusca({ searchParams }: Props) {
   const pedido = filtrosDaQuery(await searchParams);
   const especialidades = await especialidadesComContagem();
-  const escolhida = especialidades.find((e) => e.slug === pedido.especialidade) ?? null;
+  /* Uma especialidade sem médico não está na lista (`opcoesDeEspecialidade`),
+     e vale como inexistente. */
+  const escolhida =
+    especialidades.find((e) => e.slug === pedido.especialidade && e.total > 0) ?? null;
   const termo = pedido.termo ?? "";
 
   const medicos = await buscarMedicos({

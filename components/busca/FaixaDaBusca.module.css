@@ -99,11 +99,6 @@
   pointer-events: none;
 }
 
-/* Só existe sem JavaScript (dentro do <noscript>): vai para a linha de baixo. */
-.aplicar {
-  justify-self: start;
-}
-
 .filtroAtivo {
   display: flex;
   align-items: center;
