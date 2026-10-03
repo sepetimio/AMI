@@ -43,8 +43,10 @@ import { formatarTelefone } from "@/lib/formato";
   confundir com serviço que já funciona. Não traz preço, capacidade,
   metragem, horário nem foto: nada disso foi dado, e inventar seria fabricar.
 
-  Com quatro cartões, 2 por linha no tablet e 4 lado a lado no computador;
-  com três, a grade de antes.
+  Com quatro cartões, 2 por linha do tablet para cima (2 × 2) e 1 no
+  celular; com três, a grade de antes. Quatro lado a lado foi medido e
+  recusado em 03/10/2026: o campo de busca do primeiro cartão caía de 226px
+  para 128px a 1280 e 81px a 1024, e é o único campo de digitar do site.
 */
 export function ServicosDaAmi({
   total,
@@ -66,7 +68,7 @@ export function ServicosDaAmi({
       </h2>
 
       <div
-        className={`mt-6 grid gap-4 ${suaAmi ? "md:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-3"}`}
+        className={`mt-6 grid gap-4 ${suaAmi ? "md:grid-cols-2" : "md:grid-cols-3"}`}
       >
         <div className="rounded-bloco border border-line bg-surface p-6">
           <h3 className="text-[21px] font-semibold text-ink-900">Encontre um médico</h3>

@@ -129,14 +129,21 @@ describe("o cartão provisório Sua AMI", () => {
     expect(cartao(com)).not.toMatch(/<img|role="img"/);
   });
 
-  it("com ele, a grade passa a 2 por linha no tablet e 4 no computador", () => {
-    expect(com).toContain("grid gap-4 md:grid-cols-2 lg:grid-cols-4");
+  /** As classes da grade dos cartões, inteiras. */
+  function grade(saida: string): string {
+    return /class="mt-6 grid gap-4 ([^"]*)"/.exec(saida)?.[1].trim() ?? "(sem grade)";
+  }
+
+  it("com ele, a grade passa a 2 por linha do tablet para cima, nunca 4", () => {
+    /* Quatro lado a lado espremia o campo de busca para 128px a 1280 (226px
+       com três) — medido, ver o comentário no componente. */
+    expect(grade(com)).toBe("md:grid-cols-2");
   });
 
   it("sem ele, o cartão some e a grade volta a ser a de três", () => {
     expect(sem).not.toContain("Sua AMI");
     expect(sem).not.toContain("a entrar");
-    expect(sem).toContain("grid gap-4 md:grid-cols-3");
+    expect(grade(sem)).toBe("md:grid-cols-3");
   });
 });
 
@@ -292,8 +299,8 @@ describe("a trava", () => {
     Next grava o valor no código durante `next build`: trocar a variável sem
     refazer a build não muda a home. O que este arquivo prova é a decisão
     dado o valor, não qual valor a build recebeu.
-  - Nada visual: proporção na tela, quebra de linha da tarja, a grade de 4
-    no computador. HTML de servidor diz qual classe saiu, não o que ela faz.
+  - Nada visual: proporção na tela, quebra de linha da tarja, a largura
+    do campo de busca na grade 2 × 2. HTML de servidor diz qual classe saiu, não o que ela faz.
   - O carrossel girando de verdade: temporizador, rolagem e pausa só
     acontecem no navegador.
 */
