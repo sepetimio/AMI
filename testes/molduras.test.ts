@@ -1,10 +1,35 @@
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { UltimasNoticias } from "@/components/editorial/UltimasNoticias";
 import { Carrossel } from "@/components/home/Carrossel";
 import { ServicosDaAmi } from "@/components/home/ServicosDaAmi";
 import { BANNERS_PROVISORIOS } from "@/lib/molduras";
-import type { Banner } from "@/lib/sanity/tipos";
+import type { Banner, ResumoNoticia } from "@/lib/sanity/tipos";
+
+/* `UltimasNoticias` busca as notícias ela mesma. Aqui não há Sanity: este
+   dublê devolve o que cada teste puser em `publicadas`. */
+const sanity = vi.hoisted(() => ({ publicadas: [] as ResumoNoticia[] }));
+vi.mock("@/lib/sanity/consultas", () => ({
+  listarNoticias: async () => sanity.publicadas,
+}));
+
+const NOTICIA: ResumoNoticia = {
+  titulo: "Assembleia geral ordinária",
+  slug: "assembleia-geral",
+  resumo: "A diretoria convoca os associados.",
+  autor: { nome: "Fulano de Tal", crm: "1234", crmUf: "MA" },
+  publicadoEm: "2026-09-30",
+};
+
+/** O bloco de notícias da home, com as notícias "publicadas" dadas. */
+async function noticias(publicadas: ResumoNoticia[], provisorias?: boolean) {
+  sanity.publicadas = publicadas;
+  const elemento = await UltimasNoticias(
+    provisorias === undefined ? {} : { provisorias },
+  );
+  return elemento ? renderToString(elemento) : "";
+}
 
 /*
   As molduras provisórias da home, medidas no HTML de servidor.
@@ -111,5 +136,37 @@ describe("o cartão provisório Sua AMI", () => {
     expect(sem).not.toContain("Sua AMI");
     expect(sem).not.toContain("a entrar");
     expect(sem).toContain("grid gap-4 md:grid-cols-3");
+  });
+});
+
+describe("as três notícias provisórias", () => {
+  it("sem notícia real e com provisorias, saem três cartões Notícia a entrar", async () => {
+    const saida = await noticias([], true);
+    expect(vezes(saida, ">Notícia a entrar</h3>")).toBe(3);
+  });
+
+  it("com a forma do cartão real: <li> com a caixa de capa de 160 × 112", async () => {
+    const saida = await noticias([], true);
+    expect(vezes(saida, "<li ")).toBe(3);
+    expect(vezes(saida, "h-[112px]")).toBe(3);
+    expect(vezes(saida, "sm:w-[160px]")).toBe(3);
+  });
+
+  it("não levam a lugar nenhum", async () => {
+    const saida = await noticias([], true);
+    /* O único link do bloco é o "Ver todas" do título. */
+    const links = [...saida.matchAll(/<a [^>]*href="([^"]*)"/g)].map((m) => m[1]);
+    expect(links).toEqual(["/noticias"]);
+  });
+
+  it("havendo uma notícia real, os provisórios somem todos", async () => {
+    const saida = await noticias([NOTICIA], true);
+    expect(saida).toContain("Assembleia geral ordinária");
+    expect(saida).not.toContain("a entrar");
+  });
+
+  it("sem provisorias e sem notícia, o bloco não existe — o padrão de antes", async () => {
+    expect(await noticias([], false)).toBe("");
+    expect(await noticias([])).toBe("");
   });
 });
