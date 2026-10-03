@@ -98,7 +98,7 @@ export const GROQ_PAGINA = defineQuery(`
 `);
 
 /*
-  `CAMINHO_DAS_PAGINAS` (o endereço das seis páginas de prosa) e
+  `CAMINHO_DAS_PAGINAS` (o endereço das sete páginas de prosa) e
   `slugsDePaginasSobAssociacao` viviam aqui até a rodada 2 de revisão da
   tarefa 11, que achou uma terceira lista independente da mesma
   correspondência dentro de `sanity/schemas/paginaInstitucional.ts`. Foram
@@ -161,17 +161,17 @@ export async function paginaPorSlug(
 
 /*
   Endereços completos (não slugs) das páginas de prosa que já estão
-  publicadas no Sanity, restrito às seis que `CAMINHO_DAS_PAGINAS` conhece.
+  publicadas no Sanity, restrito às sete que `CAMINHO_DAS_PAGINAS` conhece.
 
   O filtro `slug.current in $slugs` acontece na própria consulta, e não
   depois em memória: um documento `paginaInstitucional` fora da lista (um
   rascunho de página futura, por exemplo) nunca devolve do banco, então nunca
   arrisca aparecer aqui sem que alguém tenha decidido o endereço dele antes.
 
-  As seis etiquetas de cache, uma por página, são exatamente as que o webhook
+  As sete etiquetas de cache, uma por página, são exatamente as que o webhook
   da tarefa 4 já invalida por `etiquetaDePagina(slug)`. Não existe etiqueta
   coletiva para `paginaInstitucional`, ao contrário de `ETIQUETA_NOTICIAS`;
-  então esta consulta se inscreve nas seis, e publicar qualquer uma delas
+  então esta consulta se inscreve nas sete, e publicar qualquer uma delas
   invalida exatamente a entrada de cache que a lista abaixo produziu.
 */
 export async function caminhosDePaginasPublicadas(): Promise<string[]> {
