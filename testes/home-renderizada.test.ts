@@ -265,7 +265,9 @@ describe("o quarto número e a faixa das parceiras, na home renderizada", () => 
 
   it("chave verdadeira e duas cadastradas: as reais, sem os espaços provisórios", async () => {
     const html = await renderizarHome("true", { parceiras: PARCEIRAS });
-    expect(numeros(html)).toMatch(/<span>2<\/span><\/div><div class="[^"]+">empresas parceiras</);
+    const n = numeros(html);
+    expect(n).toContain('data-quantos="4"');
+    expect(n).toMatch(/<span>2<\/span><\/div><div class="[^"]+">empresas parceiras</);
     expect(html).toContain('alt="Empresa Exemplo B"');
     expect(html).not.toContain("Logotipo a entrar");
   });

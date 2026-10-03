@@ -27,6 +27,9 @@ export const empresaParceira = defineType({
       name: "logotipo",
       title: "Logotipo",
       type: "image",
+      /* PNG, JPEG ou WebP. SVG fica de fora: o caminho dele pelo CDN de
+         imagens do Sanity até a página não foi conferido. */
+      options: { accept: "image/png,image/jpeg,image/webp" },
       description:
         "PNG com fundo transparente, com 640 pixels de largura ou mais. O site " +
         "mostra o logotipo inteiro, sem cortar, numa caixa branca mais larga que alta.",

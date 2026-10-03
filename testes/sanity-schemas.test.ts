@@ -121,6 +121,11 @@ describe("schemas do Sanity", () => {
       expect(campo("ordem").validation).toBeUndefined();
     });
 
+    it("o logotipo aceita PNG, JPEG e WebP; SVG não", () => {
+      const { options } = campo("logotipo") as Campo & { options?: { accept?: string } };
+      expect(options?.accept).toBe("image/png,image/jpeg,image/webp");
+    });
+
     it("o logotipo sem arquivo não passa, mesmo com outros campos da imagem", () => {
       expect(rodar(campo("logotipo"), undefined).erros).toEqual(["O logotipo é obrigatório"]);
       expect(rodar(campo("logotipo"), { hotspot: {} }).erros).toEqual(["O logotipo é obrigatório"]);
