@@ -154,7 +154,10 @@ describe("Carrossel na renderização de servidor", () => {
 });
 
 describe("a fita", () => {
-  const itens = [arte("a", { destino: "/a" }), composto("b"), arte("c", { destino: "/c" })];
+  /* Um composto na ponta (o último), para a cópia dele, na posição 0,
+     levar o link do botão: é o caso que exige `tabindex="-1"` no link do
+     composto, não só no da arte. */
+  const itens = [arte("a", { destino: "/a" }), arte("b"), composto("c")];
   const saida = html(itens);
   const fita = slides(saida);
 
@@ -174,6 +177,8 @@ describe("a fita", () => {
       expect(links.length, "a cópia devia ter o link do original").toBeGreaterThan(0);
       for (const link of links) expect(link).toContain('tabindex="-1"');
     }
+    /* A cópia do último é o composto: o link dele é o botão. */
+    expect(fita[0]).toMatch(/<a tabindex="-1" data-botao=""/);
   });
 
   it("os reais não são cópia: nem aria-hidden, nem link fora do Tab", () => {
@@ -194,13 +199,20 @@ describe("a fita", () => {
     expect(ativos).toEqual([false, true, false, false, false]);
   });
 
-  it("só a primeira imagem real tem prioridade; o resto, inclusive as cópias, espera", () => {
+  it("só a primeira imagem real tem prioridade alta; as outras, inclusive as cópias, baixa", () => {
     expect(fita[1]).toMatch(/<img [^>]*fetchPriority="high"/);
-    expect(fita[1]).not.toContain('loading="lazy"');
     for (const outro of [fita[0], fita[2], fita[3], fita[4]]) {
-      expect(outro).toContain('loading="lazy"');
-      expect(outro).not.toContain("fetchPriority");
+      expect(outro).toMatch(/<img [^>]*fetchPriority="low"/);
+      expect(outro).not.toContain('fetchPriority="high"');
     }
+  });
+
+  it("nenhuma imagem do carrossel é preguiçosa: cortada pelo clip, ela só baixaria ao entrar", () => {
+    const imagens = saida.match(/<img [^>]*>/g) ?? [];
+    expect(imagens).toHaveLength(5);
+    for (const img of imagens) expect(img).not.toContain("loading=");
+    const comCelular = html([arte("a", { imagemCelular: "https://exemplo.test/m.jpg" }), composto("b"), arte("c")]);
+    expect(comCelular).not.toContain("loading=");
   });
 
   it("com 1 item, sem controles e sem cópias", () => {
@@ -306,8 +318,8 @@ describe("o slide de arte pronta", () => {
     expect(real).toMatch(
       /<picture><source media="\(max-width: 700px\)" srcSet="https:\/\/exemplo.test\/a-celular.jpg"[^>]*\/><img src="https:\/\/exemplo.test\/a.jpg" alt="Arte a"/,
     );
-    /* A larga só aparece onde cabe inteira: o ponto de interesse não entra. */
-    expect(real).not.toContain("object-position");
+    /* A larga também é recortada no tablet (3:2): o ponto de interesse vale. */
+    expect(real).toMatch(/<img src="https:\/\/exemplo.test\/a.jpg"[^>]*style="object-position:10% 20%"/);
   });
 
   it("sem versão de celular, a larga sozinha, recortada pelo ponto de interesse", () => {
@@ -372,6 +384,24 @@ describe("os ouvintes do carrossel", () => {
     expect(corpo("aoEntrarFoco")).toMatch(/\.matches\(":focus-visible"\)\) return;/);
   });
 
+  it("a fita vai aonde movimentoAte manda, nunca a uma posição calculada à parte", () => {
+    /* A conta (inclusive a cópia que faz o último→primeiro ir para a
+       direita) está em lib/carrossel.ts e é testada lá; aqui se trava que
+       `ir` a usa para mover a fita e marcar o slide que entra. */
+    const ini = codigo.indexOf("function ir(destino: Destino) {");
+    expect(ini, "falta function ir").toBeGreaterThan(-1);
+    const ir = codigo.slice(ini, codigo.indexOf("\n  }\n", ini));
+    expect(ir).toContain("const { posicao: alvo, animar } = movimentoAte(destino, semMovimento);");
+    const movimentos = [...ir.matchAll(/mover\(([^,]+),/g)].map((m) => m[1]);
+    expect(movimentos.length).toBeGreaterThan(0);
+    for (const arg of movimentos) expect(arg).toBe("alvo");
+    expect(ir).toContain("setEntrando(alvo);");
+    expect(ir).not.toContain("posicaoNaFita");
+    /* E todo passo passa por destinoDoPasso. */
+    expect(codigo).toMatch(/function passo\([^)]*\) \{\s*ir\(destinoDoPasso\(de, direcao, n\)\);/);
+    expect(codigo.match(/\bir\(/g)).toHaveLength(1 + 1); // a definição e a chamada em `passo`
+  });
+
   it("o dedo troca pela regra de direcaoDoDedo", () => {
     expect(corpo("aoSoltar")).toMatch(/direcaoDoDedo\(dx, dy\)/);
   });
@@ -417,6 +447,22 @@ describe("o CSS do carrossel", () => {
   it("proporção fixa: 1192 / 512 no computador, 4 / 5 no celular", () => {
     expect(regra(css, "\n.slide")).toMatch(/aspect-ratio:\s*1192 \/ 512;/);
     expect(regra(bloco("(max-width: 700px)"), ".slide")).toMatch(/aspect-ratio:\s*4 \/ 5;/);
+  });
+
+  it("no tablet, 3 / 2: na proporção do computador o texto não cabia", () => {
+    expect(regra(bloco("(min-width: 701px) and (max-width: 980px)"), ".slide")).toMatch(
+      /aspect-ratio:\s*3 \/ 2;/,
+    );
+  });
+
+  it("a bolinha tem alvo de toque de 24px no mínimo, também no celular", () => {
+    expect(regra(css, "\n.bolinha")).toMatch(/min-width:\s*24px;/);
+    expect(regra(css, "\n.bolinha")).toMatch(/height:\s*24px;/);
+    /* Nenhuma regra posterior encolhe a bolinha. */
+    for (const m of css.matchAll(/\.bolinha \{[^}]*\}/g)) {
+      expect(m[0]).not.toMatch(/(?:min-)?width:\s*(?:[0-9]|1[0-9]|2[0-3])px/);
+      expect(m[0]).not.toMatch(/height:\s*(?:[0-9]|1[0-9]|2[0-3])px/);
+    }
   });
 
   it("no celular o texto fica por cima da foto (o defeito da foto que cobria o texto)", () => {

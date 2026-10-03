@@ -10,7 +10,8 @@
 
   Diferença deliberada do desenho: o slide tem proporção fixa, 1192 / 512 no
   computador (a medida do desenho a 1440px) e 4 / 5 no celular, para a arte
-  pronta caber exata. `aspect-ratio` é piso, não teto: se o texto de um slide
+  pronta caber exata; no tablet (701 a 980px), 3 / 2, com a arte larga
+  recortada pelo ponto de interesse. `aspect-ratio` é piso, não teto: se o texto de um slide
   com foto não couber, o slide cresce, e a fita inteira acompanha.
 */
 
@@ -201,6 +202,9 @@
 .bolinha {
   position: relative;
   width: auto;
+  /* Alvo de toque de 24 × 24px no mínimo (WCAG 2.5.8): no celular o
+     respiro lateral cai para 7px, e 7 + 6 + 7 dava só 20px de largura. */
+  min-width: 24px;
   height: 24px;
   padding: 0 9px;
   border: 0;
@@ -316,7 +320,11 @@
 
 /* Tablet: duas colunas, sem virar uma tela inteira. */
 @media (min-width: 701px) and (max-width: 980px) {
+  /* 3:2, e não 1192/512: na proporção do computador o texto do slide com
+     foto não cabe nesta largura, o slide crescia e a fita inteira junto. A
+     arte larga é recortada pelo ponto de interesse. */
   .slide {
+    aspect-ratio: 3 / 2;
     grid-template-columns: 1fr 1fr;
     gap: 28px;
     padding: 20px 20px 70px var(--m);

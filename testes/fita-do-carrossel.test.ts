@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   INTERVALO,
   LIMIAR_DO_DEDO,
+  destinoDoPasso,
   direcaoDoDedo,
   indiceReal,
+  movimentoAte,
   posicaoNaFita,
   precisaSaltar,
 } from "@/lib/carrossel";
@@ -30,6 +32,30 @@ describe("a fita do carrossel", () => {
 
   it("indices reais ficam como estao", () => {
     for (const i of [0, 1, 2, 3]) expect(indiceReal(i, 4)).toBe(i);
+  });
+
+  it("o passo: do ultimo com +1, a copia do primeiro (n + 1), para a direita", () => {
+    expect(destinoDoPasso(3, 1, 4)).toEqual({ indice: 0, posicao: 5 });
+  });
+
+  it("o passo: do primeiro com -1, a copia do ultimo (0), para a esquerda", () => {
+    expect(destinoDoPasso(0, -1, 4)).toEqual({ indice: 3, posicao: 0 });
+  });
+
+  it("o passo no meio e o passo 0 (bolinha) caem nas posicoes reais", () => {
+    expect(destinoDoPasso(1, 1, 4)).toEqual({ indice: 2, posicao: 3 });
+    expect(destinoDoPasso(2, -1, 4)).toEqual({ indice: 1, posicao: 2 });
+    expect(destinoDoPasso(3, 0, 4)).toEqual({ indice: 3, posicao: 4 });
+  });
+
+  it("o movimento desliza ate a posicao do passo, mesmo quando ela e uma copia", () => {
+    expect(movimentoAte(destinoDoPasso(3, 1, 4), false)).toEqual({ posicao: 5, animar: true });
+    expect(movimentoAte(destinoDoPasso(0, -1, 4), false)).toEqual({ posicao: 0, animar: true });
+  });
+
+  it("com menos movimento, salta direto para o real, sem passar pela copia", () => {
+    expect(movimentoAte(destinoDoPasso(3, 1, 4), true)).toEqual({ posicao: 1, animar: false });
+    expect(movimentoAte(destinoDoPasso(0, -1, 4), true)).toEqual({ posicao: 4, animar: false });
   });
 
   it("chegando na copia do primeiro, salta sem animacao para o primeiro de verdade", () => {

@@ -27,6 +27,36 @@ export function indiceReal(destino: number, n: number): number {
   return ((destino % n) + n) % n;
 }
 
+/** Para onde um passo leva: o item real e o lugar da fita onde ele entra. */
+export type Destino = { indice: number; posicao: number };
+
+/**
+ * Um passo a partir do item `atual`: +1 é "próximo", −1 é "anterior", 0 é
+ * "este mesmo" (o clique numa bolinha passa o índice dela com passo 0).
+ *
+ * A posição sai do índice SEM dar a volta: do último com +1, a posição é
+ * n + 1 (a cópia do primeiro), e a fita anda para a direita; do primeiro com
+ * −1, é 0 (a cópia do último). Dar a volta aqui (a posição do real) faria o
+ * último→primeiro voltar pela esquerda, passando por todos.
+ */
+export function destinoDoPasso(atual: number, passo: -1 | 0 | 1, n: number): Destino {
+  const alvo = atual + passo;
+  return { indice: indiceReal(alvo, n), posicao: posicaoNaFita(alvo) };
+}
+
+/**
+ * Como a fita vai até um destino: deslizando até a posição do passo (que
+ * pode ser uma cópia), ou, para quem pediu menos movimento, saltando direto
+ * para a posição do real — sem deslizar, não há por que passar pela cópia.
+ */
+export function movimentoAte(
+  destino: Destino,
+  semMovimento: boolean,
+): { posicao: number; animar: boolean } {
+  if (semMovimento) return { posicao: posicaoNaFita(destino.indice), animar: false };
+  return { posicao: destino.posicao, animar: true };
+}
+
 /**
  * Terminado o movimento, para onde a fita salta sem animação: da cópia do
  * último (0) para o último de verdade (n), da cópia do primeiro (n + 1) para

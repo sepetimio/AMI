@@ -17,8 +17,10 @@ import { MolduraProvisoria } from "@/components/base/MolduraProvisoria";
 import styles from "@/components/home/Carrossel.module.css";
 import {
   INTERVALO,
+  type Destino,
+  destinoDoPasso,
   direcaoDoDedo,
-  indiceReal,
+  movimentoAte,
   posicaoNaFita,
   precisaSaltar,
 } from "@/lib/carrossel";
@@ -248,22 +250,24 @@ export function Carrossel({ itens }: { itens: ItemDoCarrossel[] }) {
     }
   }
 
-  /* `i` pode ser −1 ou n: as cópias. */
-  function ir(i: number, animar = true) {
+  /* Um passo a partir do atual (+1, −1, ou 0 com o índice de uma bolinha).
+     A conta de para onde ele leva — inclusive as cópias — é `destinoDoPasso`. */
+  function passo(de: number, direcao: -1 | 0 | 1) {
+    ir(destinoDoPasso(de, direcao, n));
+  }
+
+  function ir(destino: Destino) {
     if (movendo.current) aoParar(); // clique no meio do movimento: conclui e atende
-    const real = indiceReal(i, n);
-    setAtual(real);
+    setAtual(destino.indice);
     setVolta((v) => v + 1);
-    if (!animar || semMovimento) {
-      /* Sem deslizar, não há por que passar pela cópia. */
-      mover(posicaoNaFita(real), false);
-      setEntrando(posicaoNaFita(real));
+    const { posicao: alvo, animar } = movimentoAte(destino, semMovimento);
+    setEntrando(alvo);
+    if (!animar) {
+      mover(alvo, false);
       return;
     }
-    const destino = posicaoNaFita(i);
-    setEntrando(destino);
-    if (destino !== posicao.current) movendo.current = true;
-    mover(destino, true);
+    if (alvo !== posicao.current) movendo.current = true;
+    mover(alvo, true);
     clearTimeout(relogio.current);
     relogio.current = setTimeout(aoParar, 1200);
   }
@@ -292,7 +296,7 @@ export function Carrossel({ itens }: { itens: ItemDoCarrossel[] }) {
   /* Os ouvintes nativos chamam a versão mais nova destas, sem precisar se
      reinscrever a cada troca de slide. */
   const recentralizar = useEffectEvent(centralizar);
-  const deslizar = useEffectEvent((direcao: -1 | 1) => ir(atual + direcao));
+  const deslizar = useEffectEvent((direcao: -1 | 1) => passo(atual, direcao));
   const usar = useEffectEvent(
     (evento: "mouseEntrou" | "mouseSaiu" | "focoEntrou" | "focoSaiu") =>
       avisar(evento),
@@ -478,7 +482,7 @@ export function Carrossel({ itens }: { itens: ItemDoCarrossel[] }) {
               <button
                 key={b.id}
                 type="button"
-                onClick={() => ir(i)}
+                onClick={() => passo(i, 0)}
                 aria-label={`Ir para o banner ${i + 1} de ${n}`}
                 aria-current={i === atual ? "true" : undefined}
                 className={
@@ -489,7 +493,7 @@ export function Carrossel({ itens }: { itens: ItemDoCarrossel[] }) {
                   key={i === atual ? volta : undefined}
                   onAnimationEnd={(e) => {
                     if (e.target !== e.currentTarget || i !== atual || !gira) return;
-                    ir(atual + 1);
+                    passo(atual, 1);
                   }}
                 />
               </button>
@@ -497,7 +501,7 @@ export function Carrossel({ itens }: { itens: ItemDoCarrossel[] }) {
           </div>
           <button
             type="button"
-            onClick={() => ir(atual - 1)}
+            onClick={() => passo(atual, -1)}
             aria-label="Anterior"
             className={`${styles.ctl} ${styles.anterior}`}
           >
@@ -505,7 +509,7 @@ export function Carrossel({ itens }: { itens: ItemDoCarrossel[] }) {
           </button>
           <button
             type="button"
-            onClick={() => ir(atual + 1)}
+            onClick={() => passo(atual, 1)}
             aria-label="Próximo"
             className={`${styles.ctl} ${styles.proximo}`}
           >
@@ -538,11 +542,16 @@ function Slide({
   primeiro: boolean;
 }) {
   const tabIndex = copia ? -1 : undefined;
-  /* Só a primeira imagem do carrossel tem prioridade; o resto carrega
-     quando chega perto da tela. */
+  /* Só a primeira imagem do carrossel tem prioridade; as outras baixam
+     logo, mas com prioridade baixa, depois do que a página precisa.
+
+     Nenhuma é `loading="lazy"`: o carrossel corta com `overflow: clip` (ver
+     o CSS), que não é contêiner de rolagem, e o navegador não adianta uma
+     imagem preguiçosa cortada fora dele — ela só começaria a baixar quando
+     o slide já estivesse entrando (a revisão mediu 310ms de atraso). */
   const carga = primeiro
     ? ({ fetchPriority: "high" } as const)
-    : ({ loading: "lazy" } as const);
+    : ({ fetchPriority: "low" } as const);
 
   if (item.tipo === "composto") {
     return (
@@ -631,8 +640,10 @@ function Slide({
           {...carga}
           className={styles.arteImagem}
           style={{
-            /* Com versão de celular, a larga só aparece onde cabe inteira. */
-            objectPosition: item.imagemCelular ? undefined : posicaoDoFoco(item.foco),
+            /* Mesmo com versão de celular: no tablet o slide é 3:2 e a larga
+               é recortada. No computador ela cabe inteira e isto não pesa; no
+               celular a de 4:5 também cabe inteira. */
+            objectPosition: posicaoDoFoco(item.foco),
           }}
         />
       </picture>
