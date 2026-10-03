@@ -83,8 +83,10 @@
 
   /* A faixa do topo da home (components/home/FaixaDaAmi.tsx), o bloco e a
      tarja de legenda da moldura provisória (components/base/MolduraProvisoria.tsx,
-     usada por Fotografia.tsx, Carrossel.tsx, EmpresasParceiras.tsx e
-     UltimasNoticias.tsx) e o rodapé (components/layout/Rodape.tsx). O cabeçalho NÃO: Cabecalho.tsx
+     usada por Fotografia.tsx, Carrossel.tsx e UltimasNoticias.tsx), o fundo
+     do destaque das notícias e o da notícia sem capa
+     (components/editorial/UltimasNoticias.module.css) e o rodapé
+     (components/layout/Rodape.tsx). O cabeçalho NÃO: Cabecalho.tsx
      é `bg-surface/80` e Cabeceira.tsx é `bg-surface`.
      Os pares com ele estão medidos em `testes/paleta.test.ts`. */
   --color-ami-green-900: #071A07;

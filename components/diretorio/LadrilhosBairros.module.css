@@ -53,6 +53,10 @@
   color: var(--color-ami-green-800);
 }
 
+/* A contagem não usa mais a classe `registro` (a fonte mono de números) que
+   o ladrilho antigo usava: no desenho aprovado, `.bairro span` é só 13px na
+   cor `--tinta-3`, na fonte do texto, em todas as larguras (e é o que as
+   fotos de referência mostram). */
 .contagem {
   flex: none;
 }

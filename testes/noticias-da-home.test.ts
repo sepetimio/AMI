@@ -8,7 +8,7 @@ import estilosNoticias from "@/components/editorial/UltimasNoticias.module.css";
 import estilosBairros from "@/components/diretorio/LadrilhosBairros.module.css";
 import estilosFaixa from "@/components/home/BairrosEParceiros.module.css";
 import estilosParceiros from "@/components/home/EmpresasParceiras.module.css";
-import { arranjoDasNoticias } from "@/lib/arranjo-das-noticias";
+import { arranjoDasNoticias, tamanhosDasCapas } from "@/lib/arranjo-das-noticias";
 import type { ResumoNoticia } from "@/lib/sanity/tipos";
 import { fonte } from "@/testes/apoio";
 
@@ -105,6 +105,68 @@ describe("o arranjo das notícias (Ruling 30)", () => {
       { arranjo: "ao-lado", colunas: 3, deitado: false },
       { arranjo: "ao-lado", colunas: 3, deitado: false },
     ]);
+  });
+});
+
+/* O `sizes` esperado, faixa por faixa (a conta está no comentário de
+   `tamanhosDasCapas`, em lib/arranjo-das-noticias.ts). */
+const LARGURA_TODA =
+  "(min-width: 1240px) 1096px, (min-width: 981px) calc(100vw - 144px), (min-width: 701px) calc(100vw - 104px), calc(100vw - 64px)";
+const SIZES = {
+  1: { destaque: LARGURA_TODA, item: "(min-width: 701px) 128px, 88px", itemDePe: false },
+  2: { destaque: LARGURA_TODA, item: "(min-width: 701px) 128px, 88px", itemDePe: false },
+  3: {
+    destaque: LARGURA_TODA,
+    item: "(min-width: 1240px) 536px, (min-width: 981px) calc((100vw - 144px - 24px) / 2), (min-width: 701px) calc((100vw - 104px - 24px) / 2), 88px",
+    itemDePe: true,
+  },
+  4: {
+    destaque:
+      "(min-width: 1240px) 582px, (min-width: 1181px) calc((100vw - 192px) * 5 / 9), (min-width: 981px) calc(100vw - 144px), (min-width: 701px) calc(100vw - 104px), calc(100vw - 64px)",
+    item: "(min-width: 1181px) 128px, (min-width: 981px) calc((100vw - 144px - 48px) / 3), (min-width: 701px) calc((100vw - 104px - 48px) / 3), 88px",
+    itemDePe: false,
+  },
+} as const;
+
+describe("o tamanho das capas, por arranjo", () => {
+  it("por valor, de 1 a 4 notícias", () => {
+    for (const n of [1, 2, 3, 4] as const) {
+      expect(tamanhosDasCapas(arranjoDasNoticias(n)!), `${n} notícias`).toEqual(SIZES[n]);
+    }
+  });
+
+  it("os números batem com a grade medida no navegador a 1440px (destaque 582 ou 1096; item de pé 536)", () => {
+    /* Medido na rodada 1: destaque "ao-lado" 582,22; "embaixo" 1096; os
+       dois itens de pé com três notícias, 536. */
+    expect(SIZES[4].destaque).toMatch(/^\(min-width: 1240px\) 582px/);
+    expect(SIZES[3].destaque).toMatch(/^\(min-width: 1240px\) 1096px/);
+    expect(SIZES[3].item).toMatch(/^\(min-width: 1240px\) 536px/);
+  });
+
+  it("renderizado: cada img sai com o sizes do arranjo, e o item de pé pede as larguras grandes", () => {
+    vi.stubEnv("NEXT_PUBLIC_SANITY_PROJECT_ID", "projeto");
+    vi.stubEnv("NEXT_PUBLIC_SANITY_DATASET", "production");
+    const capa = { asset: { _ref: "image-abc123-1600x1000-jpg" }, alt: "" };
+    for (const n of [1, 2, 3, 4] as const) {
+      const saida = html(
+        [1, 2, 3, 4].slice(0, n).map((i) => noticia(i, { capa } as Partial<ResumoNoticia>)),
+      );
+      const imgs = [...saida.matchAll(/<img [^>]*>/g)].map((m) => m[0]);
+      const atributo = (img: string, nome: string) => new RegExp(`${nome}="([^"]*)"`).exec(img)?.[1];
+      expect(imgs, `${n} notícias`).toHaveLength(n);
+      expect(atributo(imgs[0], "sizes"), `destaque com ${n}`).toBe(SIZES[n].destaque);
+      for (const img of imgs.slice(1)) {
+        expect(atributo(img, "sizes"), `item com ${n}`).toBe(SIZES[n].item);
+        const maior = Math.max(...(atributo(img, "srcSet") ?? "").split(", ").map((s) => Number(/ (\d+)w$/.exec(s)?.[1])));
+        /* De pé, o item chega a 536px: precisa de arquivo de pelo menos
+           1072 para densidade 2. A miniatura pequena para em 960. */
+        expect(maior, `maior arquivo do item com ${n}`).toBe(SIZES[n].itemDePe ? 2200 : 960);
+      }
+      const maiorDestaque = Math.max(
+        ...(atributo(imgs[0], "srcSet") ?? "").split(", ").map((s) => Number(/ (\d+)w$/.exec(s)?.[1])),
+      );
+      expect(maiorDestaque).toBe(2200);
+    }
   });
 });
 

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Icone } from "@/components/base/Icone";
 import { MolduraProvisoria } from "@/components/base/MolduraProvisoria";
 import styles from "@/components/editorial/UltimasNoticias.module.css";
-import { arranjoDasNoticias } from "@/lib/arranjo-das-noticias";
+import { arranjoDasNoticias, tamanhosDasCapas } from "@/lib/arranjo-das-noticias";
 import { dataPorExtenso } from "@/lib/formato";
 import { listarNoticias } from "@/lib/sanity/consultas";
 import { urlDaImagem } from "@/lib/sanity/imagem";
@@ -44,9 +44,13 @@ export async function UltimasNoticias({
 /* O destaque e as três da lista. */
 const QUANTAS = 4;
 
-/* Larguras pedidas ao CDN do Sanity para o `srcset`, como em LinhaNoticia. */
-const LARGURAS_DESTAQUE = [480, 640, 960, 1280, 1600];
-const LARGURAS_MINIATURA = [160, 320, 480, 640];
+/* Larguras pedidas ao CDN do Sanity para o `srcset`, como em LinhaNoticia.
+   O destaque chega a 1096px (2192 numa tela de densidade 2); a miniatura do
+   arranjo "ao-lado" chega a uns 330px de 701 a 1180px (660 em densidade 2).
+   O item de pé, com duas ou três notícias, usa as do destaque. Quem diz ao
+   navegador o tamanho de cada uma é `tamanhosDasCapas`. */
+const LARGURAS_DESTAQUE = [480, 640, 960, 1280, 1600, 2200];
+const LARGURAS_MINIATURA = [160, 320, 480, 640, 960];
 
 export function NoticiasDaHome({
   noticias,
@@ -61,6 +65,11 @@ export function NoticiasDaHome({
   const [destaque, ...lista] = reais;
   /* As provisórias são sempre quatro: o desenho inteiro. */
   const arranjo = arranjoDasNoticias(destaque ? reais.length : QUANTAS)!;
+  const capas = tamanhosDasCapas(arranjo);
+  const capaDoItem = {
+    sizes: capas.item,
+    larguras: capas.itemDePe ? LARGURAS_DESTAQUE : LARGURAS_MINIATURA,
+  };
   const grade = {
     className: styles.noticias,
     "data-arranjo": arranjo.arranjo,
@@ -91,21 +100,21 @@ export function NoticiasDaHome({
         /* O arranjo vem de `arranjoDasNoticias` (lib/arranjo-das-noticias.ts):
            com menos de quatro, nada fica ao lado do destaque. */
         <div {...grade}>
-          <Destaque noticia={destaque} />
+          <Destaque noticia={destaque} sizes={capas.destaque} />
           {lista.length > 0 ? (
             <Lista>
               {lista.map((n) => (
-                <Item key={n.slug} noticia={n} />
+                <Item key={n.slug} noticia={n} capa={capaDoItem} />
               ))}
             </Lista>
           ) : null}
         </div>
       ) : (
         <div {...grade}>
-          <Destaque />
+          <Destaque sizes={capas.destaque} />
           <Lista>
             {[1, 2, 3].map((n) => (
-              <Item key={n} />
+              <Item key={n} capa={capaDoItem} />
             ))}
           </Lista>
         </div>
@@ -192,7 +201,7 @@ function Casca({
   garante o contraste do texto branco mesmo sobre uma foto branca (a conta
   está no CSS e no teste).
 */
-function Destaque({ noticia }: { noticia?: ResumoNoticia }) {
+function Destaque({ noticia, sizes }: { noticia?: ResumoNoticia; sizes: string }) {
   return (
     <article className={styles.destaque}>
       <Casca noticia={noticia} className={styles.destaqueCorpo}>
@@ -201,7 +210,7 @@ function Destaque({ noticia }: { noticia?: ResumoNoticia }) {
             <Capa
               noticia={noticia}
               larguras={LARGURAS_DESTAQUE}
-              sizes="(min-width: 1181px) 600px, (min-width: 701px) calc(100vw - 104px), calc(100vw - 64px)"
+              sizes={sizes}
             />
           ) : (
             <MolduraProvisoria
@@ -225,17 +234,19 @@ function Destaque({ noticia }: { noticia?: ResumoNoticia }) {
 }
 
 /* Uma notícia da lista: miniatura à esquerda, data e título à direita. */
-function Item({ noticia }: { noticia?: ResumoNoticia }) {
+function Item({
+  noticia,
+  capa,
+}: {
+  noticia?: ResumoNoticia;
+  capa: { sizes: string; larguras: number[] };
+}) {
   return (
     <article>
       <Casca noticia={noticia} className={styles.item}>
         <div className={styles.miniatura}>
           {noticia ? (
-            <Capa
-              noticia={noticia}
-              larguras={LARGURAS_MINIATURA}
-              sizes="(min-width: 1181px) 128px, (min-width: 701px) 33vw, 88px"
-            />
+            <Capa noticia={noticia} larguras={capa.larguras} sizes={capa.sizes} />
           ) : (
             <MolduraProvisoria
               largura={4}
