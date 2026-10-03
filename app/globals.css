@@ -194,6 +194,10 @@
     folheto. O espaço negativo cresce com o corpo: em letra grande o vão entre
     as letras aparenta aumentar sozinho.
 
+    A cor é o verde mais escuro da marca, `ami-green-800`, e não o preto do
+    texto: é como o desenho aprovado pinta os títulos. Quem precisa de outra
+    cor (título sobre fundo verde) a diz na própria classe.
+
     O `h2` não leva `max-width` aqui, de propósito. A medida (19ch na home) é
     decisão de cada componente; na base ela valeria para toda página do site
     e quebraria título que não é de seção.
@@ -204,7 +208,7 @@
     font-family: var(--font-titulo);
     font-weight: 500;
     letter-spacing: -0.035em;
-    color: var(--color-ink-900);
+    color: var(--color-ami-green-800);
     text-wrap: balance;
   }
 
@@ -442,7 +446,8 @@
       color 200ms var(--ease-resposta),
       border-color 200ms var(--ease-resposta),
       box-shadow 400ms var(--ease-saida),
-      transform 400ms var(--ease-saida);
+      transform 400ms var(--ease-saida),
+      translate 400ms var(--ease-saida);
   }
 
   .pressiona:active {
@@ -477,7 +482,8 @@
 
      Efeito de mouse nestas peças é borda mais escura, sombra neutra e
      deslocamento de 1px; o botão principal só escurece o próprio verde.
-     Nenhum vira verde claro.
+     Nenhum vira verde claro. A seta anda com a curva do desenho aprovado,
+     cubic-bezier(0.2, 0.7, 0.2, 1), e não com `--ease-saida`.
      ========================================================= */
 
   /* Botão principal: pílula de 48px com degradê, luz fina no topo, texto
@@ -516,7 +522,7 @@
     width: 18px;
     height: 18px;
     flex: none;
-    transition: transform 300ms var(--ease-saida);
+    transition: transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1);
   }
 
   .botao:hover svg {
@@ -553,7 +559,7 @@
   }
 
   .botao-linha svg {
-    transition: transform 300ms var(--ease-saida);
+    transition: transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1);
   }
 
   .botao-linha:hover svg {
@@ -585,7 +591,7 @@
 
   .botao-arte svg {
     flex: none;
-    transition: transform 300ms var(--ease-saida);
+    transition: transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1);
   }
 
   .botao-arte:hover svg {

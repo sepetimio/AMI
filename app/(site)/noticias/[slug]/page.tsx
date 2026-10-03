@@ -170,7 +170,7 @@ export default async function PaginaNoticia({ params }: Props) {
                 alt={capa.alt}
                 width={capaLargura}
                 height={capaAltura}
-                className="h-auto w-full rounded-bloco"
+                className="h-auto w-full rounded-[calc(var(--radius-bloco)-8px)]"
               />
             </div>
           </figure>
@@ -188,7 +188,7 @@ export default async function PaginaNoticia({ params }: Props) {
         <p className="mt-10">
           <Link
             href="/noticias"
-            className="pressiona inline-flex min-h-11 items-center rounded-controle border border-line-strong bg-surface px-5 text-[15px] font-semibold text-ami-green-600 hover:border-line-strong"
+            className="pressiona inline-flex min-h-11 items-center rounded-controle border border-line-strong bg-surface px-5 text-[15px] font-semibold text-ami-green-600 hover:-translate-y-px hover:shadow-apoio"
           >
             Ver todas as notícias
           </Link>
