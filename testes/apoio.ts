@@ -1,9 +1,21 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-/** Lê um arquivo do repositório, a partir da pasta `testes/`. */
+/*
+  Lê um arquivo do repositório, a partir da pasta `testes/`, sempre com fim
+  de linha LF.
+
+  Com `core.autocrlf=true` o checkout escreve CRLF, e o mesmo arquivo chega
+  com `\r\n` numa máquina e `\n` em outra. Um teste que procura "\n  }\n"
+  passava numa árvore e falhava na outra (o do carrossel, na tarefa 6).
+  Normalizar aqui deixa toda varredura de fonte imune, sem cada teste ter de
+  lembrar disso.
+*/
 export function fonte(relativo: string): string {
-  return readFileSync(fileURLToPath(new URL(relativo, import.meta.url)), "utf8");
+  return readFileSync(fileURLToPath(new URL(relativo, import.meta.url)), "utf8").replaceAll(
+    "\r\n",
+    "\n",
+  );
 }
 
 /*
