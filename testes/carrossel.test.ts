@@ -455,6 +455,14 @@ describe("o CSS do carrossel", () => {
     );
   });
 
+  it("de 981 a 1040px, título e texto menores: na proporção do computador o texto não cabia", () => {
+    /* Medido no navegador com os textos do desenho, de 10 em 10px: sem isto
+       o slide com foto passava da proporção em até 44px a 981px. */
+    const faixa = bloco("(min-width: 981px) and (max-width: 1040px)");
+    expect(regra(faixa, ".titulo")).toMatch(/font-size:\s*38px;/);
+    expect(regra(faixa, ".anima p")).toMatch(/font-size:\s*16px;/);
+  });
+
   it("a bolinha tem alvo de toque de 24px no mínimo, também no celular", () => {
     expect(regra(css, "\n.bolinha")).toMatch(/min-width:\s*24px;/);
     expect(regra(css, "\n.bolinha")).toMatch(/height:\s*24px;/);
