@@ -46,8 +46,9 @@ async function noticias(publicadas: ResumoNoticia[], provisorias?: boolean) {
   Renderiza com `renderToString` pelo mesmo motivo de
   testes/porta-da-busca.test.ts: uma varredura de texto-fonte não distingue
   uma moldura viva de uma dentro de `{false && …}` (ver o topo de
-  testes/home.test.ts). O que este arquivo NÃO vê está no relatório da
-  tarefa e no fim deste arquivo.
+  testes/home.test.ts). O que este arquivo NÃO vê (a ligação da própria
+  página, o valor da chave na build de produção, nada visual e o carrossel
+  girando) está listado no fim deste arquivo.
 */
 
 const REAL: Banner = {

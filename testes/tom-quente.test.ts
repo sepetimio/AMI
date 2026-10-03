@@ -19,9 +19,12 @@ import { type CorAchada, arquivosDoSite, coresNoTexto, ehQuente, hslDe } from "@
 
 /* Os valores arbitrários do Tailwind de um `.tsx`: o que está entre os
    colchetes de uma classe como `bg-[#fff]` ou `shadow-[0_1px_0_rgba(...)]`,
-   com `_` virando espaço. */
+   e as propriedades arbitrárias, sem hífen antes do colchete
+   (`[color:#fff]`, `hover:[background:ivory]`), com `_` virando espaço. */
 function arbitrarios(tsx: string): string {
-  return [...tsx.matchAll(/[\w:!/-]*-\[([^\]\s"'`]+)\]/g)].map((m) => m[1].replaceAll("_", " ")).join("\n");
+  const valores = [...tsx.matchAll(/-\[([^\]\s"'`]+)\]/g)].map((m) => m[1]);
+  const propriedades = [...tsx.matchAll(/(?<=^|[\s"'`{:!])\[([a-z-]+:[^\]\s"'`]+)\]/gm)].map((m) => m[1]);
+  return [...valores, ...propriedades].map((v) => v.replaceAll("_", " ")).join("\n");
 }
 
 /* Cada cor do site, com o arquivo de onde veio. */
@@ -66,6 +69,19 @@ describe("nenhum tom quente nem creme no site", () => {
   });
 });
 
+describe("a leitura das cores", () => {
+  it("os valores e as propriedades arbitrárias do Tailwind", () => {
+    const tsx = `<div className="bg-[#FAF0E6] [color:#FFFFF0] hover:[background:linen] p-4" data-x={lista[0]} />`;
+    expect(coresNoTexto(arbitrarios(tsx)).map((c) => c.texto)).toEqual(["#FAF0E6", "#FFFFF0", "linen"]);
+  });
+
+  it("cor montada com var() fica de fora, sem quebrar a varredura", () => {
+    const comVar = "color: rgb(var(--x)); background: hsl(var(--h) 50% 90%); fill: oklch(var(--l) 0.1 80)";
+    expect(coresNoTexto(comVar)).toEqual([]);
+    expect(coresNoTexto(`${comVar}; border-color: #FAF0E6`).map((c) => c.texto)).toEqual(["#FAF0E6"]);
+  });
+});
+
 describe("a regra de quente, por notação", () => {
   const quente = (texto: string) => {
     const achadas = coresNoTexto(texto);
@@ -93,6 +109,11 @@ describe("a regra de quente, por notação", () => {
       "antiquewhite",
       "wheat",
       "bisque",
+      "papayawhip",
+      "blanchedalmond",
+      "moccasin",
+      "navajowhite",
+      "lemonchiffon",
     ]) {
       expect(quente(creme), creme).toBe(true);
     }

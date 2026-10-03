@@ -28,6 +28,11 @@ export const NOMES_QUENTES: Record<string, Rgb> = {
   antiquewhite: [250, 235, 215],
   wheat: [245, 222, 179],
   bisque: [255, 228, 196],
+  papayawhip: [255, 239, 213],
+  blanchedalmond: [255, 235, 205],
+  moccasin: [255, 228, 181],
+  navajowhite: [255, 222, 173],
+  lemonchiffon: [255, 250, 205],
 };
 
 const limitar = (v: number) => Math.min(255, Math.max(0, v));
@@ -37,9 +42,14 @@ function canal(t: string, escala: number): number {
   return t.endsWith("%") ? (parseFloat(t) / 100) * 255 : (parseFloat(t) * 255) / escala;
 }
 
-/* Os argumentos de uma função de cor, com vírgula, espaço ou barra. */
-function argumentos(dentro: string): string[] {
-  return dentro.split(/[\s,/]+/).filter(Boolean);
+/* Os três primeiros argumentos de uma função de cor (vírgula, espaço ou
+   barra), ou `null` quando algum não é número: uma cor montada com `var()`
+   (`rgb(var(--x))`) não tem valor escrito para julgar, e o valor dela é
+   julgado onde a variável é definida. */
+function argumentos(dentro: string): [string, string, string] | null {
+  const partes = dentro.split(/[\s,/]+/).filter(Boolean).slice(0, 3);
+  if (partes.length < 3 || partes.some((p) => !Number.isFinite(parseFloat(p)))) return null;
+  return partes as [string, string, string];
 }
 
 function deHex(h: string): Rgb {
@@ -80,15 +90,21 @@ export function coresNoTexto(css: string): CorAchada[] {
     achadas.push({ texto: m[0], rgb: deHex(m[1]) });
   }
   for (const m of css.matchAll(/rgba?\(([^)]*)\)/gi)) {
-    const [r, g, b] = argumentos(m[1]);
+    const args = argumentos(m[1]);
+    if (!args) continue;
+    const [r, g, b] = args;
     achadas.push({ texto: m[0], rgb: [r, g, b].map((v) => limitar(canal(v, 255))) as Rgb });
   }
   for (const m of css.matchAll(/hsla?\(([^)]*)\)/gi)) {
-    const [h, s, l] = argumentos(m[1]);
+    const args = argumentos(m[1]);
+    if (!args) continue;
+    const [h, s, l] = args;
     achadas.push({ texto: m[0], rgb: deHsl(parseFloat(h), parseFloat(s) / 100, parseFloat(l) / 100) });
   }
   for (const m of css.matchAll(/oklch\(([^)]*)\)/gi)) {
-    const [l, c, h] = argumentos(m[1]);
+    const args = argumentos(m[1]);
+    if (!args) continue;
+    const [l, c, h] = args;
     const claridade = l.endsWith("%") ? parseFloat(l) / 100 : parseFloat(l);
     const croma = c.endsWith("%") ? (parseFloat(c) / 100) * 0.4 : parseFloat(c);
     achadas.push({ texto: m[0], rgb: deOklch(claridade, croma, parseFloat(h)) });
