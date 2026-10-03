@@ -1,0 +1,48 @@
+/*
+  Os espaços dos parceiros, transcritos do desenho aprovado
+  (docs/desenho-aprovado/home-aprovada.html: `.parceiros`, `.logo-vazio`, e
+  os @media de 980 e 700px, na versão final do celular).
+
+  O tracejado do desenho (#D1D5DB) e o do hover (#C4C9D1) viram o mesmo
+  token, `line-strong`, e por isso não há regra de hover: ela não mudaria
+  nada.
+*/
+
+.parceiros {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+
+.logoVazio {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  aspect-ratio: 3 / 2;
+  padding: 8px;
+  border: 1px dashed var(--color-line-strong);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--color-ink-400);
+}
+
+@media (max-width: 980px) {
+  .parceiros {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .parceiros {
+    gap: 8px;
+  }
+
+  .logoVazio {
+    padding: 6px;
+    font-size: 10px;
+  }
+}

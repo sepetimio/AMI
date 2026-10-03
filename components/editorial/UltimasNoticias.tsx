@@ -1,88 +1,244 @@
+import { Fragment, type ReactNode } from "react";
 import Link from "next/link";
+import { Icone } from "@/components/base/Icone";
 import { MolduraProvisoria } from "@/components/base/MolduraProvisoria";
-import { LinhaNoticia } from "@/components/editorial/LinhaNoticia";
+import styles from "@/components/editorial/UltimasNoticias.module.css";
+import { dataPorExtenso } from "@/lib/formato";
 import { listarNoticias } from "@/lib/sanity/consultas";
+import { urlDaImagem } from "@/lib/sanity/imagem";
+import type { ResumoNoticia } from "@/lib/sanity/tipos";
 
 /*
-  Bloco de últimas notícias na home.
+  As notícias da home: uma em destaque, com o título sobre a foto, e as três
+  seguintes numa lista ao lado, como no desenho aprovado
+  (docs/desenho-aprovado/home-aprovada.html, `.noticias`).
 
-  É o primeiro passo para uma home que não desemboca só no diretório: até
-  agora o site tinha médicos e mais nada para mostrar, e uma home é tão
-  atrativa quanto o material que ela pode exibir.
+  Duas peças. `UltimasNoticias` só busca no Sanity e entrega a lista a
+  `NoticiasDaHome`, que só desenha. A separação existe para o teste: a peça
+  que desenha é pura e se renderiza com `renderToString`, sem Sanity
+  (testes/noticias-da-home.test.ts).
 
-  Devolve null quando não há publicação. Título de seção sobre lista vazia
-  promete conteúdo que não está lá, e numa home isso é pior do que a seção não
-  existir.
+  Sem publicação, o bloco não existe (devolve null): título de seção sobre
+  lista vazia promete conteúdo que não está lá.
 
   A exceção é `provisorias`, que só o modo demonstração liga (quem decide é
-  `moldurasDaHome`, em lib/molduras.ts): sem publicação, saem três cartões
-  "Notícia a entrar" com a forma de `LinhaNoticia`, para o cliente ver a home
-  inteira antes de a AMI publicar. Eles não são link — não há página de
-  notícia para eles. Havendo UMA notícia real, ela sai sozinha e os
-  provisórios não aparecem, com ou sem `provisorias`: real e provisório nunca
-  se misturam. O padrão `false` faz quem esquecer de passar a prop cair no
-  null de antes.
+  `moldurasDaHome`, em lib/molduras.ts): sem publicação, saem quatro peças
+  "Notícia a entrar" na forma do desenho, o destaque e as três da lista,
+  para o cliente ver a home inteira antes de a AMI publicar. Elas não são
+  link: não há página de notícia para elas. Havendo UMA notícia real, só a
+  real sai, com ou sem `provisorias`: real e provisório nunca se misturam. O
+  padrão `false` faz quem esquecer de passar a prop cair no null.
 */
 export async function UltimasNoticias({
   provisorias = false,
 }: {
   provisorias?: boolean;
 } = {}) {
-  const noticias = await listarNoticias(3);
-  if (noticias.length === 0 && !provisorias) return null;
+  const noticias = await listarNoticias(QUANTAS);
+  return <NoticiasDaHome noticias={noticias} provisorias={provisorias} />;
+}
+
+/* O destaque e as três da lista. */
+const QUANTAS = 4;
+
+/* Larguras pedidas ao CDN do Sanity para o `srcset`, como em LinhaNoticia. */
+const LARGURAS_DESTAQUE = [480, 640, 960, 1280, 1600];
+const LARGURAS_MINIATURA = [160, 320, 480, 640];
+
+export function NoticiasDaHome({
+  noticias,
+  provisorias = false,
+}: {
+  noticias: ResumoNoticia[];
+  provisorias?: boolean;
+}) {
+  const reais = noticias.slice(0, QUANTAS);
+  if (reais.length === 0 && !provisorias) return null;
+
+  const [destaque, ...lista] = reais;
 
   return (
-    <section
-      aria-labelledby="ultimas-noticias"
-      className="revelar mx-auto max-w-[1200px] px-4 py-16 md:px-6 md:py-20"
-    >
-      <div className="flex items-baseline justify-between gap-4 pb-1">
-        <h2 id="ultimas-noticias">Da associação</h2>
-        <Link
-          href="/noticias"
-          className="pressiona shrink-0 text-[15px] font-semibold text-ami-green-600 hover:underline"
-        >
-          Ver todas
+    <section data-bloco="noticias" aria-labelledby="noticias-titulo">
+      <div className={styles.cabSecao}>
+        <div>
+          <span className="rotulo-secao" data-coluna="">
+            Notícias
+          </span>
+          <h2 id="noticias-titulo" className={styles.titulo}>
+            Fique por dentro da AMI
+          </h2>
+          <p className={styles.texto}>
+            Comunicados, eventos e o que acontece na medicina em Imperatriz.
+          </p>
+        </div>
+        <Link className="botao-linha" href="/noticias">
+          Ver todas as notícias <Icone nome="setaDiagonal" tamanho={16} />
         </Link>
       </div>
 
-      <ul className="mt-6 grid gap-3">
-        {noticias.length > 0
-          ? noticias.map((n) => <LinhaNoticia key={n.slug} noticia={n} />)
-          : [1, 2, 3].map((n) => <NoticiaProvisoria key={n} />)}
-      </ul>
+      {destaque ? (
+        /* Uma notícia só não deixa a coluna da direita vazia ao lado da
+           foto: o destaque ocupa a largura toda, como abaixo de 1180px. */
+        <div className={lista.length > 0 ? styles.noticias : `${styles.noticias} ${styles.soDestaque}`}>
+          <Destaque noticia={destaque} />
+          {lista.length > 0 ? (
+            <Lista>
+              {lista.map((n) => (
+                <Item key={n.slug} noticia={n} />
+              ))}
+            </Lista>
+          ) : null}
+        </div>
+      ) : (
+        <div className={styles.noticias}>
+          <Destaque />
+          <Lista>
+            {[1, 2, 3].map((n) => (
+              <Item key={n} />
+            ))}
+          </Lista>
+        </div>
+      )}
     </section>
   );
 }
 
-/*
-  O cartão "Notícia a entrar". Mesma casca, mesmo respiro e mesma caixa de
-  capa de `LinhaNoticia` (160 × 112 a partir de `sm`, largura cheia abaixo),
-  para que a primeira publicação real ocupe o lugar sem mover nada. Sem
-  `<Link>` e sem os estados de passagem de mouse: não leva a lugar nenhum, e
-  não deve parecer que leva. O fio tracejado é a mesma marca de provisório do
-  cartão "Sua AMI".
-*/
-function NoticiaProvisoria() {
+/* A coluna da direita, com a divisória entre uma notícia e a seguinte. */
+function Lista({ children }: { children: ReactNode[] }) {
   return (
-    <li className="min-w-0 rounded-bloco border border-dashed border-line-strong bg-surface shadow-apoio">
-      <div className="flex flex-col gap-5 p-5 sm:flex-row sm:gap-6 md:p-6">
-        <MolduraProvisoria
-          largura={160}
-          altura={112}
-          rotulo="Espaço reservado para a capa de uma notícia"
-          className="h-[112px] shrink-0 rounded-bloco shadow-apoio sm:w-[160px]"
-        />
+    <div className={styles.lista}>
+      {children.map((filho, i) => (
+        <Fragment key={i}>
+          {i > 0 ? <div className={styles.sep} aria-hidden="true" /> : null}
+          {filho}
+        </Fragment>
+      ))}
+    </div>
+  );
+}
 
-        <div className="min-w-0 flex-1">
-          <h3 className="text-[22px] font-semibold leading-[1.25] tracking-[-0.02em] text-ink-900">
-            Notícia a entrar
-          </h3>
-          <p className="coluna-leitura mt-2 text-[16px] text-ink-600">
-            Espaço reservado para uma publicação da AMI.
+/*
+  A capa de uma notícia real, ou nada.
+
+  `urlDaImagem` devolve "" quando `asset._ref` está malformado; um
+  `<img src="">` faria o navegador pedir a página de novo (ver
+  LinhaNoticia). Sem URL, a notícia cai no mesmo desenho de quem não tem
+  capa.
+
+  `alt=""`: a imagem está dentro do link, e o nome do link é o título. A
+  descrição da foto entraria no nome do link antes do título e o alongaria
+  sem dizer para onde ele leva.
+*/
+function Capa({
+  noticia,
+  larguras,
+  sizes,
+}: {
+  noticia: ResumoNoticia;
+  larguras: number[];
+  sizes: string;
+}) {
+  const capa = noticia.capa;
+  const src = capa ? urlDaImagem(capa, larguras[1]) : "";
+  if (!capa || !src) return <div className={styles.semCapa} aria-hidden="true" />;
+  return (
+    /* eslint-disable-next-line @next/next/no-img-element --
+       o CDN do Sanity já redimensiona; ver lib/sanity/imagem.ts. */
+    <img
+      src={src}
+      srcSet={larguras.map((l) => `${urlDaImagem(capa, l)} ${l}w`).join(", ")}
+      sizes={sizes}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      className={styles.imagem}
+    />
+  );
+}
+
+/* Link para a notícia real; para a provisória, uma caixa que não leva a
+   lugar nenhum e não deve parecer que leva. */
+function Casca({
+  noticia,
+  className,
+  children,
+}: {
+  noticia?: ResumoNoticia;
+  className: string;
+  children: ReactNode;
+}) {
+  return noticia ? (
+    <Link href={`/noticias/${noticia.slug}`} className={className}>
+      {children}
+    </Link>
+  ) : (
+    <div className={className}>{children}</div>
+  );
+}
+
+/*
+  A notícia em destaque: o título vai sobre a foto, num degradê escuro que
+  garante o contraste do texto branco mesmo sobre uma foto branca (a conta
+  está no CSS e no teste).
+*/
+function Destaque({ noticia }: { noticia?: ResumoNoticia }) {
+  return (
+    <article className={styles.destaque}>
+      <Casca noticia={noticia} className={styles.destaqueCorpo}>
+        <div className={styles.foto}>
+          {noticia ? (
+            <Capa
+              noticia={noticia}
+              larguras={LARGURAS_DESTAQUE}
+              sizes="(min-width: 1181px) 600px, (min-width: 701px) calc(100vw - 104px), calc(100vw - 64px)"
+            />
+          ) : (
+            <MolduraProvisoria
+              largura={16}
+              altura={10}
+              rotulo="Espaço reservado para a capa de uma notícia"
+              className="h-full"
+            />
+          )}
+        </div>
+        <div className={styles.sobreFoto}>
+          {noticia ? <span className={styles.data}>{dataPorExtenso(noticia.publicadoEm)}</span> : null}
+          <h3 className={styles.destaqueTitulo}>{noticia ? noticia.titulo : "Notícia a entrar"}</h3>
+          <p className={styles.resumo}>
+            {noticia ? noticia.resumo : "Espaço reservado para uma publicação da AMI."}
           </p>
         </div>
-      </div>
-    </li>
+      </Casca>
+    </article>
+  );
+}
+
+/* Uma notícia da lista: miniatura à esquerda, data e título à direita. */
+function Item({ noticia }: { noticia?: ResumoNoticia }) {
+  return (
+    <article>
+      <Casca noticia={noticia} className={styles.item}>
+        <div className={styles.miniatura}>
+          {noticia ? (
+            <Capa
+              noticia={noticia}
+              larguras={LARGURAS_MINIATURA}
+              sizes="(min-width: 1181px) 128px, (min-width: 701px) 33vw, 88px"
+            />
+          ) : (
+            <MolduraProvisoria
+              largura={4}
+              altura={3}
+              rotulo="Espaço reservado para a capa de uma notícia"
+              className="h-full"
+            />
+          )}
+        </div>
+        <div className={styles.itemTexto}>
+          {noticia ? <span className={styles.data}>{dataPorExtenso(noticia.publicadoEm)}</span> : null}
+          <h3 className={styles.itemTitulo}>{noticia ? noticia.titulo : "Notícia a entrar"}</h3>
+        </div>
+      </Casca>
+    </article>
   );
 }

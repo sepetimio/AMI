@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Fotografia } from "@/components/base/Fotografia";
 import { UltimasNoticias } from "@/components/editorial/UltimasNoticias";
 import { Carrossel } from "@/components/home/Carrossel";
-import { EmpresasParceiras } from "@/components/home/EmpresasParceiras";
+import { BairrosEParceiros } from "@/components/home/BairrosEParceiros";
 import { ServicosDaAmi } from "@/components/home/ServicosDaAmi";
 import { ESPACOS, espacosProvisorios, type NomeEspaco } from "@/lib/imagens";
 import {
@@ -176,17 +176,18 @@ describe("o cartão provisório Sua AMI", () => {
   });
 });
 
-describe("as três notícias provisórias", () => {
-  it("sem notícia real e com provisorias, saem três cartões Notícia a entrar", async () => {
+describe("as quatro notícias provisórias", () => {
+  it("sem notícia real e com provisorias, saem quatro peças Notícia a entrar", async () => {
     const saida = await noticias([], true);
-    expect(vezes(saida, ">Notícia a entrar</h3>")).toBe(3);
+    expect(vezes(saida, ">Notícia a entrar</h3>")).toBe(4);
   });
 
-  it("com a forma do cartão real: <li> com a caixa de capa de 160 × 112", async () => {
+  it("na forma do desenho: o destaque e três na lista, cada uma com a moldura no lugar da capa", async () => {
+    /* A forma em detalhe (destaque, lista, divisórias) está em
+       testes/noticias-da-home.test.ts. */
     const saida = await noticias([], true);
-    expect(vezes(saida, "<li ")).toBe(3);
-    expect(vezes(saida, "h-[112px]")).toBe(3);
-    expect(vezes(saida, "sm:w-[160px]")).toBe(3);
+    expect(vezes(saida, "<article")).toBe(4);
+    expect(vezes(saida, 'aria-label="Espaço reservado para a capa de uma notícia"')).toBe(4);
   });
 
   it("não levam a lugar nenhum", async () => {
@@ -208,32 +209,34 @@ describe("as três notícias provisórias", () => {
   });
 });
 
-describe("a faixa de empresas parceiras", () => {
-  const saida = html(createElement(EmpresasParceiras));
+describe("a parte de empresas parceiras", () => {
+  const saida = html(
+    createElement(BairrosEParceiros, {
+      bairros: [{ nome: "Centro", slug: "centro", total: 8 }],
+      parceiros: true,
+    }),
+  );
+  const parte = saida.slice(saida.indexOf('<section id="parceiros"'));
 
-  it("tem o título aprovado e seis espaços de logotipo", () => {
-    expect(saida).toContain(">Empresas parceiras da AMI</h2>");
-    expect(vezes(saida, ">Logotipo a entrar</p>")).toBe(6);
-    expect(vezes(saida, 'role="img"')).toBe(6);
-  });
-
-  it("em duas linhas de 3 do tablet para cima, 2 no celular — nunca 6 lado a lado", () => {
-    /* Com 6, a tarja quebrava em duas linhas a 1024 (medido, ver o
-       comentário no componente). */
-    const classes = /<ul class="mt-8 grid ([^"]*)"/.exec(saida)?.[1].trim();
-    expect(classes).toBe("grid-cols-2 gap-4 md:grid-cols-3");
+  it("tem o rótulo e o título aprovados e seis espaços de logotipo", () => {
+    expect(parte).toContain(">Empresas parceiras da AMI</span>");
+    expect(parte).toContain(">Quem caminha com a AMI</h2>");
+    expect(vezes(parte, ">Logotipo a entrar</li>")).toBe(6);
   });
 
   it("não escreve nome de empresa nenhuma", () => {
-    /* Todo texto visível da faixa, tirado o HTML: só pode sobrar o título e
-       as seis legendas. Qualquer outra palavra é um nome que alguém pôs. */
-    const visivel = saida
+    /* Todo texto visível da parte, tirado o HTML: só pode sobrar o rótulo,
+       o título e as seis legendas. Qualquer outra palavra é um nome que
+       alguém pôs. A grade (seis, três e três) está no CSS, conferida em
+       testes/noticias-da-home.test.ts. */
+    const visivel = parte
       .replace(/<[^>]+>/g, "\n")
       .split("\n")
       .map((t) => t.trim())
       .filter(Boolean);
     expect(visivel).toEqual([
       "Empresas parceiras da AMI",
+      "Quem caminha com a AMI",
       ...Array<string>(6).fill("Logotipo a entrar"),
     ]);
   });
@@ -243,7 +246,8 @@ describe("a faixa de empresas parceiras", () => {
   A trava. É a parte que mais importa: nenhuma moldura "a entrar" pode
   chegar ao público no lançamento.
 
-  `home()` liga a saída de `moldurasDaHome` aos quatro componentes, mais a
+  `home()` liga a saída de `moldurasDaHome` aos quatro componentes (os parceiros
+  dentro da faixa dos bairros), mais a
   fotografia provisória do bloco institucional, do jeito
   que app/(site)/page.tsx liga — a ligação de lá é conferida por texto-fonte
   em testes/home.test.ts, porque a página busca dados e não renderiza aqui.
@@ -267,7 +271,12 @@ async function home(
       }),
     ),
     await noticias(real.publicadas, m.noticiasProvisorias),
-    m.parceiros ? html(createElement(EmpresasParceiras)) : "",
+    html(
+      createElement(BairrosEParceiros, {
+        bairros: [{ nome: "Centro", slug: "centro", total: 8 }],
+        parceiros: m.parceiros,
+      }),
+    ),
     html(createElement(Fotografia, { espaco: "sede", demonstracao })),
   ].join("\n");
 }
@@ -292,7 +301,7 @@ describe("a trava", () => {
     /* E as seções sem conteúdo somem, como antes: carrossel e notícias não
        deixam nem a casca. */
     expect(saida).not.toContain("Destaques da AMI");
-    expect(saida).not.toContain("Da associação");
+    expect(saida).not.toContain("Fique por dentro da AMI");
   });
 
   it("com a chave falsa, nada provisório sai em nenhuma combinação de conteúdo", () => {

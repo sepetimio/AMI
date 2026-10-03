@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Fotografia } from "@/components/base/Fotografia";
 import { IndiceEspecialidades } from "@/components/diretorio/IndiceEspecialidades";
-import { LadrilhosBairros } from "@/components/diretorio/LadrilhosBairros";
 import { UltimasNoticias } from "@/components/editorial/UltimasNoticias";
+import { BairrosEParceiros } from "@/components/home/BairrosEParceiros";
 import { Carrossel } from "@/components/home/Carrossel";
-import { EmpresasParceiras } from "@/components/home/EmpresasParceiras";
 import { FaixaDaAmi } from "@/components/home/FaixaDaAmi";
 import { ServicosDaAmi } from "@/components/home/ServicosDaAmi";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -184,38 +183,23 @@ export default async function Home() {
       {/* =====================================================
           6. ÚLTIMAS NOTÍCIAS
           Sem matéria publicada no Sanity, some sozinha (devolve null) —
-          a não ser no modo demonstração, em que saem três cartões
+          a não ser no modo demonstração, em que saem quatro peças
           "Notícia a entrar" no lugar.
           ===================================================== */}
-      <UltimasNoticias provisorias={molduras.noticiasProvisorias} />
+      {/* A caixa de 1240px do desenho, até a tarefa 10 montar a home nova. */}
+      <div className="mx-auto max-w-[1240px] px-3 min-[701px]:px-6">
+        <UltimasNoticias provisorias={molduras.noticiasProvisorias} />
+      </div>
 
       {/* =====================================================
-          7. BAIRROS
-          Quarta família de layout da página: ladrilho, não linha, não
-          coluna, não divisão com foto.
+          7. BAIRROS E EMPRESAS PARCEIRAS DA AMI
+          Uma faixa branca de ponta a ponta. Os parceiros, hoje
+          inteiramente provisórios, só saem no modo demonstração.
+          O espaço acima dela é provisório, até a tarefa 10.
           ===================================================== */}
-      <section
-        aria-labelledby="bairros"
-        className="revelar border-t border-line bg-surface"
-      >
-        <div className="mx-auto max-w-[1200px] px-4 py-16 md:px-6 md:py-20">
-          <h2 id="bairros">Onde os médicos atendem</h2>
-          <p className="coluna-leitura mt-3 text-ink-600">
-            Escolha o bairro para ver quem atende perto de você.
-          </p>
-
-          <div className="mt-8">
-            <LadrilhosBairros itens={bairros} />
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================
-          8. EMPRESAS PARCEIRAS DA AMI
-          A última seção da home. Hoje inteira provisória, então só
-          existe no modo demonstração.
-          ===================================================== */}
-      {molduras.parceiros ? <EmpresasParceiras /> : null}
+      <div className="mt-[var(--ritmo)]">
+        <BairrosEParceiros bairros={bairros} parceiros={molduras.parceiros} />
+      </div>
     </>
   );
 }

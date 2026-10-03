@@ -67,9 +67,9 @@ export type MoldurasDaHome = {
   banners: ItemDoCarrossel[];
   /** O quarto cartão de "Serviços da AMI". */
   suaAmi: boolean;
-  /** Os três cartões "Notícia a entrar" no lugar das últimas notícias. */
+  /** As quatro peças "Notícia a entrar" (destaque e lista) no lugar das últimas notícias. */
   noticiasProvisorias: boolean;
-  /** A faixa "Empresas parceiras da AMI". */
+  /** A parte "Empresas parceiras da AMI" da faixa dos bairros. */
   parceiros: boolean;
 };
 

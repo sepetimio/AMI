@@ -139,13 +139,14 @@ describe("a home renderizada", () => {
       'id="especialidades"',
       "Fotografia a entrar",
       'id="institucional"',
-      'id="ultimas-noticias"',
+      'data-bloco="noticias"',
+      ">Notícia a entrar</h3>",
       ">Notícia a entrar</h3>",
       ">Notícia a entrar</h3>",
       ">Notícia a entrar</h3>",
       'id="bairros"',
       'id="parceiros"',
-      ">Logotipo a entrar</p>",
+      ">Logotipo a entrar</li>",
     ]);
   });
 
@@ -155,7 +156,7 @@ describe("a home renderizada", () => {
     for (const provisoria of [
       'aria-label="Destaques da AMI"',
       "Sua AMI",
-      'id="ultimas-noticias"',
+      'data-bloco="noticias"',
       'id="parceiros"',
       'role="img"',
     ]) {
@@ -181,7 +182,7 @@ describe("a home renderizada", () => {
     expect(html.match(/Ir para o banner /g) ?? []).toEqual([]);
 
     /* Notícias: a real, e nenhuma provisória. */
-    const bloco = html.slice(html.indexOf('id="ultimas-noticias"'), html.indexOf('id="bairros"'));
+    const bloco = html.slice(html.indexOf('data-bloco="noticias"'), html.indexOf('id="bairros"'));
     expect(bloco).toContain("Assembleia geral ordinária");
     expect(bloco).not.toContain("Notícia a entrar");
 

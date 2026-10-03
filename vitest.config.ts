@@ -27,7 +27,8 @@ import { fileURLToPath } from "node:url";
    `renderToString`, `/contato` e `/associacao`. `testes/numeros-e-busca.test.ts`
    renderiza assim os números da home e o bloco "Encontre um médico", e
    `testes/sua-ami-e-associe.test.ts`, "Sua AMI", "Seja associado" e
-   "Quem é a AMI?". */
+   "Quem é a AMI?", e `testes/noticias-da-home.test.ts`, as notícias, os
+   bairros e os parceiros da home. */
 export default defineConfig({
   test: {
     include: ["testes/**/*.test.ts"],

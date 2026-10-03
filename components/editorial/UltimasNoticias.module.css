@@ -1,0 +1,309 @@
+/*
+  As notícias da home, transcritas do desenho aprovado
+  (docs/desenho-aprovado/home-aprovada.html: `.cab-secao`, `.noticias`,
+  `.destaque`, `.destaque .sobre-foto`, `.lista`, `.lista .sep`, `.item`, a
+  seção `.aberta`, e os @media de 1180, 980 e 700px). No celular vale a
+  versão final do desenho ("notícias, revisto"): destaque grande e lista com
+  miniatura quadrada de 88px, e não a fileira que desliza.
+
+  Seção aberta: sem fundo, sem sombra e sem canto. O texto fica na coluna
+  das caixas porque a margem interna é `--m`.
+*/
+
+.cabSecao {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding: 0 var(--m) 32px;
+}
+
+.cabSecao > div {
+  min-width: 0;
+}
+
+.titulo {
+  margin-top: 14px;
+}
+
+.texto {
+  max-width: 34em;
+  margin-top: 16px;
+  color: var(--color-ink-600);
+  text-wrap: pretty;
+}
+
+.noticias {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: var(--m);
+  padding: 0 var(--m);
+}
+
+.noticias > * {
+  min-width: 0;
+}
+
+/* Uma notícia só: o destaque na largura toda, como abaixo de 1180px. */
+.noticias.soDestaque {
+  grid-template-columns: 1fr;
+}
+
+.destaque {
+  align-self: start;
+}
+
+/*
+  A foto e o texto ocupam a mesma célula de grade, o texto encostado
+  embaixo. É o mesmo desenho do `position: absolute` do original, com uma
+  diferença: se um título longo deixar o texto mais alto que a foto, a
+  célula cresce e a foto acompanha (medido a 375px com um título de quatro
+  linhas: o bloco foi de 233 para 317px), em vez de o título ser cortado no
+  alto. O fundo verde-escuro fica atrás da foto enquanto ela carrega.
+*/
+.destaqueCorpo {
+  display: grid;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--color-ami-green-900);
+  color: var(--color-white);
+}
+
+.foto {
+  grid-area: 1 / 1;
+  align-self: stretch;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+}
+
+.imagem {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.destaqueCorpo:hover .imagem,
+.item:hover .imagem {
+  transform: scale(1.05);
+}
+
+/* Notícia real sem capa: o verde da marca com o símbolo, sem texto. */
+.semCapa {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    160deg,
+    var(--color-ami-green-700) 0%,
+    var(--color-ami-green-800) 45%,
+    var(--color-ami-green-900) 100%
+  );
+}
+
+.semCapa::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  background: linear-gradient(150deg, var(--color-ami-lima-400), var(--color-ami-green-800));
+  -webkit-mask: url(/marca/ami-simbolo.svg) center / 70% no-repeat;
+  mask: url(/marca/ami-simbolo.svg) center / 70% no-repeat;
+}
+
+/*
+  O texto sobre a foto, em branco.
+
+  O degradê do desenho ia de 88% embaixo a 0 no alto, passando por 62% na
+  metade: a data, a primeira linha do texto, ficava sobre uns 33%, e sobre
+  uma foto branca isso dá 1,8:1. Aqui o degradê só se apaga na folga de
+  cima, onde não há texto: do alto da data para baixo ele nunca fica abaixo
+  de 75%. `--folga` é ao mesmo tempo o espaço de cima e o ponto em que o
+  degradê chega aos 75%, e por isso os dois não se desencontram.
+
+  Pior caso, foto branca atrás: a data (branco a 72%) dá 5,60:1, o resumo
+  (82%) 6,70:1 e o título 8,99:1. A conta está em
+  testes/noticias-da-home.test.ts, lida deste arquivo.
+*/
+.sobreFoto {
+  --folga: 72px;
+  position: relative;
+  grid-area: 1 / 1;
+  align-self: end;
+  padding: var(--folga) 28px 26px;
+  background: linear-gradient(
+    0deg,
+    rgba(8, 14, 10, 0.88) 0%,
+    rgba(8, 14, 10, 0.75) calc(100% - var(--folga)),
+    rgba(8, 14, 10, 0) 100%
+  );
+}
+
+.data {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-400);
+}
+
+.sobreFoto .data {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.destaqueTitulo {
+  max-width: 30ch;
+  margin: 10px 0 12px;
+  font-size: 26px;
+  line-height: 1.18;
+  color: var(--color-white);
+}
+
+.resumo {
+  max-width: 36em;
+  color: rgba(255, 255, 255, 0.82);
+  text-wrap: pretty;
+}
+
+/*
+  A coluna da direita tem exatamente a altura da foto de destaque. As colunas
+  são 1,25fr e 1fr, então a da direita mede 0,8 da largura da esquerda; a foto
+  é 16:10, então a altura dela é 0,625 da largura da esquerda. 0,8 / 0,625 =
+  1,28 = 32/25. Com "space-between", a primeira miniatura encosta no topo, a
+  última na base, e cada divisória fica no meio exato entre duas notícias.
+*/
+.lista {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  aspect-ratio: 32 / 25;
+}
+
+.sep {
+  flex: none;
+  height: 1px;
+  background: var(--color-line);
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 128px 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
+.miniatura {
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  border-radius: 10px;
+}
+
+.itemTexto {
+  min-width: 0;
+}
+
+.itemTitulo {
+  margin-top: 6px;
+  font-size: 18.5px;
+  line-height: 1.22;
+}
+
+/* Abaixo de 1180px: o destaque em cima e as outras três lado a lado. */
+@media (max-width: 1180px) {
+  .noticias {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .lista {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    aspect-ratio: auto;
+  }
+
+  .sep {
+    display: none;
+  }
+
+  .item {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 14px;
+  }
+
+  .miniatura {
+    aspect-ratio: 16 / 10;
+  }
+}
+
+/* Tablet: o botão "Ver todas" desce para baixo do texto. */
+@media (max-width: 980px) {
+  .cabSecao {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: 24px;
+  }
+}
+
+/* Celular: o destaque grande em cima e a lista de cima para baixo, com
+   miniatura quadrada de 88px e a divisória de volta. Nada desliza para os
+   lados e nada fica cortado na borda. */
+@media (max-width: 700px) {
+  .cabSecao {
+    gap: 14px;
+    padding: 0 var(--m) 20px;
+  }
+
+  .noticias {
+    gap: 20px;
+  }
+
+  .foto {
+    aspect-ratio: 4 / 3;
+  }
+
+  .sobreFoto {
+    --folga: 70px;
+    padding: var(--folga) 18px 18px;
+  }
+
+  .destaqueTitulo {
+    font-size: 20px;
+  }
+
+  .resumo {
+    font-size: 13.5px;
+  }
+
+  .lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .sep {
+    display: block;
+    margin: 14px 0;
+  }
+
+  .item {
+    grid-template-columns: 88px 1fr;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .miniatura {
+    width: 88px;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+  }
+
+  .itemTitulo {
+    margin-top: 4px;
+    font-size: 16px;
+    line-height: 1.25;
+  }
+}

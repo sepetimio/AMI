@@ -41,8 +41,10 @@ describe("a home", () => {
     }
   });
 
-  it("mantem as quatro secoes que ja existiam", () => {
-    for (const c of ["IndiceEspecialidades", "UltimasNoticias", "LadrilhosBairros"]) {
+  it("mantem as secoes que ja existiam", () => {
+    /* Os ladrilhos de bairro moram, desde a tarefa 9, dentro de
+       <BairrosEParceiros>. */
+    for (const c of ["IndiceEspecialidades", "UltimasNoticias", "BairrosEParceiros"]) {
       expect(HOME, `a home perdeu <${c}>`).toContain(`<${c}`);
     }
   });
@@ -66,11 +68,11 @@ describe("a home", () => {
 });
 
 describe("a home, depois das molduras provisórias", () => {
-  it("monta a faixa de empresas parceiras", () => {
-    expect(HOME, "falta <EmpresasParceiras> na home").toContain("<EmpresasParceiras");
+  it("monta a faixa dos bairros e das empresas parceiras", () => {
+    expect(HOME, "falta <BairrosEParceiros> na home").toContain("<BairrosEParceiros");
   });
 
-  it("tem as oito secoes na ordem aprovada, com os parceiros por ultimo", () => {
+  it("tem as secoes na ordem aprovada, com bairros e parceiros por ultimo", () => {
     /* Mesma limitação do resto do arquivo: posição no texto-fonte, não na
        tela. As seções sem componente próprio entram pelo `id` do título. */
     const ordem = [
@@ -80,8 +82,7 @@ describe("a home, depois das molduras provisórias", () => {
       'id="especialidades"',
       'id="institucional"',
       "<UltimasNoticias",
-      'id="bairros"',
-      "<EmpresasParceiras",
+      "<BairrosEParceiros",
     ];
     const posicoes = ordem.map((marca) => HOME.indexOf(marca));
     for (const [i, marca] of ordem.entries()) {
@@ -105,7 +106,7 @@ describe("a home, depois das molduras provisórias", () => {
     expect(HOME).toContain("<Carrossel itens={molduras.banners}");
     expect(HOME).toMatch(/suaAmi=\{molduras\.suaAmi\}/);
     expect(HOME).toContain("<UltimasNoticias provisorias={molduras.noticiasProvisorias}");
-    expect(HOME).toContain("{molduras.parceiros ? <EmpresasParceiras");
+    expect(HOME).toContain("<BairrosEParceiros bairros={bairros} parceiros={molduras.parceiros}");
   });
 
   it("a casca da foto da sede pergunta a mesma trava antes de existir", () => {
