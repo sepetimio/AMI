@@ -15,6 +15,13 @@ import { MolduraProvisoria } from "@/components/base/MolduraProvisoria";
   A proporção 3 × 2 dos espaços é escolha minha, não medida: não há logotipo
   real nem padrão de arte combinado para eles ainda. No dia em que houver,
   a proporção acompanha o padrão.
+
+  Grade de 3 do tablet para cima (duas linhas de 3) e 2 no celular. Seis lado
+  a lado foi medido e recusado em 03/10/2026: a 1024 cada espaço tinha 147px
+  e a tarja "Logotipo a entrar" quebrava em duas linhas, cobrindo 74 dos 98px
+  de altura. Com 3, ela cabe numa linha a 768, 1024 e 1280. No celular ainda
+  quebra em duas (74 dos 109px a 375); uma coluna só caberia numa linha, mas
+  faria seis blocos de 229px de altura em fila.
 */
 const ESPACOS = 6;
 
@@ -24,7 +31,7 @@ export function EmpresasParceiras() {
       <div className="mx-auto max-w-[1200px] px-4 py-16 md:px-6 md:py-20">
         <h2 id="parceiros">Empresas parceiras da AMI</h2>
 
-        <ul className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+        <ul className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3">
           {Array.from({ length: ESPACOS }, (_, i) => (
             <li key={i}>
               <MolduraProvisoria

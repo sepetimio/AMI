@@ -193,6 +193,13 @@ describe("a faixa de empresas parceiras", () => {
     expect(vezes(saida, 'role="img"')).toBe(6);
   });
 
+  it("em duas linhas de 3 do tablet para cima, 2 no celular — nunca 6 lado a lado", () => {
+    /* Com 6, a tarja quebrava em duas linhas a 1024 (medido, ver o
+       comentário no componente). */
+    const classes = /<ul class="mt-8 grid ([^"]*)"/.exec(saida)?.[1].trim();
+    expect(classes).toBe("grid-cols-2 gap-4 md:grid-cols-3");
+  });
+
   it("não escreve nome de empresa nenhuma", () => {
     /* Todo texto visível da faixa, tirado o HTML: só pode sobrar o título e
        as seis legendas. Qualquer outra palavra é um nome que alguém pôs. */
