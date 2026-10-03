@@ -115,7 +115,7 @@ export default async function PaginaEspecialidade({
         Esta é a página que o Google traz tráfego, e era um h1 solto sobre o
         cinza da página, indistinguível do resultado de busca livre logo ao
         lado. A faixa clara de borda a borda, com o símbolo em máscara, é a
-        `Cabeceira` de todas as páginas internas — o comentário de
+        `Cabeceira` que abre as páginas internas (o perfil do médico tem a sua própria) — o comentário de
         components/layout/Cabeceira.tsx diz como ela conversa com a faixa
         verde do topo da home.
 
