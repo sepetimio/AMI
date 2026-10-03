@@ -162,11 +162,14 @@ Decisões em [`docs/superpowers/specs/2026-10-03-encontre-um-medico-design.md`](
    e olhar o campo **Filter** (o painel do Sanity é em inglês):
    - vazio: nada a fazer;
    - com uma lista de tipos (algo como `_type in ["banner", "noticia", ...]`):
-     acrescentar `"empresaParceira"` à lista e salvar. Sem isso, a parceira cadastrada
-     demora até uma hora para aparecer no site.
-3. De volta ao `/studio` (em português), clicar em **Empresa parceira** e, no alto da
-   lista, no botão de criar documento novo. Preencher **Nome**, **Logotipo** (arquivo
-   **PNG**, de preferência com fundo transparente), **Site** (opcional) e **Ordem**
+     acrescentar `"empresaParceira"` à lista e salvar a alteração no botão de salvar da
+     própria tela do webhook (o nome dele, em inglês como o resto do painel, não foi
+     conferido). Sem isso, a parceira cadastrada demora até uma hora para
+     aparecer no site.
+3. De volta ao `/studio` (em português: o projeto liga a tradução do Studio, `ptBRLocale`,
+   em `sanity.config.ts`), clicar em **Empresa parceira** e, no alto da lista, no botão de
+   criar documento novo. Preencher **Nome**, **Logotipo** (arquivo **PNG**, de preferência
+   com fundo transparente; JPEG e WebP também entram, SVG não), **Site** (opcional) e **Ordem**
    (opcional; sem ordem, as parceiras vêm pelo nome), e clicar em **Publicar**. Repetir
    para cada parceira.
 
