@@ -58,8 +58,12 @@ export function enderecoEmLinha(): string {
 /**
  * Telefone no formato que o link `tel:` exige: só dígitos, com o código do
  * país. O que o usuário vê continua sendo o número formatado.
+ *
+ * Fica de fora dos exports de propósito: o rodapé já usou isto direto num
+ * `href`, sem o `tel:`, e o link quebrou em todo o site. Quem precisa de
+ * link usa `hrefTelefone`.
  */
-export function telefoneParaLigar(numero: string): string {
+function telefoneParaLigar(numero: string): string {
   return `+55${numero.replace(/\D/g, "")}`;
 }
 

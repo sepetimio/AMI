@@ -2,7 +2,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { hrefTelefone, telefoneParaLigar } from "@/lib/ami";
+import * as ami from "@/lib/ami";
+import { hrefTelefone } from "@/lib/ami";
 import { semComentarios } from "@/testes/apoio";
 
 describe("hrefTelefone", () => {
@@ -20,8 +21,10 @@ describe("hrefTelefone", () => {
     expect(hrefTelefone("(99) 98802-0205")).toBe("tel:+5599988020205");
   });
 
-  it("é o número de telefoneParaLigar com o prefixo, e só isso", () => {
-    expect(hrefTelefone("(99) 3524-3716")).toBe(`tel:${telefoneParaLigar("(99) 3524-3716")}`);
+  it("o número sem o tel: não sai de lib/ami.ts", () => {
+    /* Foi `telefoneParaLigar` direto num `href` que quebrou o rodapé. Sem
+       export, esse erro não se repete: não há o que importar. */
+    expect("telefoneParaLigar" in ami).toBe(false);
   });
 });
 
