@@ -38,6 +38,9 @@
   - a barra do pé: nunca acima de 700px; até 700px, aparece se e só se o
     carrossel saiu por cima (ou a rolagem passou de 600px, sem carrossel) e
     a busca não está na tela.
+  - ao chegar pelo menu, vindo de outra página parada no topo ou no meio, a
+    página nova abre em `scrollY` 0. É a última conferência, porque troca de
+    página: quando a auditoria termina, a aba está noutra página.
 */
 (async () => {
   const espera = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -459,5 +462,63 @@
 
   botaoPausa?.click();
   semAnimacao.remove();
+
+  /* 12. Nenhuma página abre rolada ao chegar pelo menu. Roda depois de
+     tirar o `semAnimacao`: com a rolagem suave desligada pela auditoria, o
+     defeito não aparece. Cada destino é visitado vindo de outra página
+     parada no topo (o caso que abria rolado) e no meio. */
+  const estavel = async () => {
+    let ultimo = -1;
+    let iguais = 0;
+    for (let i = 0; i < 100; i++) {
+      await espera(100);
+      if (scrollY === ultimo) {
+        if (++iguais >= 8) return scrollY;
+      } else {
+        iguais = 0;
+        ultimo = scrollY;
+      }
+    }
+    return scrollY;
+  };
+  const ir = async (href) => {
+    const antes = document.querySelector("main")?.firstElementChild;
+    const link = [...document.querySelectorAll("header a")].find(
+      (a) => a.getAttribute("href") === href,
+    );
+    link.click();
+    for (let i = 0; i < 150; i++) {
+      await espera(100);
+      if (
+        location.pathname === href &&
+        document.querySelector("main")?.firstElementChild !== antes
+      )
+        break;
+    }
+    return estavel();
+  };
+  const destinos = [
+    ...new Set(
+      [...document.querySelectorAll('header a[href^="/"]')].map((a) =>
+        a.getAttribute("href"),
+      ),
+    ),
+  ].filter((h) => !h.includes("#"));
+  const aberturas = [];
+  for (const href of destinos) {
+    for (const desde of ["topo", "meio"]) {
+      if (location.pathname === href)
+        await ir(destinos.find((d) => d !== href));
+      const meio = Math.round((raiz.scrollHeight - innerHeight) / 2);
+      window.scrollTo({ top: desde === "topo" ? 0 : meio, behavior: "instant" });
+      await espera(300);
+      const y = await ir(href);
+      aberturas.push(`${href}@${desde}:${y}`);
+      if (y !== 0)
+        problemas.push(`${href} abriu rolada ${y}px (vindo de outra página, no ${desde})`);
+    }
+  }
+  info.aberturas = aberturas.join(" ");
+
   return JSON.stringify({ ...info, problemas });
 })();

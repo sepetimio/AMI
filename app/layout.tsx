@@ -30,9 +30,17 @@ export default function LayoutRaiz({
 }: {
   children: React.ReactNode;
 }) {
+  /*
+    `data-scroll-behavior="smooth"`: o `<html>` tem rolagem suave
+    (app/globals.css), e o Next 16 só a desliga na troca de página quando vê
+    este atributo. Sem ele, a página nova abria rolada para baixo, de 186 a
+    456px (medido em 03/10/2026): a volta ao topo virava animação, e os
+    posicionamentos seguintes do Next a interrompiam.
+  */
   return (
     <html
       lang="pt-BR"
+      data-scroll-behavior="smooth"
       className={`${fonteCorpo.variable} ${fonteTitulo.variable} ${fonteRegistro.variable}`}
     >
       <body>{children}</body>
