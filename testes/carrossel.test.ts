@@ -22,18 +22,24 @@ import type { Banner } from "@/lib/sanity/tipos";
 
 const BANNERS: Banner[] = [
   {
+    tipo: "arte",
     id: "a",
     nome: "Primeiro",
     imagem: "https://exemplo.test/a.jpg",
     alt: "Primeiro banner",
+    imagemCelular: null,
+    tema: "escuro",
     destino: null,
     ordem: 1,
   },
   {
+    tipo: "arte",
     id: "b",
     nome: "Segundo",
     imagem: "https://exemplo.test/b.jpg",
     alt: "Segundo banner",
+    imagemCelular: null,
+    tema: "escuro",
     destino: null,
     ordem: 2,
   },

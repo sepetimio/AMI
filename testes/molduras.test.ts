@@ -48,10 +48,13 @@ async function noticias(publicadas: ResumoNoticia[], provisorias?: boolean) {
 */
 
 const REAL: Banner = {
+  tipo: "arte",
   id: "real",
   nome: "Assembleia",
   imagem: "https://exemplo.test/assembleia.jpg",
   alt: "Assembleia geral no dia 12 de março, às 19h, na sede da AMI",
+  imagemCelular: null,
+  tema: "escuro",
   destino: null,
   ordem: 10,
 };
@@ -311,6 +314,33 @@ describe("a trava", () => {
   it("um banner real tira os três provisórios, mesmo com a chave verdadeira", () => {
     const m = moldurasDaHome(true, { banners: [REAL], temNoticia: false });
     expect(m.banners).toEqual([REAL]);
+  });
+
+  it("os três provisórios são do tipo provisorio, e um banner real nunca é", () => {
+    expect(BANNERS_PROVISORIOS.map((b) => b.tipo)).toEqual([
+      "provisorio",
+      "provisorio",
+      "provisorio",
+    ]);
+    expect(REAL.tipo).toBe("arte");
+  });
+
+  it("um banner com foto e texto também conta como real: tira os provisórios", () => {
+    const composto: Banner = {
+      tipo: "composto",
+      id: "composto",
+      nome: "Os médicos de Imperatriz",
+      foto: null,
+      fotoAlt: "",
+      rotulo: null,
+      titulo: "Os médicos de Imperatriz",
+      texto: null,
+      botao: null,
+      destino: "/busca",
+      ordem: 20,
+    };
+    const m = moldurasDaHome(true, { banners: [REAL, composto], temNoticia: false });
+    expect(m.banners).toEqual([REAL, composto]);
   });
 
   it("uma notícia real tira as provisórias, mesmo com a chave verdadeira", () => {

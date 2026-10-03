@@ -84,15 +84,136 @@ describe("schemas do Sanity", () => {
   });
 
   it("banner tem os campos que a consulta projeta", () => {
-    /* Contrato entre a tarefa 2 e a tarefa 3 (o carrossel), que já consome
-       `imagem`, `alt` (dentro de `imagem`) e `destino` — mesmo raciocínio do
-       teste de notícia acima. Renomear `imagem` para `arte` no Studio, por
-       exemplo, não quebra nada em tempo de compilação: GROQ_BANNERS devolve
-       `undefined` calado, e o carrossel perde a arte sem erro nenhum. */
+    /* Contrato entre o cadastro e o carrossel, mesmo raciocínio do teste de
+       notícia acima: renomear um campo no Studio não quebra nada em tempo de
+       compilação, o GROQ devolve `undefined` calado e o slide perde o dado. */
     const campos = porNome("banner").fields.map((c) => c.name);
     expect(campos).toEqual(
-      expect.arrayContaining(["nome", "imagem", "destino", "ordem", "expiraEm"]),
+      expect.arrayContaining([
+        "nome",
+        "tipo",
+        "imagem",
+        "imagemCelular",
+        "tema",
+        "foto",
+        "rotulo",
+        "titulo",
+        "texto",
+        "botao",
+        "destino",
+        "ordem",
+        "expiraEm",
+      ]),
     );
+  });
+
+  describe("banner, os dois tipos", () => {
+    type Campo = {
+      name: string;
+      description?: string;
+      initialValue?: unknown;
+      options?: { list?: { title: string; value: string }[] };
+      hidden?: (c: { document?: { tipo?: string } }) => boolean;
+      validation?: (r: unknown, c: unknown) => unknown;
+    };
+    const campo = (nome: string): Campo => {
+      const c = (porNome("banner").fields as Campo[]).find((f) => f.name === nome);
+      if (!c) throw new Error(`banner sem o campo "${nome}"`);
+      return c;
+    };
+
+    it("tipo escolhe entre arte pronta e foto com texto, e começa em arte", () => {
+      const tipo = campo("tipo");
+      expect(tipo.initialValue).toBe("arte");
+      expect(tipo.options?.list).toEqual([
+        { title: "Arte pronta", value: "arte" },
+        { title: "Foto com texto montado no site", value: "composto" },
+      ]);
+    });
+
+    it("as medidas ditas à AMI são as do carrossel aprovado", () => {
+      expect(campo("imagem").description).toContain("3000 × 1288");
+      expect(campo("imagemCelular").description).toContain("1080 × 1350");
+    });
+
+    it("tema começa em escuro e oferece escuro e claro", () => {
+      const tema = campo("tema");
+      expect(tema.initialValue).toBe("escuro");
+      expect(tema.options?.list?.map((o) => o.value)).toEqual(["escuro", "claro"]);
+    });
+
+    it("cada tipo esconde os campos do outro", () => {
+      const arte = { document: { tipo: "arte" } };
+      const composto = { document: { tipo: "composto" } };
+      for (const n of ["imagem", "imagemCelular", "tema"]) {
+        expect(campo(n).hidden?.(arte), `${n} com arte`).toBe(false);
+        expect(campo(n).hidden?.(composto), `${n} com composto`).toBe(true);
+      }
+      for (const n of ["foto", "rotulo", "titulo", "texto", "botao"]) {
+        expect(campo(n).hidden?.(arte), `${n} com arte`).toBe(true);
+        expect(campo(n).hidden?.(composto), `${n} com composto`).toBe(false);
+      }
+    });
+
+    /* Uma regra de mentira: grava os limites e guarda as funções
+       `custom` para o teste chamar com o documento que quiser. */
+    function rodar(
+      validation: Campo["validation"],
+      valor: unknown,
+      contexto: unknown,
+    ): { max: number[]; erros: unknown[] } {
+      const saida = { max: [] as number[], erros: [] as unknown[] };
+      const regra: Record<string, unknown> = {
+        required: () => regra,
+        max: (n: number) => (saida.max.push(n), regra),
+        custom: (f: (v: unknown, c: unknown) => unknown) => (
+          saida.erros.push(f(valor, contexto)), regra
+        ),
+      };
+      validation?.(regra, contexto);
+      return saida;
+    }
+    const doc = (tipo?: string) => ({ document: { tipo } });
+
+    it("o título só é obrigatório no tipo com texto, e tem até 70 letras", () => {
+      expect(rodar(campo("titulo").validation, "", doc("composto")).erros).toEqual([
+        "O título é obrigatório",
+      ]);
+      expect(rodar(campo("titulo").validation, "", doc("arte")).erros).toEqual([true]);
+      expect(rodar(campo("titulo").validation, "Os médicos", doc("composto")).erros).toEqual([true]);
+      expect(rodar(campo("titulo").validation, "", doc("composto")).max).toEqual([70]);
+    });
+
+    it("rótulo, texto e botão têm limite de letras", () => {
+      expect(rodar(campo("rotulo").validation, "", doc("composto")).max).toEqual([40]);
+      expect(rodar(campo("texto").validation, "", doc("composto")).max).toEqual([160]);
+      expect(rodar(campo("botao").validation, "", doc("composto")).max).toEqual([28]);
+    });
+
+    it("a arte só é obrigatória no tipo arte (e no documento antigo, sem tipo)", () => {
+      const v = campo("imagem").validation;
+      expect(rodar(v, undefined, doc("arte")).erros).toEqual(["A arte é obrigatória"]);
+      expect(rodar(v, undefined, doc()).erros).toEqual(["A arte é obrigatória"]);
+      expect(rodar(v, undefined, doc("composto")).erros).toEqual([true]);
+      expect(rodar(v, { asset: { _ref: "x" } }, doc("arte")).erros).toEqual([true]);
+    });
+
+    it("a descrição da foto só é cobrada quando há foto", () => {
+      const alt = (porNome("banner").fields as unknown as { name: string; fields?: Campo[] }[])
+        .find((f) => f.name === "foto")
+        ?.fields?.find((f) => f.name === "alt");
+      const com = { ...doc("composto"), parent: { asset: { _ref: "x" } } };
+      const sem = { ...doc("composto"), parent: {} };
+      expect(rodar(alt?.validation, "", com).erros).toEqual(["Descreva o que a foto mostra"]);
+      expect(rodar(alt?.validation, "", sem).erros).toEqual([true]);
+      expect(rodar(alt?.validation, "Diretoria reunida", com).erros).toEqual([true]);
+    });
+
+    it("banner antigo, sem tipo, mostra os campos de arte", () => {
+      /* O documento que já existia não tem `tipo` gravado. */
+      expect(campo("imagem").hidden?.({ document: {} })).toBe(false);
+      expect(campo("titulo").hidden?.({ document: {} })).toBe(true);
+    });
   });
 
   it("autor guarda CRM e UF separados", () => {

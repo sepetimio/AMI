@@ -45,16 +45,44 @@ export type PaginaInstitucional = {
 };
 
 /*
-  Banner da home. Ao contrário de `ResumoNoticia`/`Noticia`, `imagem` já vem
-  como endereço pronto (não `ImagemSanity`): quem lê este tipo é o carrossel
-  da home, que só desenha um `<img src>` e não escolhe largura por contexto
-  como `TextoRico` escolhe para o corpo de uma matéria.
+  Banner da home, em dois tipos (spec, seção 7).
+
+  - "arte": uma imagem pronta que cobre o slide, com versão própria de celular.
+  - "composto": foto com texto montado no site (rótulo, título, texto, botão).
+
+  Em ambos, as imagens já vêm como endereço pronto (não `ImagemSanity`): quem
+  lê estes tipos é o carrossel da home, que só desenha um `<img src>` e não
+  escolhe largura por contexto como `TextoRico` escolhe para o corpo de uma
+  matéria.
 */
-export type Banner = {
+export type BannerArte = {
+  tipo: "arte";
   id: string;
   nome: string;
+  /** Arte larga, 3000 × 1288 (proporção 2,33:1 do carrossel no computador). */
   imagem: string;
+  /** Arte de celular, 1080 × 1350 (4:5). Null: o site recorta a larga. */
+  imagemCelular: string | null;
   alt: string;
+  /** "escuro" (padrão) ou "claro": decide a cor dos controles sobre a arte. */
+  tema: "escuro" | "claro";
   destino: string | null;
   ordem: number;
 };
+
+export type BannerComposto = {
+  tipo: "composto";
+  id: string;
+  nome: string;
+  /** Null: a área da foto vira moldura no modo demonstração (ver lib/molduras.ts). */
+  foto: string | null;
+  fotoAlt: string;
+  rotulo: string | null;
+  titulo: string;
+  texto: string | null;
+  botao: string | null;
+  destino: string | null;
+  ordem: number;
+};
+
+export type Banner = BannerArte | BannerComposto;

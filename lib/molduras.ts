@@ -26,10 +26,12 @@ import type { Banner } from "@/lib/sanity/tipos";
   provisórios saem todos; havendo uma notícia real, as provisórias também.
 */
 
-/* Um banner que ainda não tem arte. `provisorio` é o que o carrossel usa para
-   saber que desenha moldura, e não `<img>`. */
+/* Um banner que ainda não tem arte. `tipo: "provisorio"` é o que o carrossel
+   usa para saber que desenha moldura, e não `<img>`: um terceiro valor ao
+   lado de "arte" e "composto" (lib/sanity/tipos.ts), que nunca é gravado no
+   Sanity. */
 export type BannerProvisorio = {
-  provisorio: true;
+  tipo: "provisorio";
   id: string;
   /** O que a arte vai anunciar. Sai na tarja: "Arte a entrar: <rotulo>". */
   rotulo: string;
@@ -41,19 +43,19 @@ export type ItemDoCarrossel = Banner | BannerProvisorio;
 /* Os três que o cliente aprovou, nesta ordem e com estes destinos. */
 export const BANNERS_PROVISORIOS: BannerProvisorio[] = [
   {
-    provisorio: true,
+    tipo: "provisorio",
     id: "provisorio-seja-associado",
     rotulo: "Seja associado",
     destino: "/associacao/seja-associado",
   },
   {
-    provisorio: true,
+    tipo: "provisorio",
     id: "provisorio-encontre-um-medico",
     rotulo: "Encontre um médico",
     destino: "/busca",
   },
   {
-    provisorio: true,
+    tipo: "provisorio",
     id: "provisorio-sua-ami",
     rotulo: "Sua AMI",
     destino: "/contato",

@@ -51,10 +51,13 @@ vi.mock("@/lib/sanity/consultas", () => ({
 }));
 
 const BANNER: Banner = {
+  tipo: "arte",
   id: "real",
   nome: "Assembleia",
   imagem: "https://exemplo.test/assembleia.jpg",
   alt: "Assembleia geral no dia 12 de março, às 19h, na sede da AMI",
+  imagemCelular: null,
+  tema: "escuro",
   destino: "/noticias",
   ordem: 10,
 };

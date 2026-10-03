@@ -79,7 +79,7 @@ function falso() {
   consumidor de imagem do Sanity no site usa `next/image` pelo mesmo motivo
   (ver components/editorial/LinhaNoticia.tsx e TextoRico.tsx).
 
-  Um item pode ser também um banner PROVISÓRIO (`provisorio: true`, ver
+  Um item pode ser também um banner PROVISÓRIO (`tipo: "provisorio"`, ver
   lib/molduras.ts): no lugar do `<img>` sai a moldura "Arte a entrar", na
   mesma proporção 3000 × 856 da arte real. Só o desenho de cada slide muda —
   rotação, setas, bolinhas e pausa tratam os dois do mesmo jeito, porque o
@@ -193,7 +193,10 @@ export function Carrossel({ banners }: { banners: ItemDoCarrossel[] }) {
           className="flex snap-x snap-mandatory overflow-x-auto rounded-bloco [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {banners.map((b, i) => {
-            const arte = "provisorio" in b ? (
+            /* Provisório: moldura. Composto: ainda sem desenho (a tarefa 6 o
+               desenha); só a arte pronta sai como imagem. */
+            if (b.tipo === "composto") return null;
+            const arte = b.tipo === "provisorio" ? (
               <MolduraProvisoria
                 largura={3000}
                 altura={856}
