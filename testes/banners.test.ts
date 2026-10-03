@@ -244,3 +244,59 @@ describe("a consulta e o cadastro falam dos mesmos campos", () => {
     }
   });
 });
+
+describe("paraBanner, ponto de interesse e tema", () => {
+  const IMAGEM = {
+    asset: { _ref: "image-abc123def456-3000x1288-jpg" },
+    alt: "Assembleia geral no dia 12 de marco, as 19h, na sede da AMI",
+  };
+  const FOTO = { asset: { _ref: "image-abc123def456-1600x900-jpg" }, alt: "Plenario" };
+  const ARTE = { id: "a", nome: "x", tipo: "arte", destino: null, ordem: 10, expiraEm: null };
+  const COMPOSTO = { id: "c", nome: "y", tipo: "composto", titulo: "Assembleia", destino: null, ordem: 20, expiraEm: null };
+
+  beforeEach(() => {
+    vi.stubEnv("NEXT_PUBLIC_SANITY_PROJECT_ID", "abcd1234");
+  });
+
+  const foco = (b: ReturnType<typeof paraBanner>) => (b ? b.foco : "sem banner");
+
+  it("a arte leva o ponto de interesse da imagem larga", () => {
+    const b = paraBanner({ ...ARTE, imagem: { ...IMAGEM, hotspot: { x: 0.25, y: 0.6, width: 0.3, height: 0.3 } } } as never);
+    expect(foco(b)).toEqual({ x: 0.25, y: 0.6 });
+  });
+
+  it("o composto leva o ponto de interesse da foto", () => {
+    const b = paraBanner({ ...COMPOSTO, foto: { ...FOTO, hotspot: { x: 0.7, y: 0.4 } } } as never);
+    expect(foco(b)).toEqual({ x: 0.7, y: 0.4 });
+  });
+
+  it("sem ponto de interesse marcado, o foco e null", () => {
+    expect(foco(paraBanner({ ...ARTE, imagem: IMAGEM } as never))).toBeNull();
+    expect(foco(paraBanner({ ...ARTE, imagem: { ...IMAGEM, hotspot: null } } as never))).toBeNull();
+    expect(foco(paraBanner({ ...COMPOSTO, foto: FOTO } as never))).toBeNull();
+    expect(foco(paraBanner({ ...COMPOSTO } as never))).toBeNull();
+  });
+
+  it("ponto de interesse incompleto ou fora de 0 a 1 vale como sem marcacao", () => {
+    for (const hotspot of [{ x: 0.5 }, { y: 0.5 }, { x: -0.1, y: 0.5 }, { x: 0.5, y: 1.2 }, { x: Number.NaN, y: 0.5 }, { x: "0.5", y: 0.5 }, { x: 0.5, y: "0.5" }]) {
+      expect(foco(paraBanner({ ...ARTE, imagem: { ...IMAGEM, hotspot } } as never)), JSON.stringify(hotspot)).toBeNull();
+    }
+  });
+
+  it("os limites 0 e 1 valem", () => {
+    const b = paraBanner({ ...ARTE, imagem: { ...IMAGEM, hotspot: { x: 0, y: 1 } } } as never);
+    expect(foco(b)).toEqual({ x: 0, y: 1 });
+  });
+
+  it("o composto nao pega o ponto de interesse da arte que sobrou no documento", () => {
+    const b = paraBanner({ ...COMPOSTO, imagem: { ...IMAGEM, hotspot: { x: 0.1, y: 0.1 } } } as never);
+    expect(foco(b)).toBeNull();
+  });
+
+  it("tema que nao e escuro nem claro vale escuro", () => {
+    for (const tema of ["azul", "", null, 3]) {
+      const b = paraBanner({ ...ARTE, imagem: IMAGEM, tema } as never);
+      expect(b && b.tipo === "arte" && b.tema, String(tema)).toBe("escuro");
+    }
+  });
+});

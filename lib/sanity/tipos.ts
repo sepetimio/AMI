@@ -55,6 +55,10 @@ export type PaginaInstitucional = {
   escolhe largura por contexto como `TextoRico` escolhe para o corpo de uma
   matéria.
 */
+/* O ponto de interesse que a AMI marca na imagem (o "hotspot" do Sanity):
+   o centro da área que não pode ser cortada. */
+export type Foco = { x: number; y: number };
+
 export type BannerArte = {
   tipo: "arte";
   id: string;
@@ -63,6 +67,8 @@ export type BannerArte = {
   imagem: string;
   /** Arte de celular, 1080 × 1350 (4:5). Null: o site recorta a larga. */
   imagemCelular: string | null;
+  /** Ponto de interesse da arte larga, de 0 a 1 (esquerda→direita, cima→baixo). Null: sem marcação. */
+  foco: Foco | null;
   alt: string;
   /** "escuro" (padrão) ou "claro": decide a cor dos controles sobre a arte. */
   tema: "escuro" | "claro";
@@ -76,6 +82,8 @@ export type BannerComposto = {
   nome: string;
   /** Null: a área da foto vira moldura no modo demonstração (ver lib/molduras.ts). */
   foto: string | null;
+  /** Ponto de interesse da foto, de 0 a 1. Null: sem marcação. */
+  foco: Foco | null;
   fotoAlt: string;
   rotulo: string | null;
   titulo: string;

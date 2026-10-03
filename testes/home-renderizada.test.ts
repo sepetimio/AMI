@@ -58,6 +58,7 @@ const BANNER: Banner = {
   alt: "Assembleia geral no dia 12 de março, às 19h, na sede da AMI",
   imagemCelular: null,
   tema: "escuro",
+  foco: null,
   destino: "/noticias",
   ordem: 10,
 };

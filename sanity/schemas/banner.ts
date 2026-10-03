@@ -54,7 +54,6 @@ export const banner = defineType({
         layout: "radio",
       },
       initialValue: "arte",
-      validation: (r) => r.required(),
     }),
 
     /* ── Arte pronta ─────────────────────────────────────────────── */
@@ -62,6 +61,7 @@ export const banner = defineType({
       name: "imagem",
       title: "Arte",
       type: "image",
+      options: { hotspot: true },
       description:
         "3000 × 1288 pixels, para o computador. Se a arte tem letras, deixe uma " +
         "folga entre elas e as bordas.",
@@ -121,6 +121,7 @@ export const banner = defineType({
       name: "foto",
       title: "Foto",
       type: "image",
+      options: { hotspot: true },
       description:
         "1600 pixels de largura ou mais. No computador a foto fica à direita do texto; " +
         "no celular, o texto fica sobre a foto.",

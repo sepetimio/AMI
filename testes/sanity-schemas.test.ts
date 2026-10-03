@@ -112,7 +112,7 @@ describe("schemas do Sanity", () => {
       name: string;
       description?: string;
       initialValue?: unknown;
-      options?: { list?: { title: string; value: string }[] };
+      options?: { list?: { title: string; value: string }[]; hotspot?: boolean };
       hidden?: (c: { document?: { tipo?: string } }) => boolean;
       validation?: (r: unknown, c: unknown) => unknown;
     };
@@ -129,6 +129,18 @@ describe("schemas do Sanity", () => {
         { title: "Arte pronta", value: "arte" },
         { title: "Foto com texto montado no site", value: "composto" },
       ]);
+    });
+
+    it("tipo não é obrigatório: o documento antigo, sem tipo, não pode acusar erro", () => {
+      /* Vale arte (`tipo ?? "arte"`), então faltar `tipo` não é defeito. */
+      expect(rodar(campo("tipo").validation, undefined, doc()).obrigatorio).toBe(0);
+      /* E o espião funciona: o nome interno continua sendo cobrado. */
+      expect(rodar(campo("nome").validation, undefined, doc()).obrigatorio).toBe(1);
+    });
+
+    it("a arte larga e a foto deixam marcar o ponto de interesse", () => {
+      expect(campo("imagem").options?.hotspot).toBe(true);
+      expect(campo("foto").options?.hotspot).toBe(true);
     });
 
     it("as medidas ditas à AMI são as do carrossel aprovado", () => {
@@ -157,14 +169,15 @@ describe("schemas do Sanity", () => {
 
     /* Uma regra de mentira: grava os limites e guarda as funções
        `custom` para o teste chamar com o documento que quiser. */
+    /* `obrigatorio` conta quantas vezes a regra pediu `.required()`. */
     function rodar(
       validation: Campo["validation"],
       valor: unknown,
       contexto: unknown,
-    ): { max: number[]; erros: unknown[] } {
-      const saida = { max: [] as number[], erros: [] as unknown[] };
+    ): { max: number[]; erros: unknown[]; obrigatorio: number } {
+      const saida = { max: [] as number[], erros: [] as unknown[], obrigatorio: 0 };
       const regra: Record<string, unknown> = {
-        required: () => regra,
+        required: () => (saida.obrigatorio++, regra),
         max: (n: number) => (saida.max.push(n), regra),
         custom: (f: (v: unknown, c: unknown) => unknown) => (
           saida.erros.push(f(valor, contexto)), regra

@@ -1,7 +1,7 @@
 import { defineQuery } from "next-sanity";
 import { obterCliente } from "@/lib/sanity/cliente";
 import { urlDaImagem } from "@/lib/sanity/imagem";
-import type { Banner, ImagemSanity } from "@/lib/sanity/tipos";
+import type { Banner, Foco, ImagemSanity } from "@/lib/sanity/tipos";
 
 /* Etiqueta de cache dos banners, na mesma convenção de `ETIQUETA_NOTICIAS`
    em lib/sanity/consultas.ts: string exportada, nunca escrita à mão do lado
@@ -22,10 +22,10 @@ export const GROQ_BANNERS = defineQuery(`
     "id": _id,
     nome,
     tipo,
-    imagem{asset, alt},
+    imagem{asset, alt, hotspot},
     imagemCelular{asset},
     tema,
-    foto{asset, alt},
+    foto{asset, alt, hotspot},
     rotulo,
     titulo,
     texto,
@@ -38,14 +38,16 @@ export const GROQ_BANNERS = defineQuery(`
 
 /* O que o GROQ devolve. Os campos do tipo que não vale para o documento vêm
    `null`, e o documento antigo não tem `tipo`. */
+type ImagemCru = ImagemSanity & { hotspot?: { x?: number; y?: number } | null };
+
 type BannerCru = {
   id: string;
   nome: string;
   tipo?: "arte" | "composto" | null;
-  imagem?: ImagemSanity | null;
+  imagem?: ImagemCru | null;
   imagemCelular?: { asset: ImagemSanity["asset"] } | null;
   tema?: "escuro" | "claro" | null;
-  foto?: ImagemSanity | null;
+  foto?: ImagemCru | null;
   rotulo?: string | null;
   titulo?: string | null;
   texto?: string | null;
@@ -127,6 +129,17 @@ function urlOuNull(
   return urlDaImagem(imagem as ImagemSanity, largura) || null;
 }
 
+/* O hotspot do Sanity guarda o centro do ponto de interesse como fração da
+   imagem. Fora de 0 a 1, ou incompleto, é lixo: sem foco, e o site recorta
+   pelo meio como se nada tivesse sido marcado. */
+function focoDe(imagem: ImagemCru | null | undefined): Foco | null {
+  const x = imagem?.hotspot?.x;
+  const y = imagem?.hotspot?.y;
+  if (typeof x !== "number" || typeof y !== "number") return null;
+  if (!(x >= 0 && x <= 1 && y >= 0 && y <= 1)) return null;
+  return { x, y };
+}
+
 export function paraBanner(b: BannerCru): Banner | null {
   const destino = b.destino ?? null;
   const ordem = b.ordem ?? 0;
@@ -138,6 +151,7 @@ export function paraBanner(b: BannerCru): Banner | null {
       id: b.id,
       nome: b.nome,
       foto: urlOuNull(b.foto, LARGURA_DA_FOTO),
+      foco: focoDe(b.foto),
       fotoAlt: b.foto?.alt ?? "",
       rotulo: b.rotulo ?? null,
       titulo: b.titulo,
@@ -157,6 +171,7 @@ export function paraBanner(b: BannerCru): Banner | null {
     nome: b.nome,
     imagem,
     imagemCelular: urlOuNull(b.imagemCelular, ARTE_CELULAR.largura),
+    foco: focoDe(b.imagem),
     alt: b.imagem?.alt ?? "",
     tema: b.tema === "claro" ? "claro" : "escuro",
     destino,

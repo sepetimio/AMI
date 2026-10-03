@@ -36,6 +36,7 @@
     "@types/react-dom": "^19.2.4",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.1",
+    "groq-js": "^2.0.0",
     "read-excel-file": "^9.3.10",
     "tailwindcss": "^4.1.11",
     "tsx": "^4.23.12",

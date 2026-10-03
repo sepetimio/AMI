@@ -55,6 +55,7 @@ const REAL: Banner = {
   alt: "Assembleia geral no dia 12 de março, às 19h, na sede da AMI",
   imagemCelular: null,
   tema: "escuro",
+  foco: null,
   destino: null,
   ordem: 10,
 };
@@ -331,6 +332,7 @@ describe("a trava", () => {
       id: "composto",
       nome: "Os médicos de Imperatriz",
       foto: null,
+      foco: null,
       fotoAlt: "",
       rotulo: null,
       titulo: "Os médicos de Imperatriz",
