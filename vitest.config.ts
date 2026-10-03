@@ -11,9 +11,10 @@ import { fileURLToPath } from "node:url";
    Não há teste de interface no sentido usual — nada de clicar, digitar ou
    afirmar sobre pixel: o custo de manter não se paga num site deste porte.
    `testes/carrossel.test.ts` é a segunda exceção, e não é disso que ele
-   trata: ele renderiza o carrossel com `renderToString` só para comparar
+   trata: ele renderiza o carrossel com `renderToString` para comparar
    duas saídas de servidor entre si, porque compatibilidade de hidratação não
-   dá para ler no código nem o `npm run build` verifica.
+   dá para ler no código nem o `npm run build` verifica, e para ler no HTML
+   de servidor a fita com as cópias e o desenho de cada tipo de slide.
    `testes/porta-da-busca.test.ts`, `testes/molduras.test.ts`,
    `testes/fotografia-trava.test.ts` e `testes/aviso-do-rascunho.test.ts`
    também

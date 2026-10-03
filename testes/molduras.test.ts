@@ -70,7 +70,7 @@ function vezes(texto: string, trecho: string): number {
 }
 
 describe("o carrossel com os três banners provisórios", () => {
-  const saida = html(createElement(Carrossel, { banners: BANNERS_PROVISORIOS }));
+  const saida = html(createElement(Carrossel, { itens: BANNERS_PROVISORIOS }));
 
   it("desenha as três molduras, nesta ordem, cada uma com o seu destino", () => {
     const ordem = [
@@ -88,20 +88,22 @@ describe("o carrossel com os três banners provisórios", () => {
     }
   });
 
-  it("na proporção da arte real, 3000 × 856, e sem <img>", () => {
-    expect(vezes(saida, "aspect-ratio:3000 / 856")).toBe(3);
+  it("cobre o slide inteiro, na proporção do slide do computador (1192 × 512), e sem <img>", () => {
+    /* Cinco: os três reais mais as duas cópias das pontas da fita
+       (lib/carrossel.ts), que repetem o último e o primeiro. */
+    expect(vezes(saida, "aspect-ratio:1192 / 512")).toBe(5);
     expect(saida).not.toContain("<img");
   });
 
   it("gira como o real: setas, três bolinhas e pausa", () => {
-    expect(saida).toContain(">Anterior<");
-    expect(saida).toContain(">Próximo<");
-    expect(saida).toContain(">Pausar<");
+    expect(saida).toContain('aria-label="Anterior"');
+    expect(saida).toContain('aria-label="Próximo"');
+    expect(saida).toContain('aria-label="Pausar"');
     expect(vezes(saida, "Ir para o banner ")).toBe(3);
   });
 
   it("um banner real continua saindo como <img>, sem moldura", () => {
-    const real = html(createElement(Carrossel, { banners: [REAL] }));
+    const real = html(createElement(Carrossel, { itens: [REAL] }));
     expect(real).toContain('<img src="https://exemplo.test/assembleia.jpg"');
     expect(real).not.toContain("a entrar");
   });
@@ -253,7 +255,7 @@ async function home(
     temNoticia: real.publicadas.length > 0,
   });
   return [
-    html(createElement(Carrossel, { banners: m.banners })),
+    html(createElement(Carrossel, { itens: m.banners })),
     html(
       createElement(ServicosDaAmi, {
         total: 24,

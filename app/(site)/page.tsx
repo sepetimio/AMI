@@ -84,7 +84,10 @@ export default async function Home() {
       {/* =====================================================
           2. CARROSSEL DE BANNERS
           ===================================================== */}
-      <Carrossel banners={molduras.banners} />
+      {/* A caixa de 1240px do desenho, até a tarefa 10 montar a home nova. */}
+      <div className="mx-auto max-w-[1240px] px-3 min-[701px]:px-6">
+        <Carrossel itens={molduras.banners} />
+      </div>
 
       {/* =====================================================
           3. SERVIÇOS DA AMI

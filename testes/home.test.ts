@@ -102,7 +102,7 @@ describe("a home, depois das molduras provisórias", () => {
       das quatro molduras sai da saída de `moldurasDaHome`.
     */
     expect(HOME).toMatch(/moldurasDaHome\(\s*DADOS_DEMONSTRACAO\s*,/);
-    expect(HOME).toContain("<Carrossel banners={molduras.banners}");
+    expect(HOME).toContain("<Carrossel itens={molduras.banners}");
     expect(HOME).toMatch(/suaAmi=\{molduras\.suaAmi\}/);
     expect(HOME).toContain("<UltimasNoticias provisorias={molduras.noticiasProvisorias}");
     expect(HOME).toContain("{molduras.parceiros ? <EmpresasParceiras");
