@@ -1,40 +1,46 @@
 import Link from "next/link";
 import { Marca } from "@/components/marca/Marca";
 import { MenuPrincipal } from "@/components/layout/MenuPrincipal";
+import styles from "@/components/layout/Cabecalho.module.css";
 
 /*
-  Cabeçalho solto, não colado.
+  Cabeçalho fino num bloco branco, preso no topo durante a rolagem.
 
-  A versão anterior era a barra de borda a borda grudada no topo, separada do
-  conteúdo por um fio de 1px. É o padrão mais antigo que existe na web e é
-  exatamente o que faz uma página parecer documento com um menu em cima, em
-  vez de produto.
+  Ele é filho direto do corpo da página: `app/(site)/layout.tsx` o coloca logo
+  antes de `<main>`, sem nada entre os dois. Não embrulhe `<Cabecalho />` em
+  um elemento que termine antes do fim da página: um elemento preso só
+  acompanha a rolagem dentro do bloco que o contém, e no desenho foi
+  exatamente assim que o cabeçalho sumia no meio da página.
 
-  Aqui ele descola: fica preso na rolagem, mas recuado das bordas, com canto
-  generoso e sombra difusa. O efeito é o de uma peça pousada sobre a página,
-  e é o mesmo princípio que rege os cartões do resto do site.
+  Aqui vive o que é só marcação: a marca e o botão "Seja associado". O menu
+  é folha cliente (precisa do caminho atual e do estado da gaveta) e recebe o
+  botão como filho, para que ele fique entre o menu e o botão da gaveta sem
+  deixar de ser renderizado no servidor.
 
-  `backdrop-blur` só aqui e no rodapé, que são fixos. Aplicado a contêiner que
-  rola, o desfoque força repintura de GPU a cada quadro e derruba os quadros
-  por segundo no celular, que é o aparelho de quem procura médico às pressas.
-
-  A altura útil fica em 64px, dentro do teto de 80px que uma barra pode ocupar
-  antes de começar a comer a primeira dobra.
+  O desfoque ao rolar está em `Cabecalho.module.css`, feito só em CSS.
 */
 export function Cabecalho() {
   return (
-    <header className="sticky top-0 z-30 px-3 pt-3 md:px-5 md:pt-5">
-      <div className="mx-auto flex max-w-[1240px] items-center gap-3 rounded-painel border border-line bg-surface/80 px-3 py-2.5 md:gap-6 shadow-erguido backdrop-blur-xl md:px-6">
-        <Link
-          href="/"
-          /* min-h-11 = 44px, o alvo mínimo de toque no celular. */
-          className="pressiona flex min-h-11 shrink-0 items-center rounded-controle"
-          aria-label="Ir para a página inicial da AMI"
-        >
-          <Marca altura={40} />
-        </Link>
+    <header className={styles.topo}>
+      <div className={styles.caixa}>
+        <div className={styles.cabeca}>
+          <Link
+            href="/"
+            className={styles.logo}
+            aria-label="Ir para a página inicial da AMI"
+          >
+            <Marca altura={40} />
+          </Link>
 
-        <MenuPrincipal />
+          <MenuPrincipal>
+            <Link
+              href="/associacao/seja-associado"
+              className={`botao ${styles.seja}`}
+            >
+              Seja associado
+            </Link>
+          </MenuPrincipal>
+        </div>
       </div>
     </header>
   );

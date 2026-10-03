@@ -1,0 +1,240 @@
+/*
+  Regras do cabeçalho e do menu em gaveta, transcritas do desenho aprovado
+  (`.cabeca`, `.menu`, `.seja`, `.abre-menu`, `.gaveta`, `.topo-fixo`).
+
+  Cor só por token; sombra neutra, como no desenho.
+*/
+
+/*
+  O elemento preso na rolagem. É filho direto do corpo da página (o layout
+  põe `<Cabecalho />` logo antes de `<main>`), e é isso que o mantém no topo
+  do começo ao fim: um `sticky` só acompanha a rolagem enquanto o bloco que
+  o contém estiver na tela.
+
+  `top` desconta o `padding-top` para que, já preso, sobrem 12px entre a
+  borda da tela e o bloco branco. `pointer-events: none` deixa a faixa
+  transparente de cima sem interceptar clique; o bloco o reativa.
+*/
+.topo {
+  position: sticky;
+  top: calc(12px - var(--gap));
+  z-index: 30;
+  padding-top: var(--gap);
+  pointer-events: none;
+}
+
+.caixa {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.cabeca {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding: 10px 12px 10px var(--m);
+  background: var(--color-surface);
+  border-radius: var(--radius-painel);
+  box-shadow: var(--shadow-erguido);
+  pointer-events: auto;
+}
+
+/*
+  O vidro ao rolar, sem JavaScript: nos primeiros 40px de rolagem do
+  documento o bloco passa de branco opaco a branco translúcido com desfoque
+  e sombra mais funda. Quem não tem linha do tempo de rolagem fica com o
+  bloco branco, que também é correto.
+*/
+@keyframes vidroAoRolar {
+  to {
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 10px 34px rgba(16, 24, 40, 0.12);
+    -webkit-backdrop-filter: saturate(1.5) blur(16px);
+    backdrop-filter: saturate(1.5) blur(16px);
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .cabeca {
+    animation: vidroAoRolar linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 40px;
+  }
+}
+
+.logo {
+  display: block;
+  flex: none;
+}
+
+.logo img {
+  height: 40px;
+  width: auto;
+}
+
+/* Menu em linha: só acima de 1180px. Nunca quebra linha. */
+.menu {
+  display: flex;
+  gap: 28px;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--color-ink-900);
+}
+
+.menu a {
+  position: relative;
+  padding: 6px 0;
+  white-space: nowrap;
+  transition: color 200ms;
+}
+
+.menu a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1.5px;
+  background: var(--color-ami-green-800);
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 350ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.menu a:hover::after,
+.menu a[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+/* "Seja associado": o `.botao` do site, na versão compacta do cabeçalho. */
+.seja {
+  height: 40px;
+  padding: 0 20px;
+  font-size: 13.5px;
+}
+
+.abre,
+.gaveta {
+  display: none;
+}
+
+@media (max-width: 1320px) {
+  .menu {
+    gap: 22px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .menu {
+    display: none;
+  }
+
+  .seja {
+    margin-left: auto;
+  }
+
+  .abre {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: var(--color-ink-900);
+    cursor: pointer;
+    transition: border-color 200ms;
+  }
+
+  .abre:hover {
+    border-color: var(--color-line-strong);
+  }
+
+  /*
+    Fechada, a gaveta fica `visibility: hidden`: some do desenho e também da
+    ordem do Tab e do leitor de tela, sem precisar de `display: none`, que
+    mataria a transição de abertura.
+  */
+  .gaveta {
+    display: grid;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 8px);
+    padding: 10px;
+    background: var(--color-surface);
+    border-radius: var(--radius-painel);
+    box-shadow: 0 24px 60px rgba(16, 24, 40, 0.18);
+    opacity: 0;
+    transform: translateY(-8px);
+    visibility: hidden;
+    transition:
+      opacity 250ms,
+      transform 250ms,
+      visibility 250ms;
+  }
+
+  .gaveta[data-aberta="true"] {
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+  }
+
+  .gaveta a {
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-weight: 500;
+    color: var(--color-ink-900);
+    transition: background-color 200ms;
+  }
+
+  .gaveta a:hover {
+    background: var(--color-surface-fundo);
+  }
+
+  .gaveta a[aria-current="page"] {
+    font-weight: 700;
+    color: var(--color-ami-green-800);
+  }
+}
+
+@media (max-width: 700px) {
+  .topo {
+    top: -2px;
+    padding-top: 10px;
+  }
+
+  .caixa {
+    padding: 0 12px;
+  }
+
+  .cabeca {
+    padding: 8px 8px 8px 16px;
+  }
+
+  .logo img {
+    height: 32px;
+  }
+
+  .seja {
+    height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+
+  .abre {
+    width: 36px;
+    height: 36px;
+  }
+
+  .abre svg {
+    width: 18px;
+    height: 18px;
+  }
+}
