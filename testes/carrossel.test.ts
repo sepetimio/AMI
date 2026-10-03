@@ -3,6 +3,16 @@ import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Carrossel } from "@/components/home/Carrossel";
 import estilos from "@/components/home/Carrossel.module.css";
+import {
+  PROPORCAO_DA_ARTE,
+  PROPORCAO_DA_FOTO,
+  TAMANHO_DA_ARTE,
+  TAMANHO_DA_ARTE_CELULAR,
+  TAMANHO_DA_FOTO,
+  caixaDaArte,
+  caixaDaFoto,
+  larguraDesenhada,
+} from "@/lib/carrossel";
 import { BANNERS_PROVISORIOS, type ItemDoCarrossel } from "@/lib/molduras";
 import { ARTE_CELULAR, ARTE_LARGA } from "@/lib/sanity/banners";
 import type { BannerArte, BannerComposto } from "@/lib/sanity/tipos";
@@ -364,28 +374,97 @@ describe("o srcset e o sizes das imagens do carrossel", () => {
     return Object.fromEntries([...tag.matchAll(/ ([a-zA-Z]+)="([^"]*)"/g)].map((m) => [m[1], m[2]]));
   }
 
-  it("a arte larga leva o srcset dela e o sizes da coluna da home", () => {
+  it("a arte larga leva o srcset dela e o sizes da largura desenhada", () => {
     const real = slides(html([arte("a"), arte("b")]))[1];
     const img = atributos(/<img [^>]*>/.exec(real)![0]);
     expect(img.srcSet).toBe("https://exemplo.test/a-800.jpg 800w, https://exemplo.test/a.jpg 3000w");
-    expect(img.sizes).toBe("(min-width: 1240px) 1192px, calc(100vw - 48px)");
+    expect(img.sizes).toBe(TAMANHO_DA_ARTE);
   });
 
-  it("a arte de celular leva o srcset dela e o sizes da coluna do celular", () => {
+  it("a arte de celular, que não é recortada, leva o sizes da caixa do celular", () => {
     const real = slides(html([arte("a", celular("a-celular")), arte("b")]))[1];
     const fonte = atributos(/<source [^>]*>/.exec(real)![0]);
     expect(fonte.srcSet).toBe("https://exemplo.test/a-celular-540.jpg 540w, https://exemplo.test/a-celular.jpg 1080w");
-    expect(fonte.sizes).toBe("calc(100vw - 24px)");
+    expect(fonte.sizes).toBe(TAMANHO_DA_ARTE_CELULAR);
+    expect(TAMANHO_DA_ARTE_CELULAR).toBe("calc(100vw - 24px)");
   });
 
-  it("a foto do composto leva o srcset dela e o sizes da coluna da foto", () => {
+  it("a foto do composto leva o srcset dela e o sizes da largura desenhada", () => {
     const real = slides(html([composto("a"), arte("b")]))[1];
     const img = atributos(/<img [^>]*>/.exec(real)![0]);
     expect(img.srcSet).toBe("https://exemplo.test/a-600.jpg 600w, https://exemplo.test/a.jpg 1600w");
-    expect(img.sizes).toBe(
-      "(min-width: 1240px) 549px, (min-width: 981px) calc(51.22vw - 86px), " +
-        "(min-width: 701px) calc(50vw - 62px), calc(100vw - 24px)",
-    );
+    expect(img.sizes).toBe(TAMANHO_DA_FOTO);
+  });
+});
+
+/*
+  O `sizes` contra a largura desenhada, janela a janela.
+
+  `valorDoSizes` faz o que o navegador faz com o atributo: pega a primeira
+  condição `(min-width: Npx)` que vale para a janela (ou o último valor, sem
+  condição) e resolve `Npx` ou `calc(A vw - B px)`. A largura desenhada vem de
+  lib/carrossel.ts (`caixaDaArte`, `caixaDaFoto`, `larguraDesenhada`), que
+  seguem o CSS do carrossel e batem com as caixas medidas no navegador (o
+  último teste abaixo). O `sizes` não pode ficar abaixo do
+  que é desenhado (o navegador baixaria um arquivo pequeno e esticaria) nem
+  passar dele em mais de 8px.
+*/
+function valorDoSizes(sizes: string, janela: number): number {
+  for (const parte of sizes.split(/,\s*(?![^()]*\))/)) {
+    const m = /^\(min-width: (\d+)px\) (.+)$/.exec(parte.trim());
+    if (m && janela < Number(m[1])) continue;
+    const valor = (m ? m[2] : parte).trim();
+    const px = /^(\d+(?:\.\d+)?)px$/.exec(valor);
+    if (px) return Number(px[1]);
+    const calc = /^calc\((\d+(?:\.\d+)?)vw - (\d+(?:\.\d+)?)px\)$/.exec(valor);
+    if (calc) return (Number(calc[1]) * janela) / 100 - Number(calc[2]);
+    throw new Error(`valor de sizes que o teste não entende: ${valor}`);
+  }
+  throw new Error(`nenhum valor de sizes para ${janela}px`);
+}
+
+describe("o sizes é a largura desenhada, de 320 a 1920px", () => {
+  const JANELAS = Array.from({ length: 1920 - 320 + 1 }, (_, i) => 320 + i);
+
+  function confere(sizes: string, desenhada: (janela: number) => number) {
+    for (const janela of JANELAS) {
+      const diz = valorDoSizes(sizes, janela);
+      const real = desenhada(janela);
+      expect(diz, `${janela}px: o sizes diz ${diz}, a imagem tem ${real}`).toBeGreaterThanOrEqual(real - 0.01);
+      expect(diz - real, `${janela}px: o sizes passa ${diz - real}px da imagem`).toBeLessThanOrEqual(8);
+    }
+  }
+
+  it("a arte larga, recortada pelo cover no tablet e no celular", () => {
+    confere(TAMANHO_DA_ARTE, (j) => larguraDesenhada(caixaDaArte(j), PROPORCAO_DA_ARTE));
+  });
+
+  it("a arte de celular 4:5 na caixa 4/5 do celular: a própria caixa", () => {
+    for (const j of JANELAS.filter((j) => j <= 700)) {
+      const caixa = caixaDaArte(j);
+      expect(larguraDesenhada(caixa, 4 / 5)).toBeCloseTo(caixa.largura, 6);
+      expect(valorDoSizes(TAMANHO_DA_ARTE_CELULAR, j)).toBeCloseTo(caixa.largura, 6);
+    }
+  });
+
+  it("a foto 3:2 do slide com texto, onde a altura manda", () => {
+    confere(TAMANHO_DA_FOTO, (j) => larguraDesenhada(caixaDaFoto(j), PROPORCAO_DA_FOTO));
+  });
+
+  it("as caixas seguem as medidas do navegador", () => {
+    /* Medidas no navegador, em produção: a arte 720 × 480 a 768px e
+       366 × 457,5 a 390; a foto 549 × 412 a 1440, 426 × 309 a 1000,
+       322 × 390 a 768 e 366 × 457,5 a 390. */
+    expect(caixaDaArte(768)).toEqual({ largura: 720, altura: 480 });
+    expect(caixaDaArte(390)).toEqual({ largura: 366, altura: 457.5 });
+    const f = (j: number) => {
+      const c = caixaDaFoto(j);
+      return [Math.round(c.largura), Math.round(c.altura)];
+    };
+    expect(f(1440)).toEqual([549, 412]);
+    expect(f(1000)).toEqual([426, 309]);
+    expect(f(768)).toEqual([322, 390]);
+    expect(f(390)).toEqual([366, 458]);
   });
 });
 

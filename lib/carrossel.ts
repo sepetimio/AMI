@@ -72,28 +72,83 @@ export function precisaSaltar(posicao: number, n: number): number | null {
 export const INTERVALO = 6000;
 
 /*
-  O `sizes` das imagens do carrossel: a largura em que cada uma aparece, para
-  o navegador escolher no `srcset` (lib/sanity/banners.ts) a menor que basta.
+  A largura DESENHADA de cada imagem do carrossel, conforme a janela.
 
-  A arte cobre o slide, e o slide é a coluna da home
-  (app/(site)/inicio.module.css): 1192px a partir de 1240px de janela, e a
-  janela menos 48px abaixo disso. No celular, a versão 4:5 tem o próprio
-  `sizes`: lá a coluna é a janela menos 24px.
+  A arte e a foto cobrem a caixa delas com `object-fit: cover`: quando a
+  proporção da imagem não é a da caixa, a imagem é desenhada maior que a
+  caixa e recortada. O `sizes` precisa dizer essa largura desenhada, e não a
+  da caixa, senão o navegador baixa um arquivo pequeno e estica.
 
-  A foto do slide com texto é a segunda coluna do slide
-  (components/home/Carrossel.module.css), medida no navegador:
-  - a partir de 1240px: (1192 − 48 − 24 − 48) × 1,05 / 2,05 = 549px;
-  - de 981 a 1239px: o mesmo com a coluna da home, (janela − 168) × 0,5122;
-  - de 701 a 980px (tablet, duas colunas iguais, gap e margem de 28px,
-    respiro de 20px): (janela − 48 − 28 − 20 − 28) / 2 = metade da janela
-    menos 62px;
-  - até 700px a foto cobre o cartão inteiro: a janela menos 24px.
+  As caixas, de components/home/Carrossel.module.css e da coluna da home
+  (app/(site)/inicio.module.css):
+  - o carrossel tem 1192px a partir de 1240px de janela, a janela menos 48px
+    de 701 a 1239px, e a janela menos 24px até 700px;
+  - o slide é 1192/512 a partir de 981px, 3/2 de 701 a 980px e 4/5 até 700px;
+  - a foto do slide com texto é a segunda coluna dele: a partir de 981px,
+    (carrossel − 48 − 24 − 48) × 1,05 / 2,05 de largura e o slide menos
+    24 + 76px de altura; de 701 a 980px, (carrossel − 28 − 20 − 28) / 2 de
+    largura e o slide menos 20 + 70px de altura; até 700px, o cartão
+    inteiro.
+
+  A arte larga é 3000 × 1288. A foto não tem proporção combinada (o Studio
+  só pede 1600px de largura): a conta supõe 3:2, a das câmeras, que é a mais
+  larga das comuns. Uma foto 4:3 sai desenhada um pouco menor e baixa até
+  12% a mais que o necessário; uma mais larga que 3:2 (16:9) sairia um pouco
+  esticada no tablet e no celular.
 */
-export const TAMANHO_DA_ARTE = "(min-width: 1240px) 1192px, calc(100vw - 48px)";
+export const PROPORCAO_DA_ARTE = 3000 / 1288;
+export const PROPORCAO_DA_FOTO = 3 / 2;
+
+type Caixa = { largura: number; altura: number };
+
+function larguraDoCarrossel(janela: number): number {
+  if (janela >= 1240) return 1192;
+  return janela > 700 ? janela - 48 : janela - 24;
+}
+
+function alturaDoSlide(janela: number): number {
+  const w = larguraDoCarrossel(janela);
+  if (janela >= 981) return (w * 512) / 1192;
+  return janela > 700 ? (w * 2) / 3 : (w * 5) / 4;
+}
+
+export function caixaDaArte(janela: number): Caixa {
+  return { largura: larguraDoCarrossel(janela), altura: alturaDoSlide(janela) };
+}
+
+export function caixaDaFoto(janela: number): Caixa {
+  const w = larguraDoCarrossel(janela);
+  const h = alturaDoSlide(janela);
+  if (janela >= 981) return { largura: ((w - 120) * 1.05) / 2.05, altura: h - 100 };
+  if (janela > 700) return { largura: (w - 76) / 2, altura: h - 90 };
+  return { largura: w, altura: h };
+}
+
+/** A largura com que uma imagem de `proporcao` (largura/altura) cobre a caixa. */
+export function larguraDesenhada(caixa: Caixa, proporcao: number): number {
+  return Math.max(caixa.largura, caixa.altura * proporcao);
+}
+
+/*
+  O `sizes` de cada imagem: a largura desenhada acima, faixa por faixa,
+  arredondada para cima (testes/carrossel.test.ts confere, janela a janela de
+  320 a 1920px, que o `sizes` nunca fica abaixo dela nem passa dela em mais
+  de 8px).
+  - arte: a 1240px ou mais, 512 × 3000/1288 = 1192,5px; de 981 a 1239, a
+    proporção do slide é quase a da arte, a janela menos 47px; de 701 a 980,
+    o slide 3/2 corta os lados e a arte sai com (janela − 48) × 1,5528; até
+    700, sem a versão 4:5, o cartão 4/5 corta muito mais: (janela − 24) ×
+    2,9115;
+  - arte de celular, 4:5 numa caixa 4/5: a caixa, a janela menos 24px;
+  - foto 3:2: em toda faixa a altura manda.
+*/
+export const TAMANHO_DA_ARTE =
+  "(min-width: 1240px) 1193px, (min-width: 981px) calc(100vw - 47px), " +
+  "(min-width: 701px) calc(155.3vw - 74px), calc(291.2vw - 69px)";
 export const TAMANHO_DA_ARTE_CELULAR = "calc(100vw - 24px)";
 export const TAMANHO_DA_FOTO =
-  "(min-width: 1240px) 549px, (min-width: 981px) calc(51.22vw - 86px), " +
-  "(min-width: 701px) calc(50vw - 62px), calc(100vw - 24px)";
+  "(min-width: 1240px) 618px, (min-width: 981px) calc(64.43vw - 180px), " +
+  "(min-width: 701px) calc(100vw - 182px), calc(187.5vw - 45px)";
 
 /** Quanto o dedo precisa andar de lado, em pixels, para trocar o slide. */
 export const LIMIAR_DO_DEDO = 45;
