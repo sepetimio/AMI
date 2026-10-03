@@ -1,6 +1,6 @@
 # Estado do projeto — Site da Associação Médica de Imperatriz
 
-> Atualizado em 23 de agosto de 2026 · ramo `main`
+> Atualizado em 3 de outubro de 2026 · ramo `home-nova`, a juntar à `main`
 > Repositório: `github.com/sepetimio/AMI`
 > Especificação: [`docs/superpowers/specs/2026-08-19-site-ami-diretorio-design.md`](superpowers/specs/2026-08-19-site-ami-diretorio-design.md)
 
@@ -10,7 +10,7 @@ Este arquivo responde três perguntas: **o que existe**, **o que falta**, e **qu
 
 ## Em uma frase
 
-O site está **funcional e verificado**, com o diretório médico completo, o blog, as páginas institucionais e o painel de conteúdo da AMI. Ele **não pode ir ao ar ainda**, e o que falta é conteúdo e cadastro, não código.
+O site está **funcional e verificado**, com a home nova (a porta da associação, com carrossel e serviços), o diretório médico completo, o blog, as páginas institucionais e o painel de conteúdo da AMI. Ele **não pode ir ao ar ainda**, e o que falta é conteúdo e cadastro, não código.
 
 ---
 
@@ -20,12 +20,12 @@ O site está **funcional e verificado**, com o diretório médico completo, o bl
 
 | Endereço | O que é |
 |---|---|
-| `/` | Home, com busca, índice de especialidades, bloco institucional, últimas notícias e bairros |
+| `/` | Home: a faixa da AMI, o carrossel de banners, os serviços da AMI (Encontre um médico, com campo de busca; Fale com a AMI; Seja associado; Sua AMI), especialidades, bloco institucional, últimas notícias, bairros e empresas parceiras |
 | `/medicos` | Índice de especialidades e bairros |
 | `/medicos/{especialidade}` | Página de faceta, indexável, com parágrafo de abertura gerado dos dados reais |
 | `/medicos/{especialidade}/{bairro}` | Cruzamento. Entra no índice de busca a partir de 3 profissionais |
 | `/medico/{slug}` | Perfil, com CRM, endereços, horários por dia e acessibilidade |
-| `/busca` | Busca livre, fora do índice de propósito |
+| `/busca` | Busca livre, fora do índice de propósito. Tem campo de texto próprio, e a home leva a ela pelo cartão "Encontre um médico" |
 
 A busca entende variação de nome de profissão: quem digita "cardiologista" encontra Cardiologia.
 
@@ -36,6 +36,8 @@ A busca entende variação de nome de profissão: quem digita "cardiologista" en
 | `/noticias` e `/noticias/{slug}` | Blog, com autoria por CRM e dado estruturado para o Google | no ar |
 | `/associacao` | Página-índice da associação | no ar |
 | `/associacao/diretoria` | Diretoria, com cargo, nome e CRM, ligada aos perfis | no ar |
+| `/associacao/seja-associado` | Como se associar | no ar, com **texto provisório marcado**, sem valor de anuidade nem lista de benefícios |
+| `/contato` | Fale com a AMI: endereço, os dois telefones, Instagram e CNPJ, tudo de `lib/ami.ts` | no ar |
 | `/associacao/{beneficios,estatuto,politica-editorial}` | Páginas de texto | **404 até a AMI escrever** |
 | `/politica-de-privacidade`, `/termos-de-uso`, `/politica-de-cookies` | Páginas legais | no ar, com **rascunho não revisado** e aviso visível |
 | `/studio` | Painel de conteúdo do Sanity, em português | no ar |
@@ -45,7 +47,7 @@ A busca entende variação de nome de profissão: quem digita "cardiologista" en
 - **Next.js 16** com renderização no servidor em toda página indexável
 - **Supabase** para o diretório, com as permissões escritas como políticas no banco e não como regra de tela: erro de front não vaza dado
 - **Sanity** para o que se escreve, com atualização imediata do site por webhook quando a AMI publica
-- **589 testes** em 40 arquivos, build com 58 páginas, sitemap com 45 endereços e nenhum 404
+- **657 testes** em 48 arquivos, sitemap com 45 endereços e nenhum fora de 200 (medido em 03/10/2026)
 - Sistema visual reformulado, com contrastes medidos e aprovados em WCAG AA
 - **Paleta creme e verde**, trocada em 23/08/2026: campo `#F2EFE6` e superfície `#FBFAF5`
   em vez do cinza-esverdeado antigo, e a escala de verde derivada dos dois tons do
@@ -98,6 +100,14 @@ Duas informações dentro dos rascunhos dependem da AMI:
 
 Cada página pede: Título, Endereço, Resumo entre 60 e 220 caracteres, data de atualização e o texto.
 
+**O que a home espera da AMI.** Enquanto o site estiver em modo demonstração, cada item abaixo aparece como moldura marcada "a entrar". Fora dele, o que faltar some da página em vez de aparecer vazio:
+
+- **As artes do carrossel**, em 3000 × 856 pixels, cadastradas em `/studio`, tipo "Banner da home". Texto grande na arte, porque ela encolhe no celular. A primeira arte real tira as três molduras de uma vez
+- **As primeiras notícias**. A primeira publicada tira os três cartões provisórios
+- **Sua AMI**: hoje o cartão diz só "Auditório e hall de eventos da AMI para alugar" e leva a Fale com a AMI. Faltam fotos, capacidade e como reservar, para ganhar página própria
+- **Os logotipos das empresas parceiras**. A faixa ainda não tem cadastro no Studio: quando houver logotipos, ela ganha um
+- **O texto de Seja associado**, que hoje é provisório e marcado como tal
+
 ### 2. Dados reais da AMI, e isto também bloqueia
 
 - ~~Razão social, CNPJ, endereço e telefone da sede~~ **Recebidos em 21/08/2026** e no ar. O CNPJ foi conferido pelos dígitos verificadores. Vivem em `lib/ami.ts`, fonte única lida pelo rodapé e pelo dado estruturado
@@ -109,7 +119,9 @@ Cada página pede: Título, Endereço, Resumo entre 60 e 220 caracteres, data de
 
 Hoje `NEXT_PUBLIC_DADOS_DEMONSTRACAO=true`, e por isso o `robots.txt` responde `Disallow: /`: o site inteiro está invisível para o Google **de propósito**, porque os 24 médicos publicados são fictícios e têm CRM plausível. Um CRM naquela faixa pode pertencer a um médico de verdade.
 
-**Virar essa chave é a última coisa a fazer antes do lançamento**, e só depois que o cadastro real estiver carregado. O rodapé lê a mesma variável, então o aviso de dados fictícios some junto, automaticamente.
+**Virar essa chave é a última coisa a fazer antes do lançamento**, e só depois que o cadastro real estiver carregado. O rodapé lê a mesma variável, então o aviso de dados fictícios some junto, automaticamente. **As molduras "a entrar" da home também**: com a chave desligada, nenhuma aparece. Isso foi conferido em 03/10/2026 com `next build` e `next start` de verdade, com a chave desligada: zero molduras na home e `robots.txt` liberado.
+
+O valor tem que ser **exatamente** `false`, em minúsculas. `False`, `0` ou vazio contam como demonstração. É o lado seguro, mas um erro de digitação deixa o site fora do Google e as molduras à mostra. A variável começa com `NEXT_PUBLIC_`, então o valor é gravado no código **na hora do build**: mudou a chave, tem que fazer o build de novo.
 
 ### 4. Fases de desenvolvimento que ainda não começaram
 
@@ -118,9 +130,7 @@ Previstas na especificação, seção 8, e ainda não construídas:
 - ~~**Importador de planilha**~~ **Construído.** Três comandos: `npm run importar -- --modelo` gera a planilha modelo, `npm run importar -- arquivo.xlsx` confere sem gravar, e `--gravar` executa. A publicação é comando à parte, `npm run publicar`, com filtro de completude. Falta a planilha real da AMI
 - **Painel da agência**, em `/painel`: a fatia 1 está construída — entrar com e-mail e senha, listar os médicos incluindo os que não estão no ar, pôr e tirar do ar um a um, e editar os campos do médico. A primeira conta se cria pelos passos de [`docs/como-criar-a-conta-do-painel.md`](como-criar-a-conta-do-painel.md), e **já existe** desde 23/08/2026. **A fatia 1 foi verificada de ponta a ponta contra o banco de produção naquele dia**, com `next build` + `next start`, que é o único arranjo que exercita o cache: tirar do ar derruba a página do médico, o sitemap e a home; pôr no ar traz as três de volta. `supabase/testes-rls.sql` também passou contra o banco real. A verificação achou um defeito, corrigido em `003dda2`: `alternarPublicacao` não conferia se a gravação alterou alguma linha, e o painel mostrava um estado que o banco não tinha. **A fatia 2 foi construída e verificada em 23/08/2026**, no mesmo dia: o painel passa a dar ao médico especialidades (com RQE e qual é a principal) e consultórios (com telefone, WhatsApp e acessibilidade, ligando a um endereço já cadastrado ou criando novo), mais o interruptor "é associado da AMI". A migração `0006_painel_vinculos.sql` concede escrita em quatro tabelas e remoção em três, todas de ligação — é a primeira do projeto que permite apagar linha, e médico continua impossível de apagar. `supabase/testes-rls.sql` passou contra o banco real cobrindo as quatro tabelas e os três papéis, e a corrente inteira foi conferida com o dedo. **Os horários saíram do produto** na mesma fatia: a planilha da AMI não tem coluna de horário, então a grade, o selo de "aberto agora" e o filtro de sábado ficariam vazios para sempre; a tabela `horario` fica no banco, intocada. As 37 decisões tomadas durante a execução estão em [`docs/superpowers/2026-08-23-painel-fatia-2-decisoes.md`](superpowers/2026-08-23-painel-fatia-2-decisoes.md). Falta a foto do médico (fatia própria, porque não existe armazenamento de arquivo configurado) e a fatia 3 (fila de revisões e "Atualizar meus dados"). Diretoria, comunicados e anuidades saíram do escopo da fatia 2 no levantamento
 - **Área do associado** (Fase 2): login do médico, edição do próprio perfil, anuidade, carteirinha, comunicados e eventos
-- **Home nova**: ainda não construída. Vem em seguida à paleta creme e verde — nessa
-  ordem de propósito, para não montar as seções novas na paleta velha e repintar depois.
-  Já está desenhada em [`docs/superpowers/specs/2026-08-23-home-nova-decisoes.md`](superpowers/specs/2026-08-23-home-nova-decisoes.md)
+- ~~**Home nova**~~ **Construída** no ramo `home-nova`, entre 23/08 e 03/10/2026. "Encontre um médico" deixou de ser a página e virou um serviço da associação, com campo de busca dentro do cartão. O `<h1>` passou de "Encontre um médico em Imperatriz" para "Associação Médica de Imperatriz". O carrossel lê os banners do Sanity e para de girar em quatro situações: mouse ou teclado em cima, botão de pausa, aba fora da frente e preferência do sistema por menos movimento. A pedido do cliente, em 03/10/2026, cada peça sem conteúdo ganhou uma moldura "a entrar" no modo demonstração. A trava está em `lib/molduras.ts`, e `testes/home-renderizada.test.ts` monta a página de verdade com a chave ligada e desligada. Decisões em [`docs/superpowers/specs/2026-08-23-home-nova-decisoes.md`](superpowers/specs/2026-08-23-home-nova-decisoes.md)
 
 ### 5. Itens técnicos adiados de propósito
 
@@ -128,7 +138,7 @@ Registrados com a razão em [`docs/decisoes-institucional-e-editorial.md`](decis
 
 - **Modo escuro** não implementado. Todos os contrastes foram medidos contra fundo claro, e refazê-los cedo demais arriscaria a acessibilidade já conquistada. A camada de tokens está semântica, então é mudança contida
 - **Selo "Revisado por"** nas notícias, e os recursos de blog previstos na especificação (filtro por categoria, tempo de leitura, sumário lateral)
-- **Duas fotografias** aguardam material da AMI, declaradas em `lib/imagens.ts`. Enquanto isso sai uma moldura marcando o lugar e dizendo que foto entra ali
+- **Duas fotografias** aguardam material da AMI, declaradas em `lib/imagens.ts`. No modo demonstração sai uma moldura marcando o lugar e dizendo que foto entra ali. Fora dele, a foto que falta não é desenhada
 - **O CRM da diretoria é cópia congelada**: corrigir o CRM de um diretor no cadastro de profissionais não atualiza a página da diretoria. Quem for construir o painel encontra o aviso no comentário de `lib/dados/diretoria.ts`
 
 ---
