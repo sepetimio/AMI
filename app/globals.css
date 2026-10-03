@@ -94,10 +94,22 @@
      Os pares com ele estão medidos em `testes/paleta.test.ts`. */
   --color-ami-green-900: #071A07;
 
-  /* A placa de iniciais do médico, de 76 a 108px (components/diretorio/Placa.tsx),
-     e a ponta escura dos três degradês mascarados pela marca
-     (components/base/EstadoVazio.tsx, components/base/MolduraProvisoria.tsx,
-     components/layout/Cabeceira.tsx).
+  /* O verde dos títulos e do texto de peso, e a ponta escura dos degradês:
+     - a cor de h1, h2 e h3 (a base, mais abaixo neste arquivo), do título
+       do slide com foto (components/home/Carrossel.module.css), dos números
+       e dos rótulos deles (NumerosDaAmi.module.css), do título dos cartões
+       de "Quem é a AMI?" (SejaAssociado.module.css), do nome do bairro
+       (components/diretorio/LadrilhosBairros.module.css), do `.botao-linha`
+       (mais abaixo), do "Ligar" da barra do pé (BarraDoPe.module.css) e do
+       item atual da gaveta do menu (Cabecalho.module.css);
+     - o sublinhado do item do menu (Cabecalho.module.css, `.menu a::after`);
+     - a placa de iniciais do médico, de 76 a 108px
+       (components/diretorio/Placa.tsx);
+     - o meio do degradê da `.textura-verde` (mais abaixo) e o da notícia sem
+       capa (components/editorial/UltimasNoticias.module.css, `.semCapa`);
+     - a ponta escura dos quatro degradês mascarados pela marca
+       (components/base/EstadoVazio.tsx, components/base/MolduraProvisoria.tsx,
+       components/layout/Cabeceira.tsx e `.semCapa::after`).
      Os pares com ele estão medidos em `testes/paleta.test.ts`. */
   --color-ami-green-800: #0D2E0C;
   --color-ami-green-700: #124211; /* borda e estado escuro */
@@ -396,10 +408,15 @@
   /* =========================================================
      MATÉRIA
 
-     A camada de grão saiu. Ela existia para dar textura de papel a um fundo
-     branco chapado, e junto com o cinza esverdeado era metade do efeito
-     "receituário" que o cliente apontou. Neste sistema a profundidade vem de
-     sombra difusa e de superfícies em dois níveis, não de textura impressa.
+     Nas superfícies claras não há grão. A camada de grão que cobria o fundo
+     branco saiu: ela dava textura de papel a um branco chapado e, junto com
+     o cinza esverdeado, era metade do efeito "receituário" que o cliente
+     apontou. Ali a profundidade vem de sombra difusa e de superfícies em
+     dois níveis.
+
+     O grão voltou só no verde, como no desenho aprovado: a `.textura-verde`
+     (mais abaixo), da busca verde da home e do rodapé, tem um PNG de ruído
+     sobre o degradê (`::before`).
      ========================================================= */
 
   /*
@@ -510,9 +527,16 @@
 
      Transcritas do desenho aprovado da home
      (docs/desenho-aprovado/home-aprovada.html), com a cor trocada por token
-     onde existe token. Os dois verdes do degradê do botão e do hover não têm
-     token: são os valores medidos na spec (seção 4), e o teste de paleta mede
-     o branco sobre os quatro.
+     onde existe token. Ficam em código, sem token, as cores do desenho que
+     só existem numa peça:
+     - os dois verdes do degradê do botão (#2B8229 → #1F6B1D, spec seção 4)
+       e os dois do hover (#22751F → #1A5E18; o segundo é o valor de
+       `--color-ami-green-600`, escrito em código porque o teste de paleta
+       lê os quatro do CSS e mede o branco sobre cada um);
+     - os dois cinzas do degradê do `.ladrilho-icone` (#F3F4F6 → #FAFAFB),
+       neutros, um pouco abaixo e um pouco acima de `--color-surface-fundo`;
+     - a ponta clara do degradê da `.textura-verde` (#123F11), quase igual a
+       `--color-ami-green-700` (#124211) mas não ele: é o valor do desenho.
 
      Efeito de mouse nestas peças é borda mais escura, sombra neutra e
      deslocamento de 1px; o botão principal só escurece o próprio verde.
@@ -597,38 +621,6 @@
   }
 
   .botao-linha:hover svg {
-    transform: translateX(4px);
-  }
-
-  /* Botão das artes do carrossel: pílula verde-limão de 48px, texto verde
-     escuro. O lima é fundo de texto escuro, nunca texto. */
-  .botao-arte {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    height: 48px;
-    padding: 0 26px;
-    border-radius: 999px;
-    background: var(--color-ami-lima-400);
-    color: var(--color-ami-green-900);
-    font-family: var(--font-corpo);
-    font-size: 14.5px;
-    font-weight: 700;
-    line-height: 1;
-    white-space: nowrap;
-    transition: transform 300ms var(--ease-resposta);
-  }
-
-  .botao-arte:hover {
-    transform: translateY(-2px);
-  }
-
-  .botao-arte svg {
-    flex: none;
-    transition: transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1);
-  }
-
-  .botao-arte:hover svg {
     transform: translateX(4px);
   }
 

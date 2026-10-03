@@ -1,5 +1,5 @@
 /*
-  Como as notícias da home se arrumam, conforme quantas saem (Ruling 30).
+  Como as notícias da home se arrumam, conforme quantas saem.
 
   - 4 (ou as quatro provisórias): "ao-lado". O destaque à esquerda e a lista
     das outras três à direita, da mesma altura da foto (abaixo de 1180px, o

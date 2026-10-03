@@ -19,7 +19,7 @@ import { fonte } from "@/testes/apoio";
 
   O CSS só se lê do arquivo, porque quem o aplica é o navegador: no fim
   deste arquivo, regra por regra. A altura igual das duas colunas foi
-  medida no navegador (relatório da tarefa 9).
+  medida à mão no navegador; aqui não há como medi-la.
 */
 
 const sanity = vi.hoisted(() => ({ publicadas: [] as ResumoNoticia[], limites: [] as number[] }));
@@ -95,7 +95,7 @@ function pecasDaLista(lista: string): string[] {
   );
 }
 
-describe("o arranjo das notícias (Ruling 30)", () => {
+describe("o arranjo das notícias", () => {
   it("por quantidade: nada, só o destaque, embaixo com uma coluna por notícia, ou ao lado", () => {
     expect([0, 1, 2, 3, 4, 5].map(arranjoDasNoticias)).toEqual([
       null,

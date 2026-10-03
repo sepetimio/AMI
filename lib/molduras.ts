@@ -4,8 +4,10 @@ import type { Banner } from "@/lib/sanity/tipos";
   As molduras provisórias da home, e a trava que as segura.
 
   O cliente ainda não tem as artes e pediu, em 03/10/2026, para ver a home
-  com a estrutura inteira: carrossel, quatro serviços, notícias e parceiros,
-  com moldura "a entrar" no lugar do que falta. Isso reverte uma decisão da
+  com a estrutura inteira, com moldura "a entrar" no lugar do que falta.
+  Hoje falta: as artes do carrossel, as fotos de "Sua AMI" e de "Seja
+  associado", o texto dos cartões de "Quem é a AMI?", as notícias e os
+  parceiros. Isso reverte uma decisão da
   spec (docs/superpowers/specs/2026-08-23-home-nova-decisoes.md: sem banner,
   a seção não existe) — mas SÓ em modo demonstração.
 

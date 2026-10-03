@@ -492,7 +492,7 @@ describe("o CSS da busca", () => {
   O fundo não é uma cor só: é um degradê com dois brilhos fixos, o grão e a
   luz que passeia (`.brilho`), que cruza o bloco em 18s. Os fundos abaixo são
   o ponto mais claro que cada texto chega a ter atrás de si, medidos no
-  navegador em 03/10/2026 (relatório da tarefa 7): a posição real de cada
+  navegador em 03/10/2026, assim: a posição real de cada
   linha de texto, a 320, 360, 390, 430, 768, 1024, 1180, 1280, 1440 e
   1920px, com a luz em 21 pontos do caminho dela e o grão pelo efeito médio
   (branco em `overlay`, alfa médio 115/255, opacidade 0,22). Quem mudar a

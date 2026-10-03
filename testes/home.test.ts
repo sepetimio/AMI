@@ -45,8 +45,9 @@ const ORDEM = [
 
 /*
   O CSS da home: o espaço entre os blocos e a coluna. É regra de CSS, que só
-  o navegador aplica, então se lê o arquivo; as distâncias medidas na tela
-  estão no relatório da tarefa 10. Espaço desigual entre blocos é a queixa
+  o navegador aplica, então se lê o arquivo; as distâncias na tela, a
+  auditoria visual (scripts/auditoria-visual.js) mede e confere contra
+  `--ritmo`. Espaço desigual entre blocos é a queixa
   central do cliente: estas asserções são as que ficam vermelhas se alguém
   trocar a régua de um deles.
 */

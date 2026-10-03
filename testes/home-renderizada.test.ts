@@ -235,8 +235,9 @@ describe("as faixas de ponta a ponta e o fim da página", () => {
     O rodapé emenda na faixa de cima só quando a página termina numa faixa
     (a regra com `:has` em components/layout/Rodape.module.css, que olha o
     ÚLTIMO elemento). Aqui se confere o lado da home: quais blocos são
-    faixa, e qual bloco fecha a página em cada caso. A medida na tela está
-    no relatório da tarefa.
+    faixa, e qual bloco fecha a página em cada caso. Na tela, a auditoria
+    visual (scripts/auditoria-visual.js) mede o espaço do último bloco ao
+    rodapé (`ultimoAoRodape`).
   */
   it("a busca, Seja associado e bairros levam data-faixa, e só eles", async () => {
     const html = await renderizarHome("true");

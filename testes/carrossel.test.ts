@@ -27,8 +27,9 @@ import { fonte, semComentarios } from "@/testes/apoio";
   2. O desenho de cada tipo de slide e a fita com cópias nas pontas.
 
   O que só existe no navegador (o movimento da fita, o salto, o dedo, a
-  barra de tempo) foi conferido no navegador e está no relatório da tarefa
-  6; o que dá para medir sem ele está em testes/fita-do-carrossel.test.ts.
+  barra de tempo) foi conferido à mão no navegador e não se mede aqui; o que
+  dá para medir sem ele está em testes/fita-do-carrossel.test.ts, e a
+  auditoria visual (scripts/auditoria-visual.js) confere cada slide parado.
 */
 
 function arte(id: string, extra: Partial<BannerArte> = {}): BannerArte {
@@ -404,8 +405,8 @@ describe("o slide provisório", () => {
   Ligação que só existe no navegador: os ouvintes nativos. Lidos do código,
   sem comentários, porque não há como disparar `pointerenter` com
   `pointerType` nem `touchend` sem navegador. O comportamento foi conferido
-  no navegador (relatório da tarefa 6); aqui se trava que cada ouvinte é
-  posto E tirado, e que mouse é só mouse.
+  à mão no navegador; aqui se trava que cada ouvinte é posto E tirado, e que
+  mouse é só mouse.
 */
 describe("os ouvintes do carrossel", () => {
   const codigo = semComentarios(fonte("../components/home/Carrossel.tsx"));

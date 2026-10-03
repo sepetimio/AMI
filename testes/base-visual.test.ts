@@ -19,7 +19,7 @@ describe("a base visual", () => {
   });
 
   it("a seta dos botoes anda com a curva do desenho", () => {
-    for (const seletor of [".botao svg {", ".botao-linha svg {", ".botao-arte svg {"]) {
+    for (const seletor of [".botao svg {", ".botao-linha svg {"]) {
       const ini = CSS.indexOf(seletor);
       expect(ini, `falta ${seletor}`).toBeGreaterThan(-1);
       const bloco = CSS.slice(ini, CSS.indexOf("}", ini));
@@ -43,7 +43,7 @@ describe("a base visual", () => {
   });
 
   it("existem as pecas que as secoes usam", () => {
-    for (const c of [".botao", ".botao-linha", ".botao-arte", ".rotulo-secao", ".ladrilho-icone", ".textura-verde", ".brilho"]) {
+    for (const c of [".botao", ".botao-linha", ".rotulo-secao", ".ladrilho-icone", ".textura-verde", ".brilho"]) {
       expect(CSS, `falta ${c}`).toContain(`${c} {`);
     }
   });

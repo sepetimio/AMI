@@ -85,8 +85,9 @@ describe("o rodape", () => {
   });
 
   it("emenda sem espaco so quando a pagina termina numa faixa de ponta a ponta", () => {
-    /* Regra de CSS: quem a aplica é o navegador, e a medida dos dois casos
-       (termina em faixa, não termina) está no relatório da tarefa 10. Aqui
+    /* Regra de CSS: quem a aplica é o navegador, e os dois casos (termina
+       em faixa, não termina) a auditoria visual mede na tela
+       (scripts/auditoria-visual.js, `ultimoAoRodape`). Aqui
        se confere que ela existe, com o seletor que pergunta pelo ÚLTIMO
        bloco, e não por qualquer faixa da página. Que as faixas levam a
        marca, e qual bloco fecha a home, está em

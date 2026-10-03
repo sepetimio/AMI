@@ -20,7 +20,7 @@
   - depois de rolar a página inteira, todo bloco que esperava entrou e
     terminou com opacidade 1 e sem `filter`;
   - nada passa da borda, a não ser dentro de uma fileira que desliza;
-  - nenhum `.botao`, `.botao-linha` ou `.botao-arte` quebra linha ou vaza;
+  - nenhum `.botao` ou `.botao-linha` quebra linha ou vaza;
   - um único `h1`, nenhum `id` repetido, nenhuma imagem quebrada;
   - o cabeçalho no topo em cinco pontos de rolagem;
   - o menu em linha acima de 1180px e em gaveta abaixo, e a gaveta abre e fecha.
@@ -33,7 +33,8 @@
   - cada slide real: com botão, o texto à vista e os controles centrados sob
     o botão (diferença de até 2px, medida 1,5s depois de parar); sem botão
     (arte pronta, provisório), a moldura ou a arte à vista e os controles na
-    margem (`--m`, Ruling 16);
+    margem (`--m`): sem botão não há sob o que centrá-los, e a margem é a
+    linha do texto dos slides com botão;
   - a barra do pé: nunca acima de 700px; até 700px, aparece se e só se o
     carrossel saiu por cima (ou a rolagem passou de 600px, sem carrossel) e
     a busca não está na tela.
@@ -206,7 +207,7 @@
 
   /* 4. Botões: uma linha só, sem texto vazando. */
   const quebrados = [
-    ...document.querySelectorAll(".botao, .botao-linha, .botao-arte"),
+    ...document.querySelectorAll(".botao, .botao-linha"),
   ]
     .filter(visivel)
     .filter((b) => !b.closest("[inert]") && !b.closest('[aria-hidden="true"]'))

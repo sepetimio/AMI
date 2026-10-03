@@ -8,6 +8,14 @@
   Faixa de ponta a ponta: o bloco não tem canto nem sombra, e a margem
   lateral é `--borda-faixa` (app/globals.css), a mesma do rodapé. O `100%`
   da fórmula vale a largura do bloco que contém a faixa, que é a página.
+
+  Duas cores ficam em código, sem token: #cfd8c9 (o texto de apoio e a frase
+  de baixo) e #eef3e8 (o texto das pílulas), os brancos esverdeados do
+  desenho para texto sobre o verde. Só existem aqui, sobre a `.textura-verde`
+  desta faixa (o rodapé usa branco translúcido), e um token na paleta global
+  convidaria a usá-las sobre fundo claro, onde reprovam. O contraste de cada
+  uma no ponto mais claro do fundo é refeito em
+  testes/numeros-e-busca.test.ts, que as lê deste arquivo.
 */
 
 .encontre {
