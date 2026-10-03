@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import type { Banner } from "@/lib/sanity/tipos";
+import { MolduraProvisoria } from "@/components/base/MolduraProvisoria";
+import type { ItemDoCarrossel } from "@/lib/molduras";
 
 const INTERVALO = 6000;
 
@@ -63,8 +64,16 @@ function falso() {
   registra `cdn.sanity.io` em `images.remotePatterns` — nenhum outro
   consumidor de imagem do Sanity no site usa `next/image` pelo mesmo motivo
   (ver components/editorial/LinhaNoticia.tsx e TextoRico.tsx).
+
+  Um item pode ser também um banner PROVISÓRIO (`provisorio: true`, ver
+  lib/molduras.ts): no lugar do `<img>` sai a moldura "Arte a entrar", na
+  mesma proporção 3000 × 856 da arte real. Só o desenho de cada slide muda —
+  rotação, setas, bolinhas e pausa tratam os dois do mesmo jeito, porque o
+  cliente quer ver o mecanismo funcionando antes de ter as artes. Quem
+  garante que real e provisório nunca vêm misturados é quem monta a lista,
+  `moldurasDaHome`, não este componente.
 */
-export function Carrossel({ banners }: { banners: Banner[] }) {
+export function Carrossel({ banners }: { banners: ItemDoCarrossel[] }) {
   const trilho = useRef<HTMLDivElement>(null);
   const [atual, setAtual] = useState(0);
   const [pausado, setPausado] = useState(false);
@@ -169,7 +178,14 @@ export function Carrossel({ banners }: { banners: Banner[] }) {
           className="flex snap-x snap-mandatory overflow-x-auto rounded-bloco [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {banners.map((b, i) => {
-            const arte = (
+            const arte = "provisorio" in b ? (
+              <MolduraProvisoria
+                largura={3000}
+                altura={856}
+                rotulo={`Arte a entrar: ${b.rotulo}`}
+                legenda={<>Arte a entrar: {b.rotulo}</>}
+              />
+            ) : (
               /* eslint-disable-next-line @next/next/no-img-element --
                  o CDN do Sanity já redimensiona; ver lib/sanity/imagem.ts e
                  o comentário no topo deste arquivo. */
