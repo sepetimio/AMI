@@ -36,6 +36,12 @@ describe("etiquetasDoDocumento", () => {
     expect(etiquetasDoDocumento({ _type: "autor" })).toEqual(["noticias"]);
   });
 
+  it("um banner invalida a lista de banners da home", () => {
+    /* Sem este caso, publicar um banner no Studio só aparecia no site quando
+       o cache expirasse sozinho: o webhook chegava e não invalidava nada. */
+    expect(etiquetasDoDocumento({ _type: "banner" })).toEqual(["banners"]);
+  });
+
   it("documento sem slug não produz etiqueta específica", () => {
     expect(etiquetasDoDocumento({ _type: "noticia" })).toEqual(["noticias"]);
   });

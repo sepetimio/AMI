@@ -5,7 +5,8 @@ import type { Banner, ImagemSanity } from "@/lib/sanity/tipos";
 
 /* Etiqueta de cache dos banners, na mesma convenção de `ETIQUETA_NOTICIAS`
    em lib/sanity/consultas.ts: string exportada, nunca escrita à mão do lado
-   que invalida. */
+   que invalida — `etiquetasDoDocumento` (lib/sanity/etiquetasDoDocumento.ts)
+   importa esta constante quando o webhook avisa de um documento `banner`. */
 export const ETIQUETA_BANNERS = "banners";
 
 const PROJECAO_IMAGEM = `imagem{asset, alt}`;
@@ -56,8 +57,8 @@ export function estaNoAr(b: { expiraEm: string | null }, agora: Date): boolean {
   A largura pedida a `urlDaImagem` é a dimensão nativa da arte (3000px). O
   banner não é uma foto que o CDN recorta por hotspot: é peça pronta, a
   proporção já vem certa do arquivo que a AMI sobe, e quem decide como
-  exibir em cada largura de tela é o carrossel — tarefa seguinte, fora
-  daqui.
+  exibir em cada largura de tela é o carrossel
+  (components/home/Carrossel.tsx), não esta consulta.
 */
 const LARGURA_DA_ARTE = 3000;
 
