@@ -20,7 +20,10 @@ import { fileURLToPath } from "node:url";
    renderizam com `renderToString`, e também sem clicar nem medir pixel: só
    leem o HTML de servidor, para saber se um campo ou uma moldura saiu.
    `testes/home-renderizada.test.ts` faz o mesmo com a home inteira, com
-   `renderToPipeableStream` e as fontes de dados trocadas por dublês. */
+   `renderToPipeableStream` e as fontes de dados trocadas por dublês;
+   `testes/porta-da-busca.test.ts` também renderiza assim `/busca` e uma
+   página de especialidade, e `testes/caminhos-de-filiacao.test.ts`, com
+   `renderToString`, `/contato` e `/associacao`. */
 export default defineConfig({
   test: {
     include: ["testes/**/*.test.ts"],

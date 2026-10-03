@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Cabeceira } from "@/components/layout/Cabeceira";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbList } from "@/lib/seo/jsonld";
@@ -88,8 +89,11 @@ export default function PaginaContato() {
         </address>
 
         <p className="coluna-leitura mt-10 border-t border-line pt-8 text-[16px] text-ink-600">
-          Médico interessado em se associar: ligue para a AMI. A página de
-          filiação está em preparação.
+          Médico interessado em se associar: a página{" "}
+          <Link href="/associacao/seja-associado" className={CLASSE_LINK}>
+            Seja associado
+          </Link>{" "}
+          diz quem pode se associar e como fazer isso.
         </p>
       </div>
     </>

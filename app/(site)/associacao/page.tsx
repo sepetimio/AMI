@@ -25,17 +25,25 @@ const TRILHA = [
 ];
 
 /*
-  Os quatro caminhos que /associacao existe para apontar. Vêm do código, não
+  Os cinco caminhos que /associacao existe para apontar. Vêm do código, não
   do Sanity: são a navegação da seção institucional, e a seção institucional
   precisa existir mesmo no dia em que ninguém escreveu uma linha de prosa
   ainda. "Diretoria" está aqui mesmo sendo rota estática (tarefa 8, sem
-  Sanity envolvido); as outras três são as subpáginas de prosa da tarefa 9.
+  Sanity envolvido); as outras quatro passam por `[pagina]/page.tsx`. Três
+  são as subpáginas de prosa da tarefa 9; "Seja associado" entrou com a home
+  nova e é a única das quatro com rascunho em código
+  (`RASCUNHOS_DE_ASSOCIACAO`, em lib/rascunhosLegais.ts).
 */
 const CAMINHOS = [
   {
     titulo: "Diretoria",
     caminho: "/associacao/diretoria",
     nota: "Quem responde pela associação, com o CRM de cada diretor.",
+  },
+  {
+    titulo: "Seja associado",
+    caminho: "/associacao/seja-associado",
+    nota: "Quem pode se associar à AMI e como fazer isso.",
   },
   {
     titulo: "Benefícios",
@@ -72,7 +80,7 @@ export async function generateMetadata(): Promise<Metadata> {
   depende de conteúdo publicado.
 
   Por isso ela nunca chama `notFound()` e não usa `PaginaDeTexto` (que é o
-  componente das páginas de prosa pura, ver o comentário lá). Os quatro
+  componente das páginas de prosa pura, ver o comentário lá). Os cinco
   caminhos de `CAMINHOS`, acima, renderizam sempre. Quando a AMI escrever a
   prosa institucional no Studio, ela entra como um bloco a mais, por cima dos
   caminhos, nunca no lugar deles.
