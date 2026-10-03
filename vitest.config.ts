@@ -38,6 +38,14 @@ export default defineConfig({
   test: {
     include: ["testes/**/*.test.ts"],
     environment: "node",
+    /* 30s por teste, e não os 5s de fábrica. Alguns testes importam o site
+       dentro do próprio `it`, depois de `vi.resetModules()`: o cabeçalho e o
+       rodapé por `renderizar` (testes/renderizar.ts) em sua-ami-no-menu e
+       rodape, o layout em revelar, a home em home-renderizada. Pagam ali a
+       primeira importação, a frio, enquanto os outros arquivos de teste são
+       transformados em paralelo: às vezes ela passa de 5s e o teste fica
+       vermelho sem defeito nenhum. */
+    testTimeout: 30_000,
   },
   resolve: {
     /* Forma de array, com `find` em regex de correspondência exata (`^...$`),
