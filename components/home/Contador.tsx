@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { DURACAO_DO_CONTADOR, valorNoInstante } from "@/lib/contador";
+import { iniciarContagem } from "@/lib/contador";
 
 /*
   Um número dos "números da AMI" que conta de 0 até o valor quando entra na
@@ -14,6 +14,9 @@ import { DURACAO_DO_CONTADOR, valorNoInstante } from "@/lib/contador";
 
   Quem pede menos movimento no sistema vê o número parado, e zero não tem o
   que contar.
+
+  O laço quadro a quadro mora em `lib/contador.ts` (`iniciarContagem`), onde
+  é testado com um relógio falso; aqui fica só a ligação com o navegador.
 
   O estado guarda só o quadro da contagem em curso; fora dela (antes, depois,
   ou com menos movimento) o que aparece é o próprio `valor`, e por isso um
@@ -28,25 +31,20 @@ export function Contador({ valor }: { valor: number }) {
     if (!el) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || valor <= 0) return;
 
-    let quadro = 0;
+    let parar = () => {};
     /* O limiar e a margem são os do desenho: começa quando 12% do número já
        passou 40px acima do pé da tela. */
     const observador = new IntersectionObserver(
       (entradas) => {
         if (!entradas.some((e) => e.isIntersecting)) return;
         observador.disconnect();
-        const inicio = performance.now();
-        const passo = (agora: number) => {
-          const decorrido = agora - inicio;
-          if (decorrido >= DURACAO_DO_CONTADOR) {
-            setQuadroAtual(null);
-            return;
-          }
-          setQuadroAtual(valorNoInstante(valor, decorrido));
-          quadro = requestAnimationFrame(passo);
-        };
-        setQuadroAtual(0);
-        quadro = requestAnimationFrame(passo);
+        parar = iniciarContagem({
+          valor,
+          agora: () => performance.now(),
+          agendar: (passo) => requestAnimationFrame(passo),
+          cancelar: (id) => cancelAnimationFrame(id),
+          mostrar: setQuadroAtual,
+        });
       },
       { threshold: 0.12, rootMargin: "0px 0px -40px 0px" },
     );
@@ -54,7 +52,7 @@ export function Contador({ valor }: { valor: number }) {
 
     return () => {
       observador.disconnect();
-      cancelAnimationFrame(quadro);
+      parar();
       setQuadroAtual(null);
     };
   }, [valor]);

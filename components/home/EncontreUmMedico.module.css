@@ -50,14 +50,18 @@
 
 /* O anel de foco vai no campo inteiro, e não só no texto, que é um pedaço
    da pílula. É contorno, como o resto do site, e lima, como tudo sobre o
-   verde. */
-.campo:has(input:focus-visible) {
-  outline: 2px solid var(--color-ami-lima-400);
-  outline-offset: 3px;
-}
+   verde. As duas regras andam juntas e só valem onde há `:has`: sem ele, o
+   campo fica com o contorno do próprio texto (regra global de foco), e
+   nunca sem nenhum. */
+@supports selector(:has(*)) {
+  .campo:has(input:focus-visible) {
+    outline: 2px solid var(--color-ami-lima-400);
+    outline-offset: 3px;
+  }
 
-.campo input:focus-visible {
-  outline: none;
+  .campo input:focus-visible {
+    outline: none;
+  }
 }
 
 /* Só a lupa é cinza. A seta do botão herda o branco do `.botao`: uma regra
@@ -123,9 +127,9 @@
 }
 
 /* Branco a 75%, e não os 55% do desenho: a luz que passeia passa por baixo
-   das pílulas, e no ponto mais claro que ela alcança (medido no navegador,
-   com o grão médio) 55% dava 3,53:1 e 75% dá 5,07:1. A conta está em
-   testes/numeros-e-busca.test.ts. */
+   das pílulas. Sobre o fundo mais claro que ela deixa atrás de uma pílula
+   (medido no navegador, com o grão médio), 55% dá 3,49:1 e 75% dá 5,00:1 —
+   a conta que testes/numeros-e-busca.test.ts refaz. */
 .num {
   font-size: 12px;
   font-weight: 600;
@@ -172,9 +176,10 @@
     padding: 44px var(--borda-faixa);
   }
 
-  /* No celular a luz que passeia cobre o canto do rótulo, e o lima puro
-     cairia a 4,00:1 na tela de 320px (4,27:1 na de 360). Clareado com 30% de
-     branco, fica em 4,73:1 no pior ponto, e continua lendo como lima. */
+  /* No celular a luz que passeia cobre o canto do rótulo. Sobre o fundo
+     mais claro atrás dele (medido no navegador a 320px, com o grão médio), o
+     lima puro dá 4,01:1; clareado com 30% de branco, 4,73:1, e continua lendo
+     como lima. A conta é a que testes/numeros-e-busca.test.ts refaz. */
   .sobre {
     color: color-mix(in srgb, var(--color-ami-lima-400) 70%, white);
   }

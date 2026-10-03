@@ -11,8 +11,9 @@ import { AMI } from "@/lib/ami";
 
   Os números chegam por propriedade: os anos são calculados de `lib/ami.ts`
   (`anosDeAmi`) e os outros três saem do banco. Nenhum é escrito à mão aqui,
-  e nenhum texto de apoio afirma o que só o banco sabe: o dos bairros, que no
-  desenho nomeava dois bairros, diz só para que serve o botão.
+  e nenhum texto de apoio afirma o que só o banco sabe: os das especialidades
+  e dos bairros, que no desenho nomeavam especialidades e bairros, dizem só
+  para que serve o botão.
 
   O bloco não tem margem própria: quem o põe na página (a home) decide o
   espaço de cima, com `--ritmo`, e o põe dentro da caixa centralizada.
@@ -56,7 +57,7 @@ export function NumerosDaAmi({
       icone: "batimento",
       valor: especialidades,
       rotulo: especialidades === 1 ? "especialidade" : "especialidades",
-      apoio: "Da clínica médica à urologia, com registro de especialista quando houver.",
+      apoio: "As especialidades com mais médicos no diretório da AMI.",
       botao: "Ver especialidades",
       destino: "/medicos",
     },
@@ -66,7 +67,7 @@ export function NumerosDaAmi({
       rotulo: bairros === 1 ? "bairro atendido" : "bairros atendidos",
       apoio: "Encontre quem atende perto de casa.",
       botao: "Ver bairros",
-      destino: "/medicos",
+      destino: "/medicos#por-bairro",
     },
   ];
 

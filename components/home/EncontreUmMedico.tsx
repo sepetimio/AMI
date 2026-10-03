@@ -29,13 +29,12 @@ export function EncontreUmMedico({
 }: {
   especialidades: { nome: string; slug: string; total: number }[];
 }) {
-  /* As que têm mais médicos, das que têm algum; empate fica na ordem que
-     veio. */
-  const pilulas = especialidades
-    .filter((e) => e.total > 0)
-    .sort((a, b) => b.total - a.total)
-    .slice(0, PILULAS);
-  const todas = especialidades.length;
+  /* Só contam as especialidades com algum médico: são as que têm página com
+     gente dentro, e o "veja todas as N" não pode prometer mais do que isso. */
+  const comMedicos = especialidades.filter((e) => e.total > 0);
+  /* As que têm mais médicos; empate fica na ordem que veio. */
+  const pilulas = [...comMedicos].sort((a, b) => b.total - a.total).slice(0, PILULAS);
+  const todas = comMedicos.length;
 
   return (
     <section

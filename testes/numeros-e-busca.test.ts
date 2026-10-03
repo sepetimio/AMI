@@ -2,12 +2,13 @@ import { describe, expect, it, vi } from "vitest";
 import { renderToString } from "react-dom/server";
 import { createElement } from "react";
 import { AMI, anosDeAmi } from "@/lib/ami";
-import { DURACAO_DO_CONTADOR, easeOutCubic, valorNoInstante } from "@/lib/contador";
+import { DURACAO_DO_CONTADOR, easeOutCubic, iniciarContagem, valorNoInstante } from "@/lib/contador";
 import { LadrilhoIcone } from "@/components/base/Icone";
 import { NumerosDaAmi } from "@/components/home/NumerosDaAmi";
 import { EncontreUmMedico } from "@/components/home/EncontreUmMedico";
 import estilosNum from "@/components/home/NumerosDaAmi.module.css";
 import estilosBusca from "@/components/home/EncontreUmMedico.module.css";
+import { SINONIMOS, normalizar } from "@/lib/dados/sinonimos";
 import { fonte, semComentarios } from "@/testes/apoio";
 
 /*
@@ -123,24 +124,114 @@ describe("a conta do contador", () => {
   });
 });
 
-describe("o contador no navegador", () => {
-  it("so conta quando o numero entra na tela, e para de observar depois", () => {
-    expect(CONTADOR).toMatch(/new IntersectionObserver\(/);
-    expect(CONTADOR).toMatch(/\.observe\(/);
-    /* Uma vez na entrada e outra na limpeza do efeito. */
-    expect(CONTADOR.match(/\.disconnect\(\)/g)?.length).toBeGreaterThanOrEqual(2);
-    expect(CONTADOR).toMatch(/return \(\) => \{[^}]*\.disconnect\(\)[^}]*cancelAnimationFrame/);
+/*
+  Um relógio falso para o laço do contador: `agendar` guarda o passo, e
+  `quadro()` roda o pendente 16ms depois do anterior, como uma tela de 60Hz.
+*/
+function relogioFalso() {
+  let agora = 1000;
+  let proximoId = 0;
+  const fila = new Map<number, (t: number) => void>();
+  const mostrados: (number | null)[] = [];
+  return {
+    mostrados,
+    fila,
+    agora: () => agora,
+    agendar: (passo: (t: number) => void) => {
+      fila.set(++proximoId, passo);
+      return proximoId;
+    },
+    cancelar: (id: number) => {
+      fila.delete(id);
+    },
+    mostrar: (q: number | null) => {
+      mostrados.push(q);
+    },
+    /* Roda o quadro pendente; devolve false se não havia nenhum. */
+    quadro() {
+      const [id, passo] = [...fila][0] ?? [];
+      if (id === undefined || !passo) return false;
+      fila.delete(id);
+      agora += 16;
+      passo(agora);
+      return true;
+    },
+  };
+}
+
+describe("o laco do contador", () => {
+  it("mostra 0, depois a curva, e no fim devolve a tela ao valor (null)", () => {
+    const r = relogioFalso();
+    iniciarContagem({ valor: 51, ...r });
+    expect(r.mostrados).toEqual([0]);
+    while (r.quadro());
+    expect(r.mostrados.at(-1)).toBeNull();
+    const curva = r.mostrados.slice(1, -1) as number[];
+    expect(curva.length).toBeGreaterThan(10);
+    for (let i = 1; i < curva.length; i++) expect(curva[i]).toBeGreaterThanOrEqual(curva[i - 1]);
+    expect(curva[0]).toBe(valorNoInstante(51, 16));
+    expect(curva).toContain(45);
+  });
+
+  it("agenda quadros ate 1,4s e para", () => {
+    const r = relogioFalso();
+    iniciarContagem({ valor: 24, ...r });
+    let quadros = 0;
+    while (r.quadro()) quadros++;
+    /* 1400 / 16 = 87,5: 87 quadros mostram a curva, o 88º encerra. */
+    expect(quadros).toBe(88);
+    expect(r.fila.size).toBe(0);
+  });
+
+  it("a funcao devolvida cancela tudo, e nada aparece depois dela", () => {
+    const r = relogioFalso();
+    const parar = iniciarContagem({ valor: 14, ...r });
+    r.quadro();
+    r.quadro();
+    const antes = r.mostrados.length;
+    parar();
+    expect(r.fila.size).toBe(0);
+    expect(r.quadro()).toBe(false);
+    expect(r.mostrados.length).toBe(antes);
+  });
+
+  it("um passo ja na fila quando a contagem para nao mostra nada", () => {
+    /* Cancelar falha em silêncio se o navegador já tirou o quadro da fila. */
+    const r = relogioFalso();
+    const parar = iniciarContagem({ valor: 14, ...r });
+    const [, passo] = [...r.fila][0];
+    parar();
+    const antes = r.mostrados.length;
+    passo(1100);
+    expect(r.mostrados.length).toBe(antes);
+  });
+});
+
+describe("o contador ligado ao navegador", () => {
+  /* A ligação com o IntersectionObserver e o matchMedia só existe no
+     navegador; aqui ela é lida do código, trecho por trecho. */
+  it("so comeca a contar quando o numero esta na tela, e desliga o observador", () => {
+    expect(CONTADOR).toMatch(
+      /\(entradas\) => \{\s*if \(!entradas\.some\(\(e\) => e\.isIntersecting\)\) return;\s*observador\.disconnect\(\);\s*parar = iniciarContagem\(\{/,
+    );
+    expect(CONTADOR).toMatch(/observador\.observe\(el\);/);
+  });
+
+  it("o relogio e o agendador sao os do navegador", () => {
+    expect(CONTADOR).toMatch(/agora: \(\) => performance\.now\(\),/);
+    expect(CONTADOR).toMatch(/agendar: \(passo\) => requestAnimationFrame\(passo\),/);
+    expect(CONTADOR).toMatch(/cancelar: \(id\) => cancelAnimationFrame\(id\),/);
+    expect(CONTADOR).toMatch(/mostrar: setQuadroAtual,/);
+  });
+
+  it("a limpeza desliga o observador e para a contagem", () => {
+    expect(CONTADOR).toMatch(/return \(\) => \{\s*observador\.disconnect\(\);\s*parar\(\);\s*setQuadroAtual\(null\);\s*\};/);
   });
 
   it("quem pede menos movimento ve o numero parado", () => {
     expect(CONTADOR).toMatch(
       /if \(window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)\.matches \|\| valor <= 0\) return;/,
     );
-  });
-
-  it("a conta de cada quadro e a da funcao pura", () => {
-    expect(CONTADOR).toContain("valorNoInstante(valor,");
-    expect(CONTADOR).toContain("DURACAO_DO_CONTADOR");
   });
 });
 
@@ -176,7 +267,7 @@ describe("os numeros", () => {
       ["Conheça a história", "/associacao"],
       ["Ver os médicos", "/busca"],
       ["Ver especialidades", "/medicos"],
-      ["Ver bairros", "/medicos"],
+      ["Ver bairros", "/medicos#por-bairro"],
     ]);
   });
 
@@ -212,10 +303,24 @@ describe("os numeros", () => {
     }
   });
 
+  it("nenhum texto de apoio nomeia especialidade: elas vem do banco", () => {
+    /* Só letras e espaços, sem acento nem caixa: "Urologia," e "urologia"
+       viram a mesma palavra. A lista de nomes é a do vocabulário do site
+       (lib/dados/sinonimos.ts): o formal, o singular e o plural. */
+    const palavras = (s: string) => ` ${normalizar(s).replace(/[^a-z0-9]+/g, " ")} `;
+    const texto = palavras(html.replace(/<[^>]+>/g, " "));
+    for (const s of SINONIMOS) {
+      for (const nome of [s.especialidade, s.singular, s.plural]) {
+        expect(texto, nome).not.toContain(palavras(nome));
+      }
+    }
+    expect(html).toContain("As especialidades com mais médicos no diretório da AMI.");
+  });
+
   it("no singular quando o banco devolve um", () => {
     const um = renderToString(createElement(NumerosDaAmi, { anos: 51, medicos: 1, especialidades: 1, bairros: 1 }));
-    for (const r of ["médico no diretório", "especialidade<", "bairro atendido"]) expect(um).toContain(r);
-    for (const r of ["médicos no diretório", "bairros atendidos"]) expect(um).not.toContain(r);
+    const rotulos = [...um.matchAll(new RegExp(`<div class="${estilosNum.rotulo}">([^<]+)<`, "g"))].map((m) => m[1]);
+    expect(rotulos).toEqual(["anos de AMI", "médico no diretório", "especialidade", "bairro atendido"]);
   });
 });
 
@@ -319,6 +424,12 @@ describe("encontre um medico", () => {
     expect(html).toContain("Quem atende em Imperatriz, num só lugar");
   });
 
+  it("o 'veja todas as N' conta so as especialidades com medicos", () => {
+    const comVazias = [...itens, { nome: "Z1", slug: "z1", total: 0 }, { nome: "Z2", slug: "z2", total: 0 }];
+    const h = renderToString(createElement(EncontreUmMedico, { especialidades: comVazias }));
+    expect(h).toContain("veja todas as 14 especialidades");
+  });
+
   it("com uma especialidade so, nao diz 'todas as 1'", () => {
     const h = renderToString(createElement(EncontreUmMedico, { especialidades: [{ nome: "A", slug: "a", total: 1 }] }));
     expect(h).not.toContain("todas as 1 ");
@@ -354,6 +465,15 @@ describe("o CSS da busca", () => {
     expect(b).toMatch(/width:\s*44px/);
     expect(b).toMatch(/height:\s*44px/);
     expect(b).toMatch(/font-size:\s*0/);
+  });
+
+  it("o texto so perde o contorno onde o campo inteiro ganha o anel (:has)", () => {
+    const sup = bloco(css, "@supports selector(:has(*))");
+    expect(regra(sup, ".campo:has(input:focus-visible)")).toMatch(/outline:\s*2px solid var\(--color-ami-lima-400\)/);
+    expect(regra(sup, ".campo input:focus-visible")).toMatch(/outline:\s*none/);
+    /* Nenhum `outline: none` fora do bloco: sem `:has`, o texto mantém o
+       contorno da regra global. */
+    expect(css.match(/outline:\s*none/g)?.length).toBe(sup.match(/outline:\s*none/g)?.length);
   });
 
   it("nenhuma regra pinta o svg do botao: a seta fica branca", () => {
