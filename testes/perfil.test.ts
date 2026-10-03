@@ -248,6 +248,10 @@ describe("sobre, outros médicos e a nota", () => {
     const secao = trecho(html, 'data-bloco="outros"');
     expect(secao).toContain(">Outros médicos de Neurologia</h2>");
     expect(secao).toMatch(/<a class="botao-linha" href="\/medicos\/neurologia">Ver todos de Neurologia/);
+    /* A seta do desenho tem a altura da letra do botão (13px), não 20. */
+    const seta = /Ver todos de Neurologia(?:<!-- -->)? <svg [^>]*>/.exec(secao)![0];
+    expect(seta).toContain('width="13"');
+    expect(seta).toContain('height="13"');
     expect(secao).toContain('href="/medico/cristina-bezerra"');
     expect(secao).not.toContain('href="/medico/bruno-cavalcante"');
   });

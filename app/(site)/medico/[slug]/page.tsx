@@ -93,7 +93,7 @@ export default async function PaginaPerfil({ params }: Props) {
               {`Outros médicos de ${principal.nome}`}
             </h2>
             <Link href={`/medicos/${principal.slug}`} className="botao-linha">
-              {`Ver todos de ${principal.nome}`} <Icone nome="seta" />
+              {`Ver todos de ${principal.nome}`} <Icone nome="seta" tamanho={13} />
             </Link>
           </div>
           <GradeMedicos medicos={outros} />
