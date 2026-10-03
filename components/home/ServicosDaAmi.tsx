@@ -6,7 +6,10 @@ import { formatarTelefone } from "@/lib/formato";
   Os três serviços da AMI, um quarto provisório (ver abaixo), mais um bloco
   de notícia.
 
-  O primeiro cartão é o ÚNICO campo de digitar do site inteiro. O herói
+  O primeiro cartão é o único campo de digitar da home, e um dos dois do
+  site público — o outro é o do painel de filtros de `/busca`
+  (components/diretorio/PainelFiltros.tsx), que só serve a quem já chegou
+  lá; este é o que leva até lá por clique. O herói
   antigo — apagado quando esta seção nasceu — carregava um formulário GET
   para `/busca`, e com ele foi embora o único caminho de clique para
   procurar médico pelo nome: `/medicos` é índice por especialidade e bairro,
@@ -46,7 +49,7 @@ import { formatarTelefone } from "@/lib/formato";
   Com quatro cartões, 2 por linha do tablet para cima (2 × 2) e 1 no
   celular; com três, a grade de antes. Quatro lado a lado foi medido e
   recusado em 03/10/2026: o campo de busca do primeiro cartão caía de 226px
-  para 128px a 1280 e 81px a 1024, e é o único campo de digitar do site.
+  para 128px a 1280 e 81px a 1024, e é o único campo de digitar da home.
 */
 export function ServicosDaAmi({
   total,
