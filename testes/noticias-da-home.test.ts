@@ -157,10 +157,13 @@ describe("o tamanho das capas, por arranjo", () => {
       expect(atributo(imgs[0], "sizes"), `destaque com ${n}`).toBe(SIZES[n].destaque);
       for (const img of imgs.slice(1)) {
         expect(atributo(img, "sizes"), `item com ${n}`).toBe(SIZES[n].item);
-        const maior = Math.max(...(atributo(img, "srcSet") ?? "").split(", ").map((s) => Number(/ (\d+)w$/.exec(s)?.[1])));
+        const larguras = (atributo(img, "srcSet") ?? "").split(", ").map((s) => Number(/ (\d+)w$/.exec(s)?.[1]));
         /* De pé, o item chega a 536px: precisa de arquivo de pelo menos
            1072 para densidade 2. A miniatura pequena para em 960. */
-        expect(maior, `maior arquivo do item com ${n}`).toBe(SIZES[n].itemDePe ? 2200 : 960);
+        expect(Math.max(...larguras), `maior arquivo do item com ${n}`).toBe(SIZES[n].itemDePe ? 2200 : 960);
+        /* No celular todo item, de pé ou não, é a miniatura de 88px: o
+           menor arquivo é o de 160, e o de 320 serve a densidade 2 e 3. */
+        expect(larguras.slice(0, 2), `menores arquivos do item com ${n}`).toEqual([160, 320]);
       }
       const maiorDestaque = Math.max(
         ...(atributo(imgs[0], "srcSet") ?? "").split(", ").map((s) => Number(/ (\d+)w$/.exec(s)?.[1])),

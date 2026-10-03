@@ -51,10 +51,13 @@ const QUANTAS = 4;
 /* Larguras pedidas ao CDN do Sanity para o `srcset`, como em LinhaNoticia.
    O destaque chega a 1096px (2192 numa tela de densidade 2); a miniatura do
    arranjo "ao-lado" chega a uns 330px de 701 a 1180px (660 em densidade 2).
-   O item de pé, com duas ou três notícias, usa as do destaque. Quem diz ao
-   navegador o tamanho de cada uma é `tamanhosDasCapas`. */
+   O item de pé (três notícias: duas embaixo do destaque) chega a 536px do
+   tablet para cima e pede as do destaque; no celular ele vira a miniatura
+   de 88px, e por isso leva também 160 e 320, senão o celular baixaria o de
+   480. Quem diz ao navegador o tamanho de cada uma é `tamanhosDasCapas`. */
 const LARGURAS_DESTAQUE = [480, 640, 960, 1280, 1600, 2200];
 const LARGURAS_MINIATURA = [160, 320, 480, 640, 960];
+const LARGURAS_ITEM_DE_PE = [160, 320, ...LARGURAS_DESTAQUE];
 
 export function NoticiasDaHome({
   noticias,
@@ -72,7 +75,7 @@ export function NoticiasDaHome({
   const capas = tamanhosDasCapas(arranjo);
   const capaDoItem = {
     sizes: capas.item,
-    larguras: capas.itemDePe ? LARGURAS_DESTAQUE : LARGURAS_MINIATURA,
+    larguras: capas.itemDePe ? LARGURAS_ITEM_DE_PE : LARGURAS_MINIATURA,
   };
   const grade = {
     className: styles.noticias,
