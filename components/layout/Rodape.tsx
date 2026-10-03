@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AMI, telefoneParaLigar } from "@/lib/ami";
+import { AMI, hrefTelefone } from "@/lib/ami";
 import { bairrosComContagem, especialidadesComContagem } from "@/lib/dados/especialidades";
 import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
 
@@ -183,7 +183,7 @@ export async function Rodape() {
                 {AMI.telefones.map((t) => (
                   <li key={t}>
                     <a
-                      href={`tel:${telefoneParaLigar(t)}`}
+                      href={hrefTelefone(t)}
                       className="registro pressiona inline-flex items-center hover:text-white hover:underline max-md:min-h-11"
                     >
                       {t}

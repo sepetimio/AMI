@@ -3,7 +3,7 @@ import { Cabeceira } from "@/components/layout/Cabeceira";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbList } from "@/lib/seo/jsonld";
 import { tituloDePagina } from "@/lib/seo/metadados";
-import { AMI, enderecoEmLinha, telefoneParaLigar } from "@/lib/ami";
+import { AMI, enderecoEmLinha, hrefTelefone } from "@/lib/ami";
 
 export const revalidate = 3600;
 
@@ -64,7 +64,7 @@ export default function PaginaContato() {
             {AMI.telefones.map((t) => (
               <li key={t}>
                 <a
-                  href={`tel:${telefoneParaLigar(t)}`}
+                  href={hrefTelefone(t)}
                   className={`registro pressiona inline-flex min-h-11 items-center ${CLASSE_LINK}`}
                 >
                   {t}

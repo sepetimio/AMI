@@ -62,3 +62,12 @@ export function enderecoEmLinha(): string {
 export function telefoneParaLigar(numero: string): string {
   return `+55${numero.replace(/\D/g, "")}`;
 }
+
+/**
+ * O `href` completo de um link de telefone: `tel:` mais o número de
+ * `telefoneParaLigar`. É o único lugar que escreve `tel:`; quem monta o
+ * prefixo à mão pode esquecê-lo, e `+5599...` sem ele vira endereço de página.
+ */
+export function hrefTelefone(numero: string): string {
+  return `tel:${telefoneParaLigar(numero)}`;
+}
