@@ -505,6 +505,44 @@ describe("o CSS do carrossel", () => {
     expect(regra(faixa, ".anima p")).toMatch(/font-size:\s*16px;/);
   });
 
+  it("em slide claro, controle e bolinha têm 3:1 contra o branco (WCAG 1.4.11)", () => {
+    /* A conta do WCAG: a cor composta sobre o fundo (cor × alfa + fundo ×
+       (1 − alfa)) contra o fundo. O fundo é o branco do slide
+       (`--color-surface`); a cor do controle é o token de app/globals.css. */
+    const global = fonte("../app/globals.css");
+    const hex = (token: string) => {
+      const m = new RegExp(`--color-${token}:\\s*#([0-9a-fA-F]{6});`).exec(global);
+      expect(m, `falta o token ${token}`).not.toBeNull();
+      return [0, 2, 4].map((i) => parseInt(m![1].slice(i, i + 2), 16));
+    };
+    const lin = (c: number) => ((c /= 255) <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+    const lum = ([r, g, b]: number[]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+    const razao = (a: number[], b: number[]) => {
+      const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+      return (x + 0.05) / (y + 0.05);
+    };
+    const sobre = (cor: number[], alfa: number, fundo: number[]) => fundo.map((f, i) => f + alfa * (cor[i] - f));
+    const rgba = (r: string) => {
+      const m = /background:\s*rgba\((\d+), (\d+), (\d+), ([\d.]+)\);/.exec(r);
+      expect(m, `sem rgba em ${r}`).not.toBeNull();
+      return { cor: [+m![1], +m![2], +m![3]], alfa: +m![4] };
+    };
+    const branco = hex("surface");
+
+    const ctl = regra(css, "\n.ctl");
+    expect(ctl).toMatch(/color:\s*var\(--color-ink-400\);/);
+    const opacidade = Number(/opacity:\s*([\d.]+);/.exec(ctl)?.[1]);
+    expect(razao(sobre(hex("ink-400"), opacidade, branco), branco)).toBeGreaterThanOrEqual(3);
+
+    const bolinha = rgba(regra(css, "\n.bolinha > span"));
+    const trilho = sobre(bolinha.cor, bolinha.alfa, branco);
+    expect(razao(trilho, branco)).toBeGreaterThanOrEqual(3);
+
+    /* A barra que enche se separa da bolinha em que corre. */
+    const barra = rgba(regra(css, "\n.bolinha.ativa > span::after"));
+    expect(razao(sobre(barra.cor, barra.alfa, branco), trilho)).toBeGreaterThanOrEqual(3);
+  });
+
   it("a bolinha tem alvo de toque de 24px no mínimo, também no celular", () => {
     expect(regra(css, "\n.bolinha")).toMatch(/min-width:\s*24px;/);
     expect(regra(css, "\n.bolinha")).toMatch(/height:\s*24px;/);

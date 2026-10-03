@@ -214,13 +214,18 @@
   cursor: pointer;
 }
 
+/* Em slide claro (o composto e a arte de tema claro), bolinha e controle
+   precisam de 3:1 contra o fundo branco (WCAG 1.4.11): a tinta a 50% dá
+   3,6:1, e a barra que enche, a 90%, fica a 4,2:1 da bolinha. As bolinhas
+   apagadas do desenho, a 14%, davam 1,4:1. A conta está em
+   testes/carrossel.test.ts. */
 .bolinha > span {
   display: block;
   position: relative;
   width: 6px;
   height: 6px;
   border-radius: 99px;
-  background: rgba(12, 14, 18, 0.14);
+  background: rgba(12, 14, 18, 0.5);
   transition:
     width 0.3s,
     background 0.4s;
@@ -237,7 +242,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: rgba(12, 14, 18, 0.55);
+  background: rgba(12, 14, 18, 0.9);
   transform-origin: left;
   animation: progresso var(--intervalo) linear forwards;
 }
@@ -264,7 +269,8 @@
   place-items: center;
   cursor: pointer;
   color: var(--color-ink-400);
-  opacity: 0.6;
+  /* 80%, e não os 60% do desenho: em slide claro, 60% dava 2,4:1. */
+  opacity: 0.8;
   border-radius: 99px;
   transition:
     color 0.4s,
