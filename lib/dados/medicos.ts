@@ -1,6 +1,6 @@
 ﻿import { cache } from "react";
 import { clienteServidor } from "@/lib/dados/cliente";
-import { aplicarFiltros, ordenar } from "@/lib/dados/filtros";
+import { aplicarFiltros, emOrdemAlfabetica } from "@/lib/dados/filtros";
 import type {
   Filtros,
   Medico,
@@ -107,7 +107,7 @@ const todosVisiveis = cache(async (): Promise<Medico[]> => {
 });
 
 /**
- * Busca com filtros.
+ * Busca com filtros, em ordem alfabética.
  *
  * A publicação é filtrada no banco — e a RLS garante isso de novo, mesmo que
  * alguém remova aquela linha. O restante é filtrado em memória por
@@ -115,11 +115,7 @@ const todosVisiveis = cache(async (): Promise<Medico[]> => {
  * diferença de desempenho é irrelevante, e a lógica fica testável sem banco.
  */
 export async function buscarMedicos(filtros: Filtros = {}): Promise<Medico[]> {
-  return ordenar(
-    aplicarFiltros(await todosVisiveis(), filtros),
-    filtros.ordem ?? "relevancia",
-    filtros.termo,
-  );
+  return emOrdemAlfabetica(aplicarFiltros(await todosVisiveis(), filtros));
 }
 
 /**

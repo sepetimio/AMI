@@ -3,11 +3,9 @@ import {
   LIMITE_DESCRICAO,
   LIMITE_TITULO,
   descricaoEspecialidade,
-  descricaoFaceta,
   descricaoMedico,
   tituloDePagina,
   tituloEspecialidade,
-  tituloFaceta,
   tituloMedico,
 } from "@/lib/seo/metadados";
 
@@ -26,28 +24,6 @@ describe("tituloEspecialidade", () => {
     const t = tituloEspecialidade("Otorrinolaringologia pediátrica", 12);
     expect(t.length).toBeLessThanOrEqual(LIMITE_TITULO);
     expect(t).toContain("Otorrinolaringologia pediátrica");
-  });
-});
-
-describe("tituloFaceta", () => {
-  it("nomeia o bairro com o artigo concordando em 'bairro', não no nome", () => {
-    /* "no bairro Centro" é mais longo que "no Centro", e já estoura os 60
-       caracteres com o sufixo AMI — então `montar` descarta a marca antes,
-       exatamente como faria para qualquer outro título longo. */
-    expect(tituloFaceta("Cardiologia", "Centro", 4)).toBe(
-      "Cardiologia no bairro Centro, Imperatriz - MA | 4 médicos",
-    );
-  });
-
-  it("usa 'no bairro X', não um 'no' bruto antes do nome", () => {
-    const t = tituloFaceta("Cardiologia", "Nova Imperatriz", 4);
-    expect(t).toContain("no bairro Nova Imperatriz");
-    expect(t).not.toMatch(/\bno Nova Imperatriz\b/);
-  });
-
-  it("respeita o limite", () => {
-    const t = tituloFaceta("Ginecologia e Obstetrícia", "Parque do Buriti", 3);
-    expect(t.length).toBeLessThanOrEqual(LIMITE_TITULO);
   });
 });
 
@@ -82,32 +58,23 @@ describe("tituloMedico", () => {
 });
 
 describe("truncamento", () => {
-  /* Os piores casos reais do catálogo: as especialidades e os bairros mais
-     longos de Imperatriz. É onde o molde estoura. */
-  const casos: [string, string][] = [
-    ["Ginecologia e Obstetrícia", "Parque do Buriti"],
-    ["Ortopedia e Traumatologia", "Nova Imperatriz"],
-    ["Otorrinolaringologia", "Maranhão Novo"],
-  ];
+  /* Os piores casos reais do catálogo: as especialidades mais longas de
+     Imperatriz. É onde o molde estoura. */
+  const casos = ["Ginecologia e Obstetrícia", "Ortopedia e Traumatologia", "Otorrinolaringologia"];
 
   it("nunca termina em palavra cortada, hífen solto ou pontuação", () => {
-    for (const [esp, bairro] of casos) {
-      for (const t of [
-        tituloFaceta(esp, bairro, 3),
-        tituloEspecialidade(esp, 12),
-      ]) {
-        expect(t.length).toBeLessThanOrEqual(LIMITE_TITULO);
-        expect(t).not.toMatch(/[\s,;:–-]$/);
-        /* "Imperatriz - M" seria pior que um título curto. */
-        expect(t).not.toMatch(/\bM$/);
-      }
+    for (const esp of casos) {
+      const t = tituloEspecialidade(esp, 12);
+      expect(t.length).toBeLessThanOrEqual(LIMITE_TITULO);
+      expect(t).not.toMatch(/[\s,;:–-]$/);
+      /* "Imperatriz - M" seria pior que um título curto. */
+      expect(t).not.toMatch(/\bM$/);
     }
   });
 
   it("prefere encurtar a cabeça a amputar a palavra", () => {
-    const t = tituloFaceta("Ginecologia e Obstetrícia", "Parque do Buriti", 3);
+    const t = tituloEspecialidade("Ginecologia e Obstetrícia", 12);
     expect(t).toContain("Ginecologia e Obstetrícia");
-    expect(t).toContain("Parque do Buriti");
   });
 });
 
@@ -132,27 +99,6 @@ describe("descricaoEspecialidade", () => {
 
     const dois = descricaoEspecialidade("Cardiologia", 5, ["Centro", "Bacuri"]);
     expect(dois).toContain("nos bairros Centro e Bacuri");
-  });
-});
-
-describe("descricaoFaceta", () => {
-  /*
-    A página de especialidade e a de cruzamento são indexáveis com
-    canonicals diferentes. Quando todos os profissionais de uma
-    especialidade se concentram num bairro só e são três ou mais, as duas
-    chamadas recebem os mesmos números — e sem um builder próprio para o
-    cruzamento, as duas emitiriam a mesma description.
-  */
-  it("nunca coincide com descricaoEspecialidade para os mesmos dados", () => {
-    const especialidade = descricaoEspecialidade("Pediatria", 3, ["Centro"]);
-    const faceta = descricaoFaceta("Pediatria", "Centro", 3);
-    expect(faceta).not.toBe(especialidade);
-  });
-
-  it("nomeia o bairro no corpo da frase", () => {
-    const d = descricaoFaceta("Pediatria", "Centro", 3);
-    expect(d).toContain("no bairro Centro");
-    expect(d.length).toBeLessThanOrEqual(LIMITE_DESCRICAO);
   });
 });
 

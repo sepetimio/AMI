@@ -136,7 +136,7 @@ describe("a busca", () => {
     expect(todos).toMatch(/<h2 id="contagem"[^>]*>3 médicos<\/h2>/);
   });
 
-  it("pede ao banco só o termo, a especialidade e a ordem alfabética; o resto do endereço antigo é ignorado", async () => {
+  it("pede ao banco só o termo e a especialidade; o resto do endereço antigo é ignorado", async () => {
     await busca({
       termo: "Mayara",
       especialidade: "cardiologia",
@@ -146,19 +146,19 @@ describe("a busca", () => {
       associados: "1",
       ordem: "relevancia",
     });
-    expect(dados.chamadas.at(-1)).toEqual({ termo: "Mayara", especialidade: "cardiologia", ordem: "nome" });
+    expect(dados.chamadas.at(-1)).toEqual({ termo: "Mayara", especialidade: "cardiologia" });
   });
 
   it("especialidade que não existe é ignorada: sem filtro e sem 'Filtro:'", async () => {
     const html = await busca({ especialidade: "inventada" });
-    expect(dados.chamadas.at(-1)).toEqual({ ordem: "nome" });
+    expect(dados.chamadas.at(-1)).toEqual({});
     expect(html).not.toContain("Filtro:");
     expect(html).toMatch(/<option value="" selected="">Todas as especialidades<\/option>/);
   });
 
   it("especialidade sem nenhum médico vale como inexistente: não está na lista, não filtra", async () => {
     const html = await busca({ termo: "Mayara", especialidade: "urologia" });
-    expect(dados.chamadas.at(-1)).toEqual({ termo: "Mayara", ordem: "nome" });
+    expect(dados.chamadas.at(-1)).toEqual({ termo: "Mayara" });
     expect(html).not.toContain("Filtro:");
     expect(html).not.toContain('value="urologia"');
     expect(html).toMatch(/<option value="" selected="">Todas as especialidades<\/option>/);

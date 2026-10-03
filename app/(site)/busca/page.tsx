@@ -43,7 +43,6 @@ export default async function PaginaBusca({ searchParams }: Props) {
   const medicos = await buscarMedicos({
     ...(termo ? { termo } : {}),
     ...(escolhida ? { especialidade: escolhida.slug } : {}),
-    ordem: "nome",
   });
 
   return (

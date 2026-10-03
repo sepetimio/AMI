@@ -79,10 +79,10 @@ export default async function PaginaEspecialidade({ params }: Props) {
     especialidadesComContagem(),
   ]);
   /*
-    A checagem de lista vazia é explícita, e não redundante — mesmo raciocínio
-    do cruzamento em `[bairro]/page.tsx`. Uma especialidade cadastrada sem
-    nenhum profissional publicado (a linha existe, mas ninguém a preenche
-    ainda) passaria pelo `if (!esp)` inteira e renderizaria um H1 de verdade
+    A checagem de lista vazia é explícita, e não redundante: uma
+    especialidade cadastrada sem nenhum profissional publicado (a linha
+    existe, mas ninguém a preenche ainda) passaria pelo `if (!esp)` inteira
+    e renderizaria um H1 de verdade
     sobre "reúne 0 médicos de X, somando 0 endereços de atendimento" —
     indexável e canônica para si mesma.
   */

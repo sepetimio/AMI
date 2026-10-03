@@ -1,5 +1,5 @@
 ﻿import { especialidadeCasaTermo, normalizar } from "@/lib/dados/sinonimos";
-import type { Filtros, Medico, Ordem } from "@/lib/dados/tipos";
+import type { Filtros, Medico } from "@/lib/dados/tipos";
 
 /*
   Filtragem e ordenação em código, sobre a lista já trazida do banco.
@@ -40,25 +40,6 @@ export function aplicarFiltros(medicos: Medico[], filtros: Filtros): Medico[] {
       return false;
     }
 
-    if (
-      filtros.bairro &&
-      !m.locais.some((l) => l.bairro.slug === filtros.bairro)
-    ) {
-      return false;
-    }
-
-    if (filtros.telemedicina && !m.telemedicina) return false;
-    if (filtros.somenteAssociados && !m.associadoAmi) return false;
-
-    /* Acessibilidade exige TODOS os recursos pedidos no mesmo local: de nada
-       adianta o elevador ficar num endereço e a rampa em outro. */
-    if (filtros.acessibilidade?.length) {
-      const atende = m.locais.some((l) =>
-        filtros.acessibilidade!.every((r) => l.acessibilidade.includes(r)),
-      );
-      if (!atende) return false;
-    }
-
     return true;
   });
 }
@@ -68,28 +49,10 @@ export const porNome = (a: Medico, b: Medico) =>
   a.nome.localeCompare(b.nome, "pt-BR");
 
 /**
- * Ordenação.
- *
- * Relevância é definida de forma verificável, para que ninguém possa alegar
- * favorecimento: casar no nome vale mais que casar na especialidade, e o
- * desempate é alfabético. Sem termo digitado, relevância É a ordem alfabética.
- * Nenhum critério de qualidade, completude ou antiguidade entra na conta, e
- * não existe destaque pago nem selo comparativo neste site.
+ * A ordem do site: sempre alfabética, e a busca diz isso na tela ("Em ordem
+ * alfabética"). Nenhum critério de destaque, qualidade, completude ou
+ * antiguidade, e nenhum destaque pago nem selo comparativo neste site.
  */
-export function ordenar(
-  medicos: Medico[],
-  ordem: Ordem,
-  termo?: string,
-): Medico[] {
-  const lista = [...medicos];
-
-  if (ordem === "nome" || !termo?.trim()) {
-    return lista.sort(porNome);
-  }
-
-  const t = normalizar(termo);
-  const peso = (m: Medico) =>
-    casaNoNome(m, t) ? 0 : casaNaEspecialidade(m, t) ? 1 : 2;
-
-  return lista.sort((a, b) => peso(a) - peso(b) || porNome(a, b));
+export function emOrdemAlfabetica(medicos: Medico[]): Medico[] {
+  return [...medicos].sort(porNome);
 }
