@@ -1,0 +1,78 @@
+/*
+  Barra de atalhos no pé do celular, transcrita de `.barra-acao` do desenho
+  aprovado. Cor só por token; sombra neutra, como no desenho.
+
+  Acima de 700px ela não existe. Abaixo, fica presa na parte de baixo da tela,
+  recuada pela área segura do aparelho, e entra deslizando quando o componente
+  põe a classe `visivel`.
+*/
+.barra {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  /*
+    Escondida ela fica fora da tela (`translateY`) E invisível
+    (`visibility: hidden`): só o deslocamento deixaria os dois links
+    alcançáveis pelo Tab, com o foco caindo num botão que ninguém vê. A
+    visibilidade espera o fim da animação para sumir (o atraso de .45s) e
+    volta na hora ao aparecer.
+  */
+  .barra {
+    display: flex;
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    z-index: 45;
+    gap: 8px;
+    padding: 7px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.86);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    backdrop-filter: blur(16px) saturate(1.4);
+    box-shadow: 0 12px 34px rgba(16, 24, 40, 0.18);
+    transform: translateY(150%);
+    visibility: hidden;
+    transition:
+      transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
+      visibility 0s linear 0.45s;
+  }
+
+  .visivel {
+    transform: none;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  .barra a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 46px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 14.5px;
+    white-space: nowrap;
+  }
+
+  /* O visual do botão verde é o `.botao` global; aqui só o que a barra muda:
+     ocupa a sobra da linha, 46px de altura, e a lupa não anda no hover (a
+     seta do botão comum anda). */
+  .buscar {
+    flex: 1;
+    padding: 0;
+  }
+
+  .buscar:hover svg {
+    transform: none;
+  }
+
+  .ligar {
+    padding: 0 18px;
+    color: var(--color-ami-green-800);
+    border: 1px solid var(--color-line);
+    background: var(--color-surface);
+  }
+}

@@ -1,5 +1,6 @@
 import { Cabecalho } from "@/components/layout/Cabecalho";
 import { Rodape } from "@/components/layout/Rodape";
+import { BarraDoPe } from "@/components/layout/BarraDoPe";
 
 export default function LayoutSite({
   children,
@@ -19,6 +20,10 @@ export default function LayoutSite({
       <Cabecalho />
       <main id="conteudo">{children}</main>
       <Rodape />
+      {/* Depois do rodapé, nunca entre o cabeçalho e o `<main>`: o teste do
+          cabeçalho trava os dois colados. A barra é presa à tela e não ocupa
+          lugar no fluxo, então a posição no código não muda onde ela aparece. */}
+      <BarraDoPe />
     </>
   );
 }
