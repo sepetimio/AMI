@@ -284,7 +284,6 @@ describe("as faixas de ponta a ponta e o fim da página", () => {
     /* As regras de app/(site)/inicio.module.css só valem para filhos de
        `.home`: sem a classe, todo espaço entre blocos some. */
     const html = await renderizarHome("true");
-    expect(estilosDaHome.home).toBeTruthy();
     expect(html).toMatch(new RegExp(`<div class="${estilosDaHome.home}">`));
     /* E o primeiro bloco vem logo depois do <h1>, que é por onde o CSS o acha. */
     expect(html).toMatch(/<\/h1><section [^>]*data-bloco="carrossel"/);

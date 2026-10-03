@@ -2,7 +2,28 @@ import { describe, expect, it } from "vitest";
 import { renderToString } from "react-dom/server";
 import { createElement } from "react";
 import { fonte } from "@/testes/apoio";
-import { Icone, LadrilhoIcone } from "@/components/base/Icone";
+import { Icone, LadrilhoIcone, type NomeIcone } from "@/components/base/Icone";
+import type { Icon } from "@phosphor-icons/react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Buildings,
+  CaretLeft,
+  CaretRight,
+  Eye,
+  FlagBanner,
+  HandHeart,
+  Heartbeat,
+  List,
+  MagnifyingGlass,
+  MapPinArea,
+  Pause,
+  Phone,
+  Play,
+  SealCheck,
+  Stethoscope,
+  X,
+} from "@phosphor-icons/react/dist/ssr";
 
 describe("os icones", () => {
   it("saem como SVG no servidor, sem fonte de icones", () => {
@@ -25,28 +46,47 @@ describe("os icones", () => {
     expect(html).toContain('<span class="ladrilho-icone" aria-hidden="true">');
   });
 
-  it("todos os 18 icones renderizam SVGs diferentes", () => {
-    const nomes: Array<"selo" | "estetoscopio" | "batimento" | "mapa" | "bandeira" | "olho" | "maoCoracao" | "predio" | "lupa" | "seta" | "setaDiagonal" | "anterior" | "proximo" | "pausar" | "retomar" | "menu" | "fechar" | "telefone"> = [
-      "selo",
-      "estetoscopio",
-      "batimento",
-      "mapa",
-      "bandeira",
-      "olho",
-      "maoCoracao",
-      "predio",
-      "lupa",
-      "seta",
-      "setaDiagonal",
-      "anterior",
-      "proximo",
-      "pausar",
-      "retomar",
-      "menu",
-      "fechar",
-      "telefone",
-    ];
-    const htmls = nomes.map((nome) => renderToString(createElement(Icone, { nome })));
+  it("cada nome desenha o icone Phosphor dele: trocar dois de lugar fica vermelho", () => {
+    /* A tabela esperada, escrita aqui de novo e não importada: comparar cada
+       nome com o render do componente Phosphor que ele deve ser é o que pega
+       "pausar" e "retomar" trocados entre si. Contar SVGs diferentes não
+       pegava: dois trocados continuam diferentes. */
+    const esperado: Record<NomeIcone, Icon> = {
+      selo: SealCheck,
+      estetoscopio: Stethoscope,
+      batimento: Heartbeat,
+      mapa: MapPinArea,
+      bandeira: FlagBanner,
+      olho: Eye,
+      maoCoracao: HandHeart,
+      predio: Buildings,
+      lupa: MagnifyingGlass,
+      seta: ArrowRight,
+      setaDiagonal: ArrowUpRight,
+      anterior: CaretLeft,
+      proximo: CaretRight,
+      pausar: Pause,
+      retomar: Play,
+      menu: List,
+      fechar: X,
+      telefone: Phone,
+    };
+    for (const [nome, Componente] of Object.entries(esperado) as [NomeIcone, Icon][]) {
+      for (const duotone of [false, true]) {
+        const nosso = renderToString(createElement(Icone, { nome, duotone }));
+        const dele = renderToString(
+          createElement(Componente, {
+            size: 20,
+            weight: duotone ? "duotone" : "regular",
+            className: "",
+            "aria-hidden": "true",
+          }),
+        );
+        expect(nosso, `${nome}${duotone ? " duotone" : ""}`).toBe(dele);
+      }
+    }
+    /* E os 18 são diferentes entre si: nenhum par repetido na tabela. */
+    const htmls = Object.keys(esperado).map((nome) => renderToString(createElement(Icone, { nome: nome as NomeIcone })));
     expect(new Set(htmls).size).toBe(18);
   });
 

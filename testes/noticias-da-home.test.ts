@@ -136,11 +136,12 @@ describe("o tamanho das capas, por arranjo", () => {
   });
 
   it("os números batem com a grade medida no navegador a 1440px (destaque 582 ou 1096; item de pé 536)", () => {
-    /* Medido na rodada 1: destaque "ao-lado" 582,22; "embaixo" 1096; os
-       dois itens de pé com três notícias, 536. */
-    expect(SIZES[4].destaque).toMatch(/^\(min-width: 1240px\) 582px/);
-    expect(SIZES[3].destaque).toMatch(/^\(min-width: 1240px\) 1096px/);
-    expect(SIZES[3].item).toMatch(/^\(min-width: 1240px\) 536px/);
+    /* Medido no navegador: destaque "ao-lado" 582,22; "embaixo" 1096; os
+       dois itens de pé com três notícias, 536. Lido da função, não da
+       tabela SIZES deste arquivo: a medida confere a conta, não a cópia. */
+    expect(tamanhosDasCapas(arranjoDasNoticias(4)!).destaque).toMatch(/^\(min-width: 1240px\) 582px,/);
+    expect(tamanhosDasCapas(arranjoDasNoticias(3)!).destaque).toMatch(/^\(min-width: 1240px\) 1096px,/);
+    expect(tamanhosDasCapas(arranjoDasNoticias(3)!).item).toMatch(/^\(min-width: 1240px\) 536px,/);
   });
 
   it("renderizado: cada img sai com o sizes do arranjo, e o item de pé pede as larguras grandes", () => {
@@ -632,14 +633,11 @@ describe("o CSS dos bairros e dos parceiros", () => {
     expect(regra(base(CSS_PARCEIROS), ".logoVazio")).toMatch(/color: var\(--color-ink-400\)/);
   });
 
-  it("nenhum hex, nenhum tom quente, só tokens neutros e os verdes da marca", () => {
+  it("nenhum hex, só tokens neutros e os verdes da marca", () => {
+    /* O tom quente, em qualquer notação, é do teste do site inteiro
+       (testes/tom-quente.test.ts). */
     for (const css of [CSS_NOTICIAS, CSS_BAIRROS, CSS_FAIXA, CSS_PARCEIROS]) {
       expect(css).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
-      for (const m of css.matchAll(/rgba\((\d+), (\d+), (\d+),/g)) {
-        const [r, , b] = [m[1], m[2], m[3]].map(Number);
-        /* Neutro: o vermelho nunca passa o azul (um tom quente passa). */
-        expect(r, m[0]).toBeLessThanOrEqual(b);
-      }
       expect(css).not.toMatch(
         /--color-(?!surface\b|line\b|line-strong\b|canvas\b|white\b|ink-(?:400|600)\b|ami-green-(?:700|800|900)\b|ami-lima-400\b)[a-z0-9-]+/,
       );

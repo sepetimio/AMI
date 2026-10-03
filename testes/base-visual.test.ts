@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { fonte } from "@/testes/apoio";
+import { fonte, semComentarios } from "@/testes/apoio";
+import { arquivosDoSite, coresNoTexto } from "@/testes/cores";
 
 const CSS = fonte("../app/globals.css");
 const FONTES = fonte("../lib/fontes.ts");
@@ -50,18 +51,25 @@ describe("a base visual", () => {
     }
   });
 
-  it("nenhuma sombra tem tom de verde", () => {
-    /* Os dois lugares onde nasce sombra: a propriedade e os tokens `--shadow-*`
-       do @theme. Ler so `box-shadow:` deixaria o token passar com verde. */
-    const sombras = CSS.match(/(?:box-shadow|--shadow-[a-z]+):[^;]*;/g) ?? [];
-    expect(sombras.length, "a varredura nao achou sombra nenhuma").toBeGreaterThanOrEqual(4);
-    /* Regra geral, nao uma lista de verdes conhecidos: em qualquer
-       rgba(r, g, b, a) de sombra o canal verde nao pode passar dos outros dois
-       por mais de 10. Pega o verde da marca, o lima e qualquer verde novo. */
+  it("nenhuma sombra tem tom de verde, em nenhum CSS do site e em nenhuma notacao", () => {
+    /* Onde nasce sombra: `box-shadow`, `text-shadow`, `drop-shadow()` e os
+       tokens `--shadow-*` do @theme. Ler so `box-shadow:` deixaria o token
+       passar com verde. As cores saem em qualquer notação (hex, rgb, hsl,
+       oklch: testes/cores.ts), e a varredura pega todo CSS de app/ e
+       components/, não só este arquivo. */
+    const sombras = arquivosDoSite(".css").flatMap(({ arquivo, texto }) =>
+      (semComentarios(texto).match(/(?:box-shadow|text-shadow|--shadow-[a-z]+):[^;]*;|drop-shadow\([^;]*/g) ?? []).map(
+        (s) => `${arquivo}: ${s}`,
+      ),
+    );
+    expect(sombras.length, "a varredura nao achou sombra nenhuma").toBeGreaterThanOrEqual(10);
+    /* Regra geral, nao uma lista de verdes conhecidos: em qualquer cor de
+       sombra o canal verde nao pode passar dos outros dois por mais de 10.
+       Pega o verde da marca, o lima e qualquer verde novo. */
     for (const s of sombras) {
-      for (const m of s.matchAll(/rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,/g)) {
-        const [r, g, b] = [Number(m[1]), Number(m[2]), Number(m[3])];
-        expect(g > r + 10 && g > b + 10, `${m[0]} tem tom de verde em: ${s}`).toBe(false);
+      for (const { texto, rgb } of coresNoTexto(s)) {
+        const [r, g, b] = rgb;
+        expect(g > r + 10 && g > b + 10, `${texto} tem tom de verde em: ${s}`).toBe(false);
       }
     }
   });

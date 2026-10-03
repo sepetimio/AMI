@@ -348,17 +348,14 @@ describe("o CSS de Seja associado", () => {
     expect(regra(cel, ".cartao")).toMatch(/grid-template-columns: 44px 1fr/);
   });
 
-  it("os cartoes ficam sobre fundo neutro: nenhum hex, nenhum tom quente", () => {
+  it("os cartoes ficam sobre fundo neutro: nenhum hex, só tokens neutros", () => {
     /* O cliente recusou duas vezes o creme atrás destes cartões. Só tokens
-       neutros, e as sombras do desenho, que são cinza-azuladas. */
+       neutros, e as sombras do desenho, que são cinza-azuladas. O tom quente,
+       em qualquer notação, é do teste do site inteiro
+       (testes/tom-quente.test.ts). */
     expect(regra(base(CSS_ASSOCIE), ".cartao")).toMatch(/background: var\(--color-surface\)/);
     for (const css of [CSS_ASSOCIE, CSS_SUA]) {
       expect(css).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
-      for (const m of css.matchAll(/rgba\((\d+), (\d+), (\d+),/g)) {
-        const [r, , b] = [m[1], m[2], m[3]].map(Number);
-        /* Neutro: o vermelho nunca passa o azul (um tom quente passa). */
-        expect(r, m[0]).toBeLessThanOrEqual(b);
-      }
       expect(css).not.toMatch(/--color-(?!surface|line|canvas|ink|ami-green-(?:600|800))[a-z-]+/);
     }
   });
