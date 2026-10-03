@@ -5,7 +5,7 @@ import { UltimasNoticias } from "@/components/editorial/UltimasNoticias";
 import { Carrossel } from "@/components/home/Carrossel";
 import { EmpresasParceiras } from "@/components/home/EmpresasParceiras";
 import { ServicosDaAmi } from "@/components/home/ServicosDaAmi";
-import { BANNERS_PROVISORIOS } from "@/lib/molduras";
+import { BANNERS_PROVISORIOS, moldurasDaHome } from "@/lib/molduras";
 import type { Banner, ResumoNoticia } from "@/lib/sanity/tipos";
 
 /* `UltimasNoticias` busca as notícias ela mesma. Aqui não há Sanity: este
@@ -195,3 +195,105 @@ describe("a faixa de empresas parceiras", () => {
     ]);
   });
 });
+
+/*
+  A trava. É a parte que mais importa: nenhuma moldura "a entrar" pode
+  chegar ao público no lançamento.
+
+  `home()` liga a saída de `moldurasDaHome` aos quatro componentes do jeito
+  que app/(site)/page.tsx liga — a ligação de lá é conferida por texto-fonte
+  em testes/home.test.ts, porque a página busca dados e não renderiza aqui.
+*/
+async function home(
+  demonstracao: boolean,
+  real: { banners: Banner[]; publicadas: ResumoNoticia[] },
+) {
+  const m = moldurasDaHome(demonstracao, {
+    banners: real.banners,
+    temNoticia: real.publicadas.length > 0,
+  });
+  return [
+    html(createElement(Carrossel, { banners: m.banners })),
+    html(
+      createElement(ServicosDaAmi, {
+        total: 24,
+        especialidades: 9,
+        ultimaNoticia: null,
+        suaAmi: m.suaAmi,
+      }),
+    ),
+    await noticias(real.publicadas, m.noticiasProvisorias),
+    m.parceiros ? html(createElement(EmpresasParceiras)) : "",
+  ].join("\n");
+}
+
+/* Uma marca de cada moldura. Se alguma sair, a trava vazou. */
+const MARCAS = [
+  "Arte a entrar",
+  "Sua AMI",
+  "Serviço a entrar",
+  "Notícia a entrar",
+  "Empresas parceiras da AMI",
+  "Logotipo a entrar",
+];
+
+describe("a trava", () => {
+  it("com a chave falsa e sem conteúdo real, nenhuma das quatro molduras sai", async () => {
+    const saida = await home(false, { banners: [], publicadas: [] });
+    for (const marca of MARCAS) {
+      expect(saida, `"${marca}" saiu com a chave falsa`).not.toContain(marca);
+    }
+    /* E as seções sem conteúdo somem, como antes: carrossel e notícias não
+       deixam nem a casca. */
+    expect(saida).not.toContain("Destaques da AMI");
+    expect(saida).not.toContain("Da associação");
+  });
+
+  it("com a chave falsa, nada provisório sai em nenhuma combinação de conteúdo", () => {
+    for (const banners of [[], [REAL]]) {
+      for (const temNoticia of [false, true]) {
+        const m = moldurasDaHome(false, { banners, temNoticia });
+        expect(m.banners).toEqual(banners);
+        expect(m.suaAmi).toBe(false);
+        expect(m.noticiasProvisorias).toBe(false);
+        expect(m.parceiros).toBe(false);
+      }
+    }
+  });
+
+  it("com a chave verdadeira e sem conteúdo real, as quatro saem", async () => {
+    /* O outro lado: sem ele, um teste que nunca mostra moldura nenhuma
+       passaria o de cima de graça. */
+    const saida = await home(true, { banners: [], publicadas: [] });
+    for (const marca of MARCAS) {
+      expect(saida, `"${marca}" não saiu com a chave verdadeira`).toContain(marca);
+    }
+  });
+
+  it("um banner real tira os três provisórios, mesmo com a chave verdadeira", () => {
+    const m = moldurasDaHome(true, { banners: [REAL], temNoticia: false });
+    expect(m.banners).toEqual([REAL]);
+  });
+
+  it("uma notícia real tira as provisórias, mesmo com a chave verdadeira", () => {
+    const m = moldurasDaHome(true, { banners: [], temNoticia: true });
+    expect(m.noticiasProvisorias).toBe(false);
+  });
+});
+
+/*
+  O que este arquivo NÃO pega.
+
+  - A página em si. `home()` acima refaz a ligação de app/(site)/page.tsx;
+    se a página ligar diferente, isto continua verde. A ligação de lá é
+    conferida por texto-fonte em testes/home.test.ts, que não distingue
+    `{molduras.parceiros ? …}` de `{false && molduras.parceiros ? …}`.
+  - O valor da chave em produção. `DADOS_DEMONSTRACAO` é `NEXT_PUBLIC_`, e o
+    Next grava o valor no código durante `next build`: trocar a variável sem
+    refazer a build não muda a home. O que este arquivo prova é a decisão
+    dado o valor, não qual valor a build recebeu.
+  - Nada visual: proporção na tela, quebra de linha da tarja, a grade de 4
+    no computador. HTML de servidor diz qual classe saiu, não o que ela faz.
+  - O carrossel girando de verdade: temporizador, rolagem e pausa só
+    acontecem no navegador.
+*/

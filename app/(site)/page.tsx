@@ -5,6 +5,7 @@ import { IndiceEspecialidades } from "@/components/diretorio/IndiceEspecialidade
 import { LadrilhosBairros } from "@/components/diretorio/LadrilhosBairros";
 import { UltimasNoticias } from "@/components/editorial/UltimasNoticias";
 import { Carrossel } from "@/components/home/Carrossel";
+import { EmpresasParceiras } from "@/components/home/EmpresasParceiras";
 import { FaixaDaAmi } from "@/components/home/FaixaDaAmi";
 import { ServicosDaAmi } from "@/components/home/ServicosDaAmi";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -14,6 +15,8 @@ import {
   especialidadesComContagem,
 } from "@/lib/dados/especialidades";
 import { buscarMedicos } from "@/lib/dados/medicos";
+import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
+import { moldurasDaHome } from "@/lib/molduras";
 import { bannersAtivos } from "@/lib/sanity/banners";
 import { listarNoticias } from "@/lib/sanity/consultas";
 
@@ -52,6 +55,14 @@ export default async function Home() {
     listarNoticias(1),
   ]);
 
+  /* As molduras "a entrar" e a trava que as segura: só no modo
+     demonstração, e nunca misturadas a conteúdo real. A decisão inteira
+     mora em lib/molduras.ts; aqui só entra o valor da chave. */
+  const molduras = moldurasDaHome(DADOS_DEMONSTRACAO, {
+    banners,
+    temNoticia: noticias.length > 0,
+  });
+
   return (
     <>
       <JsonLd dados={organizationAmi(SITE)} />
@@ -70,12 +81,13 @@ export default async function Home() {
       {/* =====================================================
           2. CARROSSEL DE BANNERS
           ===================================================== */}
-      <Carrossel banners={banners} />
+      <Carrossel banners={molduras.banners} />
 
       {/* =====================================================
           3. SERVIÇOS DA AMI
           "Encontre um médico" — antes o título da página inteira —
-          vira o primeiro dos três cartões.
+          vira o primeiro dos cartões. "Sua AMI", o quarto, é
+          provisório.
           ===================================================== */}
       <ServicosDaAmi
         total={total}
@@ -83,6 +95,7 @@ export default async function Home() {
         ultimaNoticia={
           noticias[0] ? { titulo: noticias[0].titulo, slug: noticias[0].slug } : null
         }
+        suaAmi={molduras.suaAmi}
       />
 
       {/* =====================================================
@@ -157,11 +170,11 @@ export default async function Home() {
 
       {/* =====================================================
           6. ÚLTIMAS NOTÍCIAS
-          Some sozinha (devolve null) enquanto não há matéria publicada
-          no Sanity, então a home de hoje, sem conteúdo editorial, fica
-          idêntica à de antes desta tarefa.
+          Sem matéria publicada no Sanity, some sozinha (devolve null) —
+          a não ser no modo demonstração, em que saem três cartões
+          "Notícia a entrar" no lugar.
           ===================================================== */}
-      <UltimasNoticias />
+      <UltimasNoticias provisorias={molduras.noticiasProvisorias} />
 
       {/* =====================================================
           7. BAIRROS
@@ -183,6 +196,13 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* =====================================================
+          8. EMPRESAS PARCEIRAS DA AMI
+          A última seção da home. Hoje inteira provisória, então só
+          existe no modo demonstração.
+          ===================================================== */}
+      {molduras.parceiros ? <EmpresasParceiras /> : null}
     </>
   );
 }

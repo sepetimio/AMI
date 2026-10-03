@@ -62,3 +62,47 @@ describe("a home", () => {
     expect(carrossel).toBeLessThan(servicos);
   });
 });
+
+describe("a home, depois das molduras provisórias", () => {
+  it("monta a faixa de empresas parceiras", () => {
+    expect(HOME, "falta <EmpresasParceiras> na home").toContain("<EmpresasParceiras");
+  });
+
+  it("tem as oito secoes na ordem aprovada, com os parceiros por ultimo", () => {
+    /* Mesma limitação do resto do arquivo: posição no texto-fonte, não na
+       tela. As seções sem componente próprio entram pelo `id` do título. */
+    const ordem = [
+      "<FaixaDaAmi",
+      "<Carrossel",
+      "<ServicosDaAmi",
+      'id="especialidades"',
+      'id="institucional"',
+      "<UltimasNoticias",
+      'id="bairros"',
+      "<EmpresasParceiras",
+    ];
+    const posicoes = ordem.map((marca) => HOME.indexOf(marca));
+    for (const [i, marca] of ordem.entries()) {
+      expect(posicoes[i], `falta ${marca} na home`).toBeGreaterThanOrEqual(0);
+      if (i > 0) {
+        expect(posicoes[i], `${marca} veio antes de ${ordem[i - 1]}`).toBeGreaterThan(
+          posicoes[i - 1],
+        );
+      }
+    }
+  });
+
+  it("a trava recebe a chave de verdade, e cada moldura sai da decisão dela", () => {
+    /*
+      O teste de testes/molduras.test.ts prova a decisão e os componentes,
+      mas não vê esta página. Aqui se confere, por texto, que a página passa
+      `DADOS_DEMONSTRACAO` — e não um `true` escrito à mão — e que cada uma
+      das quatro molduras sai da saída de `moldurasDaHome`.
+    */
+    expect(HOME).toMatch(/moldurasDaHome\(\s*DADOS_DEMONSTRACAO\s*,/);
+    expect(HOME).toContain("<Carrossel banners={molduras.banners}");
+    expect(HOME).toMatch(/suaAmi=\{molduras\.suaAmi\}/);
+    expect(HOME).toContain("<UltimasNoticias provisorias={molduras.noticiasProvisorias}");
+    expect(HOME).toContain("{molduras.parceiros ? <EmpresasParceiras");
+  });
+});
