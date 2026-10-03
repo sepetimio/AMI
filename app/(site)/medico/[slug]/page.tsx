@@ -4,12 +4,13 @@ import { notFound } from "next/navigation";
 import paginas from "@/app/(site)/encontre.module.css";
 import { Icone } from "@/components/base/Icone";
 import { GradeMedicos } from "@/components/diretorio/GradeMedicos";
+import { BarraDoMedico } from "@/components/perfil/BarraDoMedico";
 import { OndeAtende } from "@/components/perfil/OndeAtende";
 import styles from "@/components/perfil/Perfil.module.css";
 import { TopoDoPerfil } from "@/components/perfil/TopoDoPerfil";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buscarMedicos, medicoPorSlug, slugsDeMedicos } from "@/lib/dados/medicos";
-import { especialidadePrincipal, outrosMedicos, paragrafosDaBio } from "@/lib/encontre";
+import { consultorioPrincipal, especialidadePrincipal, numeroPreenchido, outrosMedicos, paragrafosDaBio } from "@/lib/encontre";
 import { physician } from "@/lib/seo/jsonld";
 import { descricaoMedico, tituloMedico } from "@/lib/seo/metadados";
 
@@ -61,6 +62,8 @@ export default async function PaginaPerfil({ params }: Props) {
   const principal = especialidadePrincipal(m);
   const outros = outrosMedicos(m, await buscarMedicos());
   const bio = paragrafosDaBio(m.bio ?? "");
+  const consultorio = consultorioPrincipal(m);
+  const telefone = numeroPreenchido(consultorio?.telefone);
 
   return (
     <div className={paginas.pagina}>
@@ -104,6 +107,13 @@ export default async function PaginaPerfil({ params }: Props) {
           não substitui a consulta médica.
         </p>
       </div>
+
+      {/* No celular: "Ligar" e "WhatsApp" do consultório principal, quando os
+          botões do topo saem da tela. Sem telefone ali, fica a barra padrão
+          do site. */}
+      {telefone ? (
+        <BarraDoMedico nome={m.nome} telefone={telefone} whatsapp={numeroPreenchido(consultorio?.whatsapp)} />
+      ) : null}
     </div>
   );
 }

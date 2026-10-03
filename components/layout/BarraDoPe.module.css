@@ -75,4 +75,17 @@
     border: 1px solid var(--color-line);
     background: var(--color-surface);
   }
+
+  /* A barra do perfil (components/perfil/BarraDoMedico.tsx), com o desenho
+     desta: "Ligar" verde e "WhatsApp" branco, meio a meio, como no desenho
+     (`.barra-medico .ba-ligar`). */
+  .doMedico .ligar {
+    flex: 1;
+  }
+
+  /* Com a barra do perfil na página, a padrão não aparece: as duas ficariam
+     no mesmo lugar, uma por cima da outra. */
+  :global(body:has([data-barra-do-medico])) .barra:not([data-barra-do-medico]) {
+    display: none;
+  }
 }

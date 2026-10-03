@@ -9,25 +9,35 @@
   o bloco de busca está na tela, porque ali o atalho "Encontrar médico" levaria
   a pessoa para onde ela já está.
 
-  "Passou do topo" tem dois critérios, conforme haja carrossel na página:
-  - com carrossel (a home): o fundo dele saiu da tela, isto é, passou acima do
-    topo da janela (`fundoDoCarrossel < 0`);
-  - sem carrossel (as outras páginas, e a home enquanto o bloco não existe): a
-    rolagem passou de `ROLAGEM_SEM_CARROSSEL` pixels.
+  "Passou do topo" tem dois critérios, conforme a página tenha um bloco de
+  abertura (o carrossel da home, a faixa verde da busca, `data-abertura`):
+  - com ele: o fundo dele saiu da tela, isto é, passou acima do topo da
+    janela (`fundoDaAbertura < 0`);
+  - sem ele (as outras páginas): a rolagem passou de `ROLAGEM_SEM_CARROSSEL`
+    pixels.
 */
 export const ROLAGEM_SEM_CARROSSEL = 600;
 
-/** `fundoDoCarrossel` é o `bottom` de `getBoundingClientRect()`, ou `null` se a página não tem carrossel. */
-export function passouDoTopo(fundoDoCarrossel: number | null, rolagem: number): boolean {
-  if (fundoDoCarrossel === null) return rolagem > ROLAGEM_SEM_CARROSSEL;
-  return fundoDoCarrossel < 0;
+/** `fundoDaAbertura` é o `bottom` de `getBoundingClientRect()` do bloco de abertura, ou `null` se a página não tem um. */
+export function passouDoTopo(fundoDaAbertura: number | null, rolagem: number): boolean {
+  if (fundoDaAbertura === null) return rolagem > ROLAGEM_SEM_CARROSSEL;
+  return fundoDaAbertura < 0;
 }
 
 export function deveMostrarBarra(passou: boolean, buscaNaTela: boolean): boolean {
   return passou && !buscaNaTela;
 }
 
-/** Para onde o botão "Encontrar médico" leva: ao bloco de busca, se a pessoa está na home; senão à página de busca. */
+/** Para onde "Encontrar médico" leva: à busca da própria página, na home e em /busca; senão à página de busca. */
 export function destinoDaBusca(caminho: string): "#encontre" | "/busca" {
-  return caminho === "/" ? "#encontre" : "/busca";
+  return caminho === "/" || caminho === "/busca" ? "#encontre" : "/busca";
+}
+
+/**
+ * A barra do perfil aparece quando os botões do topo saíram da tela por
+ * cima: fora dela (`intersecta` falso) e acima (`topo` < 0). Botões ainda
+ * abaixo da tela não contam.
+ */
+export function acoesSairamPorCima(intersecta: boolean, topo: number): boolean {
+  return !intersecta && topo < 0;
 }

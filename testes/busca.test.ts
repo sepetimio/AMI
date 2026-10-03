@@ -71,7 +71,7 @@ describe("a busca", () => {
     expect(html.match(/<h1\b/g)).toHaveLength(1);
     expect(html).toMatch(/<h1 id="busca-titulo"[^>]*>Quem atende em Imperatriz<\/h1>/);
     expect(html).toMatch(
-      new RegExp(`<section id="encontre" data-bloco="busca" data-faixa="" aria-labelledby="busca-titulo" class="textura-verde ${estilosFaixa.faixa}">`),
+      new RegExp(`<section id="encontre" data-bloco="busca" data-faixa="" data-abertura="" aria-labelledby="busca-titulo" class="textura-verde ${estilosFaixa.faixa}">`),
     );
     expect(html).toContain('<div class="brilho" aria-hidden="true"></div>');
     expect(html).not.toContain("Trilha de navegação");

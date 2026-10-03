@@ -18,12 +18,13 @@ import styles from "@/components/layout/BarraDoPe.module.css";
 
   Dois atalhos: "Encontrar médico" e "Ligar". Quando ela aparece está em
   `lib/barra-do-pe.ts`. Este componente mede o que a decisão pede: onde está o
-  fundo do carrossel (`[data-bloco="carrossel"]`), quanto a página rolou e se
-  o bloco de busca (`#encontre`) está na tela. Nenhum dos dois blocos existe
-  em toda página, e a ausência de qualquer um é aceita: sem carrossel vale a
+  fundo do bloco de abertura (o carrossel, `[data-bloco="carrossel"]`, ou a
+  faixa da busca, `[data-abertura]`), quanto a página rolou e se o bloco de
+  busca (`#encontre`) está na tela. Nenhum dos dois blocos existe em toda
+  página, e a ausência de qualquer um é aceita: sem bloco de abertura vale a
   rolagem, sem bloco de busca a barra nunca some por causa dele.
 
-  Na home o botão leva ao bloco de busca da própria página e, passado o
+  Na home e na busca o botão leva ao bloco de busca da própria página e, passado o
   tempo do pulo, põe o cursor no campo para a pessoa já poder digitar. Fora
   da home leva a `/busca`, e a página nova cuida do próprio foco.
 */
@@ -34,13 +35,15 @@ export function BarraDoPe() {
   const [visivel, setVisivel] = useState(false);
 
   useEffect(() => {
-    const carrossel = document.querySelector('[data-bloco="carrossel"]');
+    /* O bloco que abre a página: o carrossel da home ou a faixa verde da
+       busca (`data-abertura`). */
+    const abertura = document.querySelector('[data-bloco="carrossel"], [data-abertura]');
     const blocoDeBusca = document.getElementById("encontre");
     let buscaNaTela = false;
 
     const atualizar = () => {
       const passou = passouDoTopo(
-        carrossel ? carrossel.getBoundingClientRect().bottom : null,
+        abertura ? abertura.getBoundingClientRect().bottom : null,
         window.scrollY,
       );
       setVisivel(deveMostrarBarra(passou, buscaNaTela));

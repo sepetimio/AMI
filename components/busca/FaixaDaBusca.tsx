@@ -15,6 +15,8 @@ import type { EspecialidadeComContagem } from "@/lib/dados/tipos";
   O `id="encontre"` é o da busca da home: o menu e a barra do pé do
   celular procuram `#encontre`. `data-faixa` é a marca das faixas de ponta a
   ponta (app/(site)/encontre.module.css não a põe na coluna).
+  `data-abertura` diz à barra do pé do celular que ela aparece quando esta
+  faixa sai da tela (components/layout/BarraDoPe.tsx).
 */
 export function FaixaDaBusca({
   termo,
@@ -30,6 +32,7 @@ export function FaixaDaBusca({
       id="encontre"
       data-bloco="busca"
       data-faixa=""
+      data-abertura=""
       aria-labelledby="busca-titulo"
       className={`textura-verde ${styles.faixa}`}
     >

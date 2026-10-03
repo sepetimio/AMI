@@ -219,13 +219,13 @@ describe("a barra do pe", () => {
     expect(LAYOUT.indexOf("<BarraDoPe")).toBeGreaterThan(LAYOUT.indexOf("<Rodape"));
   });
 
-  it("leva a busca da home na home e a /busca fora dela", () => {
+  it("leva à busca da própria página na home e em /busca, e a /busca fora delas", () => {
     expect(BARRA).toContain('href="#encontre"');
     expect(BARRA).toContain('href="/busca"');
     expect(BARRA).toContain('destino === "#encontre"');
     expect(destinoDaBusca("/")).toBe("#encontre");
     expect(destinoDaBusca("/medicos")).toBe("/busca");
-    expect(destinoDaBusca("/busca")).toBe("/busca");
+    expect(destinoDaBusca("/busca")).toBe("#encontre");
     expect(destinoDaBusca("/noticias/uma-materia")).toBe("/busca");
   });
 
@@ -246,8 +246,8 @@ describe("a barra do pe", () => {
   });
 
   it("aceita a ausencia do carrossel e do bloco de busca", () => {
-    expect(BARRA).toContain('[data-bloco="carrossel"]');
-    expect(BARRA).toMatch(/carrossel \? carrossel\.getBoundingClientRect\(\)\.bottom : null/);
+    expect(BARRA).toContain(`'[data-bloco="carrossel"], [data-abertura]'`);
+    expect(BARRA).toMatch(/abertura \? abertura\.getBoundingClientRect\(\)\.bottom : null/);
     expect(BARRA).toMatch(/blocoDeBusca\s*\? new IntersectionObserver/);
   });
 

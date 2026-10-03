@@ -27,6 +27,9 @@ export const SIZES_DO_PERFIL =
   Sem foto, as iniciais saem no mesmo quadro do retrato: a mesma classe
   `.foto`, com a proporção de 4:5 e a largura da coluna, com foto ou sem.
 
+  `data-acoes-do-medico` marca os botões do topo: a barra do pé do perfil
+  aparece quando eles saem da tela (components/perfil/BarraDoMedico.tsx).
+
   Sem breadcrumb visível: o cliente aprovou o desenho sem ele. Por isso a
   página também não leva o BreadcrumbList no JSON-LD.
 */
@@ -69,7 +72,7 @@ export function TopoDoPerfil({ medico }: { medico: Medico }) {
         ) : null}
 
         {telefone || whatsapp ? (
-          <div className={styles.acoes}>
+          <div className={styles.acoes} data-acoes-do-medico="">
             {telefone ? (
               <a
                 className="botao"

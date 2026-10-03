@@ -363,3 +363,28 @@ describe("o CSS do perfil", () => {
     expect(regra(global, ".botao-contorno:hover")).not.toMatch(/lima|green/);
   });
 });
+
+describe("a barra do pé do perfil", () => {
+  it("com telefone no consultório principal: a barra do médico, e os botões do topo marcados", async () => {
+    const html = await perfil();
+    expect(html).toContain('data-barra-do-medico=""');
+    expect(html).toMatch(new RegExp(`<div class="${estilos.acoes}" data-acoes-do-medico="">`));
+  });
+
+  it("sem telefone no consultório principal: sem a barra do médico (volta a padrão)", async () => {
+    const html = await perfil({ ...ALINE, locais: [{ ...ALINE.locais[0], telefone: null }] });
+    expect(html).not.toContain("data-barra-do-medico");
+  });
+
+  it("telefone em branco conta como vazio: sem a barra do médico", async () => {
+    const html = await perfil({ ...ALINE, locais: [{ ...ALINE.locais[0], telefone: "  " }] });
+    expect(html).not.toContain("data-barra-do-medico");
+  });
+
+  it("a barra é a do consultório principal, e com o WhatsApp em branco sobra só o Ligar", async () => {
+    const html = await perfil({ ...ALINE, locais: [{ ...ALINE.locais[0], whatsapp: "  " }, ALINE.locais[1]] });
+    const barra = /<nav [^>]*data-barra-do-medico[^>]*>[\s\S]*?<\/nav>/.exec(html)![0];
+    expect(barra).toContain("tel:+559930189994");
+    expect(barra).not.toContain("wa.me");
+  });
+});
