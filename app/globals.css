@@ -185,16 +185,38 @@
     /* Zoom nunca bloqueado. */
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
-    /* O cabeçalho fica preso no topo: uma âncora (`#encontre`, `#por-bairro`)
-       pararia atrás dele. Preso, ele termina a 72px do topo da janela no
-       computador e no tablet e a 60px no celular (medido no navegador, de
-       375 a 1920px); a âncora para 16px abaixo disso. */
-    scroll-padding-top: 88px;
+  }
+
+  /*
+    O cabeçalho fica preso no topo: uma âncora (`#encontre`, `#por-bairro`,
+    `#sua-ami`) pararia atrás dele. Preso, ele termina a 72px do topo da
+    janela no computador e no tablet e a 60px no celular (medido no
+    navegador, de 375 a 1920px); a âncora para 16px abaixo disso.
+
+    `scroll-margin-top` nos alvos dentro do `<main>`, e não
+    `scroll-padding-top` no `html`: com o padding, o Chrome tratava o próprio
+    cabeçalho preso como encoberto por essa faixa, e cada Tab pelo menu, com a
+    página rolada, levava a página de volta ao topo.
+  */
+  main [id] {
+    scroll-margin-top: 88px;
+  }
+
+  /* O bloco que ainda espera a entrada ao rolar (`[data-revelar="espera"]`,
+     mais abaixo) está 28px abaixo do lugar dele, e o navegador calcula o
+     destino da âncora com esse deslocamento: sem os 28px a mais, o bloco
+     subia ao entrar e parava 28px atrás do cabeçalho. */
+  main [id][data-revelar="espera"] {
+    scroll-margin-top: calc(88px + 28px);
   }
 
   @media (max-width: 700px) {
-    html {
-      scroll-padding-top: 76px;
+    main [id] {
+      scroll-margin-top: 76px;
+    }
+
+    main [id][data-revelar="espera"] {
+      scroll-margin-top: calc(76px + 28px);
     }
   }
 

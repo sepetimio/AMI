@@ -110,9 +110,17 @@ describe("o CSS da entrada", () => {
   it("o estado escondido só existe com no-preference", () => {
     const media = CSS.indexOf("@media (prefers-reduced-motion: no-preference) {");
     expect(media).toBeGreaterThan(-1);
-    const espera = regra(CSS, '[data-revelar="espera"]');
-    expect(CSS.indexOf('[data-revelar="espera"] {')).toBeGreaterThan(media);
-    expect(CSS.match(/\[data-revelar="espera"\] \{/g)).toHaveLength(1);
+    /* A regra que esconde é a de seletor só `[data-revelar="espera"]`; a da
+       margem da âncora (`main [id][data-revelar="espera"]`) não esconde nada. */
+    const sozinho = /\n\s*\[data-revelar="espera"\] \{/g;
+    const achadas = [...CSS.matchAll(sozinho)];
+    expect(achadas).toHaveLength(1);
+    expect(achadas[0].index).toBeGreaterThan(media);
+    const espera = regra(CSS, '[data-revelar="espera"]', achadas[0].index);
+    for (const outra of CSS.matchAll(/([^{}\n]*\[data-revelar="espera"\]) \{([^}]*)\}/g)) {
+      if (outra[1].trim() === '[data-revelar="espera"]') continue;
+      expect(outra[2], outra[1]).not.toMatch(/opacity|transform|filter|visibility|display/);
+    }
     expect(espera).toMatch(/opacity:\s*0;/);
     expect(espera).toMatch(/transform:\s*translateY\(28px\);/);
     expect(espera).toMatch(/filter:\s*blur\(6px\);/);

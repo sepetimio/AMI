@@ -76,13 +76,31 @@ describe("a base visual", () => {
 
   it("a ancora para abaixo do cabecalho preso: 88px no computador, 76px no celular", () => {
     /* O cabeçalho preso termina a 72px do topo (60px no celular), medido no
-       navegador; a âncora fica 16px abaixo. */
-    const html = CSS.match(/\n {2}html \{[^}]*\}/)?.[0] ?? "";
-    expect(html, "nao achei a regra html da base").not.toBe("");
-    expect(html).toMatch(/scroll-padding-top:\s*88px;/);
-    const celular = CSS.match(/@media \(max-width: 700px\) \{\s*html \{[^}]*\}/)?.[0] ?? "";
-    expect(celular, "nao achei o html do celular").not.toBe("");
-    expect(celular).toMatch(/scroll-padding-top:\s*76px;/);
+       navegador; a âncora fica 16px abaixo. A margem vai nos alvos dentro do
+       <main>, e não como `scroll-padding-top` no html: com o padding, cada
+       Tab pelo menu preso, com a página rolada, a levava de volta ao topo. */
+    const semNotas = semComentarios(CSS);
+    expect(semNotas).not.toContain("scroll-padding");
+    const alvos = semNotas.match(/\n {2}main \[id\] \{[^}]*\}/)?.[0] ?? "";
+    expect(alvos, "nao achei a regra main [id] da base").not.toBe("");
+    expect(alvos).toMatch(/scroll-margin-top:\s*88px;/);
+    const celular = semNotas.match(/@media \(max-width: 700px\) \{\s*main \[id\] \{[^}]*\}/)?.[0] ?? "";
+    expect(celular, "nao achei o main [id] do celular").not.toBe("");
+    expect(celular).toMatch(/scroll-margin-top:\s*76px;/);
+  });
+
+  it("o alvo que ainda espera a entrada ganha o deslocamento dela na margem da ancora", () => {
+    /* O navegador calcula o destino com o bloco ainda deslocado; quando ele
+       entra e sobe, tem de parar abaixo do cabeçalho. O deslocamento é lido
+       da regra da espera, não escrito aqui. */
+    const semNotas = semComentarios(CSS);
+    const desloca = /\[data-revelar="espera"\] \{[^}]*translateY\((\d+)px\)/.exec(semNotas)?.[1];
+    expect(desloca, "nao achei o translateY da espera").toBeDefined();
+    const regras = [...semNotas.matchAll(/main \[id\]\[data-revelar="espera"\] \{\s*scroll-margin-top:\s*calc\((\d+)px \+ (\d+)px\);/g)];
+    expect(regras.map((m) => [Number(m[1]), m[2]])).toEqual([
+      [88, desloca],
+      [76, desloca],
+    ]);
   });
 
   it("a textura e uma imagem pequena, nao filtro SVG", () => {
