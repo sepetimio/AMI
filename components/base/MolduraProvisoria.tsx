@@ -38,8 +38,9 @@ export function MolduraProvisoria({
       role="img"
       aria-label={rotulo}
     >
-      {/* Mesmo recurso do herói: o símbolo como máscara sobre um degradê,
-          para a moldura ter matéria em vez de ser um retângulo chapado. */}
+      {/* Mesmo recurso de Cabeceira.tsx e EstadoVazio.tsx: o símbolo como
+          máscara sobre um degradê, para a moldura ter matéria em vez de ser
+          um retângulo chapado. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 scale-[1.35]"

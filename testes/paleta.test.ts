@@ -53,8 +53,10 @@ const MINIMO = 4.5;
   `@theme inline` nem `--color-*: initial`, então a paleta padrão continua
   de pé ao lado da nossa).
 
-  `text-white` já é usado hoje sobre o verde (herói, rodapé, e agora a
-  faixa de identidade), e por não ter `--color-white` em T a rede contra
+  `text-white` já é usado hoje sobre o verde escuro — a faixa do topo da
+  home (components/home/FaixaDaAmi.tsx) e o rodapé
+  (components/layout/Rodape.tsx) — e sobre o verde de ação dos botões, e
+  por não ter `--color-white` em T a rede contra
   classe morta não os enxergava: nenhuma das duas expressões regulares
   deste arquivo casava `white`/`black`, e a classe escapava da varredura
   inteira — nem orfã, nem medida, nem lembrada. Nomeados aqui, com o
@@ -226,9 +228,11 @@ const FUNDOS_FORA_DO_TESTE: Record<string, string> = {
     "text-ami-lima-400 — o par real já é medido no describe texto sobre fundo " +
     "escuro, junto com canvas/surface sobre ami-green-800",
   "ami-green-900":
-    "fundo do herói, do rodapé e da legenda de foto, com text-ami-lima-400 ou " +
-    "text-white — o par real já é medido no describe texto sobre fundo escuro, " +
-    "junto com canvas/surface sobre ami-green-900",
+    "fundo da faixa do topo da home (components/home/FaixaDaAmi.tsx), do " +
+    "rodapé (components/layout/Rodape.tsx) e do bloco e da tarja de legenda " +
+    "da moldura provisória (components/base/MolduraProvisoria.tsx), com " +
+    "text-ami-lima-400 ou text-white — o par real já é medido no describe " +
+    "texto sobre fundo escuro, junto com canvas/surface sobre ami-green-900",
   warn:
     "só aparece como bg-warn/5 (components/editorial/RascunhoLegalNaTela.tsx), " +
     "5% de opacidade — a cor renderizada nunca é o tom cheio do token, então " +
@@ -380,14 +384,22 @@ describe("texto sobre fundo escuro", () => {
     tons dividem o mesmo papel, mede-se o par que cruza o mínimo primeiro, e
     o outro junto, porque nenhum dos dois é hipotético.
 
-    Os dois estão em uso: `bg-canvas` aparece em 11 lugares e `bg-surface`
-    em mais, e ambos convivem sobre o verde do herói e do rodapé.
+    Uso real hoje, conferido por grep em 03/10/2026: NENHUM dos dois cremes
+    aparece como letra sobre o verde — não há `text-canvas` nem
+    `text-surface` no código, e também não havia antes deste ramo. O que
+    existe é creme e verde lado a lado na mesma tela (seções em `bg-canvas`
+    e `bg-surface` coladas à faixa do topo da home e ao rodapé), e letra
+    branca e lima sobre o verde. Os pares continuam medidos porque a spec
+    pede creme sobre o verde profundo; tirá-los ou não é decisão de quem
+    cuida da paleta, não desta correção.
   */
   /*
     `white` entrou depois — rodada de correção da tarefa 4. Não é token do
     @theme (ver o comentário de CORES_PADRAO_TAILWIND, no topo do arquivo),
-    mas já é usado como texto sobre os dois verdes (herói, rodapé, faixa de
-    identidade), e a rede contra classe morta ganhou uma isenção para não
+    mas já é usado como texto sobre `ami-green-900` (a faixa do topo da home
+    e o rodapé; sobre `ami-green-800`, que só pinta a plaqueta de iniciais
+    com letra lima, não há branco hoje), e a rede contra classe morta
+    ganhou uma isenção para não
     reclamar dele — o que só é seguro porque este describe mede o par de
     verdade, e o describe abaixo prova que ele não serve sobre fundo claro.
     Medido com a mesma fórmula deste arquivo, não copiado de comentário
