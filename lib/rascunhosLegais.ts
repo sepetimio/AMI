@@ -28,7 +28,8 @@ import { AMI, enderecoEmLinha } from "@/lib/ami";
 
   Um quarto rascunho mora aqui também, mais abaixo: `SEJA_ASSOCIADO`. Não é
   texto legal, é a página de filiação — reaproveita o mesmo tipo e o mesmo
-  aviso na tela, não o mesmo lote de revisão jurídica. Ver o comentário dele.
+  componente de tela, mas não o aviso nem o lote de revisão jurídica. Ver o
+  comentário dele.
 */
 
 export type SecaoLegal = {
@@ -47,7 +48,38 @@ export type RascunhoLegal = {
   resumo: string;
   /** Data da redação do rascunho. Vira a data de revisão quando for revisado. */
   atualizadoEm: string;
+  /** O aviso que `RascunhoLegalNaTela` põe antes do texto. */
+  aviso: AvisoDoRascunho;
   secoes: SecaoLegal[];
+};
+
+/*
+  O aviso no alto de cada rascunho na tela. Obrigatório em `RascunhoLegal`,
+  sem valor padrão no componente, de propósito: um rascunho novo que não for
+  texto jurídico não pode herdar calado a frase sobre advogado.
+*/
+export type AvisoDoRascunho = {
+  titulo: string;
+  texto: string;
+};
+
+/* O dos três textos legais: ainda não revisados por advogado. Ver o porquê
+   no comentário de components/editorial/RascunhoLegalNaTela.tsx. */
+export const AVISO_DE_TEXTO_LEGAL: AvisoDoRascunho = {
+  titulo: "Este texto é um rascunho e ainda não foi revisado por advogado",
+  texto:
+    "Ele foi redigido a partir do funcionamento real deste site, para " +
+    "servir de ponto de partida à revisão jurídica, e está publicado para " +
+    "que a página não fique vazia. Não use como peça definitiva.",
+};
+
+/* O de Seja associado, que não é peça jurídica: o que falta ali é o texto da
+   própria AMI, não revisão de advogado. */
+export const AVISO_DE_PAGINA_PROVISORIA: AvisoDoRascunho = {
+  titulo: "Esta página é provisória",
+  texto:
+    "A AMI ainda vai escrever o texto desta página. O que está abaixo é " +
+    "provisório e está publicado para que o endereço não fique vazio até lá.",
 };
 
 const DATA = "2026-08-21";
@@ -63,6 +95,7 @@ export const PRIVACIDADE: RascunhoLegal = {
     "Como a Associação Médica de Imperatriz trata dados pessoais neste site, " +
     "o que é coletado, por quanto tempo e quais são os seus direitos.",
   atualizadoEm: DATA,
+  aviso: AVISO_DE_TEXTO_LEGAL,
   secoes: [
     {
       titulo: "Quem é o responsável",
@@ -147,6 +180,7 @@ export const TERMOS: RascunhoLegal = {
     "As condições de uso do site da Associação Médica de Imperatriz, o que " +
     "ele é, o que não é, e os limites da responsabilidade da associação.",
   atualizadoEm: DATA,
+  aviso: AVISO_DE_TEXTO_LEGAL,
   secoes: [
     {
       titulo: "O que é este site",
@@ -208,6 +242,7 @@ export const COOKIES: RascunhoLegal = {
     "Quais cookies este site usa e para quê. A resposta curta é que as " +
     "páginas públicas não usam nenhum, e este texto explica o porquê.",
   atualizadoEm: DATA,
+  aviso: AVISO_DE_TEXTO_LEGAL,
   secoes: [
     {
       titulo: "A resposta curta",
@@ -261,7 +296,9 @@ const DATA_SEJA_ASSOCIADO = "2026-08-23";
   mesmo tipo `RascunhoLegal` que os três textos acima, pelo motivo que
   `components/editorial/RascunhoLegalNaTela.tsx` explica no próprio
   comentário: a alternativa a um rascunho assinalado era o cartão "Seja
-  associado" da home levar a 404 até a AMI escrever o texto dela.
+  associado" da home levar a 404 até a AMI escrever o texto dela. O aviso
+  na tela é outro (`AVISO_DE_PAGINA_PROVISORIA`, acima): o dos textos legais
+  fala de revisão por advogado, e isto não vai a advogado nenhum.
 
   NÃO entra em `RASCUNHOS_LEGAIS`, de propósito: aquele array alimenta
   `scripts/gerar-doc-legal.ts`, o documento que vai para revisão de um
@@ -271,8 +308,9 @@ const DATA_SEJA_ASSOCIADO = "2026-08-23";
 
   O texto não inventa fato. Sem valor de anuidade, sem lista de benefícios,
   sem requisito além do que a AMI já confirmou (inscrição no conselho). O que
-  seria mais — quanto custa, o que o associado ganha — é justamente o que a
-  AMI ainda não escreveu, e está marcado [PROVISÓRIO] em vez de estimado.
+  seria mais — quanto custa, o que o associado ganha — é justamente o que
+  esta página ainda não traz, e está marcado [PROVISÓRIO] em vez de
+  estimado, sem afirmar se a AMI já decidiu ou não.
 */
 export const SEJA_ASSOCIADO: RascunhoLegal = {
   slug: "seja-associado",
@@ -281,16 +319,17 @@ export const SEJA_ASSOCIADO: RascunhoLegal = {
     "O que é a Associação Médica de Imperatriz e como um médico com " +
     "inscrição no conselho se associa a ela.",
   atualizadoEm: DATA_SEJA_ASSOCIADO,
+  aviso: AVISO_DE_PAGINA_PROVISORIA,
   secoes: [
     {
       titulo: "O que é a AMI",
-      paragrafos: [`A ${identificacao} está em atividade desde ${AMI.fundadaEm}.`],
+      paragrafos: [`A ${identificacao}, está em atividade desde ${AMI.fundadaEm}.`],
     },
     {
       titulo: "Quem pode se associar",
       paragrafos: [
         "A associação é aberta a médicos com inscrição regular no Conselho Regional de Medicina.",
-        "[PROVISÓRIO] Valor de anuidade, benefícios do quadro associativo e demais critérios de admissão ainda serão definidos e publicados pela AMI nesta página.",
+        "[PROVISÓRIO] Valor de anuidade, benefícios do quadro associativo e demais critérios de admissão ainda não foram publicados nesta página.",
       ],
     },
     {
@@ -305,9 +344,11 @@ export const SEJA_ASSOCIADO: RascunhoLegal = {
 /*
   Rascunhos por slug de `/associacao/[pagina]`, para a rota decidir entre
   mostrar o rascunho ou `notFound()` sem precisar de um `if` por slug.
-  Só "seja-associado" tem entrada hoje; os outros dois slugs de prosa daquela
-  rota (benefícios, estatuto, política editorial) continuam sem rascunho de
-  propósito — ver o comentário na rota sobre o porquê de não inventar um.
+  Só "seja-associado" tem entrada hoje. Os outros três slugs de prosa daquela
+  rota (benefícios, estatuto, política editorial) não têm rascunho e dão 404
+  até a AMI publicar o texto no Studio — é o terceiro desfecho descrito no
+  comentário de `SubpaginaDaAssociacao`, em
+  `app/(site)/associacao/[pagina]/page.tsx`.
 */
 export const RASCUNHOS_DE_ASSOCIACAO: Readonly<
   Partial<Record<string, RascunhoLegal>>

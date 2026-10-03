@@ -66,8 +66,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   Documento publicado no Sanity: `PaginaDeTexto` renderiza o texto revisado.
   Sem documento, mas com rascunho em código para este slug (hoje só
   "seja-associado", em `lib/rascunhosLegais.ts`): `RascunhoLegalNaTela`
-  mostra o provisório, com o aviso de que não foi revisado — o mesmo
-  mecanismo das três páginas legais de primeiro nível
+  mostra o provisório, com o aviso que o próprio rascunho traz (o de
+  Seja associado diz que a página é provisória, sem falar em advogado) — o
+  mesmo mecanismo das três páginas legais de primeiro nível
   (/politica-de-privacidade e as outras duas), reaproveitado aqui porque o
   comentário de `RascunhoLegalNaTela` já explica por que a alternativa é
   pior: sem ele, o cartão "Seja associado" da home levaria a 404 até a AMI
