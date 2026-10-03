@@ -18,13 +18,19 @@ const LARGURA_DA_GAVETA = 1180;
   "Início" só em `/` exato: por prefixo ele marcaria todas as páginas, já que
   todo caminho começa por `/`. Os outros casam por prefixo, com a barra como
   fronteira: `/medicos/cardiologia` marca "Especialidades", mas `/medico/ana`
-  (a página de um médico) não. "Sua AMI" aponta para um trecho da home e
-  nunca é "atual": o `href` dela tem `#`, e um caminho (`usePathname`) nunca
-  tem, então nenhuma das duas comparações abaixo a alcança.
+  (a página de um médico) não. A página de um médico marca "Encontre um
+  médico" (`/busca`), como no desenho aprovado: o perfil é o fim da busca e
+  volta a ela. "Sua AMI" aponta para um trecho da home e nunca é "atual": o
+  `href` dela tem `#`, e um caminho (`usePathname`) nunca tem, então nenhuma
+  das comparações abaixo a alcança.
 */
+const TAMBEM_MARCA: Record<string, string> = { "/busca": "/medico" };
+
 export function ehAtual(caminho: string, href: string): boolean {
   if (href === "/") return caminho === "/";
-  return caminho === href || caminho.startsWith(`${href}/`);
+  const debaixo = (raiz: string) =>
+    caminho === raiz || caminho.startsWith(`${raiz}/`);
+  return debaixo(href) || (href in TAMBEM_MARCA && debaixo(TAMBEM_MARCA[href]));
 }
 
 /*

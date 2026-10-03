@@ -114,6 +114,13 @@ describe("ehAtual", () => {
     expect(ehAtual("/noticiasx", "/noticias")).toBe(false);
   });
 
+  it("o perfil de um médico marca Encontre um médico, como no desenho", () => {
+    expect(ehAtual("/medico/fulano", "/busca")).toBe(true);
+    expect(ehAtual("/medicos/cardiologia", "/busca")).toBe(false);
+    expect(ehAtual("/medicox/fulano", "/busca")).toBe(false);
+    expect(ehAtual("/busca", "/medicos")).toBe(false);
+  });
+
   it("Sua AMI, que aponta para um trecho da home, nunca e atual", () => {
     expect(ehAtual("/", "/#sua-ami")).toBe(false);
   });
