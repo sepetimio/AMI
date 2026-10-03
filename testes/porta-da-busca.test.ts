@@ -133,7 +133,6 @@ const BUSCA = await html(await PaginaBusca(BUSCA_PARAMS));
 const ESPECIALIDADE = await html(
   await PaginaEspecialidade({
     params: Promise.resolve({ especialidade: "cardiologia" }),
-    ...BUSCA_PARAMS,
   }),
 );
 
@@ -222,7 +221,6 @@ describe("a página de especialidade", () => {
       const pagina = await html(
         await PaginaEspecialidade({
           params: Promise.resolve({ especialidade: "cardiologia" }),
-          searchParams: Promise.resolve({}),
         }),
       );
       expect(pagina.match(/<img /g)).toHaveLength(6);

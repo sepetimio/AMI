@@ -106,7 +106,7 @@
 }
 
 .menu a:hover::after,
-.menu a[aria-current="page"]::after {
+.menu a[aria-current]::after {
   transform: scaleX(1);
 }
 
@@ -198,7 +198,7 @@
     background: var(--color-surface-fundo);
   }
 
-  .gaveta a[aria-current="page"] {
+  .gaveta a[aria-current] {
     font-weight: 700;
     color: var(--color-ami-green-800);
   }

@@ -17,10 +17,12 @@ export const revalidate = 3600;
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
-/* No Next 16, params e searchParams são Promise e precisam de await. */
+/* No Next 16, params é Promise e precisa de await. Nada aqui lê
+   `searchParams`: ler a querystring, mesmo só nos metadados, faz a página
+   ser montada a cada visita, e ela deixaria de sair pronta do build
+   (`generateStaticParams`) e de ser refeita só a cada `revalidate`. */
 type Props = {
   params: Promise<{ especialidade: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export async function generateStaticParams() {
@@ -28,16 +30,10 @@ export async function generateStaticParams() {
   return especialidades.map((e) => ({ especialidade: e.slug }));
 }
 
-export async function generateMetadata({
-  params,
-  searchParams,
-}: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { especialidade } = await params;
   const esp = await especialidadePorSlug(especialidade);
   if (!esp) return {};
-
-  const sp = await searchParams;
-  const temFiltroDeQuery = Object.keys(sp).length > 0;
 
   const medicos = await buscarMedicos({ especialidade });
   /* Mesma condição da página: uma especialidade cadastrada sem nenhum
@@ -52,13 +48,9 @@ export async function generateMetadata({
   return {
     title: tituloEspecialidade(esp.nome, medicos.length),
     description: descricaoEspecialidade(esp.nome, medicos.length, bairros),
+    /* O mesmo endereço com qualquer querystring mostra a mesma página: o
+       canonical aponta para o endereço limpo, e é ele que entra no índice. */
     alternates: { canonical: `/medicos/${especialidade}` },
-    /* Filtro em querystring nunca entra no índice: combinações geram milhares
-       de endereços quase iguais. O canonical continua apontando para a página
-       limpa, e `follow` mantém os links rastreáveis. */
-    ...(temFiltroDeQuery
-      ? { robots: { index: false, follow: true } }
-      : {}),
   };
 }
 

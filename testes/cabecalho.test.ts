@@ -1,8 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { createElement } from "react";
+import { renderToString } from "react-dom/server";
+import { describe, expect, it, vi } from "vitest";
 import { fonte, semComentarios } from "@/testes/apoio";
-import { ehAtual } from "@/components/layout/MenuPrincipal";
+import { MenuPrincipal, marcaDoMenu } from "@/components/layout/MenuPrincipal";
 import { MENU, menuDoSite } from "@/lib/menu";
 import { deveFechar } from "@/lib/gaveta";
+
+/* O menu lê o caminho por `usePathname`; aqui não há roteador, e o dublê
+   devolve o caminho que cada caso escolhe. */
+const rota = vi.hoisted(() => ({ caminho: "/" }));
+vi.mock("next/navigation", () => ({ usePathname: () => rota.caminho }));
 
 const MENU_SRC = semComentarios(fonte("../components/layout/MenuPrincipal.tsx"));
 const CAB = semComentarios(fonte("../components/layout/Cabecalho.tsx"));
@@ -95,34 +102,65 @@ describe("o cabecalho", () => {
   });
 });
 
-describe("ehAtual", () => {
-  it("Inicio so e atual em / exato", () => {
-    expect(ehAtual("/", "/")).toBe(true);
-    expect(ehAtual("/noticias", "/")).toBe(false);
-    expect(ehAtual("/associacao/diretoria", "/")).toBe(false);
+describe("marcaDoMenu", () => {
+  it("Inicio so e marcado em / exato", () => {
+    expect(marcaDoMenu("/", "/")).toBe("page");
+    expect(marcaDoMenu("/noticias", "/")).toBeUndefined();
+    expect(marcaDoMenu("/associacao/diretoria", "/")).toBeUndefined();
   });
 
-  it("os outros itens casam por prefixo do caminho", () => {
-    expect(ehAtual("/noticias", "/noticias")).toBe(true);
-    expect(ehAtual("/noticias/uma-materia", "/noticias")).toBe(true);
-    expect(ehAtual("/associacao/seja-associado", "/associacao")).toBe(true);
-    expect(ehAtual("/medicos/cardiologia", "/medicos")).toBe(true);
+  it("os outros itens casam por prefixo do caminho, como pagina atual", () => {
+    expect(marcaDoMenu("/noticias", "/noticias")).toBe("page");
+    expect(marcaDoMenu("/noticias/uma-materia", "/noticias")).toBe("page");
+    expect(marcaDoMenu("/associacao/seja-associado", "/associacao")).toBe("page");
+    expect(marcaDoMenu("/medicos/cardiologia", "/medicos")).toBe("page");
+    expect(marcaDoMenu("/busca", "/busca")).toBe("page");
   });
 
   it("o prefixo respeita a fronteira da barra", () => {
-    expect(ehAtual("/medico/fulano", "/medicos")).toBe(false);
-    expect(ehAtual("/noticiasx", "/noticias")).toBe(false);
+    expect(marcaDoMenu("/medico/fulano", "/medicos")).toBeUndefined();
+    expect(marcaDoMenu("/noticiasx", "/noticias")).toBeUndefined();
   });
 
-  it("o perfil de um médico marca Encontre um médico, como no desenho", () => {
-    expect(ehAtual("/medico/fulano", "/busca")).toBe(true);
-    expect(ehAtual("/medicos/cardiologia", "/busca")).toBe(false);
-    expect(ehAtual("/medicox/fulano", "/busca")).toBe(false);
-    expect(ehAtual("/busca", "/medicos")).toBe(false);
+  it("o perfil de um médico marca Encontre um médico como parte da busca (true), nao como a pagina dela", () => {
+    expect(marcaDoMenu("/medico/fulano", "/busca")).toBe("true");
+    expect(marcaDoMenu("/medicos/cardiologia", "/busca")).toBeUndefined();
+    expect(marcaDoMenu("/medicox/fulano", "/busca")).toBeUndefined();
+    expect(marcaDoMenu("/busca", "/medicos")).toBeUndefined();
   });
 
-  it("Sua AMI, que aponta para um trecho da home, nunca e atual", () => {
-    expect(ehAtual("/", "/#sua-ami")).toBe(false);
+  it("Sua AMI, que aponta para um trecho da home, nunca e marcada", () => {
+    expect(marcaDoMenu("/", "/#sua-ami")).toBeUndefined();
+  });
+});
+
+describe("o menu renderizado marca o item", () => {
+  /* As duas listas (a linha e a gaveta), cada link com o seu aria-current. */
+  function marcas(caminho: string): Record<string, string[]> {
+    rota.caminho = caminho;
+    const html = renderToString(createElement(MenuPrincipal, { itens: MENU }));
+    const porItem: Record<string, string[]> = {};
+    for (const [, tag, rotulo] of html.matchAll(/(<a [^>]*>)([^<]*)<\/a>/g)) {
+      (porItem[rotulo] ??= []).push(/aria-current="([^"]+)"/.exec(tag)?.[1] ?? "-");
+    }
+    return porItem;
+  }
+
+  it("na busca, Encontre um médico é a pagina atual, na linha e na gaveta", () => {
+    const m = marcas("/busca");
+    expect(m["Encontre um médico"]).toEqual(["page", "page"]);
+    expect(Object.values(m).flat().filter((v) => v !== "-")).toHaveLength(2);
+  });
+
+  it("no perfil, Encontre um médico leva aria-current true, nao page, na linha e na gaveta", () => {
+    const m = marcas("/medico/aline-peixoto");
+    expect(m["Encontre um médico"]).toEqual(["true", "true"]);
+    expect(Object.values(m).flat().filter((v) => v !== "-")).toHaveLength(2);
+  });
+
+  it("o sublinhado e o destaque da gaveta valem para qualquer aria-current, page ou true", () => {
+    expect(CSS).toMatch(/\.menu a:hover::after,\s*\.menu a\[aria-current\]::after \{\s*transform: scaleX\(1\);/);
+    expect(regra(".gaveta a[aria-current]")).toMatch(/color: var\(--color-ami-green-800\)/);
   });
 });
 

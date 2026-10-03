@@ -13,24 +13,31 @@ import styles from "@/components/layout/Cabecalho.module.css";
 const LARGURA_DA_GAVETA = 1180;
 
 /*
-  Qual item marca "página atual".
+  Qual item o menu marca, e como: o valor do `aria-current` do link.
 
   "Início" só em `/` exato: por prefixo ele marcaria todas as páginas, já que
   todo caminho começa por `/`. Os outros casam por prefixo, com a barra como
   fronteira: `/medicos/cardiologia` marca "Especialidades", mas `/medico/ana`
-  (a página de um médico) não. A página de um médico marca "Encontre um
-  médico" (`/busca`), como no desenho aprovado: o perfil é o fim da busca e
-  volta a ela. "Sua AMI" aponta para um trecho da home e nunca é "atual": o
-  `href` dela tem `#`, e um caminho (`usePathname`) nunca tem, então nenhuma
-  das comparações abaixo a alcança.
+  (a página de um médico) não. Esses são a página atual: "page".
+
+  A página de um médico também marca "Encontre um médico" (`/busca`), como
+  no desenho aprovado: o perfil é o fim da busca e volta a ela. Mas o perfil
+  não é a página da busca, e o leitor de tela não pode anunciar que é: ali a
+  marca é "true" (o item atual de um conjunto), com o mesmo sublinhado.
+
+  "Sua AMI" aponta para um trecho da home e nunca é marcada: o `href` dela
+  tem `#`, e um caminho (`usePathname`) nunca tem, então nenhuma das
+  comparações abaixo a alcança.
 */
 const TAMBEM_MARCA: Record<string, string> = { "/busca": "/medico" };
 
-export function ehAtual(caminho: string, href: string): boolean {
-  if (href === "/") return caminho === "/";
+export function marcaDoMenu(caminho: string, href: string): "page" | "true" | undefined {
+  if (href === "/") return caminho === "/" ? "page" : undefined;
   const debaixo = (raiz: string) =>
     caminho === raiz || caminho.startsWith(`${raiz}/`);
-  return debaixo(href) || (href in TAMBEM_MARCA && debaixo(TAMBEM_MARCA[href]));
+  if (debaixo(href)) return "page";
+  if (href in TAMBEM_MARCA && debaixo(TAMBEM_MARCA[href])) return "true";
+  return undefined;
 }
 
 /*
@@ -47,8 +54,8 @@ export function ehAtual(caminho: string, href: string): boolean {
   item. Se a janela crescer além de 1180px com a gaveta aberta, ela fecha:
   senão o botão sumiria com `aria-expanded="true"`.
 
-  O item atual leva `aria-current="page"`, e o desenho o marca com o
-  sublinhado que, nos outros itens, só aparece ao passar o mouse.
+  O item marcado leva `aria-current` (`marcaDoMenu`), e o desenho o marca
+  com o sublinhado que, nos outros itens, só aparece ao passar o mouse.
 
   `children` é o botão "Seja associado", vindo do servidor.
 */
@@ -103,7 +110,7 @@ export function MenuPrincipal({
           <Link
             key={item.href}
             href={item.href}
-            aria-current={ehAtual(caminho, item.href) ? "page" : undefined}
+            aria-current={marcaDoMenu(caminho, item.href)}
           >
             {item.rotulo}
           </Link>
@@ -135,7 +142,7 @@ export function MenuPrincipal({
           <Link
             key={item.href}
             href={item.href}
-            aria-current={ehAtual(caminho, item.href) ? "page" : undefined}
+            aria-current={marcaDoMenu(caminho, item.href)}
             onClick={fechar}
           >
             {item.rotulo}

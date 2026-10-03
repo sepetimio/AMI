@@ -33,7 +33,8 @@ import { fileURLToPath } from "node:url";
    e `testes/sem-bairros.test.ts` renderizam `/busca`, o perfil, `/medicos` e
    uma especialidade com `renderToPipeableStream` (`htmlDe`,
    testes/renderizar.ts) e as fontes de dados trocadas por dublês;
-   `testes/barra-do-medico.test.ts`, a barra do pé do perfil. */
+   `testes/barra-do-medico.test.ts`, a barra do pé do perfil, e
+   `testes/cabecalho.test.ts`, o menu. */
 export default defineConfig({
   test: {
     include: ["testes/**/*.test.ts"],

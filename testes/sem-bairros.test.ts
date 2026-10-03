@@ -56,7 +56,6 @@ const MEDICOS = await htmlDe(await PaginaMedicos());
 const ESPECIALIDADE = await htmlDe(
   await PaginaEspecialidade({
     params: Promise.resolve({ especialidade: "cardiologia" }),
-    searchParams: Promise.resolve({}),
   }),
 );
 
