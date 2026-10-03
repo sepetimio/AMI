@@ -1,8 +1,9 @@
-import { Fragment, type ReactNode } from "react";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import { Icone } from "@/components/base/Icone";
 import { MolduraProvisoria } from "@/components/base/MolduraProvisoria";
 import styles from "@/components/editorial/UltimasNoticias.module.css";
+import { arranjoDasNoticias } from "@/lib/arranjo-das-noticias";
 import { dataPorExtenso } from "@/lib/formato";
 import { listarNoticias } from "@/lib/sanity/consultas";
 import { urlDaImagem } from "@/lib/sanity/imagem";
@@ -11,7 +12,9 @@ import type { ResumoNoticia } from "@/lib/sanity/tipos";
 /*
   As notícias da home: uma em destaque, com o título sobre a foto, e as três
   seguintes numa lista ao lado, como no desenho aprovado
-  (docs/desenho-aprovado/home-aprovada.html, `.noticias`).
+  (docs/desenho-aprovado/home-aprovada.html, `.noticias`). Com menos de
+  quatro, o arranjo muda (`arranjoDasNoticias`, lib/arranjo-das-noticias.ts):
+  nada fica ao lado do destaque.
 
   Duas peças. `UltimasNoticias` só busca no Sanity e entrega a lista a
   `NoticiasDaHome`, que só desenha. A separação existe para o teste: a peça
@@ -56,6 +59,14 @@ export function NoticiasDaHome({
   if (reais.length === 0 && !provisorias) return null;
 
   const [destaque, ...lista] = reais;
+  /* As provisórias são sempre quatro: o desenho inteiro. */
+  const arranjo = arranjoDasNoticias(destaque ? reais.length : QUANTAS)!;
+  const grade = {
+    className: styles.noticias,
+    "data-arranjo": arranjo.arranjo,
+    "data-deitado": arranjo.deitado ? "" : undefined,
+    style: arranjo.colunas > 0 ? ({ "--colunas": arranjo.colunas } as CSSProperties) : undefined,
+  };
 
   return (
     <section data-bloco="noticias" aria-labelledby="noticias-titulo">
@@ -77,9 +88,9 @@ export function NoticiasDaHome({
       </div>
 
       {destaque ? (
-        /* Uma notícia só não deixa a coluna da direita vazia ao lado da
-           foto: o destaque ocupa a largura toda, como abaixo de 1180px. */
-        <div className={lista.length > 0 ? styles.noticias : `${styles.noticias} ${styles.soDestaque}`}>
+        /* O arranjo vem de `arranjoDasNoticias` (lib/arranjo-das-noticias.ts):
+           com menos de quatro, nada fica ao lado do destaque. */
+        <div {...grade}>
           <Destaque noticia={destaque} />
           {lista.length > 0 ? (
             <Lista>
@@ -90,7 +101,7 @@ export function NoticiasDaHome({
           ) : null}
         </div>
       ) : (
-        <div className={styles.noticias}>
+        <div {...grade}>
           <Destaque />
           <Lista>
             {[1, 2, 3].map((n) => (

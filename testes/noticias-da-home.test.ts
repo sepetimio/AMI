@@ -8,6 +8,7 @@ import estilosNoticias from "@/components/editorial/UltimasNoticias.module.css";
 import estilosBairros from "@/components/diretorio/LadrilhosBairros.module.css";
 import estilosFaixa from "@/components/home/BairrosEParceiros.module.css";
 import estilosParceiros from "@/components/home/EmpresasParceiras.module.css";
+import { arranjoDasNoticias } from "@/lib/arranjo-das-noticias";
 import type { ResumoNoticia } from "@/lib/sanity/tipos";
 import { fonte } from "@/testes/apoio";
 
@@ -79,6 +80,13 @@ function bloco(saida: string, tag: string, classe: string): string {
   return saida.slice(abre.index);
 }
 
+/** A tag de abertura da grade das notícias (destaque + lista). */
+function grade(saida: string): string {
+  return (
+    new RegExp(`<div class="${estilosNoticias.noticias}"[^>]*>`).exec(saida)?.[0] ?? "(sem a grade das notícias)"
+  );
+}
+
 /* A ordem das peças dentro da lista: "item" (cada notícia) ou "sep". */
 function pecasDaLista(lista: string): string[] {
   const sep = `<div class="${estilosNoticias.sep}" aria-hidden="true"></div>`;
@@ -86,6 +94,19 @@ function pecasDaLista(lista: string): string[] {
     m[0] === "<article>" ? "item" : "sep",
   );
 }
+
+describe("o arranjo das notícias (Ruling 30)", () => {
+  it("por quantidade: nada, só o destaque, embaixo com uma coluna por notícia, ou ao lado", () => {
+    expect([0, 1, 2, 3, 4, 5].map(arranjoDasNoticias)).toEqual([
+      null,
+      { arranjo: "so-destaque", colunas: 0, deitado: false },
+      { arranjo: "embaixo", colunas: 1, deitado: true },
+      { arranjo: "embaixo", colunas: 2, deitado: false },
+      { arranjo: "ao-lado", colunas: 3, deitado: false },
+      { arranjo: "ao-lado", colunas: 3, deitado: false },
+    ]);
+  });
+});
 
 describe("o bloco de notícias", () => {
   it("sem notícia e sem provisórias, não existe", () => {
@@ -138,9 +159,8 @@ describe("o bloco de notícias", () => {
       [estilosNoticias.item, "/noticias/noticia-3"],
       [estilosNoticias.item, "/noticias/noticia-4"],
     ]);
-    /* A lista vem depois do destaque, na mesma grade, que tem as duas colunas. */
+    /* A lista vem depois do destaque, na mesma grade. */
     expect(saida.indexOf(lista)).toBeGreaterThan(saida.indexOf(estilosNoticias.destaque));
-    expect(saida).toContain(`<div class="${estilosNoticias.noticias}">`);
   });
 
   it("todo título de notícia é h3, sob o h2 da seção", () => {
@@ -161,13 +181,28 @@ describe("o bloco de notícias", () => {
     expect(saida).not.toContain('role="img"');
     expect(vezes(saida, "<article")).toBe(1);
     expect(saida).toContain("Título da notícia 1");
-    expect(saida).toContain(`<div class="${estilosNoticias.noticias} ${estilosNoticias.soDestaque}">`);
+    expect(grade(saida)).toBe(`<div class="${estilosNoticias.noticias}" data-arranjo="so-destaque">`);
     expect(saida).not.toContain(`class="${estilosNoticias.lista}"`);
   });
 
-  it("com duas reais, a lista tem uma só, sem divisória", () => {
-    const lista = bloco(html([noticia(1), noticia(2)]), "div", estilosNoticias.lista);
-    expect(pecasDaLista(lista)).toEqual(["item"]);
+  it("com duas reais, o destaque em cima e a outra embaixo, deitada, numa coluna só", () => {
+    const saida = html([noticia(1), noticia(2)]);
+    expect(grade(saida)).toBe(
+      `<div class="${estilosNoticias.noticias}" data-arranjo="embaixo" data-deitado="" style="--colunas:1">`,
+    );
+    expect(pecasDaLista(bloco(saida, "div", estilosNoticias.lista))).toEqual(["item"]);
+  });
+
+  it("com três reais, o destaque em cima e as outras duas embaixo, em duas colunas", () => {
+    const saida = html([noticia(1), noticia(2), noticia(3)]);
+    expect(grade(saida)).toBe(`<div class="${estilosNoticias.noticias}" data-arranjo="embaixo" style="--colunas:2">`);
+    expect(pecasDaLista(bloco(saida, "div", estilosNoticias.lista))).toEqual(["item", "sep", "item"]);
+  });
+
+  it("com quatro reais, ou as quatro provisórias, a lista fica ao lado, em três", () => {
+    const ao = `<div class="${estilosNoticias.noticias}" data-arranjo="ao-lado" style="--colunas:3">`;
+    expect(grade(html(QUATRO))).toBe(ao);
+    expect(grade(html([], true))).toBe(ao);
   });
 
   it("sem real e com provisórias, quatro peças 'Notícia a entrar' na forma do desenho, sem link", () => {
@@ -404,10 +439,31 @@ describe("o CSS das notícias", () => {
   it("abaixo de 1180px, o destaque em cima e as três lado a lado, sem divisória", () => {
     const m = media(CSS_NOTICIAS, "@media (max-width: 1180px)");
     expect(regra(m, ".noticias")).toMatch(/grid-template-columns: 1fr;/);
-    expect(regra(m, ".lista")).toMatch(/grid-template-columns: repeat\(3, 1fr\)/);
+    /* Três, porque com quatro notícias o componente escreve --colunas:3
+       (teste de renderização acima). */
+    expect(regra(m, ".lista")).toMatch(/grid-template-columns: repeat\(var\(--colunas\), 1fr\)/);
     expect(regra(m, ".lista")).toMatch(/aspect-ratio: auto/);
     expect(regra(m, ".sep")).toMatch(/display: none/);
     expect(regra(m, ".item")).toMatch(/grid-template-columns: 1fr;/);
+  });
+
+  it("com menos de quatro, do tablet para cima: destaque na largura toda e nada ao lado dele", () => {
+    const m = media(CSS_NOTICIAS, "@media (min-width: 701px)");
+    expect(m).toMatch(
+      /\.noticias\[data-arranjo="so-destaque"\],\s*\.noticias\[data-arranjo="embaixo"\] \{\s*grid-template-columns: 1fr;/,
+    );
+    const embaixo = (s: string) => regra(m, `.noticias[data-arranjo="embaixo"] ${s}`);
+    expect(embaixo(".lista")).toMatch(/display: grid;\s*grid-template-columns: repeat\(var\(--colunas\), 1fr\)/);
+    expect(embaixo(".lista")).toMatch(/aspect-ratio: auto/);
+    expect(embaixo(".sep")).toMatch(/display: none/);
+    expect(embaixo(".item")).toMatch(/grid-template-columns: 1fr;/);
+    /* Uma só embaixo: deitada, e a regra dela vem depois da de pé. */
+    expect(regra(m, ".noticias[data-deitado] .item")).toMatch(/grid-template-columns: 128px 1fr/);
+    expect(m.indexOf(".noticias[data-deitado] .item")).toBeGreaterThan(
+      m.indexOf('.noticias[data-arranjo="embaixo"] .item'),
+    );
+    /* No celular, o arranjo não muda nada: nenhuma regra dele em 700px. */
+    expect(media(CSS_NOTICIAS, "@media (max-width: 700px)")).not.toMatch(/data-arranjo|data-deitado/);
   });
 
   it("no celular, destaque grande e lista com miniatura quadrada de 88px; nada desliza", () => {

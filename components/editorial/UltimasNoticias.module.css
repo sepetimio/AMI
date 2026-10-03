@@ -44,11 +44,6 @@
   min-width: 0;
 }
 
-/* Uma notícia só: o destaque na largura toda, como abaixo de 1180px. */
-.noticias.soDestaque {
-  grid-template-columns: 1fr;
-}
-
 .destaque {
   align-self: start;
 }
@@ -219,7 +214,7 @@
 
   .lista {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(var(--colunas), 1fr);
     gap: 24px;
     aspect-ratio: auto;
   }
@@ -245,6 +240,54 @@
     flex-direction: column;
     align-items: flex-start;
     padding-bottom: 24px;
+  }
+}
+
+/*
+  Menos de quatro notícias (Ruling 30), do tablet para cima: o arranjo de
+  abaixo de 1180px em todas as larguras. O destaque na largura toda, em
+  cima; com duas ou três, as outras embaixo, uma coluna para cada
+  (`--colunas`, escrito pelo componente a partir de `arranjoDasNoticias`).
+  Com uma só embaixo (`data-deitado`), ela fica deitada, como na lista do
+  computador. No celular nada disto vale: a regra de 700px abaixo é a mesma
+  para todos os arranjos.
+*/
+@media (min-width: 701px) {
+  .noticias[data-arranjo="so-destaque"],
+  .noticias[data-arranjo="embaixo"] {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .noticias[data-arranjo="embaixo"] .lista {
+    display: grid;
+    grid-template-columns: repeat(var(--colunas), 1fr);
+    gap: 24px;
+    aspect-ratio: auto;
+  }
+
+  .noticias[data-arranjo="embaixo"] .sep {
+    display: none;
+  }
+
+  .noticias[data-arranjo="embaixo"] .item {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 14px;
+  }
+
+  .noticias[data-arranjo="embaixo"] .miniatura {
+    aspect-ratio: 16 / 10;
+  }
+
+  .noticias[data-deitado] .item {
+    grid-template-columns: 128px 1fr;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .noticias[data-deitado] .miniatura {
+    aspect-ratio: 4 / 3;
   }
 }
 
