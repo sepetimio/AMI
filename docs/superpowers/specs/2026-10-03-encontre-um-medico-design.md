@@ -103,3 +103,22 @@ A busca e o perfil deixam de usar a `Cabeceira`. As outras páginas continuam co
   - nenhuma página abre rolada.
 - **Fotos das páginas construídas** comparadas com as do desenho aprovado, seção por seção.
 - **Contraste do texto:** pelo menos 4,5:1.
+
+## 6. Acréscimo de 03/10/2026: empresas parceiras no quarto número
+
+Com o fim dos bairros, o cliente pediu que a faixa de números da home **mantenha quatro números**: o quarto passa a ser **empresas parceiras** ("número par fica mais legal"). O número vem de um **cadastro no Sanity**, no mesmo painel de conteúdo dos banners e das notícias.
+
+1. **Tipo novo no Sanity, "Empresa parceira":**
+   - `nome` (obrigatório);
+   - `logotipo` (imagem, obrigatória);
+   - `site` (endereço, opcional);
+   - `ordem` (número, opcional; sem ordem, vem pelo nome).
+2. **A faixa "Quem caminha com a AMI", na home:**
+   - com parceiras cadastradas, mostra os logotipos reais, nos dois modos, no mesmo espaço do `.logo-vazio`. O logotipo fica contido na caixa, sem distorcer, e o nome serve de texto alternativo. Com `site`, o logotipo é link e abre em outra aba;
+   - sem nenhuma parceira cadastrada, mostra os seis espaços "Logotipo a entrar" só no modo demonstração. Fora dele, a faixa não aparece.
+3. **O quarto número da faixa de números:**
+   - ícone de aperto de mão, número e rótulo "empresas parceiras";
+   - texto de apoio "Empresas que caminham com a AMI.", sem prometer benefício, porque não existe página de benefícios;
+   - botão "Ver parceiras", que leva a `/#parceiros`;
+   - o número é a contagem das cadastradas. Sem nenhuma cadastrada, vale 6 no modo demonstração (os seis espaços de exemplo). Fora da demonstração, o quarto número não aparece e a faixa volta a ter três.
+4. A faixa de números precisa ficar bem com **quatro** e com **três** números. Com quatro, o celular volta aos quatro cartõezinhos de dois em dois, como na home aprovada. Com três, fica como decidido no plano (dois mais um na largura toda).
