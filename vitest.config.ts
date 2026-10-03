@@ -27,12 +27,13 @@ import { fileURLToPath } from "node:url";
    `renderToString`, `/contato` e `/associacao`. `testes/numeros-e-busca.test.ts`
    renderiza assim os números da home e o bloco "Encontre um médico", e
    `testes/sua-ami-e-associe.test.ts`, "Sua AMI", "Seja associado" e
-   "Quem é a AMI?", e `testes/noticias-da-home.test.ts`, as notícias, os
-   bairros e os parceiros da home. `testes/cartao-medico.test.ts` renderiza
-   com `renderToString` o cartão, a foto e a grade de médicos, e
-   `testes/busca.test.ts`, com `renderToPipeableStream` (pelo `htmlDe` de
-   testes/renderizar.ts), a página `/busca` inteira, e `testes/perfil.test.ts`,
-   pelo mesmo caminho, o perfil do médico. */
+   "Quem é a AMI?", e `testes/noticias-da-home.test.ts`, as notícias e os
+   parceiros da home. `testes/cartao-medico.test.ts` renderiza o cartão, a
+   foto e a grade de médicos; `testes/busca.test.ts`, `testes/perfil.test.ts`
+   e `testes/sem-bairros.test.ts` renderizam `/busca`, o perfil, `/medicos` e
+   uma especialidade com `renderToPipeableStream` (`htmlDe`,
+   testes/renderizar.ts) e as fontes de dados trocadas por dublês;
+   `testes/barra-do-medico.test.ts`, a barra do pé do perfil. */
 export default defineConfig({
   test: {
     include: ["testes/**/*.test.ts"],

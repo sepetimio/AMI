@@ -24,7 +24,7 @@
   - um único `h1`, nenhum `id` repetido, nenhuma imagem quebrada;
   - o cabeçalho no topo em cinco pontos de rolagem;
   - o menu em linha acima de 1180px e em gaveta abaixo, e a gaveta abre e fecha.
-  Só na home (onde há `data-bloco`):
+  Nas páginas com `data-bloco` (a home, a busca e o perfil):
   - espaços iguais entre blocos consecutivos;
   - o texto das seções com `data-coluna` (e o rodapé) na mesma linha vertical.
     Os números e "Sua AMI" não têm `data-coluna` de propósito: os cartões dos
@@ -35,9 +35,15 @@
     (arte pronta, provisório), a moldura ou a arte à vista e os controles na
     margem (`--m`): sem botão não há sob o que centrá-los, e a margem é a
     linha do texto dos slides com botão;
+  - os "Ligar" dos cartões de médico de uma mesma fileira na mesma altura
+    (`data-ligar`, o botão ou o espaço dele);
+  - acima de 700px, o texto na mesma linha vertical do logotipo;
   - a barra do pé: nunca acima de 700px; até 700px, aparece se e só se o
-    carrossel saiu por cima (ou a rolagem passou de 600px, sem carrossel) e
-    a busca não está na tela.
+    bloco de abertura (o carrossel ou a faixa da busca, `[data-abertura]`)
+    saiu por cima (ou a rolagem passou de 600px, sem bloco de abertura) e a
+    busca não está na tela; no perfil com telefone, a barra padrão nunca
+    aparece e a do médico aparece se e só se os botões do topo saíram por
+    cima.
   - ao chegar pelo menu, vindo de outra página parada no topo ou no meio, a
     página nova abre em `scrollY` 0. É a última conferência, porque troca de
     página: quando a auditoria termina, a aba está noutra página.
@@ -302,6 +308,10 @@
     if (new Set(col.map(Math.round)).size > 1)
       problemas.push("coluna de texto desigual: " + col.join(","));
     info.colunaDoLogo = Math.round(R(document.querySelector("header a")).left);
+    if (W > 700 && Math.abs(info.colunaDoLogo - Math.round(col[0])) > 1)
+      problemas.push(
+        `texto fora da linha do logotipo: logotipo ${info.colunaDoLogo}, texto ${col[0]}`,
+      );
 
     /* 9. O carrossel, slide por slide. */
     if (carrossel) {
@@ -382,6 +392,21 @@
     }
   }
 
+  /* 13. Os "Ligar" de cada fileira de cartões de médico na mesma altura:
+     o botão, ou o espaço dele de quem não tem telefone. */
+  const fileiras = new Map();
+  for (const e of document.querySelectorAll("[data-ligar]")) {
+    if (R(e).height === 0) continue;
+    const topoDoCartao = Math.round(topoAbs(e.closest("li")));
+    if (!fileiras.has(topoDoCartao)) fileiras.set(topoDoCartao, []);
+    fileiras.get(topoDoCartao).push(Math.round(topoAbs(e) * 10) / 10);
+  }
+  for (const [topo, ys] of fileiras) {
+    if (Math.max(...ys) - Math.min(...ys) > 0.5)
+      problemas.push(`"Ligar" desalinhado na fileira de ${topo}px: ${ys.join("/")}`);
+  }
+  info.fileirasDeCartoes = fileiras.size;
+
   /* 10. O menu: em linha acima de 1180px, em gaveta abaixo. */
   const menu = document.querySelector('nav[aria-label="Principal"]');
   const abre = document.querySelector('button[aria-controls="gaveta"]');
@@ -415,45 +440,60 @@
     }
   }
 
-  /* 11. A barra do pé. */
+  /* 11. A barra do pé, e a do perfil. */
   const barra = document.querySelector('nav[aria-label="Atalhos"]');
+  const barraMedico = document.querySelector("[data-barra-do-medico]");
+  const acoesDoMedico = document.querySelector("[data-acoes-do-medico]");
+  const abertura = document.querySelector('[data-bloco="carrossel"], [data-abertura]');
   const busca = document.getElementById("encontre");
-  const barraAparece = () =>
-    getComputedStyle(barra).display !== "none" &&
-    temClasse(barra, "visivel") &&
-    R(barra).top < H;
+  const aparece = (b) =>
+    getComputedStyle(b).display !== "none" && temClasse(b, "visivel") && R(b).top < H;
   if (!barra) {
     info.barraDoPe = "sem barra (painel)";
   } else if (W > 700) {
     for (const y of [0, fim / 2, fim]) {
       await rolar(y, 600);
-      if (getComputedStyle(barra).display !== "none")
-        problemas.push(`barra do pé acima de 700px (rolagem ${Math.round(y)})`);
+      for (const b of [barra, barraMedico].filter(Boolean))
+        if (getComputedStyle(b).display !== "none")
+          problemas.push(`barra do pé acima de 700px (rolagem ${Math.round(y)})`);
     }
     info.barraDoPe = "nunca";
+  } else if (barraMedico) {
+    const vistos = [];
+    for (const y of [0, topoAbs(acoesDoMedico) + R(acoesDoMedico).height + 10, fim / 2, fim]) {
+      await rolar(y, 700);
+      if (getComputedStyle(barra).display !== "none")
+        problemas.push(`barra padrão junto da barra do médico a ${Math.round(scrollY)}px`);
+      const esperado = R(acoesDoMedico).bottom < 0;
+      const viu = aparece(barraMedico);
+      vistos.push(`${Math.round(scrollY)}:${viu ? "sim" : "não"}`);
+      if (viu !== esperado)
+        problemas.push(
+          `barra do médico ${viu ? "aparece" : "não aparece"} a ${Math.round(scrollY)}px (botões do topo saíram: ${esperado})`,
+        );
+    }
+    info.barraDoPe = "médico " + vistos.join(" ");
   } else {
     const pontos = [0];
-    if (carrossel) pontos.push(topoAbs(carrossel) + R(carrossel).height + 10);
-    if (busca) pontos.push(topoAbs(busca) + R(busca).height + 10);
+    if (abertura) pontos.push(topoAbs(abertura) + R(abertura).height + 10);
+    if (busca && busca !== abertura) pontos.push(topoAbs(busca) + R(busca).height + 10);
     pontos.push(fim / 2, fim);
     const vistos = [];
     for (const y of pontos) {
       await rolar(y, 700);
-      const passou = carrossel ? R(carrossel).bottom < 0 : scrollY > 600;
+      const passou = abertura ? R(abertura).bottom < 0 : scrollY > 600;
       let fracao = 0;
       if (busca) {
         const rb = R(busca);
-        fracao =
-          Math.max(0, Math.min(rb.bottom, H) - Math.max(rb.top, 0)) / rb.height;
+        fracao = Math.max(0, Math.min(rb.bottom, H) - Math.max(rb.top, 0)) / rb.height;
       }
-      const aparece = barraAparece();
-      vistos.push(`${Math.round(scrollY)}:${aparece ? "sim" : "não"}`);
-      if (fracao > 0 && fracao < 0.25)
-        continue; /* na beira do limiar do observador */
+      const viu = aparece(barra);
+      vistos.push(`${Math.round(scrollY)}:${viu ? "sim" : "não"}`);
+      if (fracao > 0 && fracao < 0.25) continue; /* na beira do limiar do observador */
       const esperado = passou && fracao === 0;
-      if (aparece !== esperado)
+      if (viu !== esperado)
         problemas.push(
-          `barra do pé ${aparece ? "aparece" : "não aparece"} a ${Math.round(scrollY)}px (carrossel saiu: ${passou}, busca na tela: ${Math.round(fracao * 100)}%)`,
+          `barra do pé ${viu ? "aparece" : "não aparece"} a ${Math.round(scrollY)}px (abertura saiu: ${passou}, busca na tela: ${Math.round(fracao * 100)}%)`,
         );
     }
     info.barraDoPe = vistos.join(" ");

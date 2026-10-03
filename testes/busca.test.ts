@@ -282,7 +282,10 @@ describe("o CSS da faixa da busca", () => {
   it("o texto sobre o verde passa em AA no ponto mais claro medido na fatia A", () => {
     /* O ponto mais claro atrás do texto de apoio da busca da home, com a luz
        e o grão médio, medido no navegador em 03/10/2026 (rgb 53, 95, 38):
-       a mesma faixa, o mesmo degradê. A conferência visual remede na busca. */
+       a mesma faixa, o mesmo degradê. Remedido na busca no mesmo dia, em
+       pixel, na posição real do texto, a 1440, 768, 430 e 320px: o mais
+       claro atrás dos textos em #cfd8c9 foi (52, 94, 38), o do texto de
+       apoio a 430px, um tom abaixo deste, que continua o de referência. */
     const fundo = [53, 95, 38];
     const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
     const lin = (c: number) => ((c /= 255) <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
