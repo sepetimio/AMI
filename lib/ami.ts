@@ -15,6 +15,8 @@
   verificadores antes de entrar aqui.
 */
 
+import { numeroNacional } from "@/lib/contato";
+
 export const AMI = {
   razaoSocial: "Associação Médica de Imperatriz",
   sigla: "AMI",
@@ -73,14 +75,15 @@ export function enderecoEmLinha(): string {
 
 /**
  * Telefone no formato que o link `tel:` exige: só dígitos, com o código do
- * país. O que o usuário vê continua sendo o número formatado.
+ * país, que entra uma vez só (`numeroNacional`, lib/contato.ts, tira o 55
+ * de quem já o trouxe). O que o usuário vê continua sendo o número formatado.
  *
  * Fica de fora dos exports de propósito: o rodapé já usou isto direto num
  * `href`, sem o `tel:`, e o link quebrou em todo o site. Quem precisa de
  * link usa `hrefTelefone`.
  */
 function telefoneParaLigar(numero: string): string {
-  return `+55${numero.replace(/\D/g, "")}`;
+  return `+55${numeroNacional(numero)}`;
 }
 
 /**

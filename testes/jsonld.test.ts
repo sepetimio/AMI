@@ -60,6 +60,17 @@ describe("physician", () => {
     expect(e.streetAddress).toContain("Rua Projetada 100");
   });
 
+  it("leva o telefone do consultório; em branco, sem telephone", () => {
+    expect(p.telephone).toBe("9933334444");
+    for (const telefone of ["", "   ", " - "]) {
+      const semTelefone = physician(
+        { ...medico, locais: [{ ...medico.locais[0], telefone }] },
+        SITE,
+      ) as Record<string, unknown>;
+      expect("telephone" in semTelefone, JSON.stringify(telefone)).toBe(false);
+    }
+  });
+
   it("aponta a AMI como organização de origem", () => {
     expect(JSON.stringify(p.memberOf)).toContain("Associação Médica");
   });

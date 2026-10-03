@@ -1,10 +1,14 @@
 /* Apresentação de dados em português. Funções puras: entram valores,
    saem strings, sem tocar em banco nem em data do sistema. */
 
-/** Formata telefone brasileiro. Devolve a entrada intacta se não reconhecer. */
+import { numeroNacional } from "@/lib/contato";
+
+/**
+ * Formata telefone brasileiro, com ou sem o 55 do país (`numeroNacional`,
+ * lib/contato.ts). Devolve a entrada intacta se não reconhecer.
+ */
 export function formatarTelefone(bruto: string): string {
-  const digitos = bruto.replace(/\D/g, "");
-  const nacional = digitos.length > 11 ? digitos.slice(-11) : digitos;
+  const nacional = numeroNacional(bruto);
 
   if (nacional.length === 11) {
     return `(${nacional.slice(0, 2)}) ${nacional.slice(2, 7)}-${nacional.slice(7)}`;

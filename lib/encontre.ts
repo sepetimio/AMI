@@ -1,3 +1,4 @@
+import { numeroPreenchido } from "@/lib/contato";
 import { porNome } from "@/lib/dados/filtros";
 import { contagem } from "@/lib/formato";
 import type {
@@ -11,7 +12,12 @@ import type {
   O que a busca e o perfil decidem sobre um médico, em funções puras: entra
   o dado, sai o texto ou o endereço. Ficam fora dos componentes para serem
   testadas sem navegador (testes/encontre.test.ts).
+
+  O link do WhatsApp e o número preenchido moram em lib/contato.ts, sem
+  dependência nenhuma, porque a barra do pé do perfil os leva ao navegador;
+  daqui saem reexportados, para a busca e o perfil importarem de um lugar só.
 */
+export { linkDoWhatsapp, numeroPreenchido } from "@/lib/contato";
 
 /** Quantos "outros médicos" o perfil mostra, no máximo. */
 export const LIMITE_DE_OUTROS = 4;
@@ -45,10 +51,15 @@ export function consultorioPrincipal(m: Pick<Medico, "locais">): LocalAtendiment
 
 /**
  * O telefone do "Ligar" do cartão: o do primeiro consultório que tem
- * telefone. Sem telefone em nenhum, null, e o cartão fica sem o botão.
+ * telefone preenchido (`numeroPreenchido`: em branco não conta). Sem
+ * telefone em nenhum, null, e o cartão fica sem o botão.
  */
 export function telefoneDoCartao(m: Pick<Medico, "locais">): string | null {
-  return m.locais.find((l) => l.telefone)?.telefone ?? null;
+  for (const l of m.locais) {
+    const telefone = numeroPreenchido(l.telefone);
+    if (telefone) return telefone;
+  }
+  return null;
 }
 
 /** O endereço em duas linhas, como o cartão do consultório mostra. */
@@ -65,26 +76,6 @@ export function enderecoDoLocal(
 export function linkDoMapa(l: Pick<LocalAtendimento, "logradouro" | "numero" | "bairro">): string {
   const endereco = enderecoDoLocal(l).join(", ");
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco)}`;
-}
-
-/**
- * O link do WhatsApp: `wa.me/55` mais o número só com dígitos. Número que
- * já chega com o 55 (mais de 11 dígitos) fica com os 11 últimos, a mesma
- * regra de `formatarTelefone` (lib/formato.ts).
- */
-export function linkDoWhatsapp(numero: string): string {
-  const digitos = numero.replace(/\D/g, "");
-  const nacional = digitos.length > 11 ? digitos.slice(-11) : digitos;
-  return `https://wa.me/55${nacional}`;
-}
-
-/**
- * O número de um botão (Ligar, WhatsApp), quando ele tem algum dígito; vazio,
- * só espaço ou só pontuação, null. Sem isto, um campo em branco no cadastro
- * viraria um "WhatsApp" que abre `wa.me/55` sem número.
- */
-export function numeroPreenchido(numero: string | null | undefined): string | null {
-  return numero && /\d/.test(numero) ? numero : null;
 }
 
 /**

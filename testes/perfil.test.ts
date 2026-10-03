@@ -214,6 +214,23 @@ describe("onde atende", () => {
     expect(secao).toContain('aria-label="Como chegar ao consultório de Juçara (abre o mapa)"');
   });
 
+  it("o WhatsApp de cada cartão abre o número daquele consultório, com o 55 uma vez só", async () => {
+    const html = await perfil({
+      ...ALINE,
+      locais: [
+        { ...ALINE.locais[0], whatsapp: "(99) 98118-9994" },
+        { ...ALINE.locais[1], whatsapp: "55 99 3023-0707" },
+      ],
+    });
+    const secao = trecho(html, 'id="onde-atende"');
+    expect(secao).toContain(
+      '<a class="botao-contorno" href="https://wa.me/5599981189994" aria-label="WhatsApp do consultório de Nova Imperatriz">',
+    );
+    expect(secao).toContain(
+      '<a class="botao-contorno" href="https://wa.me/559930230707" aria-label="WhatsApp do consultório de Juçara">',
+    );
+  });
+
   it("consultório sem WhatsApp e sem telefone: só o Como chegar", async () => {
     const html = await perfil({ ...ALINE, locais: [{ ...ALINE.locais[0], telefone: null, whatsapp: null }] });
     const secao = trecho(html, 'id="onde-atende"');

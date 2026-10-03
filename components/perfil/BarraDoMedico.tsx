@@ -5,7 +5,7 @@ import { Icone } from "@/components/base/Icone";
 import styles from "@/components/layout/BarraDoPe.module.css";
 import { hrefTelefone } from "@/lib/ami";
 import { acoesSairamPorCima } from "@/lib/barra-do-pe";
-import { linkDoWhatsapp } from "@/lib/encontre";
+import { linkDoWhatsapp } from "@/lib/contato";
 
 /*
   A barra do pé do perfil, só no celular (a regra de largura é a da barra

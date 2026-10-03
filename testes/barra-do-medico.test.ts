@@ -61,6 +61,18 @@ describe("quando ela aparece", () => {
     expect(CODIGO).toMatch(/threshold: 0\b/);
     expect(CODIGO).toContain("observador.disconnect()");
   });
+
+  it("o que a barra leva ao navegador não importa a busca: o WhatsApp vem de lib/contato.ts, sem dependência", () => {
+    /* Por lib/encontre.ts, a barra levaria ao navegador a tabela de
+       sinônimos da busca (lib/dados/sinonimos.ts). */
+    const importados = [...CODIGO.matchAll(/from "([^"]+)"/g)].map((m) => m[1]);
+    expect(importados).toContain("@/lib/contato");
+    expect(importados.filter((i) => i.startsWith("@/lib/"))).toEqual(["@/lib/ami", "@/lib/barra-do-pe", "@/lib/contato"]);
+    for (const lib of ["../lib/contato.ts", "../lib/ami.ts", "../lib/barra-do-pe.ts"]) {
+      const deps = [...semComentarios(fonte(lib)).matchAll(/from "([^"]+)"/g)].map((m) => m[1]);
+      expect(deps.filter((d) => d !== "@/lib/contato"), lib).toEqual([]);
+    }
+  });
 });
 
 describe("as duas barras", () => {

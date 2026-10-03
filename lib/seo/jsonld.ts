@@ -2,6 +2,7 @@ import type { Medico } from "@/lib/dados/tipos";
 import type { Noticia } from "@/lib/sanity/tipos";
 import { dimensoesDoRef, urlDaImagem } from "@/lib/sanity/imagem";
 import { AMI } from "@/lib/ami";
+import { numeroPreenchido } from "@/lib/contato";
 
 /*
   Construtores de JSON-LD. Puros, e testados porque erro aqui falha calado:
@@ -88,7 +89,7 @@ export function physician(m: Medico, siteUrl: string) {
             addressRegion: "MA",
             addressCountry: "BR",
           },
-          ...(local.telefone ? { telephone: local.telefone } : {}),
+          ...(numeroPreenchido(local.telefone) ? { telephone: local.telefone } : {}),
         }
       : {}),
     /* Sem `availableService` de telemedicina: o perfil não mostra isso na

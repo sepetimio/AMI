@@ -14,6 +14,7 @@ import {
   telefoneDoCartao,
   textoDaContagem,
 } from "@/lib/encontre";
+import * as contato from "@/lib/contato";
 import type { LocalAtendimento, Medico } from "@/lib/dados/tipos";
 
 function local(id: number, bairro: string, extra: Partial<LocalAtendimento> = {}): LocalAtendimento {
@@ -107,6 +108,14 @@ describe("o telefone do cartão", () => {
   it("sem telefone em nenhum, null", () => {
     expect(telefoneDoCartao(medico("Ana Lima", null, { locais: [local(1, "Centro")] }))).toBeNull();
   });
+  it("telefone em branco não conta: passa ao consultório seguinte, ou fica sem", () => {
+    const branco = local(1, "Centro", { telefone: "   " });
+    const m = medico("Ana Lima", null, {
+      locais: [branco, local(2, "Juçara", { telefone: "(99) 3023-0707" })],
+    });
+    expect(telefoneDoCartao(m)).toBe("(99) 3023-0707");
+    expect(telefoneDoCartao(medico("Ana Lima", null, { locais: [branco] }))).toBeNull();
+  });
 });
 
 describe("o endereço e os links do consultório", () => {
@@ -133,6 +142,10 @@ describe("o endereço e os links do consultório", () => {
   });
   it("WhatsApp que já vem com o 55 não fica com 55 duas vezes", () => {
     expect(linkDoWhatsapp("+55 (99) 98802-0205")).toBe("https://wa.me/5599988020205");
+  });
+  it("o link e o número preenchido são os de lib/contato.ts, reexportados, não cópias", () => {
+    expect(linkDoWhatsapp).toBe(contato.linkDoWhatsapp);
+    expect(numeroPreenchido).toBe(contato.numeroPreenchido);
   });
   it("número sem nenhum dígito é número nenhum: o botão não sai", () => {
     for (const vazio of [null, undefined, "", "   ", " - ", "()"]) {
