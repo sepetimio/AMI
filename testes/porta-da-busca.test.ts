@@ -74,7 +74,7 @@ describe("o cartão Encontre um médico, na home", () => {
 
   it("o formulário não está dentro de um link", () => {
     /*
-      Os outros dois cartões da grade são `<Link>` inteiros, e a tentação é
+      Os outros cartões da grade são `<Link>` inteiros, e a tentação é
       manter a simetria. Se alguém devolver este a `<Link href="/medicos">`
       sem tirar o formulário de dentro, o navegador desmonta a árvore e o
       campo deixa de enviar. Esta asserção é a que fica vermelha nesse dia.

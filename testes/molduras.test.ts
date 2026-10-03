@@ -2,6 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { Carrossel } from "@/components/home/Carrossel";
+import { ServicosDaAmi } from "@/components/home/ServicosDaAmi";
 import { BANNERS_PROVISORIOS } from "@/lib/molduras";
 import type { Banner } from "@/lib/sanity/tipos";
 
@@ -68,5 +69,47 @@ describe("o carrossel com os três banners provisórios", () => {
     const real = html(createElement(Carrossel, { banners: [REAL] }));
     expect(real).toContain('<img src="https://exemplo.test/assembleia.jpg"');
     expect(real).not.toContain("a entrar");
+  });
+});
+
+describe("o cartão provisório Sua AMI", () => {
+  const props = { total: 24, especialidades: 9, ultimaNoticia: null };
+  const com = html(createElement(ServicosDaAmi, { ...props, suaAmi: true }));
+  const sem = html(createElement(ServicosDaAmi, props));
+
+  /** O cartão inteiro, do `<a>` tracejado até o `</a>` dele. */
+  function cartao(saida: string): string {
+    const inicio = saida.lastIndexOf("<a", saida.indexOf("border-dashed"));
+    return saida.slice(inicio, saida.indexOf("</a>", inicio) + 4);
+  }
+
+  it("é um link para /contato, com título, texto e ação aprovados", () => {
+    const c = cartao(com);
+    /* Sem depender da ordem dos atributos: o `Link` imprime `class` antes
+       de `href`. */
+    expect(c).toMatch(/^<a [^>]*href="\/contato"/);
+    expect(c).toContain(">Sua AMI</h3>");
+    expect(c).toContain("Auditório e hall de eventos da AMI para alugar.");
+    expect(c).toContain("Consultar disponibilidade");
+  });
+
+  it("vem marcado como provisório", () => {
+    expect(cartao(com)).toContain("Serviço a entrar");
+  });
+
+  it("não inventa preço, capacidade, metragem nem horário, e não tem foto", () => {
+    const texto = cartao(com).replace(/<[^>]+>/g, " ");
+    expect(texto, "número no cartão").not.toMatch(/\d/);
+    expect(cartao(com)).not.toMatch(/<img|role="img"/);
+  });
+
+  it("com ele, a grade passa a 2 por linha no tablet e 4 no computador", () => {
+    expect(com).toContain("grid gap-4 md:grid-cols-2 lg:grid-cols-4");
+  });
+
+  it("sem ele, o cartão some e a grade volta a ser a de três", () => {
+    expect(sem).not.toContain("Sua AMI");
+    expect(sem).not.toContain("a entrar");
+    expect(sem).toContain("grid gap-4 md:grid-cols-3");
   });
 });

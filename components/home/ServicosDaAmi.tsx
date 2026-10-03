@@ -3,7 +3,8 @@ import { AMI } from "@/lib/ami";
 import { formatarTelefone } from "@/lib/formato";
 
 /*
-  Os três serviços da AMI, mais um bloco de notícia.
+  Os três serviços da AMI, um quarto provisório (ver abaixo), mais um bloco
+  de notícia.
 
   O primeiro cartão é o ÚNICO campo de digitar do site inteiro. O herói
   antigo — apagado quando esta seção nasceu — carregava um formulário GET
@@ -15,14 +16,14 @@ import { formatarTelefone } from "@/lib/formato";
   ordem dos resultados usa "correspondência do termo buscado no nome e na
   especialidade".
 
-  Por isso este cartão não é um `<Link>`, e os outros dois são: `<form>`
+  Por isso este cartão não é um `<Link>`, e os outros são: `<form>`
   dentro de `<a>` é HTML inválido, e o navegador desmonta a árvore. O cartão
   vira uma caixa comum, com dois caminhos dentro dela — o formulário, para
   quem sabe o nome, e o link para o índice, para quem não sabe. Perder o
   hover de cartão inteiro é consequência desejada: só o que de fato leva a
   algum lugar (o botão e o link) deve parecer clicável.
 
-  A grade tem três cartões. Os dois primeiros mostram algo VIVO que o menu do
+  Três cartões são de serviço que já existe. Os dois primeiros mostram algo VIVO que o menu do
   topo não mostra — senão a grade seria um segundo menu: o primeiro traz a
   contagem de médicos e especialidades, o segundo o telefone. O terceiro,
   "Seja associado", é o único sem dado vivo — de propósito, não por
@@ -30,20 +31,31 @@ import { formatarTelefone } from "@/lib/formato";
   associado ganha) é texto que a AMI ainda não escreveu, e inventar um
   número aqui seria fabricar dado.
 
-  A manchete mais recente não é o quarto cartão da grade — é um quarto
-  bloco, abaixo dela e fora do `grid`, do tamanho da linha inteira.
+  A manchete mais recente não é cartão da grade — é um bloco à parte,
+  abaixo dela e fora do `grid`, do tamanho da linha inteira.
 
-  A grade nasce com três e já comporta "Sua AMI" (aluguel de auditório e hall
-  de eventos) e "Empresa parceira", que o dono anunciou para depois.
+  O quarto cartão, "Sua AMI" (aluguel de auditório e hall de eventos), é
+  PROVISÓRIO: o serviço ainda não existe, e o cliente pediu para vê-lo no
+  lugar em 03/10/2026. Sai só com `suaAmi` verdadeiro — quem decide é
+  `moldurasDaHome`, em lib/molduras.ts, e o padrão `false` faz quem esquecer
+  de passar a prop ficar com a grade de três, nunca com o provisório. O
+  cartão diz "Serviço a entrar" e tem fio tracejado, para o cliente não
+  confundir com serviço que já funciona. Não traz preço, capacidade,
+  metragem, horário nem foto: nada disso foi dado, e inventar seria fabricar.
+
+  Com quatro cartões, 2 por linha no tablet e 4 lado a lado no computador;
+  com três, a grade de antes.
 */
 export function ServicosDaAmi({
   total,
   especialidades,
   ultimaNoticia,
+  suaAmi = false,
 }: {
   total: number;
   especialidades: number;
   ultimaNoticia: { titulo: string; slug: string } | null;
+  suaAmi?: boolean;
 }) {
   const fixo = AMI.telefones[0];
 
@@ -53,7 +65,9 @@ export function ServicosDaAmi({
         Serviços da AMI
       </h2>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
+      <div
+        className={`mt-6 grid gap-4 ${suaAmi ? "md:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-3"}`}
+      >
         <div className="rounded-bloco border border-line bg-surface p-6">
           <h3 className="text-[21px] font-semibold text-ink-900">Encontre um médico</h3>
 
@@ -120,6 +134,26 @@ export function ServicosDaAmi({
             Médico com inscrição no CRM pode se associar à AMI.
           </p>
         </Link>
+
+        {suaAmi ? (
+          <Link
+            href="/contato"
+            className="pressiona rounded-bloco border border-dashed border-line-strong bg-surface p-6 hover:border-ami-green-600 hover:shadow-erguido"
+          >
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+              <h3 className="text-[21px] font-semibold text-ink-900">Sua AMI</h3>
+              <span className="text-[12px] font-semibold uppercase tracking-[0.09em] text-ink-400">
+                Serviço a entrar
+              </span>
+            </div>
+            <p className="mt-3 text-[15px] text-ink-400">
+              Auditório e hall de eventos da AMI para alugar.
+            </p>
+            <p className="mt-3 text-[15px] font-semibold text-ami-green-600">
+              Consultar disponibilidade
+            </p>
+          </Link>
+        ) : null}
       </div>
 
       {ultimaNoticia ? (
