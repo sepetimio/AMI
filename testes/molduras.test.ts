@@ -3,6 +3,7 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { UltimasNoticias } from "@/components/editorial/UltimasNoticias";
 import { Carrossel } from "@/components/home/Carrossel";
+import { EmpresasParceiras } from "@/components/home/EmpresasParceiras";
 import { ServicosDaAmi } from "@/components/home/ServicosDaAmi";
 import { BANNERS_PROVISORIOS } from "@/lib/molduras";
 import type { Banner, ResumoNoticia } from "@/lib/sanity/tipos";
@@ -168,5 +169,29 @@ describe("as três notícias provisórias", () => {
   it("sem provisorias e sem notícia, o bloco não existe — o padrão de antes", async () => {
     expect(await noticias([], false)).toBe("");
     expect(await noticias([])).toBe("");
+  });
+});
+
+describe("a faixa de empresas parceiras", () => {
+  const saida = html(createElement(EmpresasParceiras));
+
+  it("tem o título aprovado e seis espaços de logotipo", () => {
+    expect(saida).toContain(">Empresas parceiras da AMI</h2>");
+    expect(vezes(saida, ">Logotipo a entrar</p>")).toBe(6);
+    expect(vezes(saida, 'role="img"')).toBe(6);
+  });
+
+  it("não escreve nome de empresa nenhuma", () => {
+    /* Todo texto visível da faixa, tirado o HTML: só pode sobrar o título e
+       as seis legendas. Qualquer outra palavra é um nome que alguém pôs. */
+    const visivel = saida
+      .replace(/<[^>]+>/g, "\n")
+      .split("\n")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    expect(visivel).toEqual([
+      "Empresas parceiras da AMI",
+      ...Array<string>(6).fill("Logotipo a entrar"),
+    ]);
   });
 });
