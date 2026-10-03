@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desenho · Encontre um médico · AMI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..700&family=Plus+Jakarta+Sans:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<style>
+  :root{
+    --chao:#EEF1EF; --painel:#FFFFFF; --painel-2:#F6F7F8; --linha:#E5E7EB;
+    --tinta:#0c0e12; --tinta-2:#4F5661; --tinta-3:#646B75;
+    --v900:#071A07; --v800:#0D2E0C; --v700:#124211; --v600:#1A5E18;
+    --lima:#A8D470; --lima-100:#E2E9CC;
+    --raio:22px; --raio-p:12px; --m:48px; --gap:24px;
+    --sombra:0 1px 2px rgba(16,24,40,.04),0 12px 32px rgba(16,24,40,.06);
+    --f-texto:"Plus Jakarta Sans",system-ui,sans-serif;
+    --f-titulo:"Bricolage Grotesque",system-ui,sans-serif; --t-peso:500; --t-esp:-.035em;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--chao);color:var(--tinta);font:400 16px/1.65 var(--f-texto);-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  img{display:block;max-width:100%}
+  .num{font-variant-numeric:tabular-nums}
+  .caixa{max-width:1240px;margin:0 auto;padding:0 24px}
+  .painel{background:var(--painel);border-radius:var(--raio);box-shadow:var(--sombra)}
+  .secao{margin-top:var(--gap)}
+  h1,h2,h3,.h1,.titulo{font-family:var(--f-titulo);font-weight:var(--t-peso);color:var(--v800);letter-spacing:var(--t-esp);margin:0;font-optical-sizing:auto}
+  h2{font-size:clamp(30px,3.2vw,42px);line-height:1.08;max-width:19ch}
+  .cab-secao h2{max-width:none}
+  h1,h2,h3,.h1{text-wrap:balance}
+  p{text-wrap:pretty;margin:0}
+  .sobre + h2,.sobre + .h1,.sobre + h1{margin-top:14px}
+  h2 + p,.h1 + p{margin-top:16px}
+  .acao{margin-top:28px}
+  .sobre{display:block;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--v600)}
+  .texto{color:var(--tinta-2)}
+  .botao{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:48px;background:linear-gradient(180deg,#2B8229 0%,#1F6B1D 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 1px 2px rgba(16,24,40,.22);color:#fff;font:600 14.5px/1 var(--f-texto);padding:0 26px;border:0;border-radius:999px;cursor:pointer;white-space:nowrap;transition:background .25s,transform .25s,box-shadow .25s}
+  .botao:hover{background:linear-gradient(180deg,#22751F 0%,#1A5E18 100%);transform:translateY(-1px)}
+  .botao i{font-size:18px}
+  .botao-linha{display:inline-flex;align-items:center;gap:8px;height:38px;border:1px solid var(--linha);background:#fff;color:var(--v800);font:600 13px/1 var(--f-texto);padding:0 18px;border-radius:999px;transition:border-color .25s,box-shadow .25s,transform .25s}
+  .botao-linha:hover{border-color:#C4C9D1;box-shadow:0 6px 16px rgba(12,14,18,.08);transform:translateY(-1px)}
+
+  .aviso{background:var(--v900);color:var(--lima);font-size:12.5px;text-align:center;padding:8px 16px}
+
+  /* cabeçalho único, fino */
+  .cabeca{display:flex;align-items:center;justify-content:space-between;gap:var(--gap);padding:10px 12px 10px var(--m);margin-top:0;position:relative;z-index:40;transition:background .35s,box-shadow .35s,backdrop-filter .35s}
+  .cabeca.rolou{background:rgba(255,255,255,.82);-webkit-backdrop-filter:saturate(1.5) blur(16px);backdrop-filter:saturate(1.5) blur(16px);box-shadow:0 10px 34px rgba(16,24,40,.12)}
+  .cabeca .logo img{height:40px;width:auto}
+  .menu{display:flex;gap:28px;font-size:14.5px;font-weight:500;color:var(--tinta)}
+  .menu a{position:relative;padding:6px 0;transition:color .2s}
+  .menu a:hover{color:var(--tinta)}
+  .menu a.ativo{color:var(--tinta)}
+  .menu a::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1.5px;background:var(--v800);border-radius:2px;transform:scaleX(0);transform-origin:left;transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+  .menu a:hover::after,.menu a.ativo::after{transform:scaleX(1)}
+  .seja{display:inline-flex;align-items:center;height:40px;background:linear-gradient(180deg,#2B8229 0%,#1F6B1D 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 1px 2px rgba(16,24,40,.22);color:#fff;font:600 13.5px/1 var(--f-texto);padding:0 20px;border-radius:999px;white-space:nowrap}
+  .seja:hover{background:linear-gradient(180deg,#22751F 0%,#1A5E18 100%)}
+
+  /* carrossel */
+  .carrossel{position:relative;overflow:hidden}
+  .slides{display:flex;transition:transform .95s cubic-bezier(.7,0,.2,1)}
+  .slide{min-width:100%;display:grid;grid-template-columns:1fr 1.05fr;gap:var(--m);align-items:center;padding:24px 24px 76px var(--m)}
+  .slide .h1{font-size:clamp(36px,4.4vw,58px);line-height:1.02;max-width:16ch}
+  .slide p{font-size:17.5px;color:var(--tinta-2);max-width:30em}
+  .slide .foto{aspect-ratio:4/3;border-radius:18px;overflow:hidden}
+  .slide .foto img{width:100%;height:100%;object-fit:cover}
+  .controles{position:absolute;z-index:6;left:var(--m);bottom:22px;display:flex;align-items:center;gap:2px;transition:left .7s cubic-bezier(.7,0,.2,1)}
+  .ctl,.bolinha,.bolinha.ativa::after{transition:color .4s,background .4s,opacity .3s,width .3s}
+  .carrossel.escuro .ctl{color:#fff;opacity:.6}
+  .carrossel.escuro .ctl:hover{opacity:1;color:#fff}
+  .carrossel.escuro .bolinha{background:rgba(255,255,255,.28)}
+  .carrossel.escuro .bolinha.ativa::after{background:rgba(255,255,255,.9)}
+  .bolinhas{display:flex;gap:6px;margin:0 10px 0 0}
+  .bolinha{width:6px;height:6px;border-radius:99px;background:rgba(12,14,18,.14);border:0;padding:0;cursor:pointer;transition:all .3s}
+  .bolinha{position:relative;overflow:hidden}
+  .bolinha.ativa{width:30px}
+  .bolinha.ativa::after{content:"";position:absolute;inset:0;background:rgba(12,14,18,.55);border-radius:inherit;transform-origin:left;animation:progresso 6s linear forwards}
+  .carrossel.parado .bolinha.ativa::after{animation-play-state:paused}
+  @keyframes progresso{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  .ctl{width:28px;height:28px;border:0;background:none;display:grid;place-items:center;cursor:pointer;color:var(--tinta-3);opacity:.6;border-radius:99px;font-size:16px;transition:opacity .2s,background .2s}
+  .ctl:hover{opacity:1;color:var(--tinta)}
+
+  /* números */
+  .numeros{display:grid;grid-template-columns:repeat(4,1fr)}
+  .numero{display:flex;flex-direction:column;align-items:flex-start;padding:40px 32px;border-left:1px solid var(--linha)}
+  .numero:first-child{padding-left:var(--m)}
+  .numero:last-child{padding-right:var(--m)}
+  .numero .botao-linha{margin-top:auto}
+  .numero:first-child{border-left:0}
+  .icone{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(150deg,#F3F4F6 0%,#FAFAFB 100%);box-shadow:inset 0 0 0 1px rgba(16,24,40,.07)}
+  .icone i{font-size:28px;color:var(--v600)}
+  .numero .grande{font-family:var(--f-titulo);font-weight:var(--t-peso);letter-spacing:var(--t-esp);font-size:48px;line-height:1;color:var(--v800);margin:24px 0 8px}
+  .numero .rot{font-weight:700;color:var(--v800);font-size:14.5px}
+  .numero p{font-size:14px;color:var(--tinta-2);margin:8px 0 24px;line-height:1.55;max-width:24em}
+
+  /* encontre um médico: verde com granulado */
+  .encontre{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:1fr 1.25fr;gap:var(--m);align-items:center;padding:var(--m);border-radius:var(--raio);box-shadow:var(--sombra);color:#fff;
+    background:
+      radial-gradient(60% 90% at 88% 0%, rgba(168,212,112,.20) 0%, rgba(168,212,112,0) 60%),
+      radial-gradient(70% 120% at 0% 100%, rgba(36,131,34,.35) 0%, rgba(36,131,34,0) 55%),
+      linear-gradient(160deg,#123F11 0%,#0D2E0C 45%,#071A07 100%);}
+  .encontre::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.22;mix-blend-mode:overlay;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+  .encontre::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+  .encontre > div,.slide > div,.duplo > div,.noticias > *{min-width:0}
+  .encontre h2{color:#fff}
+  .encontre .sobre{color:var(--lima)}
+  .encontre .texto{color:#cfd8c9;max-width:26em}
+  .campo{display:flex;align-items:center;background:#fff;border-radius:999px;padding:6px 6px 6px 18px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .campo > i{font-size:20px;color:var(--tinta-3)}
+  .campo input{flex:1;border:0;outline:0;font:400 16px var(--f-texto);padding:12px 12px;color:var(--tinta);min-width:0}
+  .campo .botao{flex:none}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+  .chip{display:inline-flex;align-items:center;gap:8px;height:38px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);color:#eef3e8;font:600 13px/1 var(--f-texto);padding:0 16px;border-radius:999px;transition:background .25s,border-color .25s,transform .25s}
+  .chip:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.34)}
+  .chip .num{font-size:12px;color:rgba(255,255,255,.55);font-weight:600}
+  .rodape-busca{margin-top:20px;font-size:14px;color:#cfd8c9}
+  .rodape-busca a{color:var(--lima);text-decoration:underline;text-underline-offset:3px}
+
+  /* blocos foto + texto */
+  .duplo{display:grid;grid-template-columns:1fr 1fr;gap:var(--m);align-items:center;padding:var(--gap)}
+  .duplo .foto{aspect-ratio:16/11;border-radius:16px;overflow:hidden}
+  .duplo .foto img{width:100%;height:100%;object-fit:cover}
+  .duplo .corpo{padding:var(--gap) var(--m) var(--gap) 0}
+  .duplo .corpo.esq{padding:var(--gap) 0 var(--gap) calc(var(--m) - var(--gap))}
+  .duplo p{max-width:30em}
+  .sobre-linha{display:flex;align-items:center;gap:10px}
+  .sobre-linha + h2{margin-top:14px}
+  .etiqueta{display:inline-block;background:#F3F4F6;color:var(--tinta-2);font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;}
+
+  /* quem somos */
+  .quem{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:14px;margin:0 var(--m);padding:var(--m) 0;border-top:1px solid var(--linha);align-items:stretch}
+  .quem-intro{padding:4px 24px 0 0}
+  .quem-intro h3{font-family:var(--f-titulo);font-weight:var(--t-peso);letter-spacing:var(--t-esp);font-size:32px;line-height:1.05;color:var(--v800);margin:14px 0 14px}
+  .quem-intro p{font-size:15px;color:var(--tinta-2);margin:0;line-height:1.6;max-width:26em}
+  .cartao{position:relative;overflow:hidden;background:#FFFFFF;border:1px solid var(--linha);border-radius:18px;padding:24px 24px 26px;transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s,border-color .35s}
+  .cartao:hover{transform:translateY(-3px);border-color:#D1D5DB;box-shadow:0 14px 30px rgba(12,14,18,.07)}
+  .cartao .ordem{position:absolute;top:18px;right:20px;font-family:var(--f-titulo);font-weight:500;font-size:13px;letter-spacing:.04em;color:#B4BBB7}
+  .cartao h3{font-family:var(--f-texto);font-size:16px;font-weight:700;letter-spacing:0;color:var(--v800);margin:20px 0 6px}
+  .cartao p{font-size:14px;color:var(--tinta-2);margin:0;line-height:1.55}
+  .cartao .icone{width:44px;height:44px;border-radius:14px}
+  .cartao .icone i{font-size:23px}
+  .falta{color:var(--tinta-3)!important;font-style:italic}
+
+  /* notícias */
+  .cab-secao{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--gap);padding:var(--m) var(--m) 32px}
+  .cab-secao p{max-width:34em}
+  .noticias{display:grid;grid-template-columns:1.25fr 1fr;gap:var(--m);padding:0 var(--m) var(--m)}
+  .destaque{position:relative;border-radius:16px;overflow:hidden;align-self:start}
+  .destaque .foto{aspect-ratio:16/10;overflow:hidden}
+  .destaque .sobre-foto{position:absolute;left:0;right:0;bottom:0;padding:72px 28px 26px;background:linear-gradient(0deg,rgba(8,14,10,.88) 0%,rgba(8,14,10,.62) 45%,rgba(8,14,10,0) 100%);color:#fff}
+  .destaque .sobre-foto .data{color:rgba(255,255,255,.72)}
+  .destaque .sobre-foto h3{color:#fff}
+  .destaque .sobre-foto p{color:rgba(255,255,255,.82);max-width:36em;margin:0}
+  .destaque .foto img{width:100%;height:100%;object-fit:cover}
+  .data{font-size:11.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--tinta-3)}
+  .destaque h3{font-size:26px;line-height:1.18;margin:10px 0 12px;max-width:30ch}
+  /*
+    A coluna da direita tem exatamente a altura da foto de destaque. As colunas
+    são 1,25fr e 1fr, então a da direita mede 0,8 da largura da esquerda; a foto
+    é 16:10, então a altura dela é 0,625 da largura da esquerda. 0,8 / 0,625 =
+    1,28 = 32/25. Com "space-between", a primeira miniatura encosta no topo, a
+    última na base, e cada divisória fica no meio exato entre duas notícias.
+  */
+  .lista{display:flex;flex-direction:column;justify-content:space-between;aspect-ratio:32/25}
+  .lista .sep{height:1px;background:var(--linha);flex:none}
+  .item{display:grid;grid-template-columns:128px 1fr;gap:20px;align-items:center}
+  .item .foto{aspect-ratio:4/3;border-radius:10px;overflow:hidden}
+  .item .foto img{width:100%;height:100%;object-fit:cover}
+  .item h3{font-size:18.5px;line-height:1.22;margin-top:6px}
+
+  /* bairros */
+  .bairros{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:0 var(--m) var(--m)}
+  .bairro{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--linha);border-radius:var(--raio-p);padding:16px 18px;transition:border-color .2s,background .2s}
+  .bairro:hover{border-color:#D1D5DB}
+  .bairro b{font-weight:600;color:var(--v800)}
+  .bairro span{font-size:13px;color:var(--tinta-3)}
+
+  /* parceiros */
+  .parceiros{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;padding:0 var(--m) var(--m)}
+  .logo-vazio{aspect-ratio:3/2;border:1px dashed #D1D5DB;border-radius:var(--raio-p);display:grid;place-items:center;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--tinta-3);text-align:center;padding:8px}
+
+  /* rodapé */
+  footer{position:relative;isolation:isolate;overflow:hidden;margin-top:var(--m);color:#cfd8c9;padding:64px 0 28px;font-size:14px;
+    background:
+      radial-gradient(45% 90% at 90% 0%, rgba(168,212,112,.16) 0%, rgba(168,212,112,0) 60%),
+      radial-gradient(55% 120% at 0% 100%, rgba(36,131,34,.30) 0%, rgba(36,131,34,0) 55%),
+      linear-gradient(160deg,#123F11 0%,#0D2E0C 40%,#071A07 100%)}
+  footer::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.22;mix-blend-mode:overlay;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+  footer .brilho{top:-260px;right:6%}
+  .rod{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px}
+  .rod h4{color:#fff;font-weight:700;font-size:14px;margin:0 0 14px}
+  .rod a{display:block;padding:3px 0}
+  .rod a{transition:color .25s}
+  .rod a:hover{color:#fff}
+  .lema{font-family:var(--f-titulo);font-weight:var(--t-peso);letter-spacing:var(--t-esp);font-size:26px;color:#fff;line-height:1.15;max-width:12em;margin:-4px 0 14px}
+  .base{border-top:1px solid rgba(255,255,255,.1);margin-top:40px;padding-top:20px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px;color:#93a38e}
+
+
+  @media (max-width:980px){
+    :root{--m:28px;--gap:16px}
+    .slide{padding:16px 16px 70px}
+    .slide > div:first-child{padding:0 calc(var(--m) - 16px)}
+    .duplo .corpo,.duplo .corpo.esq{padding:8px calc(var(--m) - var(--gap)) 16px}
+    .numero,.numero:first-child,.numero:last-child{padding:32px var(--m)}
+    .menu{display:none}
+    .slide,.encontre,.duplo{grid-template-columns:1fr}
+    .slide{gap:22px}
+    .slide .foto{order:-1}
+    .controles{left:var(--m);bottom:16px}
+    .encontre{gap:24px}
+    .numeros{grid-template-columns:1fr 1fr}
+    .numero:nth-child(3){border-left:0}
+    .numero:nth-child(n+3){border-top:1px solid var(--linha)}
+    .quem{grid-template-columns:repeat(3,1fr)}
+    .quem-intro{grid-column:1/-1;padding:0 0 10px}
+    .noticias{grid-template-columns:1fr;gap:28px}
+    .lista{aspect-ratio:auto;gap:18px}
+    .cab-secao{padding:var(--m) var(--m) 24px;flex-direction:column;align-items:flex-start}
+    .bairros{grid-template-columns:1fr 1fr}
+    .parceiros{grid-template-columns:repeat(3,1fr)}
+    .rod{grid-template-columns:1fr 1fr}
+    }
+  @media (max-width:560px){
+    .cabeca .logo img{height:34px}
+    .numeros{grid-template-columns:1fr}
+    .numero{border-left:0!important;border-top:1px solid var(--linha)}
+    .numero:first-child{border-top:0}
+    .quem{grid-template-columns:1fr}
+    .item{grid-template-columns:90px 1fr}
+    .lista{aspect-ratio:auto;gap:18px}
+    .rod{grid-template-columns:1fr}
+    .campo button{padding:13px 18px}
+    .bairro{flex-direction:column;align-items:flex-start;gap:2px;min-width:0}
+  }
+
+  /* ===== slides de arte pronta ===== */
+  .slide.arte{display:block;padding:0;position:relative}
+  .arte-link{position:absolute;inset:0;display:block;color:inherit}
+  .arte-a,.arte-b{position:absolute;inset:0;overflow:hidden;isolation:isolate}
+  .arte-a{background:#0D2E0C}
+  .arte-a .arte-foto{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:75% 35%}
+  .arte-vel{position:absolute;inset:0;background:linear-gradient(90deg,rgba(7,26,7,.96) 0%,rgba(7,26,7,.86) 36%,rgba(7,26,7,.25) 70%,rgba(7,26,7,0) 100%)}
+  .arte-grao{position:absolute;inset:0;opacity:.22;mix-blend-mode:overlay;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+  .arte-anel{position:absolute;left:56%;top:-170px;width:380px;height:380px;border-radius:50%;border:1.5px solid rgba(168,212,112,.35)}
+  .arte-ponto{position:absolute;left:calc(56% + 330px);top:118px;width:22px;height:22px;border-radius:50%;background:var(--lima);box-shadow:0 0 0 10px rgba(168,212,112,.15)}
+  .arte-conteudo{position:absolute;z-index:2;left:var(--m);top:calc(50% - 30px);transform:translateY(-50%);max-width:560px;color:#fff}
+  .arte-selo{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--lima);border:1px solid rgba(168,212,112,.45);padding:7px 14px;border-radius:999px}
+  .arte-titulo{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:600;font-size:clamp(34px,4.7vw,66px);line-height:.98;letter-spacing:-.045em;margin:22px 0 16px;text-wrap:balance}
+  .arte-titulo em{font-style:normal;color:var(--lima)}
+  .arte-sub{font-size:17.5px;line-height:1.55;color:#dbe5d4;max-width:30em;text-wrap:pretty}
+  .arte-cta{white-space:nowrap;height:48px;line-height:1;display:inline-flex;align-items:center;gap:10px;margin-top:28px;background:var(--lima);color:var(--v900);font-weight:700;font-size:14.5px;padding:0 26px;border-radius:999px;transition:transform .3s}
+  .arte-link:hover .arte-cta{transform:translateY(-2px)}
+  .arte-b{background:radial-gradient(80% 120% at 0% 0%,#D9EDBA 0%,rgba(217,237,186,0) 60%),linear-gradient(120deg,#C3E192 0%,#A8D470 55%,#8FC457 100%)}
+  .arte-b .arte-grao{opacity:.35;mix-blend-mode:soft-light}
+  .arte-aneis{position:absolute;right:8%;top:50%;width:640px;height:640px;transform:translate(20%,-50%);border-radius:50%;border:1.5px solid rgba(13,46,12,.16);box-shadow:0 0 0 70px rgba(255,255,255,.08),0 0 0 71.5px rgba(13,46,12,.10)}
+  .arte-recorte{position:absolute;right:var(--m);top:28px;bottom:28px;width:44%;border-radius:999px 28px 28px 999px;overflow:hidden;box-shadow:0 30px 60px rgba(13,46,12,.25)}
+  .arte-recorte img{width:100%;height:100%;object-fit:cover}
+  .arte-b .arte-conteudo{color:var(--v900);max-width:44%}
+  .arte-b .arte-titulo{color:var(--v900);font-weight:700;font-size:clamp(38px,5.4vw,76px)}
+  .arte-b .arte-sub{color:#25451f}
+  .arte-b .arte-cta{background:linear-gradient(180deg,#2B8229 0%,#1F6B1D 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.16);color:#fff}
+  .arte-selo.escuro{color:var(--v800);border-color:rgba(13,46,12,.3)}
+  .arte-rotulo{position:absolute;z-index:7;top:14px;right:14px;font-size:11px;font-weight:600;letter-spacing:.06em;color:#fff;background:rgba(0,0,0,.45);padding:5px 10px;border-radius:999px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+
+  /* ===== movimento ===== */
+  .ease{transition-timing-function:cubic-bezier(.2,.7,.2,1)}
+  /* entrada do conteúdo de cada slide */
+  .slide .anima > *, .slide .arte-conteudo > *{opacity:0;transform:translateY(22px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+  .slide.ativo .anima > *, .slide.ativo .arte-conteudo > *{opacity:1;transform:none}
+  .slide.ativo .anima > :nth-child(1), .slide.ativo .arte-conteudo > :nth-child(1){transition-delay:.15s}
+  .slide.ativo .anima > :nth-child(2), .slide.ativo .arte-conteudo > :nth-child(2){transition-delay:.25s}
+  .slide.ativo .anima > :nth-child(3), .slide.ativo .arte-conteudo > :nth-child(3){transition-delay:.35s}
+  .slide.ativo .anima > :nth-child(4), .slide.ativo .arte-conteudo > :nth-child(4){transition-delay:.45s}
+  .arte-conteudo{transform:translateY(-50%)}
+  /* zoom lento nas fotos do carrossel */
+  .slide .foto img,.slide .arte-foto{transform:scale(1.1);transition:transform 7s cubic-bezier(.2,.7,.2,1)}
+  .slide.ativo .foto img,.slide.ativo .arte-foto{transform:scale(1)}
+  .slide .arte-anel,.slide .arte-ponto,.slide .arte-aneis{opacity:0;transition:opacity 1.2s .3s,transform 1.6s cubic-bezier(.2,.7,.2,1) .3s}
+  .slide .arte-anel{transform:scale(.8)}
+  .slide.ativo .arte-anel,.slide.ativo .arte-ponto,.slide.ativo .arte-aneis{opacity:1}
+  .slide.ativo .arte-anel{transform:none}
+
+  /* blocos que surgem ao rolar */
+  .rv{opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+  .rv.visivel{opacity:1;transform:none}
+
+  /* respostas ao mouse */
+  .botao i,.botao-linha i,.arte-cta i{transition:transform .3s cubic-bezier(.2,.7,.2,1)}
+  .botao:hover i,.botao-linha:hover i,.arte-link:hover .arte-cta i{transform:translateX(4px)}
+  .duplo .foto img,.destaque .foto img,.item .foto img{transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
+  .duplo:hover .foto img,.destaque:hover .foto img,.item:hover .foto img{transform:scale(1.05)}
+  .destaque h3,.item h3{transition:color .25s}
+  .item:hover h3{color:var(--v800)}
+  .numero .icone{transition:transform .5s cubic-bezier(.3,1.6,.5,1),box-shadow .3s}
+  .numero:hover .icone{transform:translateY(-3px) rotate(-6deg);box-shadow:inset 0 0 0 1px rgba(12,14,18,.06),0 8px 18px rgba(12,14,18,.08)}
+  .bairro{transition:border-color .25s,background .25s,transform .25s,box-shadow .25s}
+  .bairro:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(16,24,40,.07)}
+  .chip{transition:background .2s,border-color .2s,transform .2s}
+  .chip:hover{transform:translateY(-1px)}
+  .logo-vazio{transition:border-color .25s,background .25s}
+  .logo-vazio:hover{border-color:#C4C9D1}
+  .seja,.botao{transition:background .2s,transform .2s,box-shadow .2s}
+  .seja:hover,.botao:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 24px rgba(16,24,40,.22)}
+
+  /* luz que deriva devagar no verde */
+  .brilho{position:absolute;z-index:-1;top:-220px;right:-140px;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(168,212,112,.24) 0%,rgba(168,212,112,0) 65%);animation:deriva 18s ease-in-out infinite alternate;pointer-events:none}
+  @keyframes deriva{to{transform:translate(-300px,150px) scale(1.2)}}
+
+  @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    .rv,.slide .anima > *,.slide .arte-conteudo > *{opacity:1!important;transform:none!important}
+    .arte-conteudo{transform:translateY(-50%)!important}
+  }
+  @media (max-width:980px){
+    .arte-conteudo,.arte-b .arte-conteudo{left:var(--m);right:var(--m);top:auto;bottom:74px;max-width:none}
+    .arte-conteudo,.slide.ativo .arte-conteudo{transform:none}
+    .arte-vel{background:linear-gradient(0deg,rgba(7,26,7,.96) 0%,rgba(7,26,7,.8) 45%,rgba(7,26,7,.1) 85%)}
+    .arte-recorte{left:var(--m);right:var(--m);width:auto;top:20px;bottom:auto;height:36%;border-radius:22px}
+    .arte-aneis{display:none}
+    .arte-sub{font-size:15.5px}
+  }
+
+  /* ===== ritmo: caixa, aberta, faixa verde, foto, faixa branca ===== */
+  :root{--ritmo:72px;--borda-faixa:max(calc(24px + var(--m)), calc((100% - 1240px) / 2 + 24px + var(--m)))}
+  .secao.aberta,.vitrine.secao,.faixa-branca.secao,.encontre.secao{margin-top:var(--ritmo)}
+  .numeros.secao.aberta{margin-top:var(--ritmo)}
+  .faixa-branca + .caixa > .secao:first-child,.encontre + .caixa > .secao:first-child{margin-top:var(--ritmo)}
+
+  /* aberta: sem fundo nem sombra; o texto continua na mesma coluna das caixas */
+  .aberta{background:none;box-shadow:none;border-radius:0}
+  .numeros.aberta .numero{border-left-color:#D9DDE3}
+  .numeros.aberta .icone{background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.05),inset 0 0 0 1px rgba(16,24,40,.06)}
+  .aberta .cab-secao{padding-top:0}
+  .aberta .noticias{padding-bottom:0}
+
+  /* faixa verde de ponta a ponta */
+  .encontre.secao{border-radius:0;box-shadow:none;padding:96px var(--borda-faixa)}
+
+  /* foto grande com cartão de vidro */
+  .vitrine{position:relative;isolation:isolate;overflow:hidden;border-radius:var(--raio);min-height:560px;display:flex;align-items:flex-end;padding:var(--m)}
+  .vitrine > img{position:absolute;inset:0;z-index:-2;width:100%;height:100%;object-fit:cover;transform:scale(1.04);transition:transform 1.6s cubic-bezier(.2,.7,.2,1)}
+  .vitrine:hover > img{transform:scale(1)}
+  .vitrine::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(20deg,rgba(8,14,10,.45) 0%,rgba(8,14,10,0) 55%)}
+  .vitrine-cartao{background:rgba(255,255,255,.9);-webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3);border-radius:20px;padding:36px 40px 40px;max-width:500px;box-shadow:0 24px 60px rgba(16,24,40,.22)}
+  .vitrine-cartao p{max-width:30em}
+
+  /* faixa branca de ponta a ponta */
+  .faixa-branca{background:#fff;padding:96px var(--borda-faixa)}
+  .faixa-int{max-width:none}
+  .faixa-branca .duplo{padding:0}
+  .faixa-branca .duplo .corpo,.faixa-branca .duplo .corpo.esq{padding:0 24px 0 0}
+  .faixa-branca .quem{margin:64px 0 0;padding:64px 0 0}
+  .faixa-branca .cab-secao{padding:0 0 32px}
+  .faixa-branca .bairros,.faixa-branca .parceiros{padding:0}
+  .separa{height:1px;background:var(--linha);margin:72px 0}
+  .faixa-branca + footer,.faixa-branca + .barra-acao + footer{margin-top:0}
+  footer > .caixa{max-width:none;padding:0 var(--borda-faixa)}
+
+  @media (max-width:980px){
+    :root{--ritmo:56px}
+    .encontre.secao,.faixa-branca{padding-top:64px;padding-bottom:64px}
+    .vitrine{min-height:520px;padding:16px}
+    .vitrine-cartao{padding:28px 24px 30px;max-width:none}
+    .faixa-branca .duplo .corpo,.faixa-branca .duplo .corpo.esq{padding:0}
+    .faixa-branca .quem{margin-top:40px;padding-top:40px}
+    .separa{margin:48px 0}
+    .numeros.aberta .numero{border-left:0;border-top:1px solid #D9DDE3}
+    .numeros.aberta .numero:nth-child(-n+2){border-top:0}
+  }
+  @media (max-width:560px){
+    .numeros.aberta .numero:nth-child(2){border-top:1px solid #D9DDE3}
+  }
+
+  /* ===== v11: ajuste fino ===== */
+  /* foco de teclado sempre visível, no tom do fundo */
+  :where(a,button):focus-visible{outline:2px solid var(--v600);outline-offset:3px}
+  .encontre :where(a,button):focus-visible,footer :where(a,button):focus-visible,.carrossel.escuro :where(a,button):focus-visible{outline-color:var(--lima)}
+  .arte-link:focus-visible{outline-offset:-6px;border-radius:var(--raio)}
+  .campo input:focus{outline:none}
+  .campo:focus-within{box-shadow:0 0 0 3px rgba(168,212,112,.65),0 10px 30px rgba(0,0,0,.25)}
+  .pular{position:absolute;left:16px;top:-64px;z-index:100;background:var(--v800);color:#fff;padding:12px 18px;border-radius:999px;font-weight:600;transition:top .2s}
+  .pular:focus{top:12px}
+  .so-leitor{position:absolute!important;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  [id]{scroll-margin-top:100px}
+  .cartao .ordem{color:#9AA1AA}
+
+  /* bolinhas e setas: desenho igual, área de toque maior */
+  .bolinhas{gap:0;margin-right:4px}
+  .bolinha,.bolinha.ativa{width:auto;height:24px;padding:0 9px;background:none!important;display:grid;place-items:center;overflow:visible}
+  .bolinha.ativa::after{content:none}
+  .bolinha > span{display:block;position:relative;width:6px;height:6px;border-radius:99px;background:rgba(12,14,18,.14);transition:width .3s,background .4s}
+  .bolinha.ativa > span{width:30px}
+  .bolinha.ativa > span::after{content:"";position:absolute;inset:0;border-radius:inherit;background:rgba(12,14,18,.55);transform-origin:left;animation:progresso 6s linear forwards}
+  .carrossel.parado .bolinha.ativa > span::after{animation-play-state:paused}
+  .carrossel.escuro .bolinha > span{background:rgba(255,255,255,.28)}
+  .carrossel.escuro .bolinha.ativa > span::after{background:rgba(255,255,255,.9)}
+  .ctl{width:36px;height:36px}
+
+  /* menu: nunca quebra linha; abaixo de 1180px vira gaveta */
+  .menu a{white-space:nowrap}
+  .abre-menu,.gaveta{display:none}
+  @media (max-width:1320px){.menu{gap:22px;font-size:14px}}
+  @media (max-width:1180px){
+    .menu{display:none}
+    .cabeca .seja{margin-left:auto}
+    .abre-menu{display:grid;place-items:center;width:40px;height:40px;border-radius:999px;border:1px solid var(--linha);background:#fff;color:var(--tinta);font-size:20px;cursor:pointer}
+    .gaveta{display:grid;position:absolute;left:0;right:0;top:calc(100% + 8px);background:#fff;border-radius:var(--raio);box-shadow:0 24px 60px rgba(16,24,40,.18);padding:10px;opacity:0;transform:translateY(-8px);visibility:hidden;transition:opacity .25s,transform .25s,visibility .25s}
+    .cabeca.aberta .gaveta{opacity:1;transform:none;visibility:visible}
+    .gaveta a{padding:14px 16px;border-radius:12px;font-weight:500;color:var(--tinta)}
+    .gaveta a:hover{background:var(--painel-2)}
+    /* notícias: destaque em cima, as outras três lado a lado */
+    .noticias{grid-template-columns:1fr;gap:28px}
+    .lista{aspect-ratio:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+    .lista .sep{display:none}
+    .item{grid-template-columns:1fr;align-items:start;gap:14px}
+    .item .foto{aspect-ratio:16/10}
+    /* busca: texto em cima, campo na largura toda */
+    .encontre{grid-template-columns:1fr;gap:28px}
+    .encontre .texto{max-width:40em}
+    /* bairros: o número de médicos embaixo do nome */
+    .bairro{flex-direction:column;align-items:flex-start;gap:2px;min-width:0}
+  }
+  /* tablet: carrossel continua em duas colunas, sem virar uma tela inteira */
+  @media (min-width:701px) and (max-width:980px){
+    .slide{grid-template-columns:1fr 1fr;gap:28px;padding:20px 20px 70px var(--m)}
+    .slide > div:first-child{padding:0}
+    .slide .foto{order:0;aspect-ratio:4/5}
+    .slide .h1{font-size:36px}
+    .arte-conteudo,.arte-b .arte-conteudo{left:var(--m);right:auto;top:calc(50% - 30px);bottom:auto;max-width:52%}
+    .arte-conteudo,.slide.ativo .arte-conteudo{transform:translateY(-50%)}
+    .arte-vel{background:linear-gradient(90deg,rgba(7,26,7,.96) 0%,rgba(7,26,7,.86) 45%,rgba(7,26,7,.2) 80%,rgba(7,26,7,0) 100%)}
+    .arte-recorte{left:auto;right:var(--m);width:38%;top:24px;bottom:24px;height:auto;border-radius:999px 24px 24px 999px}
+    .arte-titulo{font-size:38px}
+    .arte-b .arte-titulo{font-size:44px}
+  }
+  @media (max-width:700px){
+    .slide,.encontre,.duplo{grid-template-columns:1fr}
+    .slide .foto{aspect-ratio:16/10}
+  }
+  @media (max-width:560px){
+    .lista{grid-template-columns:1fr;gap:18px}
+    .item{grid-template-columns:104px 1fr;align-items:center}
+    .item .foto{aspect-ratio:4/3}
+  }
+
+  /* ===== v12: celular pensado como celular ===== */
+  .barra-acao{display:none}
+  @media (max-width:700px){
+    :root{--m:20px;--gap:12px;--ritmo:32px;--borda-faixa:calc(12px + var(--m))}
+    body{font-size:15.5px}
+    .caixa{padding:0 12px}
+    h2{font-size:28px;line-height:1.1}
+    .cab-secao{padding:0 var(--m) 20px!important;gap:14px}
+    .faixa-branca .cab-secao{padding:0 0 20px!important}
+
+    /* cabeçalho compacto */
+    .cabeca{padding:8px 8px 8px 16px}
+    .cabeca .logo img{height:32px}
+    .cabeca .seja{height:36px;padding:0 14px;font-size:13px}
+    .abre-menu{width:36px;height:36px;font-size:18px}
+
+    /* carrossel: cartão vertical, texto sobre a foto */
+    .carrossel{border-radius:20px}
+    .slide{display:block;position:relative;padding:0!important;aspect-ratio:4/5}
+    .slide .foto{position:absolute;inset:0;border-radius:0;aspect-ratio:auto!important;order:0}
+    .carrossel .slide > .anima{position:absolute;left:0;right:0;bottom:0;padding:110px var(--m) 66px;background:linear-gradient(0deg,rgba(7,18,10,.95) 0%,rgba(7,18,10,.8) 45%,rgba(7,18,10,0) 100%)}
+    .carrossel .slide > .anima{z-index:2}   /* a foto vem depois no código e cobria o texto */
+    .carrossel .anima .sobre{color:var(--lima)}
+    .carrossel .anima .h1{color:#fff;font-size:30px;line-height:1.04;max-width:none}
+    .carrossel .anima p{color:rgba(255,255,255,.86);font-size:15px;line-height:1.5;margin-top:10px}
+    .carrossel .anima .acao{margin-top:18px}
+    .arte-conteudo,.arte-b .arte-conteudo{left:var(--m);right:var(--m);bottom:66px}
+    .arte-titulo{font-size:32px;margin:14px 0 10px}
+    .arte-b .arte-titulo{font-size:38px}
+    .arte-sub{font-size:14.5px}
+    .arte-cta{margin-top:18px;height:46px;padding:0 22px}
+    .arte-b .arte-recorte{inset:0;width:auto;height:auto;border-radius:0;box-shadow:none}
+    .arte-b .arte-recorte::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#A8D470 0%,rgba(168,212,112,.96) 38%,rgba(168,212,112,0) 64%)}
+    .arte-anel,.arte-ponto{display:none}
+    .arte-selo{display:none}
+    .arte-titulo{margin-top:0}
+    .arte-b .arte-recorte img{object-position:50% 20%}
+    .controles{bottom:12px;gap:0}
+    .controles #ant,.controles #prox{display:none}   /* no celular troca-se deslizando o dedo */
+    .bolinha,.bolinha.ativa{padding:0 7px}
+    .bolinha.ativa > span{width:22px}
+    .controles #pausa{width:32px;height:32px;font-size:15px;margin-left:2px}
+    .carrossel:not(.claro) .ctl{color:#fff;opacity:.75}
+    .carrossel:not(.claro) .bolinha > span{background:rgba(255,255,255,.35)}
+    .carrossel:not(.claro) .bolinha.ativa > span::after{background:#fff}
+
+    /* números: quatro cartõezinhos */
+    .numeros.secao.aberta{margin-top:var(--ritmo)}
+    .numeros{grid-template-columns:1fr 1fr!important;gap:10px}
+    .numero,.numero:first-child,.numero:last-child{border:0!important;background:#fff;border-radius:16px;padding:16px!important;box-shadow:var(--sombra)}
+    .numero p,.numero .botao-linha{display:none}
+    .numero .icone{width:36px;height:36px;border-radius:11px}
+    .numero .icone i{font-size:20px}
+    .numero .grande{font-size:32px;margin:14px 0 4px}
+    .numero .rot{font-size:13px;line-height:1.3}
+
+    /* busca: especialidades numa fileira que desliza */
+    .encontre.secao{padding:44px var(--borda-faixa)}
+    .encontre h2{font-size:28px}
+    .encontre .texto{font-size:14.5px}
+    .campo{padding-left:14px}
+    .campo input{font-size:15px;padding:12px 8px}
+    .campo .botao{height:44px;padding:0 18px}
+    .chips{flex-wrap:nowrap;overflow-x:auto;margin:16px calc(-1 * var(--borda-faixa)) 0;padding:2px var(--borda-faixa);scrollbar-width:none;scroll-snap-type:x proximity;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 18px,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 18px,#000 calc(100% - 36px),transparent)}
+    .chips::-webkit-scrollbar{display:none}
+    .chip{flex:none;scroll-snap-align:start}
+    .chips{scroll-padding-inline:var(--borda-faixa)}
+    .campo .botao{width:44px;padding:0;font-size:0;gap:0}
+    .campo .botao i{font-size:20px}
+
+    /* Sua AMI: foto em cima, cartão sobreposto */
+    .vitrine{display:block;min-height:0;padding:0;background:#fff;border-radius:20px;box-shadow:var(--sombra);overflow:hidden}
+    .vitrine > img{position:relative;inset:auto;z-index:0;display:block;width:100%;height:auto;aspect-ratio:4/3;transform:none}
+    .vitrine::after{display:none}
+    .vitrine-cartao{position:relative;margin:-40px 12px 12px;padding:22px 20px 22px;border-radius:16px;background:#fff;box-shadow:0 12px 30px rgba(16,24,40,.12);-webkit-backdrop-filter:none;backdrop-filter:none}
+
+    /* faixas brancas */
+    .faixa-branca{padding:44px var(--borda-faixa)}
+    .faixa-branca .duplo{gap:22px}
+    .faixa-branca .duplo .foto{order:-1;aspect-ratio:16/10}
+
+    /* Missão, Visão, Valores: linhas compactas */
+    .faixa-branca .quem{grid-template-columns:1fr;gap:10px;margin-top:36px;padding-top:36px}
+    .quem-intro{padding:0 0 8px}
+    .quem-intro h3{font-size:26px}
+    .cartao{display:grid;grid-template-columns:44px 1fr;column-gap:14px;align-items:center;padding:16px 18px}
+    .cartao .icone{grid-row:1 / 3}
+    .cartao h3{margin:0}
+    .cartao p{grid-column:2}
+    .cartao .ordem{top:14px;right:16px}
+
+    /* notícias: fileira de cartões que desliza */
+    .noticias{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -12px;padding:4px calc(12px + var(--m)) 18px;scroll-padding:0 calc(12px + var(--m))}
+    .noticias::-webkit-scrollbar{display:none}
+    .lista{display:contents}
+    .lista .sep{display:none}
+    .destaque,.item{flex:none;width:80%;scroll-snap-align:start}
+    .destaque{align-self:stretch;display:flex;flex-direction:column;justify-content:flex-end;min-height:280px}
+    .destaque .foto{position:absolute;inset:0;aspect-ratio:auto}
+    .destaque .foto img{height:100%}
+    .destaque .sobre-foto{position:relative;padding:70px 18px 18px}
+    .destaque .sobre-foto h3{font-size:20px}
+    .destaque .sobre-foto p{font-size:13.5px}
+    .item{display:flex;flex-direction:column;background:#fff;border-radius:16px;overflow:hidden;gap:0;box-shadow:var(--sombra)}
+    .item .foto{border-radius:0;width:100%;aspect-ratio:16/10!important}
+    .item > div:last-child{padding:14px 16px 18px}
+    .item h3{font-size:17px}
+
+    /* notícias, revisto: lista de cima para baixo, nada cortado na borda */
+    .noticias{display:grid;grid-template-columns:1fr;gap:20px;overflow:visible;scroll-snap-type:none;margin:0;padding:0 var(--m)}
+    .destaque{width:auto;min-height:0;display:block;position:relative}
+    .destaque .foto{position:relative;inset:auto;aspect-ratio:4/3}
+    .destaque .sobre-foto{position:absolute;left:0;right:0;bottom:0;padding:70px 18px 18px}
+    .lista{display:flex;flex-direction:column;gap:0}
+    .lista .sep{display:block;height:1px;margin:14px 0}
+    .item{display:grid;grid-template-columns:88px 1fr;gap:14px;align-items:center;width:auto;background:none;box-shadow:none;border-radius:0;overflow:visible}
+    .item .foto{width:88px;border-radius:12px;aspect-ratio:1/1!important}
+    .item > div:last-child{padding:0}
+    .item h3{font-size:16px;line-height:1.25;margin-top:4px}
+    /* bairros e parceiros */
+    .bairros{gap:8px}
+    .bairro{padding:12px 14px}
+    .parceiros{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1 * var(--borda-faixa));padding:0 var(--borda-faixa)}
+    .parceiros::-webkit-scrollbar{display:none}
+    .logo-vazio{flex:none;width:42%}
+    .faixa-branca .parceiros{padding:0 var(--borda-faixa);scroll-padding-inline:var(--borda-faixa);scroll-snap-type:x proximity}
+    .faixa-branca .parceiros .logo-vazio{scroll-snap-align:start}
+    /* parceiros, revisto: duas linhas de três, nada cortado na borda */
+    .faixa-branca .parceiros{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;overflow:visible;margin:0;padding:0}
+    .faixa-branca .parceiros .logo-vazio{width:auto;font-size:10px;padding:6px}
+
+    /* rodapé compacto, com espaço para a barra do pé */
+    footer{padding:44px 0 calc(100px + env(safe-area-inset-bottom))}
+    .rod{grid-template-columns:1fr 1fr;gap:28px 20px}
+    .rod > div:first-child,.rod > div:last-child{grid-column:1 / -1}
+    .base{flex-direction:column;gap:6px;margin-top:28px}
+
+    /* barra de atalhos no pé da tela */
+    .barra-acao{display:flex;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:45;gap:8px;padding:7px;border-radius:999px;background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);box-shadow:0 12px 34px rgba(16,24,40,.18);transform:translateY(150%);transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+    .barra-acao.visivel{transform:none}
+    .barra-acao a{display:flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:999px;font-weight:600;font-size:14.5px;white-space:nowrap}
+    .ba-buscar{flex:1;background:linear-gradient(180deg,#2B8229 0%,#1F6B1D 100%);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.16)}
+    .ba-ligar{padding:0 18px;color:var(--v800);border:1px solid var(--linha);background:#fff}
+    .barra-acao i{font-size:18px}
+  }
+
+  /* o cabeçalho fica preso à página inteira, não só ao primeiro bloco */
+  .topo-fixo{position:sticky;top:calc(12px - var(--gap));z-index:40;padding-top:var(--gap);pointer-events:none}
+  .topo-fixo .cabeca{pointer-events:auto}
+  @media (max-width:700px){.topo-fixo{padding-top:10px;top:-2px}}
+  @media (max-width:400px){
+    .carrossel .slide > .anima{padding-top:80px}
+    .carrossel .anima .h1{font-size:27px}
+    .carrossel .anima p{font-size:14.5px}
+    .arte-titulo{font-size:29px}
+    .arte-b .arte-titulo{font-size:34px}
+  }
+
+  /* ===================================================================
+     Fatia B · Encontre um médico (busca e perfil)
+     Tudo acima desta linha é o <style> da home aprovada, sem mudança.
+     Daqui para baixo, só o que as duas páginas novas pedem.
+     =================================================================== */
+
+  /* textura verde reutilizável: o mesmo fundo e o mesmo granulado do .encontre */
+  .textura-verde{position:relative;isolation:isolate;overflow:hidden;color:#fff;
+    background:
+      radial-gradient(60% 90% at 88% 0%, rgba(168,212,112,.20) 0%, rgba(168,212,112,0) 60%),
+      radial-gradient(70% 120% at 0% 100%, rgba(36,131,34,.35) 0%, rgba(36,131,34,0) 55%),
+      linear-gradient(160deg,#123F11 0%,#0D2E0C 45%,#071A07 100%);}
+  .textura-verde::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.22;mix-blend-mode:overlay;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+
+  /* o rodapé fica a --ritmo do último bloco, como entre todos os blocos */
+  footer{margin-top:var(--ritmo)}
+
+  /* botão de contorno na altura do .botao (o .botao-linha da home tem 38px) */
+  .botao-contorno{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:48px;padding:0 24px;border:1px solid #D5D9DF;background:#fff;color:var(--v800);font:600 14.5px/1 var(--f-texto);border-radius:999px;white-space:nowrap;transition:border-color .25s,box-shadow .25s,transform .25s}
+  .botao-contorno:hover{border-color:#B9BFC8;box-shadow:0 6px 16px rgba(12,14,18,.08);transform:translateY(-1px)}
+  .botao-contorno i{font-size:18px}
+
+  /* ---------- busca: faixa verde do topo ---------- */
+  .busca-topo{grid-template-columns:minmax(0,340px) minmax(0,1fr)}
+  .busca-topo h1{color:#fff;font-size:clamp(38px,4.2vw,56px);line-height:1.02;max-width:13ch}
+  .busca-topo .sobre{color:var(--lima)}
+  .busca-topo h1 + p{margin-top:18px}
+  .filtros{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:12px;align-items:center}
+  .filtros .campo{min-width:0}
+  .lista-esp{position:relative;display:block;min-width:0}
+  .lista-esp select{-webkit-appearance:none;appearance:none;display:block;width:100%;height:60px;border:0;border-radius:999px;background:#fff;color:var(--tinta);font:500 16px var(--f-texto);padding:0 52px 0 22px;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.25);text-overflow:ellipsis}
+  .lista-esp select:focus{outline:none;box-shadow:0 0 0 3px rgba(168,212,112,.65),0 10px 30px rgba(0,0,0,.25)}
+  .lista-esp > i{position:absolute;right:22px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--tinta-3);pointer-events:none}
+  .filtro-ativo{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:20px;font-size:14px;color:#cfd8c9}
+  .filtro-ativo[hidden]{display:none}
+  .chip.tira{cursor:pointer;color:#fff;border-color:rgba(255,255,255,.34);background:rgba(255,255,255,.08)}
+  .chip.tira i{font-size:15px;opacity:.85}
+  .chip.tira:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.5)}
+
+  /* ---------- busca: contagem e grade ---------- */
+  .cab-resultados{display:flex;align-items:baseline;justify-content:space-between;gap:var(--gap);padding:0 var(--m) 32px}
+  .contagem{font-size:32px;line-height:1.1;max-width:none}
+  .cab-resultados .texto{font-size:14.5px}
+  .grade-medicos{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--gap)}
+  .medico{position:relative;display:flex;flex-direction:column;background:#fff;border-radius:18px;overflow:hidden;box-shadow:var(--sombra);transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s}
+  .medico[hidden]{display:none}
+  .medico:hover{transform:translateY(-3px);box-shadow:0 1px 2px rgba(16,24,40,.05),0 18px 40px rgba(16,24,40,.10)}
+  .medico-foto{position:relative;aspect-ratio:4/5;overflow:hidden}
+  .medico-foto:not(.textura-verde){background:#DDE2E0}
+  .medico-foto img{width:100%;height:100%;object-fit:cover;object-position:50% 30%;transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
+  .medico:hover .medico-foto img{transform:scale(1.04)}
+  .medico-corpo{flex:1;display:flex;flex-direction:column;padding:18px 20px 20px}
+  .medico-texto{padding-bottom:18px}
+  .medico-nome{font-size:21px;line-height:1.15;letter-spacing:-.025em}
+  .medico-nome a::after{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit}
+  .medico-crm{margin-top:8px;font-size:11.5px;line-height:1.4;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta-3)}
+  .medico-esp{margin-top:6px;font-size:14.5px;line-height:1.45;font-weight:600;color:var(--tinta)}
+  .rqe{white-space:nowrap;font-weight:500;font-size:13.5px;color:var(--tinta-3);margin-left:4px}
+  .botao-ligar{position:relative;z-index:2;margin-top:auto;width:100%;height:44px}
+  .medico :where(a,button):focus-visible{outline-offset:2px}
+
+  /* cartão ainda sem foto: o verde da marca com as iniciais */
+  .sem-foto{display:grid;place-items:center}
+  .sem-foto .iniciais{font-family:var(--f-titulo);font-weight:600;font-size:96px;line-height:1;letter-spacing:-.05em;color:var(--lima)}
+  .sem-foto .brilho{top:-60%;right:-70%;width:150%;height:150%;animation-duration:22s}
+
+  .vazio{padding:56px var(--m);text-align:left}
+  .vazio[hidden]{display:none}
+  .vazio h3{font-size:26px}
+  .vazio p{margin:10px 0 22px;color:var(--tinta-2)}
+
+  /* ---------- perfil ---------- */
+  .perfil-topo{display:grid;grid-template-columns:minmax(0,460px) minmax(0,1fr);gap:64px;align-items:center;padding:0 var(--m)}
+  .perfil-foto{aspect-ratio:4/5;border-radius:var(--raio);overflow:hidden;background:#DDE2E0;box-shadow:var(--sombra)}
+  .perfil-foto img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
+  .volta{display:inline-flex;align-items:center;gap:8px}
+  .volta i{font-size:15px;transition:transform .3s cubic-bezier(.2,.7,.2,1)}
+  .volta:hover i{transform:translateX(-3px)}
+  .perfil-texto h1{font-size:clamp(44px,5vw,68px);line-height:1;max-width:12ch}
+  .perfil-crm{margin-top:20px;font-size:12.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--tinta-3)}
+  .perfil-esp{margin-top:8px;font-size:20px;font-weight:600;color:var(--tinta)}
+  .perfil-esp .rqe{font-size:16px;margin-left:6px}
+  .perfil-acoes{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+  .perfil-consultorio{margin-top:18px;font-size:14.5px;color:var(--tinta-2)}
+  .perfil-consultorio a{color:var(--v600);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+
+  .perfil h2{font-size:clamp(28px,2.6vw,36px)}
+  .consultorios{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}
+  .consultorio{display:flex;flex-direction:column;background:#fff;border-radius:var(--raio);box-shadow:var(--sombra);padding:36px var(--m) 40px}
+  .consultorio h3{font-size:26px;line-height:1.1}
+  .consultorio address{font-style:normal;margin-top:12px;color:var(--tinta-2)}
+  .consultorio .tel{margin-top:10px;font-weight:600;color:var(--tinta)}
+  .consultorio-acoes{display:flex;flex-wrap:wrap;gap:10px;margin-top:auto;padding-top:28px}
+
+  .leitura{padding:0 var(--m);max-width:calc(40em + 2 * var(--m))}
+  .leitura p{font-size:17.5px;line-height:1.7;color:var(--tinta-2)}
+  .leitura h2 + p{margin-top:18px}
+  .leitura p + p{margin-top:16px}
+
+  .nota-final{margin:var(--ritmo) var(--m) 0;padding-top:24px;border-top:1px solid #D9DDE3;font-size:13px;line-height:1.6;color:var(--tinta-3);max-width:62em}
+
+  @media (max-width:1180px){
+    .grade-medicos{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .busca-topo{grid-template-columns:1fr}
+    .consultorios{grid-template-columns:1fr}
+    .busca-topo .filtros{max-width:760px}
+  }
+  @media (max-width:980px){
+    .grade-medicos{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .perfil-topo{grid-template-columns:minmax(0,.85fr) minmax(0,1fr);gap:36px}
+    .consultorios{grid-template-columns:1fr}
+  }
+  @media (max-width:820px){
+    .filtros{grid-template-columns:1fr;gap:10px}
+  }
+
+  /* ---------- celular ---------- */
+  @media (max-width:700px){
+    .busca-topo h1{font-size:32px;line-height:1.04}
+    .busca-topo h1 + p{margin-top:12px}
+    .filtros{grid-template-columns:1fr;gap:10px}
+    .lista-esp select{height:56px;font-size:15px;padding:0 48px 0 18px}
+    .lista-esp > i{right:18px}
+    .filtro-ativo{margin-top:14px}
+
+    .cab-resultados{padding:0 var(--m) 16px;flex-wrap:wrap;row-gap:2px}
+    .contagem{font-size:24px}
+    .cab-resultados .texto{font-size:13.5px}
+
+    /* cartão deitado: foto alta na lateral esquerda, texto e botão à direita */
+    .grade-medicos{grid-template-columns:1fr;gap:10px}
+    .medico{flex-direction:row;border-radius:16px}
+    .medico:hover{transform:none}
+    .medico-foto{flex:none;width:116px;aspect-ratio:auto;align-self:stretch;min-height:156px}
+    .medico-foto img{position:absolute;inset:0}
+    .medico-corpo{min-width:0;padding:14px 16px}
+    .medico-texto{padding-bottom:12px}
+    .medico-nome{font-size:18.5px}
+    .medico-crm{margin-top:5px;font-size:10.5px;letter-spacing:.08em}
+    .medico-esp{margin-top:4px;font-size:14px}
+    .rqe{font-size:13px}
+    .botao-ligar{width:auto;align-self:flex-start;height:40px;padding:0 20px;font-size:14px;gap:8px}
+    .botao-ligar i{font-size:16px}
+    .sem-foto .iniciais{font-size:42px}
+    .sem-foto .brilho{width:220%;height:120%;top:-40%;right:-120%}
+    .vazio{padding:32px var(--m)}
+
+    .perfil-topo{grid-template-columns:1fr;gap:22px;padding:0}
+    .perfil-foto{border-radius:20px}
+    .perfil-texto{padding:0 var(--m)}
+    .perfil-texto h1{font-size:38px}
+    .perfil-crm{margin-top:14px;font-size:11.5px}
+    .perfil-esp{font-size:17px}
+    .perfil-esp .rqe{font-size:14.5px}
+    .perfil-acoes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px}
+    .perfil-acoes > a{width:100%;padding:0 12px}
+    .perfil-consultorio{margin-top:14px;font-size:14px}
+    .perfil h2{font-size:26px}
+    .consultorios{gap:10px}
+    .consultorio{border-radius:16px;padding:22px var(--m) 20px}
+    .consultorio h3{font-size:22px}
+    .consultorio address{margin-top:8px;font-size:15px}
+    .consultorio-acoes{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:20px}
+    .consultorio-acoes .botao{grid-column:1 / -1}
+    .consultorio-acoes > a{width:100%;height:46px;padding:0 10px;font-size:14px;gap:8px}
+    .leitura p{font-size:16px}
+    .nota-final{font-size:12.5px}
+    .barra-medico .ba-ligar{flex:1}
+  }
+  @media (max-width:380px){
+    .medico-foto{width:112px}
+  }
+  @media (max-width:400px){
+    .busca-topo h1{font-size:30px}
+  }
+</style>
+</head>
+<body class="busca">
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+<div class="aviso">Desenho para aprovação · fotos ilustrativas (Unsplash) · nomes, CRM, RQE e telefones do diretório de teste do site</div>
+
+<div class="topo-fixo">
+<div class="caixa">
+  <header class="painel cabeca">
+    <a class="logo" href="#"><img src="../../../public/marca/ami-marca.svg" alt="Associação Médica de Imperatriz" width="50" height="40"></a>
+    <nav class="menu" aria-label="Menu principal">
+      <a href="#">Início</a>
+      <a href="#">A Associação</a>
+      <a href="busca.html" class="ativo" aria-current="page">Encontre um médico</a>
+      <a href="#">Especialidades</a>
+      <a href="#">Sua AMI</a>
+      <a href="#">Notícias</a>
+      <a href="#">Contato</a>
+    </nav>
+    <a class="seja" href="#">Seja associado</a>
+    <button class="abre-menu" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="gaveta"><i class="ph ph-list"></i></button>
+    <nav class="gaveta" id="gaveta" aria-label="Menu">
+      <a href="#">Início</a><a href="#">A Associação</a><a href="busca.html">Encontre um médico</a><a href="#">Especialidades</a><a href="#">Sua AMI</a><a href="#">Notícias</a><a href="#">Contato</a>
+    </nav>
+  </header>
+</div>
+</div>
+
+<section class="encontre secao busca-topo" aria-labelledby="conteudo">
+    <div class="brilho" aria-hidden="true"></div>
+    <div>
+      <span class="sobre">Encontre um médico</span>
+      <h1 id="conteudo" tabindex="-1">Quem atende em Imperatriz</h1>
+      <p class="texto">Todo médico aparece com o número de inscrição no CRM, para você conferir no portal do Conselho.</p>
+    </div>
+    <div>
+      <form class="filtros" role="search" action="busca.html" method="get" aria-label="Buscar médicos">
+        <div class="campo">
+          <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+          <input name="q" type="search" placeholder="Nome ou especialidade" aria-label="Nome ou especialidade" autocomplete="off">
+          <button class="botao" type="submit">Buscar <i class="ph ph-arrow-right"></i></button>
+        </div>
+        <label class="lista-esp">
+          <span class="so-leitor">Especialidade</span>
+          <select name="especialidade">
+          <option value="">Todas as especialidades</option>
+          <option value="cardiologia">Cardiologia (3)</option>
+          <option value="clinica-medica">Clínica Médica (4)</option>
+          <option value="dermatologia">Dermatologia (2)</option>
+          <option value="endocrinologia">Endocrinologia (1)</option>
+          <option value="gastroenterologia">Gastroenterologia (1)</option>
+          <option value="ginecologia-e-obstetricia">Ginecologia e Obstetrícia (2)</option>
+          <option value="neurologia">Neurologia (2)</option>
+          <option value="oftalmologia">Oftalmologia (1)</option>
+          <option value="ortopedia-e-traumatologia">Ortopedia e Traumatologia (1)</option>
+          <option value="otorrinolaringologia">Otorrinolaringologia (1)</option>
+          <option value="pediatria">Pediatria (3)</option>
+          <option value="psiquiatria">Psiquiatria (1)</option>
+          <option value="reumatologia">Reumatologia (1)</option>
+          <option value="urologia">Urologia (1)</option>
+          </select>
+          <i class="ph ph-caret-down" aria-hidden="true"></i>
+        </label>
+      </form>
+      <div class="filtro-ativo" hidden>
+        <span>Filtro:</span>
+        <button class="chip tira" type="button" aria-label="Tirar o filtro de especialidade"><span class="nome-filtro"></span> <i class="ph ph-x" aria-hidden="true"></i></button>
+      </div>
+    </div>
+  </section>
+
+<div class="caixa">
+  <section class="secao aberta resultados" aria-labelledby="contagem">
+    <div class="cab-resultados">
+      <h2 class="contagem" id="contagem" aria-live="polite"><span class="num">24</span> médicos</h2>
+      <p class="texto">Em ordem alfabética</p>
+    </div>
+    <ul class="grade-medicos">
+      <li class="medico" data-nome="aline peixoto" data-esp="neurologia">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1706565029539-d09af5896340?rect=276,0,4650,5813&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Aline Peixoto</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 11918</p>
+            <p class="medico-esp">Neurologia <span class="rqe">RQE&nbsp;12222</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930189994" aria-label="Ligar para Aline Peixoto, (99) 3018-9994"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="anderson vilela" data-esp="otorrinolaringologia">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?rect=666,0,2308,2885&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Anderson Vilela</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 12877</p>
+            <p class="medico-esp">Otorrinolaringologia <span class="rqe">RQE&nbsp;21911</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930284991" aria-label="Ligar para Anderson Vilela, (99) 3028-4991"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="beatriz sampaio" data-esp="cardiologia">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1594824476967-48c8b964273f?rect=804,319,2484,3105&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Beatriz Sampaio</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 10822</p>
+            <p class="medico-esp">Cardiologia <span class="rqe">RQE&nbsp;20546</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930081426" aria-label="Ligar para Beatriz Sampaio, (99) 3008-1426"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="bruno cavalcante" data-esp="reumatologia">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?rect=1527,0,1982,2478&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Bruno Cavalcante</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 13151</p>
+            <p class="medico-esp">Reumatologia <span class="rqe">RQE&nbsp;22093</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930312133" aria-label="Ligar para Bruno Cavalcante, (99) 3031-2133"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="camila freitas" data-esp="cardiologia">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1643297654416-05795d62e39c?rect=1180,405,1510,1888&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Camila Freitas</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 10548</p>
+            <p class="medico-esp">Cardiologia <span class="rqe">RQE&nbsp;20364</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930054284" aria-label="Ligar para Camila Freitas, (99) 3005-4284"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="cristina bezerra" data-esp="neurologia">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1758691462651-611d730c5272?rect=1501,0,1190,1488&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Cristina Bezerra</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 12740</p>
+            <p class="medico-esp">Neurologia <span class="rqe">RQE&nbsp;21820</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930271420" aria-label="Ligar para Cristina Bezerra, (99) 3027-1420"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="diego aragao" data-esp="pediatria">
+        <div class="medico-foto sem-foto textura-verde" aria-hidden="true"><div class="brilho"></div><span class="iniciais">DA</span></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Diego Aragão</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 11233</p>
+            <p class="medico-esp">Pediatria <span class="rqe">RQE&nbsp;20819</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930122139" aria-label="Ligar para Diego Aragão, (99) 3012-2139"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="fabio rocha" data-esp="dermatologia">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1712215544003-af10130f8eb3?rect=1713,166,3716,4645&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Fábio Rocha</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 11507</p>
+            <p class="medico-esp">Dermatologia <span class="rqe">RQE&nbsp;21001</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930149281" aria-label="Ligar para Fábio Rocha, (99) 3014-9281"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="gustavo serra" data-esp="ortopedia-e-traumatologia">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1645066928295-2506defde470?rect=1754,635,1172,1465&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Gustavo Serra</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 12055</p>
+            <p class="medico-esp">Ortopedia e Traumatologia <span class="rqe">RQE&nbsp;21365</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930203565" aria-label="Ligar para Gustavo Serra, (99) 3020-3565"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="henrique portela" data-esp="pediatria">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1666887360742-974c8fce8e6b?rect=1692,0,3246,4058&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Henrique Portela</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 10959</p>
+            <p class="medico-esp">Pediatria <span class="rqe">RQE&nbsp;20637</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930094997" aria-label="Ligar para Henrique Portela, (99) 3009-4997"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="juliana marques" data-esp="pediatria">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1678695972687-033fa0bdbac9?rect=752,0,1816,2270&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Juliana Marques</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 11096</p>
+            <p class="medico-esp">Pediatria <span class="rqe">RQE&nbsp;20728</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930108568" aria-label="Ligar para Juliana Marques, (99) 3010-8568"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="larissa nogueira" data-esp="clinica-medica">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1614608682850-e0d6ed316d47?rect=602,332,2078,2598&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Larissa Nogueira</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 10274</p>
+            <p class="medico-esp">Clínica Médica</p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930027142" aria-label="Ligar para Larissa Nogueira, (99) 3002-7142"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="leonardo prata" data-esp="psiquiatria">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1758691463582-11aea602cd4a?rect=1363,0,1506,1883&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Leonardo Prata</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 12329</p>
+            <p class="medico-esp">Psiquiatria <span class="rqe">RQE&nbsp;21547</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930230707" aria-label="Ligar para Leonardo Prata, (99) 3023-0707"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="marcelo tavares" data-esp="ginecologia-e-obstetricia">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1620928269189-dc4ee9d981c0?rect=48,0,3236,4045&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Marcelo Tavares</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 11781</p>
+            <p class="medico-esp">Ginecologia e Obstetrícia <span class="rqe">RQE&nbsp;21183</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930176423" aria-label="Ligar para Marcelo Tavares, (99) 3017-6423"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="mayara viana" data-esp="clinica-medica">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1673865641073-4479f93a7776?rect=2076,255,1726,2158&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Mayara Viana</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 10000</p>
+            <p class="medico-esp">Clínica Médica</p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930000000" aria-label="Ligar para Mayara Viana, (99) 3000-0000"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="otavio lemos" data-esp="cardiologia">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1758691461530-b215ed4ede6a?rect=1299,0,1304,1630&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Otávio Lemos</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 10685</p>
+            <p class="medico-esp">Cardiologia <span class="rqe">RQE&nbsp;20455</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930067855" aria-label="Ligar para Otávio Lemos, (99) 3006-7855"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="patricia cordeiro" data-esp="dermatologia">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?rect=1550,3,2198,2748&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Patrícia Cordeiro</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 11370</p>
+            <p class="medico-esp">Dermatologia <span class="rqe">RQE&nbsp;20910</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930135710" aria-label="Ligar para Patrícia Cordeiro, (99) 3013-5710"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="rafael coelho" data-esp="clinica-medica">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1622902046580-2b47f47f5471?rect=746,549,1594,1993&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Rafael Coelho</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 10137</p>
+            <p class="medico-esp">Clínica Médica</p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930013571" aria-label="Ligar para Rafael Coelho, (99) 3001-3571"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="renata bastos" data-esp="ginecologia-e-obstetricia">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1770134223774-13b735e29201?rect=367,103,2360,2950&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Renata Bastos</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 11644</p>
+            <p class="medico-esp">Ginecologia e Obstetrícia <span class="rqe">RQE&nbsp;21092</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930162852" aria-label="Ligar para Renata Bastos, (99) 3016-2852"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="rodrigo meireles" data-esp="gastroenterologia">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1678940805950-73f2127f9d4e?rect=603,695,2284,2855&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Rodrigo Meireles</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 12603</p>
+            <p class="medico-esp">Gastroenterologia <span class="rqe">RQE&nbsp;21729</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930257849" aria-label="Ligar para Rodrigo Meireles, (99) 3025-7849"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="simone andrade" data-esp="endocrinologia">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1651008376811-b90baee60c1f?rect=512,313,1908,2385&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Simone Andrade</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 12466</p>
+            <p class="medico-esp">Endocrinologia <span class="rqe">RQE&nbsp;21638</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930244278" aria-label="Ligar para Simone Andrade, (99) 3024-4278"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="tatiane furtado" data-esp="urologia">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1623854767648-e7bb8009f0db?rect=835,808,1492,1865&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Tatiane Furtado</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 13014</p>
+            <p class="medico-esp">Urologia <span class="rqe">RQE&nbsp;22002</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930298562" aria-label="Ligar para Tatiane Furtado, (99) 3029-8562"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="tiago barbosa" data-esp="clinica-medica">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1580281658626-ee379f3cce93?rect=367,250,1190,1488&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Tiago Barbosa</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 10411</p>
+            <p class="medico-esp">Clínica Médica</p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930040713" aria-label="Ligar para Tiago Barbosa, (99) 3004-0713"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+      <li class="medico" data-nome="vanessa quirino" data-esp="oftalmologia">
+        <div class="medico-foto"><img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1736289173074-df6009da27c9?rect=1742,504,2192,2740&w=560&h=700&fit=crop&q=72&auto=format" alt="" width="280" height="350"></div>
+        <div class="medico-corpo">
+          <div class="medico-texto">
+            <h3 class="medico-nome"><a href="perfil.html">Vanessa Quirino</a></h3>
+            <p class="medico-crm num">Médico · CRM/MA 12192</p>
+            <p class="medico-esp">Oftalmologia <span class="rqe">RQE&nbsp;21456</span></p>
+          </div>
+          <a class="botao botao-ligar" href="tel:+559930217136" aria-label="Ligar para Vanessa Quirino, (99) 3021-7136"><i class="ph ph-phone"></i> Ligar</a>
+        </div>
+      </li>
+    </ul>
+    <div class="vazio" hidden>
+      <h3>Nenhum médico encontrado</h3>
+      <p>Confira a grafia do nome ou escolha outra especialidade.</p>
+      <button class="botao-linha limpar" type="button">Limpar a busca</button>
+    </div>
+  </section>
+</div>
+
+<div class="barra-acao" aria-label="Atalhos">
+  <a class="ba-buscar" href="#conteudo"><i class="ph ph-magnifying-glass"></i> Encontrar médico</a>
+  <a class="ba-ligar" href="tel:+559935243716" aria-label="Ligar para a AMI"><i class="ph ph-phone"></i> Ligar</a>
+</div>
+
+<footer>
+  <div class="brilho" aria-hidden="true"></div>
+  <div class="caixa">
+    <div class="rod">
+      <div>
+        <p class="lema">Associação Médica de Imperatriz</p>
+        <div class="num" style="font-size:13px">CNPJ 06.651.376/0001-42</div>
+      </div>
+      <div>
+        <h4>A Associação</h4>
+        <a href="#">Quem somos</a><a href="#">Diretoria</a><a href="#">Seja associado</a><a href="#">Sua AMI</a>
+      </div>
+      <div>
+        <h4>Encontre um médico</h4>
+        <a href="busca.html">Buscar</a><a href="#">Especialidades</a><a href="#">Bairros</a>
+      </div>
+      <div>
+        <h4>Fale com a AMI</h4>
+        <div>Rua Coriolano Milhomem, 39<br>Centro, Imperatriz – MA<br>CEP 65900-330</div>
+        <div class="num" style="margin-top:12px">(99) 3524-3716<br>(99) 98802-0205</div>
+        <a href="#" style="margin-top:10px">Instagram</a>
+      </div>
+    </div>
+    <div class="base">
+      <span>© Associação Médica de Imperatriz</span>
+      <span>Política de privacidade · Termos de uso · Cookies</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+
+  const reduz=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cab=document.querySelector('.cabeca');
+  const abre=document.querySelector('.abre-menu');
+  function gaveta(abrir){cab.classList.toggle('aberta',abrir);abre.setAttribute('aria-expanded',abrir);abre.setAttribute('aria-label',abrir?'Fechar menu':'Abrir menu');abre.innerHTML=abrir?'<i class="ph ph-x"></i>':'<i class="ph ph-list"></i>'}
+  abre.addEventListener('click',()=>gaveta(!cab.classList.contains('aberta')));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&cab.classList.contains('aberta')){gaveta(false);abre.focus()}});
+  document.addEventListener('click',e=>{if(cab.classList.contains('aberta')&&!cab.contains(e.target))gaveta(false)});
+  document.querySelectorAll('.gaveta a').forEach(a=>a.addEventListener('click',()=>gaveta(false)));
+  addEventListener('scroll',()=>cab.classList.toggle('rolou',scrollY>40),{passive:true});
+
+  const alvos=[...document.querySelectorAll('section.secao:not(.perfil-topo):not(.resultados):not(:has(.grade-medicos))')];
+  ['.medico','.consultorio'].forEach(sel=>document.querySelectorAll(sel).forEach(el=>{const irmaos=[...el.parentElement.children].filter(x=>x.matches(sel));el.style.transitionDelay=(Math.min(irmaos.indexOf(el)%4,8)*70)+'ms';alvos.push(el)}));
+  alvos.forEach(el=>el.classList.add('rv'));
+  const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visivel');obs.unobserve(e.target)}}),{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+  alvos.forEach(el=>obs.observe(el));
+  document.addEventListener('transitionend',e=>{if(e.target.classList.contains('visivel'))e.target.style.transitionDelay=''});
+
+
+  /* filtro: texto e especialidade, na hora, sem recarregar */
+  const form=document.querySelector('.filtros'), campo=form.querySelector('input'), lista=form.querySelector('select');
+  const ativo=document.querySelector('.filtro-ativo'), nomeFiltro=ativo.querySelector('.nome-filtro');
+  const cartoes=[...document.querySelectorAll('.medico')], contagem=document.querySelector('.contagem'), vazio=document.querySelector('.vazio');
+  const limpa=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+  function aplicar(){
+    const q=limpa(campo.value), esp=lista.value, nomeEsp=esp?lista.selectedOptions[0].textContent.replace(/ \(\d+\)$/,''):'';
+    let n=0;
+    cartoes.forEach(c=>{const ok=(!esp||c.dataset.esp===esp)&&(!q||c.dataset.nome.includes(q)||limpa(c.querySelector('.medico-esp').textContent).includes(q));c.hidden=!ok;if(ok)n++});
+    contagem.innerHTML='<span class="num">'+n+'</span> '+(n===1?'médico':'médicos')+(esp?' em '+nomeEsp:'');
+    ativo.hidden=!esp; nomeFiltro.textContent=nomeEsp;
+    vazio.hidden=n>0;
+    const u=new URL(location.href); esp?u.searchParams.set('especialidade',esp):u.searchParams.delete('especialidade'); q?u.searchParams.set('q',campo.value):u.searchParams.delete('q'); history.replaceState(null,'',u);
+  }
+  form.addEventListener('submit',e=>{e.preventDefault();aplicar()});
+  campo.addEventListener('input',aplicar);
+  lista.addEventListener('change',aplicar);
+  ativo.querySelector('.tira').addEventListener('click',()=>{lista.value='';aplicar();lista.focus()});
+  document.querySelector('.limpar').addEventListener('click',()=>{lista.value='';campo.value='';aplicar();campo.focus()});
+  const pedido=new URLSearchParams(location.search);
+  if(pedido.get('especialidade'))lista.value=pedido.get('especialidade');
+  if(pedido.get('q'))campo.value=pedido.get('q');
+  aplicar();
+
+  /* barra do pé: aparece quando a faixa da busca sai da tela */
+  const barra=document.querySelector('.barra-acao'), faixa=document.querySelector('.busca-topo');
+  new IntersectionObserver(es=>barra.classList.toggle('visivel',!es[0].isIntersecting),{threshold:0}).observe(faixa);
+  barra.querySelector('.ba-buscar').addEventListener('click',()=>setTimeout(()=>campo.focus({preventScroll:true}),600));
+
+</script>
+</body>
+</html>
