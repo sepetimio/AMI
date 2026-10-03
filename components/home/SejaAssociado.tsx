@@ -20,9 +20,10 @@ const ICONES: Record<CartaoInstitucional["titulo"], NomeIcone> = {
 
 /*
   "Seja associado" e "Quem é a AMI?": a faixa branca de ponta a ponta da
-  home, logo depois de "Sua AMI".
+  home. Ainda não está na página: na home, vai entrar depois de "Sua AMI"
+  (tarefa 10).
 
-  A faixa vai fora da caixa centralizada, como a busca verde; o texto fica na
+  A faixa vai ficar fora da caixa centralizada, como a busca verde; o texto fica na
   mesma linha vertical do resto porque a margem lateral é `--borda-faixa`
   (app/globals.css).
 

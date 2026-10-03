@@ -113,7 +113,8 @@ export function desenhoDaFotografia(
   Missão, visão e valores, os cartões de "Quem é a AMI?" na home.
 
   A AMI ainda não entregou nenhum dos três textos, e não há onde guardá-los:
-  a página passa os três como `null`. A mesma trava das outras molduras
+  a home vai passar os três como `null` quando montar o bloco (tarefa 10).
+  A mesma trava das outras molduras
   decide o que sai. Texto real sai sempre. O que falta sai como "Texto da AMI
   a entrar." só no modo demonstração; fora dele o cartão não existe. A ordem
   é sempre missão, visão, valores, e texto em branco conta como nenhum.

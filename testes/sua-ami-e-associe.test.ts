@@ -134,6 +134,34 @@ describe("Seja associado", () => {
     }
   });
 
+  it("com foto real, ela sai tambem fora da demonstracao, em duas colunas", async () => {
+    /* Com o material da AMI no lugar (`provisoria: false`), a foto sai em
+       qualquer modo. Sem este caso, uma trava que olhasse só a chave de
+       demonstração esconderia a foto real do site. */
+    vi.resetModules();
+    vi.doMock("@/lib/imagens", async (original) => {
+      const verdadeiro = await original<typeof import("@/lib/imagens")>();
+      return {
+        ...verdadeiro,
+        ESPACOS: {
+          ...verdadeiro.ESPACOS,
+          associados: { ...verdadeiro.ESPACOS.associados, provisoria: false },
+        },
+      };
+    });
+    try {
+      const { SejaAssociado: ComFotoReal } = await import("@/components/home/SejaAssociado");
+      const h = renderToString(createElement(ComFotoReal, { demonstracao: false, texto: VAZIO }));
+      expect(tag(h, estilosAssocie.duplo)).toContain(estilosAssocie.comFoto);
+      expect(h).toContain(`class="${estilosAssocie.foto}"`);
+      expect(h).toMatch(/<img [^>]*alt="Médicos associados da AMI reunidos"/);
+      expect(h).not.toContain("a entrar");
+    } finally {
+      vi.doUnmock("@/lib/imagens");
+      vi.resetModules();
+    }
+  });
+
   it("o ano de fundacao vem de lib/ami.ts, nao escrito a mao", async () => {
     vi.resetModules();
     vi.doMock("@/lib/ami", async (original) => {
