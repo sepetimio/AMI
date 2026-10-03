@@ -89,7 +89,10 @@ com encaixe lateral mais umas quarenta linhas.
   primeiro, setas funcionando, sem botão de pausa. O site já respeita essa configuração em
   dois lugares; é seguir o que existe
 - **Com um banner só:** sem setas, sem bolinhas, sem rotação, sem pausa
-- **Sem banner nenhum:** a seção não existe. Nada de espaço vazio nem "em breve"
+- ~~**Sem banner nenhum:** a seção não existe. Nada de espaço vazio nem "em breve"~~ —
+  **revertido em 03/10/2026, só para o modo demonstração:** sem banner real, saem três
+  banners provisórios "Arte a entrar". Fora do modo demonstração esta linha continua
+  valendo. Ver a nota "Molduras provisórias" no fim deste documento.
 - **O espaço é reservado antes da imagem chegar**, e o primeiro banner vem pronto do
   servidor — é o único que a maioria vai ver
 
@@ -165,3 +168,20 @@ diz que ele já é *"cinza-prata frio, sem uma gota de verde"* — o verde de fu
 numa rodada anterior. O verde que resta vem do herói (`#04150c`), das etiquetas
 (`#e9f6ee`) e dos estados de passagem do mouse. O site de referência usa **branco puro com
 faixas de `#f4f4f4`**, um cinza perfeitamente neutro.
+
+## Nota de 03/10/2026: molduras provisórias, e a trava
+
+O cliente ainda não tem as artes e pediu para ver a home com a estrutura inteira. Aprovou
+quatro molduras "a entrar": **três banners provisórios** no carrossel, o cartão **Sua AMI**
+como quarto serviço, **três cartões de notícia** e a faixa **Empresas parceiras da AMI**,
+última seção da home. Isso reverte, só no modo demonstração, a linha "sem banner nenhum: a
+seção não existe" (riscada acima, não apagada) e também "nenhuma moldura extra é
+construída para elas agora", da seção Serviços da AMI.
+
+**A trava:** as quatro só aparecem com `DADOS_DEMONSTRACAO` verdadeiro — a mesma chave que
+marca os médicos como fictícios e fecha o site para o Google. Com ela falsa, volta o
+comportamento acima: sem conteúdo real, carrossel e notícias somem, e Sua AMI e
+parceiros não aparecem. Arte real e provisória nunca se misturam: um banner real tira os
+três provisórios, uma notícia real tira as três provisórias. A decisão mora numa função
+só, `moldurasDaHome` em `lib/molduras.ts`, testada dos dois lados em
+`testes/molduras.test.ts`.
