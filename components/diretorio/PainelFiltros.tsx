@@ -204,7 +204,7 @@ export function PainelFiltros({
 
         <fieldset>
           <legend className="text-[15px] font-medium text-ink-600">Atendimento</legend>
-          <label className="mt-2 -mx-2 flex min-h-11 cursor-pointer items-center gap-2.5 rounded-controle px-2 text-[15px] transition-colors duration-150 hover:bg-ami-lima-100">
+          <label className="mt-2 -mx-2 flex min-h-11 cursor-pointer items-center gap-2.5 rounded-controle px-2 text-[15px] transition-colors duration-150 hover:bg-surface-fundo">
             <input
               type="checkbox"
               checked={sp.get("telemedicina") === "1"}
@@ -221,7 +221,7 @@ export function PainelFiltros({
             (r) => (
               <label
                 key={r}
-                className="-mx-2 flex min-h-11 cursor-pointer items-center gap-2.5 rounded-controle px-2 text-[15px] transition-colors duration-150 hover:bg-ami-lima-100"
+                className="-mx-2 flex min-h-11 cursor-pointer items-center gap-2.5 rounded-controle px-2 text-[15px] transition-colors duration-150 hover:bg-surface-fundo"
               >
                 <input
                   type="checkbox"
@@ -235,7 +235,7 @@ export function PainelFiltros({
           )}
         </fieldset>
 
-        <label className="-mx-2 flex min-h-11 cursor-pointer items-center gap-2.5 rounded-controle px-2 text-[15px] font-semibold transition-colors duration-150 hover:bg-ami-lima-100">
+        <label className="-mx-2 flex min-h-11 cursor-pointer items-center gap-2.5 rounded-controle px-2 text-[15px] font-semibold transition-colors duration-150 hover:bg-surface-fundo">
           <input
             type="checkbox"
             checked={sp.get("associados") === "1"}

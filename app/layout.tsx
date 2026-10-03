@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { fonteCorpo, fonteRegistro } from "@/lib/fontes";
+import { fonteCorpo, fonteRegistro, fonteTitulo } from "@/lib/fontes";
 import "./globals.css";
 
 /* O endereço final entra em NEXT_PUBLIC_SITE_URL. metadataBase é o que
@@ -33,7 +33,7 @@ export default function LayoutRaiz({
   return (
     <html
       lang="pt-BR"
-      className={`${fonteCorpo.variable} ${fonteRegistro.variable}`}
+      className={`${fonteCorpo.variable} ${fonteTitulo.variable} ${fonteRegistro.variable}`}
     >
       <body>{children}</body>
     </html>

@@ -115,7 +115,7 @@ const componentes: PortableTextComponents = {
               alt={value.alt}
               width={largura}
               height={altura}
-              className="h-auto w-full rounded-controle"
+              className="h-auto w-full rounded-bloco"
             />
           </div>
           {value.legenda ? (

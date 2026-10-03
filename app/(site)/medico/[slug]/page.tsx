@@ -156,7 +156,7 @@ export default async function PaginaPerfil({ params }: Props) {
                     {l.whatsapp ? (
                       <a
                         href={`https://wa.me/55${l.whatsapp.replace(/\D/g, "")}`}
-                        className="pressiona inline-flex min-h-11 items-center rounded-controle border border-line bg-canvas px-5 font-semibold text-ami-green-600 hover:border-ami-green-600 hover:bg-ami-lima-100"
+                        className="pressiona inline-flex min-h-11 items-center rounded-controle border border-line bg-canvas px-5 font-semibold text-ami-green-600 hover:border-line-strong"
                       >
                         WhatsApp&nbsp;
                         <span className="registro">
@@ -211,14 +211,14 @@ export default async function PaginaPerfil({ params }: Props) {
           <p className="mt-6 flex flex-wrap gap-3">
             <Link
               href={`/medicos/${principal!.slug}`}
-              className="pressiona inline-flex min-h-11 items-center rounded-controle border border-line-strong bg-surface px-5 text-[15px] font-semibold text-ami-green-600 hover:border-ami-green-600 hover:bg-ami-lima-100"
+              className="pressiona inline-flex min-h-11 items-center rounded-controle border border-line-strong bg-surface px-5 text-[15px] font-semibold text-ami-green-600 hover:border-line-strong"
             >
               Todos de {principal!.nome.toLowerCase()}
             </Link>
             {bairroPrincipal ? (
               <Link
                 href={`/medicos/${principal!.slug}/${bairroPrincipal.slug}`}
-                className="pressiona inline-flex min-h-11 items-center rounded-controle border border-line-strong bg-surface px-5 text-[15px] font-semibold text-ami-green-600 hover:border-ami-green-600 hover:bg-ami-lima-100"
+                className="pressiona inline-flex min-h-11 items-center rounded-controle border border-line-strong bg-surface px-5 text-[15px] font-semibold text-ami-green-600 hover:border-line-strong"
               >
                 {principal!.nome} no bairro {bairroPrincipal.nome}
               </Link>

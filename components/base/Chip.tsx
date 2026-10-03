@@ -17,16 +17,18 @@ export function Chip({
   children: React.ReactNode;
   tom?: "neutro" | "associado";
 }) {
-  /* O texto do tom "associado" é verde-700, não verde-600: sobre o lima-100
-     ele dá 9,24:1, e o verde-600 daria 6,31:1 — os dois passam, e a escolha
-     é de peso, porque a pílula é pequena. O verde-600 fica na borda, a 30%.
+  /* O tom "associado" é contorno verde fino com texto verde, sem
+     preenchimento: o cliente leu o fundo lima claro que ele tinha como
+     amarelado, e a reforma de 03/10/2026 o tirou. O texto é verde-700 e a
+     borda verde-600, cheios; sem fundo próprio, o texto assenta no fundo do
+     lugar onde a pílula está (página, cartão ou apoio), e o par
+     verde-700 sobre cada um deles é medido em testes/paleta.test.ts.
 
-     O lima só entra como preenchimento, nunca como cor de texto: sobre fundo
-     claro ele é invisível, e testes/paleta.test.ts reprova quem tentar. Este
-     comentário dizia "menta", família que a fatia da paleta apagou. */
+     O lima nunca é cor de texto: sobre fundo claro ele é invisível, e o
+     mesmo teste reprova quem tentar. */
   const cores = {
     neutro: "bg-canvas text-ink-600 border-transparent",
-    associado: "bg-ami-lima-100 text-ami-green-700 border-ami-green-600/30",
+    associado: "bg-transparent text-ami-green-700 border-ami-green-600",
   }[tom];
 
   return (

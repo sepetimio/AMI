@@ -16,49 +16,55 @@
    em vez de fio, canto generoso, e tipografia que ocupa
    espaço. Seriedade continua vindo do que o site diz e da
    ordem em que diz, não da falta de acabamento.
+
+   Terceira passagem, 03/10/2026: o cliente aprovou um desenho da
+   home depois de doze rodadas (docs/desenho-aprovado/), e os valores
+   abaixo seguem a seção 4 da spec da reforma visual
+   (docs/superpowers/specs/2026-10-03-redesign-visual-design.md).
+   Os nomes dos tokens ficaram; o que mudou foi o valor atrás deles.
    ========================================================= */
 
 @theme {
   /* --- SUPERFÍCIES: o par que faz a sombra existir ---
 
-     Duas camadas creme, e a diferença entre elas é o que
-     permite um cartão parecer solto sobre a página. Fundo
-     branco puro com cartão branco puro precisa de fio para
-     separar, e fio é justamente o que envelheceu aqui.
+     `canvas` é um branco-gelo, só um sopro mais escuro que o
+     branco, e `surface` é o branco puro dos blocos e cartões:
+     a diferença entre os dois é o que permite um cartão parecer
+     solto sobre a página, e quem faz o resto é a sombra.
 
-     `canvas` é creme, não mais o cinza-prata frio, sem uma
-     gota de verde, que era antes. O dono pediu um branco que
-     não fosse branco puro: o creme aquece a página sem trazer
-     o verde de volta ao fundo — a razão de não ser verde
-     continua valendo, só o tom neutro que a satisfaz mudou. */
-  --color-canvas: #F2EFE6;
-  --color-surface: #FBFAF5;
-  --color-surface-fundo: #F7F5EF; /* creme entre o campo e a superfície · variação para bloco dentro de bloco */
+     O creme que estava aqui antes saiu: o cliente recusou fundo
+     creme na reforma de 03/10/2026. Também não é verde, e a
+     razão continua valendo — verde no fundo da página tinge
+     tudo o que se apoia nele. */
+  --color-canvas: #EEF1EF; /* fundo da página */
+  --color-surface: #FFFFFF; /* blocos e cartões */
+  --color-surface-fundo: #F6F7F8; /* fundo de apoio, para bloco dentro de bloco · também o que substitui o antigo fundo de hover */
 
   /* --- TINTA: neutra, levemente fria ---
 
-     As razões de contraste ao lado de cada valor foram medidas
-     contra os dois fundos do sistema, creme e superfície, e não
-     estimadas. O primeiro recorte desta escala trazia números
-     que eu escrevi de memória, e a medição desmentiu dois:
-     `ink-400` estava em 3,48:1 e reprovava em AA para texto de
-     corpo, que é exatamente o uso dele (legenda, data,
-     contagem). Quando o campo virou creme a escala inteira
-     perdeu contraste de novo, e `ink-400` reprovou uma segunda
-     vez, em 4,33:1 — a prova está em `testes/paleta.test.ts`.
-     Quem alterar qualquer tom aqui mede de novo. */
-  --color-ink-900: #0c0e12; /* 16,80:1 no creme, 18,48:1 na superfície · título e texto de peso */
-  --color-ink-600: #565c66; /* 5,86:1 no creme, 6,44:1 na superfície · corpo secundário */
-  --color-ink-400: #61666F; /* 5,02:1 no creme, 5,52:1 na superfície · legenda e data */
-  --color-ink-300: #8d939e; /* 2,69:1 no creme · SÓ placeholder e ícone desabilitado */
+     Os números de contraste desta escala ficam em
+     `testes/paleta.test.ts`, que lê os valores daqui e faz a
+     conta contra os três fundos claros. Nenhum número é escrito
+     ao lado do valor, porque número escrito à mão envelhece
+     sozinho: o primeiro recorte desta escala trazia razões de
+     memória, e a medição desmentiu duas. `ink-400` já reprovou
+     em AA por duas vezes, e é o tom mais apertado do sistema.
+     Quem alterar qualquer tom aqui roda o teste; a tabela
+     medida está na seção 4 da spec. */
+  --color-ink-900: #0c0e12; /* título e texto de peso */
+  --color-ink-600: #4F5661; /* corpo secundário */
+  --color-ink-400: #646B75; /* legenda e data · o mais apertado */
+  --color-ink-300: #8d939e; /* SÓ placeholder e ícone desabilitado: reprova AA de propósito, e o teste prova */
 
   /* --- FIOS: existem, mas quase não aparecem ---
      Passaram a ser a exceção, não o recurso principal de
-     separação. Quem separa agora é sombra e espaço. Os tons
-     de hoje eram frios e sumiam sobre o creme; estes são
-     creme mais escuro, e aparecem sem virar risco preto. */
-  --color-line: #E4E0D4;
-  --color-line-strong: #D8D3C4;
+     separação. Quem separa agora é sombra e espaço.
+     `line` é a borda e a divisória de repouso;
+     `line-strong` é a borda que aparece ao passar o mouse:
+     o efeito de mouse do site é borda mais escura e sombra
+     neutra, nunca outro verde. */
+  --color-line: #E5E7EB;
+  --color-line-strong: #D1D5DB;
 
   /* --- VERDE: derivado da própria marca ---
 
@@ -67,9 +73,9 @@
      segundo. Antes disto a escala era de outra família, azulada, e nenhum
      dos tons tinha relação com a marca.
 
-     As razões foram calculadas contra o creme (#F2EFE6), e `testes/paleta.test.ts`
-     as recalcula a cada rodada. Quem alterar um tom aqui não precisa lembrar
-     de medir: o teste mede. */
+     `testes/paleta.test.ts` recalcula as razões contra os fundos a cada
+     rodada. Quem alterar um tom aqui não precisa lembrar de medir: o
+     teste mede. */
   /* Onde cada verde escuro está HOJE, conferido por grep e não de memória.
      Os dois comentários anteriores descreviam um site que não é este: um
      dizia "cabeçalho", e nenhum cabeçalho é verde; o outro dizia "faixa de
@@ -80,60 +86,60 @@
      usada por Fotografia.tsx, Carrossel.tsx, EmpresasParceiras.tsx e
      UltimasNoticias.tsx) e o rodapé (components/layout/Rodape.tsx). O cabeçalho NÃO: Cabecalho.tsx
      é `bg-surface/80` e Cabeceira.tsx é `bg-surface`.
-     Creme sobre ele 15,75:1, superfície 17,33:1, acento 10,62:1. */
+     Os pares com ele estão medidos em `testes/paleta.test.ts`. */
   --color-ami-green-900: #071A07;
 
   /* A placa de iniciais do médico, de 76 a 108px (components/diretorio/Placa.tsx),
      e a ponta escura dos três degradês mascarados pela marca
      (components/base/EstadoVazio.tsx, components/base/MolduraProvisoria.tsx,
      components/layout/Cabeceira.tsx).
-     Creme sobre ele 12,92:1, superfície 14,22:1, acento 8,72:1. */
+     Os pares com ele estão medidos em `testes/paleta.test.ts`. */
   --color-ami-green-800: #0D2E0C;
-  --color-ami-green-700: #124211; /* borda e estado escuro · 10,07:1 no creme */
-  --color-ami-green-600: #1A5E18; /* AÇÃO: 6,87:1 no creme */
+  --color-ami-green-700: #124211; /* borda e estado escuro */
+  --color-ami-green-600: #1A5E18; /* AÇÃO, e a ponta escura do hover do botão */
 
   /* --- LIMA: o acento ---
 
-     Sai do mesmo #248322, clareado. NUNCA é texto sobre fundo claro: dá
-     1,48:1 no creme, invisível. Só fundo de texto escuro (`ink-900` sobre
-     ele, 11,33:1) ou marca sobre o verde — e aqui o verde precisa de nome,
-     porque são dois: 8,72:1 sobre `ami-green-800` e 10,62:1 sobre
-     `ami-green-900`. Isto é física, não preferência. */
+     Sai do mesmo #248322, clareado. NUNCA é texto sobre fundo claro:
+     fica invisível (`testes/paleta.test.ts` prova que o par reprova). Só
+     fundo de texto escuro (`ink-900` sobre ele) ou marca sobre o verde, e
+     aqui o verde precisa de nome, porque são dois: `ami-green-800` e
+     `ami-green-900`. Isto é física, não preferência.
+
+     Havia um `ami-lima-100`, o lima bem claro dos efeitos de mouse e do
+     selo "Associado AMI". Foi apagado em 03/10/2026: o cliente leu o tom
+     como amarelado e recusou "passar o mouse e ficar verde claro". O teste
+     garante que ele não volta. */
   --color-ami-lima-400: #A8D470;
 
-  /* Não é só lavagem de passagem de mouse, que era o que este comentário
-     dizia: é fundo PERMANENTE da pílula "Associado AMI"
-     (components/base/Chip.tsx), e fundo de hover em outros doze lugares.
-     Com 13 usos de `bg-`, é o fundo claro mais usado do site depois de
-     `surface`. É também o par mais apertado do sistema: `ink-400` sobre ele
-     dá 4,61:1, e `ink-900` dá 15,42:1. Medido em testes/paleta.test.ts. */
-  --color-ami-lima-100: #E2E9CC;
-
-  --color-warn: #7C5F00; /* 5,23:1 no creme, 5,75:1 na superfície · era #8a6a00, 4,41:1 no creme, abaixo do mínimo; escurecido com folga · texto de corpo, em testes/paleta.test.ts */
+  --color-warn: #7C5F00; /* texto de aviso: passa em AA nos três fundos claros, medido em testes/paleta.test.ts */
 
   /* --- FONTES --- */
   --font-corpo: var(--fonte-corpo), system-ui, sans-serif;
-  --font-titulo: var(--fonte-corpo), system-ui, sans-serif;
+  --font-titulo: var(--fonte-titulo), system-ui, sans-serif;
   --font-registro: var(--fonte-registro), ui-monospace, monospace;
 
-  /* --- RAIOS: o salto mais visível desta passagem ---
-     Eram 6px e 10px. Canto quase reto com fio de 1px é a
-     assinatura de formulário, e é metade do que fazia o
-     site parecer de 1998. */
-  --radius-controle: 12px; /* botões e campos */
-  --radius-bloco: 20px; /* cartões */
-  --radius-painel: 28px; /* painéis e superfícies grandes */
+  /* --- RAIOS ---
+     Canto quase reto com fio de 1px é a assinatura de
+     formulário. Botão agora é pílula inteira, como no desenho
+     aprovado; cartão e painel têm o canto do desenho. */
+  --radius-controle: 999px; /* botões e campos: pílula */
+  --radius-bloco: 18px; /* cartões */
+  --radius-painel: 22px; /* painéis e superfícies grandes */
   --radius-chip: 999px;
 
   /* --- ELEVAÇÃO: difusa, neutra, em camadas ---
 
-     Três camadas por sombra, de propósito: uma curta e quase
-     opaca que ancora o objeto no plano, uma média que dá o
-     volume, e uma longa e muito clara que é a luz ambiente
-     espalhada. Sombra de camada única lê como adesivo.
+     Mais de uma camada por sombra, de propósito: uma curta que
+     ancora o objeto no plano e uma longa e difusa que dá o
+     volume; a `flutuante` leva ainda uma terceira, a luz ambiente
+     espalhada. Sombra de camada única lê como adesivo. A
+     `erguido` é, camada por camada, a sombra do desenho
+     aprovado da home.
 
-     Neutra e não mais tingida de verde: com fundo neutro, o
-     tingimento virava sujeira em vez de coerência.
+     Neutra, cinza-azulada, nunca com tom de verde: o cliente
+     recusou sombra esverdeada, e `testes/base-visual.test.ts`
+     varre este arquivo atrás dela.
 
      Uma linha por sombra, por legibilidade do diff quando
      alguém ajustar uma camada. Cheguei a escrever aqui que o
@@ -145,9 +151,9 @@
      cortar a string no meio faz parecer que não há sombra
      nenhuma. Quem for medir isso de novo: leia o valor
      inteiro. */
-  --shadow-apoio: 0 1px 2px rgba(12, 14, 18, 0.04), 0 4px 12px -4px rgba(12, 14, 18, 0.06);
-  --shadow-erguido: 0 1px 2px rgba(12, 14, 18, 0.03), 0 8px 24px -8px rgba(12, 14, 18, 0.1), 0 24px 56px -24px rgba(12, 14, 18, 0.12);
-  --shadow-flutuante: 0 2px 4px rgba(12, 14, 18, 0.03), 0 16px 40px -12px rgba(12, 14, 18, 0.12), 0 48px 96px -32px rgba(12, 14, 18, 0.2);
+  --shadow-apoio: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 12px -4px rgba(16, 24, 40, 0.06);
+  --shadow-erguido: 0 1px 2px rgba(16, 24, 40, 0.04), 0 12px 32px rgba(16, 24, 40, 0.06);
+  --shadow-flutuante: 0 2px 4px rgba(16, 24, 40, 0.03), 0 16px 40px -12px rgba(16, 24, 40, 0.12), 0 48px 96px -32px rgba(16, 24, 40, 0.2);
 
   /* --- CURVAS: nada linear, nada ease-in-out ---
      `saida` freia forte no fim: o elemento chega com massa,
@@ -168,9 +174,8 @@
     background-color: var(--color-canvas);
     color: var(--color-ink-900);
     font-family: var(--font-corpo);
-    font-size: 17px;
-    line-height: 1.6;
-    letter-spacing: -0.011em;
+    font-size: 16px;
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
     /* Palavra gigante sem espaço, link longo, e-mail comprido, empurraria a
        página e criaria rolagem horizontal. */
@@ -183,14 +188,22 @@
     com a mesma urgência e nada guia o olho. Agora o salto entre display, h1 e
     h2 é grande o bastante para a hierarquia funcionar de relance.
 
-    `letter-spacing` negativo cresce com o tamanho: em corpo grande o espaço
-    entre letras aparenta aumentar sozinho, e sem a compensação o título
-    parece frouxo.
+    Os três níveis são Bricolage Grotesque em peso 500 e espaçamento de
+    -0,035em, os valores do desenho aprovado: o peso médio e o espaço apertado
+    é o que dá o ar de título editorial; um 700 aqui voltaria a ler como
+    folheto. O espaço negativo cresce com o corpo: em letra grande o vão entre
+    as letras aparenta aumentar sozinho.
+
+    O `h2` não leva `max-width` aqui, de propósito. A medida (19ch na home) é
+    decisão de cada componente; na base ela valeria para toda página do site
+    e quebraria título que não é de seção.
   */
   h1,
   h2,
   h3 {
     font-family: var(--font-titulo);
+    font-weight: 500;
+    letter-spacing: -0.035em;
     color: var(--color-ink-900);
     text-wrap: balance;
   }
@@ -198,22 +211,61 @@
   h1 {
     font-size: clamp(2.25rem, 5vw, 3.25rem);
     line-height: 1.05;
-    font-weight: 700;
-    letter-spacing: -0.035em;
   }
 
   h2 {
-    font-size: clamp(1.5rem, 2.6vw, 2rem);
-    line-height: 1.15;
-    font-weight: 650;
-    letter-spacing: -0.028em;
+    font-size: clamp(30px, 3.2vw, 42px);
+    line-height: 1.08;
   }
 
   h3 {
     font-size: 1.25rem;
     line-height: 1.3;
-    font-weight: 600;
-    letter-spacing: -0.02em;
+  }
+
+  /* Celular: o desenho aprovado desce o corpo de texto e o h2. */
+  @media (max-width: 700px) {
+    body {
+      font-size: 15.5px;
+    }
+
+    h2 {
+      font-size: 28px;
+      line-height: 1.1;
+    }
+  }
+
+  /*
+    As três réguas de espaço do site, uma para cada tamanho de tela. Os
+    componentes não escrevem número de margem: leem estas variáveis.
+
+      --m       margem interna dos blocos
+      --ritmo   espaço entre um bloco e o próximo
+      --gap     espaço entre irmãos dentro de um bloco
+
+    Computador 48/72/24px; tablet (até 980px) 28/56/16px; celular (até 700px)
+    20/32/12px. A tabela está na seção 4 da spec da reforma visual.
+  */
+  :root {
+    --m: 48px;
+    --ritmo: 72px;
+    --gap: 24px;
+  }
+
+  @media (max-width: 980px) {
+    :root {
+      --m: 28px;
+      --ritmo: 56px;
+      --gap: 16px;
+    }
+  }
+
+  @media (max-width: 700px) {
+    :root {
+      --m: 20px;
+      --ritmo: 32px;
+      --gap: 12px;
+    }
   }
 
   /*
@@ -240,6 +292,12 @@
     border-radius: 4px;
   }
 
+  /* Sobre o verde escuro o anel verde some: aqui ele é lima. */
+  .textura-verde :focus-visible,
+  footer :focus-visible {
+    outline-color: var(--color-ami-lima-400);
+  }
+
   /* Movimento só comunica estado. Quem pediu menos movimento, recebe menos. */
   @media (prefers-reduced-motion: reduce) {
     html {
@@ -262,9 +320,7 @@
 /*
   Nível de display, acima do h1.
 
-  Peso 700 e não 800: na Geist, 800 fecha demais a contraforma no corpo
-  grande e o título perde legibilidade justamente onde ele é maior. O peso
-  vem do tamanho, não da gordura da haste.
+  Peso 700: o peso vem do tamanho, não da gordura da haste.
 */
 @utility texto-placa {
   font-family: var(--font-titulo);
@@ -408,5 +464,230 @@
   .eleva:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-erguido);
+  }
+
+  /* =========================================================
+     PEÇAS COMPARTILHADAS DA REFORMA DE 03/10/2026
+
+     Transcritas do desenho aprovado da home
+     (docs/desenho-aprovado/home-aprovada.html), com a cor trocada por token
+     onde existe token. Os dois verdes do degradê do botão e do hover não têm
+     token: são os valores medidos na spec (seção 4), e o teste de paleta mede
+     o branco sobre os quatro.
+
+     Efeito de mouse nestas peças é borda mais escura, sombra neutra e
+     deslocamento de 1px; o botão principal só escurece o próprio verde.
+     Nenhum vira verde claro.
+     ========================================================= */
+
+  /* Botão principal: pílula de 48px com degradê, luz fina no topo, texto
+     branco e seta. A seta é um `svg` dentro do botão. */
+  .botao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 48px;
+    padding: 0 26px;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #2B8229 0%, #1F6B1D 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 1px 2px rgba(16, 24, 40, 0.22);
+    color: var(--color-white);
+    font-family: var(--font-corpo);
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 200ms var(--ease-resposta),
+      transform 200ms var(--ease-resposta),
+      box-shadow 200ms var(--ease-resposta);
+  }
+
+  .botao:hover {
+    background: linear-gradient(180deg, #22751F 0%, #1A5E18 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 10px 24px rgba(16, 24, 40, 0.22);
+    transform: translateY(-1px);
+  }
+
+  .botao svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    transition: transform 300ms var(--ease-saida);
+  }
+
+  .botao:hover svg {
+    transform: translateX(4px);
+  }
+
+  /* Botão secundário: pílula branca de 38px com borda fina. Ao passar o
+     mouse a borda escurece e o botão sobe 1px; não fica verde. */
+  .botao-linha {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 18px;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: var(--color-ami-green-800);
+    font-family: var(--font-corpo);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    transition:
+      border-color 250ms var(--ease-resposta),
+      box-shadow 250ms var(--ease-resposta),
+      transform 250ms var(--ease-resposta);
+  }
+
+  .botao-linha:hover {
+    border-color: var(--color-line-strong);
+    box-shadow: 0 6px 16px rgba(12, 14, 18, 0.08);
+    transform: translateY(-1px);
+  }
+
+  .botao-linha svg {
+    transition: transform 300ms var(--ease-saida);
+  }
+
+  .botao-linha:hover svg {
+    transform: translateX(4px);
+  }
+
+  /* Botão das artes do carrossel: pílula verde-limão de 48px, texto verde
+     escuro. O lima é fundo de texto escuro, nunca texto. */
+  .botao-arte {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 48px;
+    padding: 0 26px;
+    border-radius: 999px;
+    background: var(--color-ami-lima-400);
+    color: var(--color-ami-green-900);
+    font-family: var(--font-corpo);
+    font-size: 14.5px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    transition: transform 300ms var(--ease-resposta);
+  }
+
+  .botao-arte:hover {
+    transform: translateY(-2px);
+  }
+
+  .botao-arte svg {
+    flex: none;
+    transition: transform 300ms var(--ease-saida);
+  }
+
+  .botao-arte:hover svg {
+    transform: translateX(4px);
+  }
+
+  /* O rótulo pequeno em caixa alta que abre cada seção. */
+  .rotulo-secao {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ami-green-600);
+  }
+
+  /* Ladrilho cinza-claro com o ícone em verde. O ícone é um `svg` que herda
+     a cor do ladrilho. */
+  .ladrilho-icone {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: linear-gradient(150deg, #F3F4F6 0%, #FAFAFB 100%);
+    box-shadow: inset 0 0 0 1px rgba(16, 24, 40, 0.07);
+    color: var(--color-ami-green-600);
+  }
+
+  .ladrilho-icone svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .ladrilho-icone--pequeno {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+  }
+
+  .ladrilho-icone--pequeno svg {
+    width: 23px;
+    height: 23px;
+  }
+
+  /* Fundo verde com degradê, dois brilhos e grão: o bloco de busca e o
+     rodapé. Só a matéria, sem layout. O grão é um PNG pequeno repetido
+     (scripts/gerar-grao.mjs); o desenho usava um filtro SVG de ruído, que o
+     navegador redesenha a cada rolagem. As duas camadas de trás ficam em
+     z-index -1 dentro do próprio contexto de empilhamento (`isolation`), e
+     por isso o conteúdo comum do bloco fica acima delas. */
+  .textura-verde {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    color: var(--color-white);
+    background:
+      radial-gradient(60% 90% at 88% 0%, rgba(168, 212, 112, 0.2) 0%, rgba(168, 212, 112, 0) 60%),
+      radial-gradient(70% 120% at 0% 100%, rgba(36, 131, 34, 0.35) 0%, rgba(36, 131, 34, 0) 55%),
+      linear-gradient(160deg, #123F11 0%, var(--color-ami-green-800) 45%, var(--color-ami-green-900) 100%);
+  }
+
+  .textura-verde::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.22;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    background-image: url("/textura/grao.png");
+  }
+
+  .textura-verde::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: inherit;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  /* A luz que passeia devagar sobre o verde. Vai dentro de `.textura-verde`;
+     quem pede menos movimento a vê parada (regra global de movimento). */
+  .brilho {
+    position: absolute;
+    z-index: -1;
+    top: -220px;
+    right: -140px;
+    width: 560px;
+    height: 560px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(168, 212, 112, 0.24) 0%, rgba(168, 212, 112, 0) 65%);
+    animation: deriva 18s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+
+  @keyframes deriva {
+    to {
+      transform: translate(-300px, 150px) scale(1.2);
+    }
   }
 }

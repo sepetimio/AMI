@@ -113,7 +113,7 @@ export function LinhaMedico({ medico }: { medico: Medico }) {
             {local?.telefone ? (
               <a
                 href={hrefTelefone(local.telefone)}
-                className="pressiona inline-flex min-h-12 items-center rounded-controle border border-line bg-canvas px-6 text-[15px] font-semibold text-ami-green-600 hover:border-ami-green-600 hover:bg-ami-lima-100"
+                className="pressiona inline-flex min-h-12 items-center rounded-controle border border-line bg-canvas px-6 text-[15px] font-semibold text-ami-green-600 hover:border-line-strong"
               >
                 Ligar&nbsp;
                 <span className="registro">

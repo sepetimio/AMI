@@ -74,17 +74,35 @@ function corDe(nome: string): string {
   return T[nome] ?? CORES_PADRAO_TAILWIND[nome];
 }
 
-/** Todo arquivo .tsx sob app/ e components/, recursivo. */
-function telas(relativo: string): string[] {
+/** Todo arquivo com a terminação dada sob uma pasta, recursivo. */
+function arquivosCom(terminacao: string, relativo: string): string[] {
   const base = fileURLToPath(new URL(relativo, import.meta.url));
   const achados: string[] = [];
   for (const entrada of readdirSync(base, { withFileTypes: true })) {
     const caminho = `${base}/${entrada.name}`;
-    if (entrada.isDirectory()) achados.push(...telas(`${relativo}/${entrada.name}`));
-    else if (entrada.name.endsWith(".tsx")) achados.push(caminho);
+    if (entrada.isDirectory()) achados.push(...arquivosCom(terminacao, `${relativo}/${entrada.name}`));
+    else if (entrada.name.endsWith(terminacao)) achados.push(caminho);
   }
   return achados;
 }
+
+/** Todo arquivo .tsx sob app/ e components/, recursivo. */
+function telas(relativo: string): string[] {
+  return arquivosCom(".tsx", relativo);
+}
+
+/*
+  O CSS que também cita token: todo `*.module.css` sob app/ e components/,
+  mais o próprio `app/globals.css`. Um CSS Module que escreve
+  `var(--color-<token>)` para um token apagado não dá erro, o navegador só
+  descarta a declaração — a mesma classe morta que a rede abaixo já pega nos
+  `.tsx`, escondida num arquivo que ela não lia.
+*/
+const ARQUIVOS_CSS = [
+  ...arquivosCom(".module.css", "../app"),
+  ...arquivosCom(".module.css", "../components"),
+  fileURLToPath(new URL("../app/globals.css", import.meta.url)),
+];
 
 const FONTES = [...telas("../app"), ...telas("../components")]
   .map((c) => readFileSync(c, "utf8"))
@@ -151,6 +169,21 @@ describe("as listas saem do código, não da memória", () => {
     }
     expect([...new Set(orfaos)], "classe que aponta para token que não existe").toEqual([]);
   });
+
+  it("todo var(--color-x) num CSS aponta para token declarado", () => {
+    const orfaos: string[] = [];
+    for (const arquivo of ARQUIVOS_CSS) {
+      const css = readFileSync(arquivo, "utf8");
+      for (const m of css.matchAll(
+        /var\(\s*--color-(ami-[a-z0-9-]+|ink-[0-9]+|canvas|surface[a-z-]*|line[a-z-]*|warn|danger|white|black)\s*[,)]/g,
+      )) {
+        if (!T[m[1]] && !(m[1] in CORES_PADRAO_TAILWIND)) {
+          orfaos.push(`${arquivo.split(/[\\/]/).slice(-2).join("/")}: var(--color-${m[1]})`);
+        }
+      }
+    }
+    expect(orfaos, "CSS que aponta para token que não existe").toEqual([]);
+  });
 });
 
 describe("a conta", () => {
@@ -170,7 +203,6 @@ describe("os tokens existem", () => {
     "canvas",
     "surface",
     "surface-fundo",
-    "ami-lima-100",
     "ink-900",
     "ink-600",
     "ink-400",
@@ -250,9 +282,9 @@ const FUNDOS_FORA_DO_TESTE: Record<string, string> = {
 
   Exceção real, não descuido: tokens usados como texto só sobre fundo
   ESCURO (`ami-lima-400`) ficam de fora de propósito. Esta lista testa
-  contra os quatro fundos claros do sistema — medir esse token aqui
-  testaria o par errado. `ami-lima-400` dá 1,48:1 em canvas e 1,63:1 em
-  surface: não é regressão, é a física que barra esse tom como texto
+  contra os três fundos claros do sistema — medir esse token aqui
+  testaria o par errado. `ami-lima-400` dá 1,50:1 em canvas e 1,71:1 em
+  surface (medido em 03/10/2026): não é regressão, é a física que barra esse tom como texto
   sobre fundo claro. Quem usar esse token sobre fundo escuro tem um teste
   próprio contra `ami-green-800`/`ami-green-900` no describe de fundo
   escuro, mais abaixo.
@@ -260,20 +292,17 @@ const FUNDOS_FORA_DO_TESTE: Record<string, string> = {
 const TEXTO_DE_CORPO = ["ink-900", "ink-600", "ink-400", "warn", "ami-green-600", "ami-green-700"];
 
 /*
-  Os fundos, e por que são quatro e não dois.
+  Os fundos, e por que são três e não dois.
 
-  A lista era `["canvas", "surface"]`, e deixava de fora dois fundos que
-  carregam texto de verdade. A prova de que o buraco era real: apagar
-  `--color-ami-lima-100` inteiro do `@theme` deixava os 22 testes desta
-  suíte verdes, e treze classes `bg-` do site viravam nada.
+  A lista já foi `["canvas", "surface"]`, e deixava de fora um fundo que
+  carrega texto de verdade. A prova de que o buraco era real: apagar um
+  token de fundo inteiro do `@theme` deixava a suíte verde, e as classes
+  `bg-` que apontavam para ele viravam nada.
 
-  `ami-lima-100` é fundo PERMANENTE de texto em `components/base/Chip.tsx`
-  (a pílula "Associado AMI", `bg-ami-lima-100 text-ami-green-700`) e fundo
-  de passagem de mouse em outros doze lugares — 13 usos de `bg-`, mais que
-  `bg-canvas`, que tem 11. É também o par mais apertado de todo o sistema:
-  `ink-400` sobre ele dá 4,61:1, onze centésimos acima do mínimo, e o uso é
-  real (`app/(site)/associacao/page.tsx`, o cartão que muda de fundo no
-  hover).
+  O quarto fundo da lista antiga, `ami-lima-100`, deixou de existir em
+  03/10/2026: o cliente leu o tom como amarelado, e ele só aparecia em efeito
+  de mouse e no selo "Associado AMI". O describe "a base aprovada em
+  03/10/2026", mais abaixo, trava que ele não volte.
 
   `surface-fundo` é o fundo de `.moldura`, em `app/globals.css` — e aqui a
   frase exata importa, porque a fácil seria falsa: `.moldura` não é
@@ -290,9 +319,9 @@ const TEXTO_DE_CORPO = ["ink-900", "ink-600", "ink-400", "warn", "ami-green-600"
   varredura entra de outro jeito, conferindo completude: ver o describe "as
   duas listas cobrem todo token em uso".
 */
-const FUNDOS_CLAROS = ["canvas", "surface", "surface-fundo", "ami-lima-100"];
+const FUNDOS_CLAROS = ["canvas", "surface", "surface-fundo"];
 
-describe("texto sobre os quatro fundos claros", () => {
+describe("texto sobre os três fundos claros", () => {
   for (const fundo of FUNDOS_CLAROS) {
     for (const tinta of TEXTO_DE_CORPO) {
       it(`${tinta} sobre ${fundo}`, () => {
@@ -312,12 +341,13 @@ describe("texto sobre os quatro fundos claros", () => {
         precisa ler. Se um dia ele passar de 4,5:1, o motivo dele deixou de
         existir e o comentário de globals.css precisa ser revisto.
 
-        Os quatro fundos precisam da mesma checagem: `surface` é o mais
+        Os três fundos precisam da mesma checagem: `surface` é o mais
         claro deles, então é onde qualquer tom escurecido cruza o mínimo
         primeiro. Testar só `canvas` deixa passar um token que já está em
         conformidade sobre `surface` — foi o que a revisão da tarefa 1
-        mostrou mutando para `#727272`: 4,18:1 sobre canvas (ainda abaixo,
-        teste único não pega) mas 4,60:1 sobre surface (já acima).
+        mostrou mutando para `#727272`. Com os fundos de hoje, medido em
+        03/10/2026, esse mesmo tom dá 4,23:1 sobre canvas (ainda abaixo,
+        teste único não pega) mas 4,81:1 sobre surface (já acima).
       */
       expect(razaoDeContraste(T["ink-300"], T[fundo])).toBeLessThan(MINIMO);
     });
@@ -374,24 +404,24 @@ describe("texto sobre fundo escuro", () => {
     `@theme`.
   */
   /*
-    Os dois cremes sobre cada verde, e não só um.
+    Os dois fundos claros sobre cada verde, e não só um.
 
-    A spec pede "creme sobre o verde profundo", e creme é `canvas`. Este
-    arquivo media `surface`, que é o creme mais CLARO — o caso mais fácil:
-    17,33:1 contra os 15,75:1 de `canvas` sobre `ami-green-900`. Medir só o
+    A spec antiga pedia "creme sobre o verde profundo", e o creme era
+    `canvas` (hoje é o branco-gelo). Este arquivo media `surface`, que é o
+    mais CLARO — o caso mais fácil: 18,11:1 contra os 15,92:1 de `canvas`
+    sobre `ami-green-900` (medido em 03/10/2026). Medir só o
     mais fácil é o erro simétrico ao que a revisão da tarefa 1 pegou em
     `ink-300`, e o critério que o arquivo já aplica lá vale aqui: quando dois
     tons dividem o mesmo papel, mede-se o par que cruza o mínimo primeiro, e
     o outro junto, porque nenhum dos dois é hipotético.
 
-    Uso real hoje, conferido por grep em 03/10/2026: NENHUM dos dois cremes
-    aparece como letra sobre o verde — não há `text-canvas` nem
-    `text-surface` no código, e também não havia antes deste ramo. O que
-    existe é creme e verde lado a lado na mesma tela (seções em `bg-canvas`
-    e `bg-surface` coladas à faixa do topo da home e ao rodapé), e letra
-    branca e lima sobre o verde. Os pares continuam medidos porque a spec
-    pede creme sobre o verde profundo; tirá-los ou não é decisão de quem
-    cuida da paleta, não desta correção.
+    Uso real, conferido por grep em 03/10/2026: NENHUM dos dois fundos
+    claros aparece como letra sobre o verde — não há `text-canvas` nem
+    `text-surface` no código. O que existe é fundo claro e verde lado a lado
+    na mesma tela (seções em `bg-canvas` e `bg-surface` coladas à faixa do
+    topo da home e ao rodapé), e letra branca e lima sobre o verde. Os pares
+    continuam medidos porque a spec pede claro sobre o verde profundo;
+    tirá-los ou não é decisão de quem cuida da paleta, não desta correção.
   */
   /*
     `white` entrou depois — rodada de correção da tarefa 4. Não é token do
@@ -429,10 +459,10 @@ describe("texto sobre fundo escuro", () => {
 
   it("o acento nunca serve como letra sobre fundo claro", () => {
     /*
-      `ami-lima-400` sobre o creme dá pouco mais de 1:1 — invisível. Ele só
+      `ami-lima-400` sobre o fundo da página dá 1,50:1 — invisível. Ele só
       existe como fundo de texto escuro, ou como marca sobre o verde.
 
-      Esta asserção falha se alguém um dia clarear o creme ou escurecer o
+      Esta asserção falha se alguém um dia clarear o fundo ou escurecer o
       acento até o par virar legível: nesse momento a regra "nunca é letra"
       deixou de ser física e virou escolha, e o comentário que a afirma
       precisa ser revisto.
@@ -442,8 +472,8 @@ describe("texto sobre fundo escuro", () => {
 
   it("o branco nunca serve como letra sobre fundo claro", () => {
     /*
-      `white` sobre `canvas` dá 1,15:1 — quase indistinguível, o creme é
-      claro demais para o branco se destacar. Ele só existe como texto sobre
+      `white` sobre `canvas` dá 1,14:1 (medido em 03/10/2026) — quase
+      indistinguível, o fundo é claro demais para o branco se destacar. Ele só existe como texto sobre
       os dois verdes (medido acima, em PARES_ESCUROS).
 
       O que esta asserção prova, e o que ela NÃO prova: ela testa o PAR — se
@@ -465,6 +495,49 @@ describe("texto sobre fundo escuro", () => {
       revisão de código, não este arquivo.
     */
     expect(razaoDeContraste(corDe("white"), T["canvas"])).toBeLessThan(MINIMO);
+  });
+});
+
+describe("a base aprovada em 03/10/2026", () => {
+  it("os fundos sao os novos, nao o creme", () => {
+    expect(T["canvas"]).toBe("#EEF1EF");
+    expect(T["surface"]).toBe("#FFFFFF");
+    expect(T["surface-fundo"]).toBe("#F6F7F8");
+    expect(T["line"]).toBe("#E5E7EB");
+    expect(T["line-strong"]).toBe("#D1D5DB");
+  });
+
+  it("as duas tintas de apoio sao as da spec", () => {
+    expect(T["ink-600"]).toBe("#4F5661");
+    expect(T["ink-400"]).toBe("#646B75");
+  });
+
+  it("o lima-100 deixou de existir: o cliente leu como amarelado", () => {
+    expect(T["ami-lima-100"]).toBeUndefined();
+  });
+
+  it("o texto mais apertado continua passando", () => {
+    /* ink-400 sobre o fundo da pagina: 4,73:1 medido em 03/10/2026. */
+    expect(razaoDeContraste(T["ink-400"], T["canvas"])).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("branco passa nos dois extremos do degrade do botao", () => {
+    /*
+      Os quatro verdes são lidos de `.botao` e `.botao:hover` no CSS, e não
+      escritos aqui: uma lista só no teste passaria com o botão clareado a
+      olho no CSS. A segunda asserção fixa os valores da spec, para que
+      trocar um deles seja decisão e não acidente.
+    */
+    const degrades = [".botao {", ".botao:hover {"].flatMap((abre) => {
+      const ini = CSS.indexOf(abre);
+      const bloco = CSS.slice(ini, CSS.indexOf("}", ini));
+      const g = bloco.match(/linear-gradient\(180deg,\s*(#[0-9A-Fa-f]{6})\s+0%,\s*(#[0-9A-Fa-f]{6})\s+100%\)/);
+      return g ? [g[1].toUpperCase(), g[2].toUpperCase()] : [];
+    });
+    expect(degrades).toEqual(["#2B8229", "#1F6B1D", "#22751F", "#1A5E18"]);
+    for (const fundo of degrades) {
+      expect(razaoDeContraste("#FFFFFF", fundo), fundo).toBeGreaterThanOrEqual(4.5);
+    }
   });
 });
 
