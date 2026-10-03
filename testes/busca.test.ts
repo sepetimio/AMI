@@ -297,3 +297,13 @@ describe("o CSS da faixa da busca", () => {
     }
   });
 });
+
+describe("o CSS da contagem da busca", () => {
+  const css = semNotas(fonte("../components/busca/ResultadosDaBusca.module.css"));
+
+  it("a frase da ordem com 16px acima, que no alinhamento pela linha de base desce a contagem e a grade, como no desenho", () => {
+    expect(regra(base(css), ".cab")).toMatch(/align-items: baseline/);
+    expect(regra(base(css), ".ordem")).toMatch(/margin-top: 16px/);
+    expect(regra(bloco(css, "@media (max-width: 700px)"), ".ordem")).not.toMatch(/margin/);
+  });
+});

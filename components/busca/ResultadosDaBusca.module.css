@@ -19,7 +19,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Os 16px acima são o `h2 + p` do desenho: com a fileira alinhada pela linha
+   de base, eles descem a contagem 5px no computador e 11px no celular, e a
+   grade com ela. */
 .ordem {
+  margin-top: 16px;
   font-size: 14.5px;
   color: var(--color-ink-600);
 }
