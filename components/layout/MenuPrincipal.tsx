@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icone } from "@/components/base/Icone";
+import { deveFechar } from "@/lib/gaveta";
 import styles from "@/components/layout/Cabecalho.module.css";
 
 export const MENU: { rotulo: string; href: string }[] = [
@@ -62,19 +63,20 @@ export function MenuPrincipal({ children }: { children?: ReactNode }) {
     if (!aberta) return;
 
     const aoTeclar = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (deveFechar({ tipo: "tecla", tecla: e.key })) {
         setAberta(false);
         botao.current?.focus();
       }
     };
     const aoClicar = (e: MouseEvent) => {
       const alvo = e.target as Node;
-      if (botao.current?.contains(alvo) || gaveta.current?.contains(alvo)) return;
-      setAberta(false);
+      const noBotao = botao.current?.contains(alvo) ?? false;
+      const naGaveta = gaveta.current?.contains(alvo) ?? false;
+      if (deveFechar({ tipo: "clique", noBotao, naGaveta })) setAberta(false);
     };
     const estreita = window.matchMedia(`(max-width: ${LARGURA_DA_GAVETA}px)`);
     const aoLargar = () => {
-      if (!estreita.matches) setAberta(false);
+      if (deveFechar({ tipo: "largura", estreita: estreita.matches })) setAberta(false);
     };
 
     document.addEventListener("keydown", aoTeclar);
