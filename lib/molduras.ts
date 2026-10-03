@@ -74,7 +74,7 @@ export type MoldurasDaHome = {
   banners: ItemDoCarrossel[];
   /** As quatro peças "Notícia a entrar" (destaque e lista) no lugar das últimas notícias. */
   noticiasProvisorias: boolean;
-  /** A parte "Empresas parceiras da AMI" da faixa dos bairros. */
+  /** A faixa "Empresas parceiras da AMI", no fim da home. */
   parceiros: boolean;
 };
 

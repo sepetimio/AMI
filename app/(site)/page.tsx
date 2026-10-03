@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
 import styles from "@/app/(site)/inicio.module.css";
 import { UltimasNoticias } from "@/components/editorial/UltimasNoticias";
-import { BairrosEParceiros } from "@/components/home/BairrosEParceiros";
 import { Carrossel } from "@/components/home/Carrossel";
 import { EncontreUmMedico } from "@/components/home/EncontreUmMedico";
 import { NumerosDaAmi } from "@/components/home/NumerosDaAmi";
+import { Parceiros } from "@/components/home/Parceiros";
 import { SejaAssociado } from "@/components/home/SejaAssociado";
 import { SuaAmi } from "@/components/home/SuaAmi";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { AMI, anosDeAmi } from "@/lib/ami";
 import { organizationAmi } from "@/lib/seo/jsonld";
-import {
-  bairrosComContagem,
-  especialidadesComContagem,
-} from "@/lib/dados/especialidades";
+import { especialidadesComContagem } from "@/lib/dados/especialidades";
 import { buscarMedicos } from "@/lib/dados/medicos";
 import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
 import { moldurasDaHome, type TextoInstitucional } from "@/lib/molduras";
@@ -44,20 +41,20 @@ export async function generateMetadata(): Promise<Metadata> {
     title: "Associação Médica de Imperatriz",
     description:
       `${total} médicos e ${especialidades.length} especialidades em ` +
-      `Imperatriz - MA. Filtre por especialidade e bairro.`,
+      `Imperatriz - MA. Busque por nome ou especialidade.`,
     alternates: { canonical: "/" },
   };
 }
 
 /*
   A home, na ordem da spec da reforma visual (seção 6): carrossel, números,
-  a busca verde, "Sua AMI", "Seja associado" com "Quem é a AMI?", notícias,
-  bairros e parceiros. O rodapé vem do layout.
+  a busca verde, "Sua AMI", "Seja associado" com "Quem é a AMI?", notícias
+  e parceiros. O rodapé vem do layout.
 
   Os blocos são filhos diretos de um só invólucro. Os da coluna centralizada
   (carrossel, números, "Sua AMI", notícias) ganham a largura da coluna pelo
-  CSS; as faixas de ponta a ponta (a busca, "Seja associado", bairros, as
-  três com `data-faixa`) ficam com a largura da página. O espaço entre os
+  CSS; as faixas de ponta a ponta (a busca, "Seja associado" e os parceiros,
+  as três com `data-faixa`) ficam com a largura da página. O espaço entre os
   blocos é um só, `--ritmo`. As regras e o porquê estão em inicio.module.css.
 
   Cada bloco que pode faltar devolve `null` sozinho, e então não sobra nada
@@ -67,9 +64,8 @@ export default async function Home() {
   /* Mesmo raciocínio do `generateMetadata`: o total vem da contagem de
      profissionais, não da soma por especialidade, que double-conta quem tem
      mais de uma. */
-  const [especialidades, bairros, total, banners, noticias] = await Promise.all([
+  const [especialidades, total, banners, noticias] = await Promise.all([
     especialidadesComContagem(),
-    bairrosComContagem(),
     buscarMedicos().then((m) => m.length),
     bannersAtivos(),
     listarNoticias(1),
@@ -99,7 +95,6 @@ export default async function Home() {
         anos={anosDeAmi(new Date())}
         medicos={total}
         especialidades={especialidades.length}
-        bairros={bairros.length}
       />
 
       <EncontreUmMedico especialidades={especialidades} />
@@ -110,7 +105,7 @@ export default async function Home() {
 
       <UltimasNoticias provisorias={molduras.noticiasProvisorias} />
 
-      <BairrosEParceiros bairros={bairros} parceiros={molduras.parceiros} />
+      <Parceiros parceiros={molduras.parceiros} />
     </div>
   );
 }

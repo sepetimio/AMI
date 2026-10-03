@@ -98,8 +98,7 @@
      - a cor de h1, h2 e h3 (a base, mais abaixo neste arquivo), do título
        do slide com foto (components/home/Carrossel.module.css), dos números
        e dos rótulos deles (NumerosDaAmi.module.css), do título dos cartões
-       de "Quem é a AMI?" (SejaAssociado.module.css), do nome do bairro
-       (components/diretorio/LadrilhosBairros.module.css), do `.botao-linha`
+       de "Quem é a AMI?" (SejaAssociado.module.css), do `.botao-linha`
        (mais abaixo), do "Ligar" da barra do pé (BarraDoPe.module.css) e do
        item atual da gaveta do menu (Cabecalho.module.css);
      - o sublinhado do item do menu (Cabecalho.module.css, `.menu a::after`);
@@ -188,8 +187,8 @@
   }
 
   /*
-    O cabeçalho fica preso no topo: uma âncora (`#encontre`, `#por-bairro`,
-    `#sua-ami`) pararia atrás dele. Preso, ele termina a 72px do topo da
+    O cabeçalho fica preso no topo: uma âncora (`#encontre`, `#sua-ami`)
+    pararia atrás dele. Preso, ele termina a 72px do topo da
     janela no computador e no tablet e a 60px no celular (medido no
     navegador, de 375 a 1920px); a âncora para 16px abaixo disso.
 
@@ -415,7 +414,7 @@
 }
 
 /* Algarismos de largura igual, na fonte do texto: o CNPJ e os telefones do
-   rodapé, como no desenho (`.num`), e as contagens das pílulas de bairro. */
+   rodapé, como no desenho (`.num`). */
 @utility numero-tabular {
   font-variant-numeric: tabular-nums;
 }

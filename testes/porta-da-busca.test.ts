@@ -2,6 +2,7 @@ import { Writable } from "node:stream";
 import { createElement, type ReactNode } from "react";
 import { renderToPipeableStream, renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import estilosGrade from "@/components/diretorio/GradeMedicos.module.css";
 import type { Medico } from "@/lib/dados/tipos";
 
 /*
@@ -51,7 +52,7 @@ const MEDICO: Medico = {
   foto: null,
   bio: null,
   telemedicina: false,
-  associadoAmi: false,
+  associadoAmi: true,
   especialidades: [
     { nome: "Cardiologia", slug: "cardiologia", rqe: null, principal: true },
   ],
@@ -69,8 +70,13 @@ const MEDICO: Medico = {
   ],
 };
 
+/* A lista que o dublê do banco devolve: um médico só, menos no teste das
+   fotos da especialidade, que troca e devolve. */
+const banco = vi.hoisted(() => ({ medicos: [] as Medico[] }));
+banco.medicos = [MEDICO];
+
 vi.mock("@/lib/dados/medicos", () => ({
-  buscarMedicos: async () => [MEDICO],
+  buscarMedicos: async () => banco.medicos,
 }));
 vi.mock("@/lib/dados/especialidades", () => ({
   especialidadesComContagem: async () => [
@@ -82,7 +88,6 @@ vi.mock("@/lib/dados/especialidades", () => ({
     oQueFaz: null,
     quandoProcurar: null,
   }),
-  bairrosComContagem: async () => [{ nome: "Centro", slug: "centro", total: 1 }],
 }));
 
 const { EncontreUmMedico } = await import("@/components/home/EncontreUmMedico");
@@ -165,7 +170,7 @@ describe("o bloco Encontre um médico, na home", () => {
   });
 
   it("quem não sabe o nome de ninguém ainda chega ao índice", () => {
-    /* O campo não substitui `/medicos`: o índice por especialidade e bairro
+    /* O campo não substitui `/medicos`: o índice por especialidade
        é o caminho de quem não tem um nome para digitar. */
     expect(BLOCO_DA_BUSCA).toMatch(/href="\/medicos"/);
   });
@@ -193,5 +198,37 @@ describe("a página de especialidade", () => {
     /* E não passou só porque a página quebrou: o cartão do médico está lá. */
     expect(ESPECIALIDADE).toContain('href="/medico/mayara-exemplo"');
     expect(ESPECIALIDADE).toContain("MÉDICO · CRM/MA 1234");
+  });
+
+  it("mostra a grade de cartões da busca, e não a linha antiga", () => {
+    /* A linha antiga (components/diretorio/LinhaMedico.tsx) também escreve o
+       link do perfil e o CRM: com ela de volta, o teste de cima passaria.
+       Este não: a classe da grade some, e aparece o selo "Associado AMI",
+       que só a linha antiga mostra. */
+    expect(ESPECIALIDADE).toContain(`<ul class="${estilosGrade.grade}">`);
+    expect(ESPECIALIDADE).not.toContain("Associado AMI");
+  });
+
+  it("os quatro primeiros cartões baixam a foto logo; os outros esperam a rolagem", async () => {
+    /* A primeira fileira da grade (quatro no computador) fica acima da
+       dobra: com `loading="lazy"`, a foto dela chegaria atrasada. */
+    banco.medicos = [1, 2, 3, 4, 5, 6].map((n) => ({
+      ...MEDICO,
+      id: n,
+      slug: `medico-${n}`,
+      foto: `https://exemplo.test/${n}.jpg`,
+    }));
+    try {
+      const pagina = await html(
+        await PaginaEspecialidade({
+          params: Promise.resolve({ especialidade: "cardiologia" }),
+          searchParams: Promise.resolve({}),
+        }),
+      );
+      expect(pagina.match(/<img /g)).toHaveLength(6);
+      expect(pagina.match(/loading="lazy"/g)).toHaveLength(2);
+    } finally {
+      banco.medicos = [MEDICO];
+    }
   });
 });

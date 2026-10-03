@@ -3,8 +3,8 @@ import styles from "@/components/home/EmpresasParceiras.module.css";
 /*
   Os espaços dos logotipos das empresas parceiras da AMI, com o
   `.logo-vazio` do desenho aprovado: caixa tracejada com "Logotipo a
-  entrar". O título e o rótulo da parte são de `BairrosEParceiros`, que
-  monta esta grade dentro da faixa branca.
+  entrar". O título e o rótulo são de `Parceiros`, que monta esta grade na
+  faixa branca.
 
   Hoje é INTEIRA provisória: o cliente pediu, em 03/10/2026, para ver o
   lugar dos parceiros antes de ter qualquer um. São seis espaços e nenhum

@@ -1,19 +1,17 @@
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { LadrilhosBairros } from "@/components/diretorio/LadrilhosBairros";
 import { NoticiasDaHome, UltimasNoticias } from "@/components/editorial/UltimasNoticias";
-import { BairrosEParceiros } from "@/components/home/BairrosEParceiros";
+import { Parceiros } from "@/components/home/Parceiros";
 import estilosNoticias from "@/components/editorial/UltimasNoticias.module.css";
-import estilosBairros from "@/components/diretorio/LadrilhosBairros.module.css";
-import estilosFaixa from "@/components/home/BairrosEParceiros.module.css";
+import estilosFaixa from "@/components/home/Parceiros.module.css";
 import estilosParceiros from "@/components/home/EmpresasParceiras.module.css";
 import { arranjoDasNoticias, tamanhosDasCapas } from "@/lib/arranjo-das-noticias";
 import type { ResumoNoticia } from "@/lib/sanity/tipos";
 import { fonte } from "@/testes/apoio";
 
 /*
-  As notícias, os bairros e os parceiros da home, medidos no HTML de
+  As notícias e os parceiros da home, medidos no HTML de
   servidor (`renderToString`). `NoticiasDaHome` é a peça pura que desenha;
   `UltimasNoticias` só busca no Sanity, que aqui é um dublê.
 
@@ -324,107 +322,39 @@ describe("o bloco de notícias", () => {
   });
 });
 
-const BAIRROS = [
-  { nome: "Centro", slug: "centro", total: 8 },
-  { nome: "Bacuri", slug: "bacuri", total: 1 },
-];
+describe("a faixa dos parceiros", () => {
+  const com = renderToString(createElement(Parceiros, { parceiros: true }));
 
-describe("os ladrilhos de bairro", () => {
-  it("cada um leva à busca filtrada, com o nome e a contagem", () => {
-    const saida = renderToString(createElement(LadrilhosBairros, { itens: BAIRROS }));
-    const ladrilhos = [...saida.matchAll(/<a class="([^"]+)" href="([^"]+)">(.*?)<\/a>/g)].map((m) => [
-      m[1],
-      m[2],
-      visivel(m[3]),
-    ]);
-    expect(ladrilhos).toEqual([
-      [estilosBairros.bairro, "/busca?bairro=centro", ["Centro", "8 médicos"]],
-      [estilosBairros.bairro, "/busca?bairro=bacuri", ["Bacuri", "1 médico"]],
-    ]);
-    expect(saida).toMatch(new RegExp(`^<ul class="${estilosBairros.bairros}">`));
-  });
-
-  it("aceita outro destino e a nota embaixo da contagem, só onde ela existe", () => {
-    const saida = renderToString(
-      createElement(LadrilhosBairros, {
-        itens: BAIRROS,
-        href: (slug: string) => `/medicos/cardiologia/${slug}`,
-        nota: (b: { total: number }) => (b.total < 3 ? "menos de 3 profissionais" : null),
-      }),
+  it("é o bloco parceiros, faixa de ponta a ponta, nomeado pelo título, rótulo na coluna", () => {
+    const secao = /^<section [^>]*>/.exec(com)?.[0] ?? "";
+    expect(secao).toBe(
+      `<section id="parceiros" data-bloco="parceiros" data-faixa="" aria-labelledby="parceiros-titulo" class="revelar ${estilosFaixa.faixa}">`,
     );
-    const ladrilhos = [...saida.matchAll(/<a class="[^"]+" href="([^"]+)">(.*?)<\/a>/g)].map((m) => [
-      m[1],
-      visivel(m[2]),
-    ]);
-    expect(ladrilhos).toEqual([
-      ["/medicos/cardiologia/centro", ["Centro", "8 médicos"]],
-      ["/medicos/cardiologia/bacuri", ["Bacuri", "1 médico", "menos de 3 profissionais"]],
-    ]);
-    expect(vezes(saida, `class="${estilosBairros.nota}"`)).toBe(1);
-    expect(saida).not.toContain("/busca?");
-  });
-});
-
-describe("a faixa dos bairros e dos parceiros", () => {
-  const com = renderToString(createElement(BairrosEParceiros, { bairros: BAIRROS, parceiros: true }));
-  const sem = renderToString(createElement(BairrosEParceiros, { bairros: BAIRROS, parceiros: false }));
-
-  it("é o bloco bairros, com id bairros, nomeado pelo título, rótulo na coluna", () => {
-    for (const saida of [com, sem]) {
-      const secao = /^<section [^>]*>/.exec(saida)?.[0] ?? "";
-      expect(secao).toContain('id="bairros"');
-      expect(secao).toContain('data-bloco="bairros"');
-      expect(secao).toContain('aria-labelledby="bairros-titulo"');
-      /* A faixa, a marca de faixa que o rodapé lê e a entrada na tela. */
-      expect(secao).toContain(`class="revelar ${estilosFaixa.faixa}"`);
-      expect(secao).toContain('data-faixa=""');
-      expect(saida).toMatch(/<span class="rotulo-secao" data-coluna="">Onde os médicos atendem<\/span>/);
-      expect(saida).toMatch(/<h2 [^>]*id="bairros-titulo"[^>]*>Escolha o seu bairro<\/h2>/);
-    }
+    expect(com).toMatch(/<span class="rotulo-secao" data-coluna="">Empresas parceiras da AMI<\/span>/);
+    expect(com).toMatch(/<h2 [^>]*id="parceiros-titulo"[^>]*>Quem caminha com a AMI<\/h2>/);
   });
 
-  it("cada bairro com link para a busca filtrada e a contagem", () => {
-    for (const saida of [com, sem]) {
-      expect(saida).toMatch(/href="\/busca\?bairro=centro">.*?Centro.*?8 médicos/);
-      expect(saida).toMatch(/href="\/busca\?bairro=bacuri">.*?Bacuri.*?1 médico</);
-    }
-  });
-
-  it("sem parceiros, nada deles: nem título, nem espaços, nem o fio", () => {
-    expect(sem).not.toContain("Logotipo");
-    expect(sem).not.toContain("parceiros");
-    expect(sem).not.toContain("Quem caminha");
-    expect(sem).not.toContain(`class="${estilosFaixa.separa}"`);
-  });
-
-  it("com parceiros: o fio, o título e seis 'Logotipo a entrar', nessa ordem", () => {
-    const fio = com.indexOf(`<div class="${estilosFaixa.separa}" aria-hidden="true"></div>`);
+  it("seis 'Logotipo a entrar' depois do título", () => {
     const titulo = com.indexOf(">Quem caminha com a AMI</h2>");
-    expect(fio).toBeGreaterThan(com.indexOf("Bacuri"));
-    expect(titulo).toBeGreaterThan(fio);
-    expect(com).toMatch(/<section id="parceiros" aria-labelledby="parceiros-titulo">/);
-    expect(com).toMatch(/<h2 [^>]*id="parceiros-titulo"/);
     const espacos = [...com.matchAll(/<li class="([^"]+)">([^<]*)<\/li>/g)].map((m) => [m[1], m[2]]);
     expect(espacos).toEqual(Array(6).fill([estilosParceiros.logoVazio, "Logotipo a entrar"]));
     expect(com.indexOf(`<ul class="${estilosParceiros.parceiros}">`)).toBeGreaterThan(titulo);
   });
 
-  it("não escreve nome de empresa nenhuma: o texto inteiro dos parceiros", () => {
-    const parte = com.slice(com.indexOf('<section id="parceiros"'));
-    expect(visivel(parte)).toEqual([
+  it("não escreve nome de empresa nenhuma: o texto inteiro", () => {
+    expect(visivel(com)).toEqual([
       "Empresas parceiras da AMI",
       "Quem caminha com a AMI",
       ...Array<string>(6).fill("Logotipo a entrar"),
     ]);
   });
 
-  it("sem bairro nenhum, a parte dos bairros não sai; sem bairro e sem parceiros, nem a faixa", () => {
-    expect(renderToString(createElement(BairrosEParceiros, { bairros: [], parceiros: false }))).toBe("");
-    const so = renderToString(createElement(BairrosEParceiros, { bairros: [], parceiros: true }));
-    expect(so).toMatch(/^<section [^>]*aria-labelledby="parceiros-titulo"/);
-    expect(so).not.toContain("Escolha o seu bairro");
-    expect(so).not.toContain(`class="${estilosFaixa.separa}"`);
-    expect(vezes(so, "Logotipo a entrar")).toBe(6);
+  it("sem parceiros, a faixa não existe", () => {
+    expect(renderToString(createElement(Parceiros, { parceiros: false }))).toBe("");
+  });
+
+  it("nenhum bairro", () => {
+    expect(com).not.toMatch(/bairro/i);
   });
 });
 
@@ -434,8 +364,7 @@ describe("a faixa dos bairros e dos parceiros", () => {
 
 const semComentario = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, "");
 const CSS_NOTICIAS = semComentario(fonte("../components/editorial/UltimasNoticias.module.css"));
-const CSS_BAIRROS = semComentario(fonte("../components/diretorio/LadrilhosBairros.module.css"));
-const CSS_FAIXA = semComentario(fonte("../components/home/BairrosEParceiros.module.css"));
+const CSS_FAIXA = semComentario(fonte("../components/home/Parceiros.module.css"));
 const CSS_PARCEIROS = semComentario(fonte("../components/home/EmpresasParceiras.module.css"));
 const CSS_GLOBAL = fonte("../app/globals.css");
 
@@ -581,7 +510,7 @@ describe("o CSS das notícias", () => {
   });
 });
 
-describe("o CSS dos bairros e dos parceiros", () => {
+describe("o CSS dos parceiros", () => {
   it("faixa branca de ponta a ponta com a margem das faixas, sem repetir a fórmula, sem margem embaixo", () => {
     expect(regra(base(CSS_FAIXA), ".faixa")).toMatch(/padding: 96px var\(--borda-faixa\)/);
     expect(regra(base(CSS_FAIXA), ".faixa")).toMatch(/background: var\(--color-surface\)/);
@@ -590,34 +519,6 @@ describe("o CSS dos bairros e dos parceiros", () => {
     );
     expect(CSS_FAIXA).not.toContain("1240px");
     expect(regra(base(CSS_FAIXA), ".faixa")).not.toMatch(/margin/);
-    expect(regra(base(CSS_FAIXA), ".separa")).toMatch(/margin: 72px 0/);
-    expect(regra(media(CSS_FAIXA, "@media (max-width: 980px)"), ".separa")).toMatch(/margin: 48px 0/);
-  });
-
-  it("bairros em quatro colunas, contagem embaixo abaixo de 1180px, duas colunas abaixo de 980px", () => {
-    expect(regra(base(CSS_BAIRROS), ".bairros")).toMatch(/grid-template-columns: repeat\(4, 1fr\)/);
-    expect(regra(base(CSS_BAIRROS), ".bairro")).toMatch(/justify-content: space-between/);
-    expect(regra(media(CSS_BAIRROS, "@media (max-width: 1180px)"), ".bairro")).toMatch(
-      /flex-direction: column/,
-    );
-    expect(regra(media(CSS_BAIRROS, "@media (max-width: 980px)"), ".bairros")).toMatch(
-      /grid-template-columns: 1fr 1fr/,
-    );
-  });
-
-  it("a nota tem uma linha só dela, e não espreme o nome ao lado da contagem", () => {
-    /* Medido em /medicos/clinica-medica a 1440px: com a nota ao lado da
-       contagem, "Nova Imperatriz" quebrava no meio da palavra. */
-    expect(regra(base(CSS_BAIRROS), ".bairro")).toMatch(/flex-wrap: wrap/);
-    /* `.nota` aparece duas vezes (a cor é dividida com a contagem). */
-    expect(base(CSS_BAIRROS)).toMatch(/\n\.nota \{[^}]*flex-basis: 100%/);
-    expect(regra(base(CSS_BAIRROS), ".contagem")).toMatch(/flex: none/);
-    expect(regra(media(CSS_BAIRROS, "@media (max-width: 1180px)"), ".bairro")).toMatch(/flex-wrap: nowrap/);
-    /* Em coluna, o `space-between` de cima mandava a contagem para o pé do
-       ladrilho quando o vizinho de fileira tinha nota (medido a 375px). */
-    expect(regra(media(CSS_BAIRROS, "@media (max-width: 1180px)"), ".bairro")).toMatch(
-      /justify-content: flex-start/,
-    );
   });
 
   it("parceiros: seis lado a lado, três por linha abaixo de 980px e no celular, nada desliza", () => {
@@ -636,7 +537,7 @@ describe("o CSS dos bairros e dos parceiros", () => {
   it("nenhum hex, só tokens neutros e os verdes da marca", () => {
     /* O tom quente, em qualquer notação, é do teste do site inteiro
        (testes/tom-quente.test.ts). */
-    for (const css of [CSS_NOTICIAS, CSS_BAIRROS, CSS_FAIXA, CSS_PARCEIROS]) {
+    for (const css of [CSS_NOTICIAS, CSS_FAIXA, CSS_PARCEIROS]) {
       expect(css).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
       expect(css).not.toMatch(
         /--color-(?!surface\b|line\b|line-strong\b|canvas\b|white\b|ink-(?:400|600)\b|ami-green-(?:700|800|900)\b|ami-lima-400\b)[a-z0-9-]+/,
@@ -645,6 +546,6 @@ describe("o CSS dos bairros e dos parceiros", () => {
     /* O lima só entra no símbolo da notícia sem capa, sobre o verde. */
     expect(CSS_NOTICIAS.match(/ami-lima-400/g)).toHaveLength(1);
     expect(regra(base(CSS_NOTICIAS), ".semCapa::after")).toContain("ami-lima-400");
-    for (const css of [CSS_BAIRROS, CSS_FAIXA, CSS_PARCEIROS]) expect(css).not.toContain("lima");
+    for (const css of [CSS_FAIXA, CSS_PARCEIROS]) expect(css).not.toContain("lima");
   });
 });

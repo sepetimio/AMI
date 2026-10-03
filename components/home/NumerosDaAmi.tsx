@@ -6,14 +6,13 @@ import { AMI } from "@/lib/ami";
 
 /*
   Os números da AMI, logo abaixo do carrossel: sem caixa, direto no fundo da
-  página, quatro colunas separadas por fio. No celular, quatro cartõezinhos
+  página, três colunas separadas por fio. No celular, três cartõezinhos
   brancos só com ícone, número e rótulo.
 
   Os números chegam por propriedade: os anos são calculados de `lib/ami.ts`
-  (`anosDeAmi`) e os outros três saem do banco. Nenhum é escrito à mão aqui,
-  e nenhum texto de apoio afirma o que só o banco sabe: os das especialidades
-  e dos bairros, que no desenho nomeavam especialidades e bairros, dizem só
-  para que serve o botão.
+  (`anosDeAmi`) e os outros dois saem do banco. Nenhum é escrito à mão aqui,
+  e nenhum texto de apoio afirma o que só o banco sabe: o das especialidades,
+  que no desenho nomeava especialidades, diz só para que serve o botão.
 
   O bloco não tem margem própria: quem o põe na página (a home) decide o
   espaço de cima, com `--ritmo`, e o põe na coluna centralizada.
@@ -21,17 +20,18 @@ import { AMI } from "@/lib/ami";
   Entra na tela com a `.revelar` global, como no desenho. Quando os números
   já abrem na primeira tela (quase sempre), ficam parados: só o bloco que
   abre abaixo da tela anima (components/layout/Revelar.tsx).
+
+  São três: o quarto, bairros atendidos, saiu do site junto com os bairros
+  (03/10/2026).
 */
 export function NumerosDaAmi({
   anos,
   medicos,
   especialidades,
-  bairros,
 }: {
   anos: number;
   medicos: number;
   especialidades: number;
-  bairros: number;
 }) {
   const itens: {
     icone: NomeIcone;
@@ -64,14 +64,6 @@ export function NumerosDaAmi({
       apoio: "As especialidades com mais médicos no diretório da AMI.",
       botao: "Ver especialidades",
       destino: "/medicos",
-    },
-    {
-      icone: "mapa",
-      valor: bairros,
-      rotulo: bairros === 1 ? "bairro atendido" : "bairros atendidos",
-      apoio: "Encontre quem atende perto de casa.",
-      botao: "Ver bairros",
-      destino: "/medicos#por-bairro",
     },
   ];
 

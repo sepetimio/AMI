@@ -29,12 +29,9 @@ import type { Banner, ResumoNoticia } from "@/lib/sanity/tipos";
   prova: qual valor a build de produção recebeu.
 */
 
-const CENTRO = { nome: "Centro", slug: "centro", total: 4 };
-
 const dados = vi.hoisted(() => ({
   banners: [] as Banner[],
   noticias: [] as ResumoNoticia[],
-  bairros: [] as { nome: string; slug: string; total: number }[],
 }));
 
 vi.mock("@/lib/dados/especialidades", () => ({
@@ -42,7 +39,6 @@ vi.mock("@/lib/dados/especialidades", () => ({
     { nome: "Cardiologia", slug: "cardiologia", total: 3 },
     { nome: "Pediatria", slug: "pediatria", total: 2 },
   ],
-  bairrosComContagem: async () => dados.bairros,
 }));
 vi.mock("@/lib/dados/medicos", () => ({
   buscarMedicos: async () => Array.from({ length: 24 }, (_, i) => ({ id: i })),
@@ -82,12 +78,10 @@ async function renderizarHome(
   conteudo: {
     banners?: Banner[];
     noticias?: ResumoNoticia[];
-    bairros?: { nome: string; slug: string; total: number }[];
   } = {},
 ): Promise<string> {
   dados.banners = conteudo.banners ?? [];
   dados.noticias = conteudo.noticias ?? [];
-  dados.bairros = conteudo.bairros ?? [CENTRO];
   if (chave === undefined) vi.stubEnv("NEXT_PUBLIC_DADOS_DEMONSTRACAO", undefined);
   else vi.stubEnv("NEXT_PUBLIC_DADOS_DEMONSTRACAO", chave);
   vi.resetModules();
@@ -134,7 +128,6 @@ const SEMPRE = [
   'data-bloco="numeros"',
   'data-bloco="encontre"',
   'data-bloco="associe"',
-  'data-bloco="bairros"',
 ];
 
 describe("a home renderizada", () => {
@@ -157,8 +150,8 @@ describe("a home renderizada", () => {
       ">Notícia a entrar</h3>",
       ">Notícia a entrar</h3>",
       ">Notícia a entrar</h3>",
-      'data-bloco="bairros"',
       'id="parceiros"',
+      'data-bloco="parceiros"',
       ">Logotipo a entrar</li>",
     ]);
   });
@@ -209,7 +202,7 @@ describe("a home renderizada", () => {
     expect(html.match(/Ir para o banner /g) ?? []).toEqual([]);
 
     /* Notícias: a real, e nenhuma provisória. */
-    const bloco = html.slice(html.indexOf('data-bloco="noticias"'), html.indexOf('id="bairros"'));
+    const bloco = html.slice(html.indexOf('data-bloco="noticias"'), html.indexOf('id="parceiros"'));
     expect(bloco).toContain("Assembleia geral ordinária");
     expect(bloco).not.toContain("Notícia a entrar");
 
@@ -239,7 +232,7 @@ describe("as faixas de ponta a ponta e o fim da página", () => {
     visual (scripts/auditoria-visual.js) mede o espaço do último bloco ao
     rodapé (`ultimoAoRodape`).
   */
-  it("a busca, Seja associado e bairros levam data-faixa, e só eles", async () => {
+  it("a busca, Seja associado e parceiros levam data-faixa, e só eles", async () => {
     const html = await renderizarHome("true");
     expect(blocos(html).map((b) => b.nome)).toEqual([
       "carrossel",
@@ -248,12 +241,12 @@ describe("as faixas de ponta a ponta e o fim da página", () => {
       "sua-ami",
       "associe",
       "noticias",
-      "bairros",
+      "parceiros",
     ]);
     expect(blocos(html).filter((b) => b.faixa).map((b) => b.nome)).toEqual([
       "encontre",
       "associe",
-      "bairros",
+      "parceiros",
     ]);
   });
 
@@ -267,7 +260,7 @@ describe("as faixas de ponta a ponta e o fim da página", () => {
     const comRevelar = tags
       .filter((m) => /class="(?:[^"]* )?revelar[ "]/.test(m[0]))
       .map((m) => m[1]);
-    expect(comRevelar).toEqual(["numeros", "encontre", "sua-ami", "associe", "noticias", "bairros"]);
+    expect(comRevelar).toEqual(["numeros", "encontre", "sua-ami", "associe", "noticias", "parceiros"]);
   });
 
   it("o HTML do servidor não esconde nada: nenhum bloco sai com data-revelar", async () => {
@@ -289,16 +282,26 @@ describe("as faixas de ponta a ponta e o fim da página", () => {
     expect(html).toMatch(/<\/h1><section [^>]*data-bloco="carrossel"/);
   });
 
-  it("com bairros, a página termina na faixa dos bairros", async () => {
-    const html = await renderizarHome("false");
-    expect(blocos(html).at(-1)).toEqual({ nome: "bairros", faixa: true });
-    /* E nada depois dela além do fecho do invólucro. */
+  it("na demonstração, a página termina na faixa dos parceiros", async () => {
+    const html = await renderizarHome("true");
+    expect(blocos(html).at(-1)).toEqual({ nome: "parceiros", faixa: true });
     expect(html.trimEnd().endsWith("</section></div>")).toBe(true);
   });
 
-  it("fora da demonstração e sem bairro, termina nas notícias, que não são faixa", async () => {
-    const html = await renderizarHome("false", { bairros: [], noticias: [NOTICIA] });
-    expect(html).not.toContain('data-bloco="bairros"');
+  it("fora da demonstração e sem notícia, termina em Seja associado, que é faixa", async () => {
+    const html = await renderizarHome("false");
+    expect(html).not.toContain('data-bloco="parceiros"');
+    expect(blocos(html).at(-1)).toEqual({ nome: "associe", faixa: true });
+  });
+
+  it("fora da demonstração e com notícia, termina nas notícias, que não são faixa", async () => {
+    const html = await renderizarHome("false", { noticias: [NOTICIA] });
     expect(blocos(html).at(-1)).toEqual({ nome: "noticias", faixa: false });
+  });
+
+  it("nenhum bairro na home, nos dois modos", async () => {
+    for (const chave of ["true", "false"]) {
+      expect(await renderizarHome(chave), chave).not.toMatch(/bairro/i);
+    }
   });
 });

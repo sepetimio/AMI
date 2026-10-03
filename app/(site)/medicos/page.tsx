@@ -1,13 +1,9 @@
 import type { Metadata } from "next";
 import { Cabeceira } from "@/components/layout/Cabeceira";
 import { IndiceEspecialidades } from "@/components/diretorio/IndiceEspecialidades";
-import { LadrilhosBairros } from "@/components/diretorio/LadrilhosBairros";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbList } from "@/lib/seo/jsonld";
-import {
-  bairrosComContagem,
-  especialidadesComContagem,
-} from "@/lib/dados/especialidades";
+import { especialidadesComContagem } from "@/lib/dados/especialidades";
 import { buscarMedicos } from "@/lib/dados/medicos";
 import { contagem } from "@/lib/formato";
 
@@ -38,9 +34,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PaginaMedicos() {
   /* Mesmo raciocínio do `generateMetadata`: total = profissionais
      publicados, não a soma das contagens por especialidade. */
-  const [especialidades, bairros, total] = await Promise.all([
+  const [especialidades, total] = await Promise.all([
     especialidadesComContagem(),
-    bairrosComContagem(),
     buscarMedicos().then((m) => m.length),
   ]);
 
@@ -73,25 +68,12 @@ export default async function PaginaMedicos() {
       <div className="mx-auto max-w-[1200px] px-4 md:px-6">
         <section
           aria-labelledby="por-especialidade"
-          className="revelar pb-4 pt-12"
+          className="revelar pb-20 pt-12"
         >
           <h2 id="por-especialidade" className="pb-1">
             Por especialidade
           </h2>
           <IndiceEspecialidades itens={especialidades} />
-        </section>
-
-        <section
-          aria-labelledby="titulo-por-bairro"
-          id="por-bairro"
-          className="revelar pb-20 pt-12"
-        >
-          <h2 id="titulo-por-bairro" className="pb-1">
-            Por bairro
-          </h2>
-          <div className="mt-8">
-            <LadrilhosBairros itens={bairros} />
-          </div>
         </section>
       </div>
     </>

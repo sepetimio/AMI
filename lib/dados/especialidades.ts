@@ -52,26 +52,3 @@ export const especialidadePorSlug = cache(async (slug: string) => {
     quandoProcurar: data.quando_procurar as string | null,
   };
 });
-
-/** Bairros com oferta, opcionalmente dentro de uma especialidade. */
-export async function bairrosComContagem(especialidadeSlug?: string) {
-  const medicos = await buscarMedicos(
-    especialidadeSlug ? { especialidade: especialidadeSlug } : {},
-  );
-  const contagem = new Map<string, { nome: string; slug: string; total: number }>();
-
-  for (const m of medicos) {
-    /* Um médico com dois consultórios no mesmo bairro conta uma vez só. */
-    const bairrosDoMedico = new Set(m.locais.map((l) => l.bairro.slug));
-    for (const slug of bairrosDoMedico) {
-      const bairro = m.locais.find((l) => l.bairro.slug === slug)!.bairro;
-      const atual = contagem.get(slug);
-      if (atual) atual.total += 1;
-      else contagem.set(slug, { nome: bairro.nome, slug, total: 1 });
-    }
-  }
-
-  return [...contagem.values()].sort(
-    (a, b) => b.total - a.total || a.nome.localeCompare(b.nome, "pt-BR"),
-  );
-}

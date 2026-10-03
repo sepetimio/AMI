@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Fotografia } from "@/components/base/Fotografia";
 import { UltimasNoticias } from "@/components/editorial/UltimasNoticias";
 import { Carrossel } from "@/components/home/Carrossel";
-import { BairrosEParceiros } from "@/components/home/BairrosEParceiros";
+import { Parceiros } from "@/components/home/Parceiros";
 import { SejaAssociado } from "@/components/home/SejaAssociado";
 import { SuaAmi } from "@/components/home/SuaAmi";
 import { ESPACOS, espacosProvisorios, type NomeEspaco } from "@/lib/imagens";
@@ -153,12 +153,7 @@ describe("as quatro notícias provisórias", () => {
 });
 
 describe("a parte de empresas parceiras", () => {
-  const saida = html(
-    createElement(BairrosEParceiros, {
-      bairros: [{ nome: "Centro", slug: "centro", total: 8 }],
-      parceiros: true,
-    }),
-  );
+  const saida = html(createElement(Parceiros, { parceiros: true }));
   const parte = saida.slice(saida.indexOf('<section id="parceiros"'));
 
   it("tem o rótulo e o título aprovados e seis espaços de logotipo", () => {
@@ -190,7 +185,7 @@ describe("a parte de empresas parceiras", () => {
   chegar ao público no lançamento.
 
   `home()` liga a saída de `moldurasDaHome` ao carrossel, às notícias e aos
-  parceiros (dentro da faixa dos bairros), e a chave a "Sua AMI" e a "Seja
+  parceiros, e a chave a "Sua AMI" e a "Seja
   associado", que decidem sozinhos, do jeito que app/(site)/page.tsx liga. A
   página de verdade, com as mesmas peças, é renderizada em
   testes/home-renderizada.test.ts.
@@ -213,12 +208,7 @@ async function home(
       }),
     ),
     await noticias(real.publicadas, m.noticiasProvisorias),
-    html(
-      createElement(BairrosEParceiros, {
-        bairros: [{ nome: "Centro", slug: "centro", total: 8 }],
-        parceiros: m.parceiros,
-      }),
-    ),
+    html(createElement(Parceiros, { parceiros: m.parceiros })),
   ].join("\n");
 }
 

@@ -75,11 +75,11 @@ function paraDominio(linha: any): Medico {
 /**
  * Todos os profissionais visíveis, uma vez por requisição.
  *
- * Envolvido em `cache` do React de propósito. Uma página de faceta chama a
- * camada de dados cinco vezes — para o título, para o resumo, para a lista
- * filtrada, para os bairros e para as especialidades relacionadas. Sem isto,
- * seriam cinco varreduras da tabela inteira e cinco mapeamentos completos na
- * mesma renderização. Com `cache`, é uma só, e as outras quatro reaproveitam.
+ * Envolvido em `cache` do React de propósito. Uma página de especialidade
+ * chama a camada de dados três vezes — para o título, para a lista e para as
+ * especialidades relacionadas. Sem isto, seriam três varreduras da tabela
+ * inteira e três mapeamentos completos na mesma renderização. Com `cache`, é
+ * uma só, e as outras duas reaproveitam.
  *
  * Sem argumento de propósito: `cache` compara argumentos por identidade, e
  * dois objetos de filtro iguais mas distintos furariam a memoização. Filtrar

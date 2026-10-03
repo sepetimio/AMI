@@ -128,7 +128,6 @@ describe("o rodape renderizado", () => {
       ["Sua AMI", "/#sua-ami"],
       ["Buscar", "/busca"],
       ["Especialidades", "/medicos"],
-      ["Bairros", "/busca"],
     ]);
   });
 
@@ -142,10 +141,10 @@ describe("o rodape renderizado", () => {
   });
 
   it("as listas longas de especialidades e bairros sairam: so os links contados", async () => {
-    /* 8 nas colunas, os telefones, o Instagram e 3 legais. Uma lista de
+    /* 7 nas colunas, os telefones, o Instagram e 3 legais. Uma lista de
        especialidades ou de bairros de volta passaria desse número. */
     const { rodape } = await renderizar("true");
-    expect(links(rodape)).toHaveLength(8 + AMI.telefones.length + 1 + 3);
+    expect(links(rodape)).toHaveLength(7 + AMI.telefones.length + 1 + 3);
     expect(rodape).toContain('href="/medicos"');
   });
 

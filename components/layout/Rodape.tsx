@@ -12,11 +12,10 @@ import styles from "@/components/layout/Rodape.module.css";
   sumiria. No lugar, o nome da associação em texto, que é legível e
   acessível, o que uma imagem não seria.
 
-  As listas de todas as especialidades e de todos os bairros saíram daqui, como
-  no desenho aprovado: o rodapé ficaria uma parede de texto, e elas deixam de
-  ser lidas à toa a cada página. A ligação interna não se perde:
-  "Especialidades" leva ao índice `/medicos`, que lista as especialidades e os
-  bairros, e "Bairros" leva a `/busca`, onde os bairros são pílulas.
+  A lista de todas as especialidades saiu daqui, como no desenho aprovado: o
+  rodapé ficaria uma parede de texto. "Especialidades" leva ao índice
+  `/medicos`. Os bairros saíram do site em 03/10/2026, e com eles o link
+  "Bairros".
 
   O espaço de cima é `--ritmo`, menos quando a página termina numa faixa de
   ponta a ponta (um bloco com `data-faixa`): aí o rodapé emenda nela, sem
@@ -56,7 +55,6 @@ export function Rodape() {
             </h2>
             <Link href="/busca">Buscar</Link>
             <Link href="/medicos">Especialidades</Link>
-            <Link href="/busca">Bairros</Link>
           </nav>
 
           <div className={styles.coluna}>

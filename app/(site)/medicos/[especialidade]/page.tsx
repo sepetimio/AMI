@@ -3,18 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Cabeceira } from "@/components/layout/Cabeceira";
 import { GradeMedicos } from "@/components/diretorio/GradeMedicos";
-import { LadrilhosBairros } from "@/components/diretorio/LadrilhosBairros";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbList, comoItensDeLista, itemList } from "@/lib/seo/jsonld";
-import {
-  MINIMO_PARA_INDEXAR,
-  facetaEhIndexavel,
-  paragrafoDeAbertura,
-  resumirFaceta,
-} from "@/lib/dados/facetas";
+import { paragrafoDeAbertura, resumirFaceta } from "@/lib/dados/facetas";
 import { buscarMedicos } from "@/lib/dados/medicos";
 import {
-  bairrosComContagem,
   especialidadePorSlug,
   especialidadesComContagem,
 } from "@/lib/dados/especialidades";
@@ -73,9 +66,8 @@ export default async function PaginaEspecialidade({ params }: Props) {
   const { especialidade } = await params;
   const esp = await especialidadePorSlug(especialidade);
 
-  const [todosDaEspecialidade, bairros, relacionadas] = await Promise.all([
+  const [todosDaEspecialidade, relacionadas] = await Promise.all([
     buscarMedicos({ especialidade }),
-    bairrosComContagem(especialidade),
     especialidadesComContagem(),
   ]);
   /*
@@ -133,12 +125,13 @@ export default async function PaginaEspecialidade({ params }: Props) {
       <div className="mx-auto max-w-[1200px] px-4 md:px-6">
       {/* A grade de cartões da busca, sem filtro: a página já é a
           especialidade, e os filtros de bairro, telemedicina, acessibilidade
-          e associados saíram do site. */}
+          e associados saíram do site. Os quatro primeiros cartões, a primeira
+          fileira no computador, baixam a foto logo, como na busca. */}
       <section aria-labelledby="medicos-da-especialidade" className="py-10">
         <h2 id="medicos-da-especialidade" className="sr-only">
           {`Médicos de ${esp.nome}`}
         </h2>
-        <GradeMedicos medicos={medicos} />
+        <GradeMedicos medicos={medicos} imediatos={4} />
       </section>
 
       {/* Conteúdo informativo com autoria creditada: sem isso, um site de
@@ -190,20 +183,7 @@ export default async function PaginaEspecialidade({ params }: Props) {
           Navegação relacionada
         </h2>
 
-        <h3>{esp.nome} por bairro</h3>
-        <div className="mt-5">
-          <LadrilhosBairros
-            itens={bairros}
-            href={(slug) => `/medicos/${especialidade}/${slug}`}
-            /* O usuário merece saber que a página existe mesmo quando é
-               pequena demais para entrar no índice de busca. */
-            nota={(b) =>
-              facetaEhIndexavel(b.total)
-                ? null
-                : `menos de ${MINIMO_PARA_INDEXAR} profissionais`
-            }
-          />
-        </div>   <h3 className="mt-10">Outras especialidades</h3>
+        <h3>Outras especialidades</h3>
         <ul className="mt-3 flex flex-wrap gap-2">
           {relacionadas
             .filter((e) => e.slug !== especialidade)

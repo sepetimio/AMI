@@ -40,7 +40,7 @@ const ORDEM = [
   "<SuaAmi",
   "<SejaAssociado",
   "<UltimasNoticias",
-  "<BairrosEParceiros",
+  "<Parceiros",
 ];
 
 /*
@@ -164,6 +164,6 @@ describe("a home", () => {
     expect(HOME).toContain("<SuaAmi demonstracao={DADOS_DEMONSTRACAO}");
     expect(HOME).toMatch(/<SejaAssociado\s+demonstracao=\{DADOS_DEMONSTRACAO\}/);
     expect(HOME).toContain("<UltimasNoticias provisorias={molduras.noticiasProvisorias}");
-    expect(HOME).toContain("<BairrosEParceiros bairros={bairros} parceiros={molduras.parceiros}");
+    expect(HOME).toContain("<Parceiros parceiros={molduras.parceiros}");
   });
 });

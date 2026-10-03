@@ -6,7 +6,7 @@ import { Breadcrumb, type ItemTrilha } from "@/components/layout/Breadcrumb";
   cliente a recusou, e as duas abrem com o desenho delas.
 
   Sangra de borda a borda, como as faixas de ponta a ponta da home (a busca
-  verde, "Seja associado", bairros e parceiros). O fundo é a superfície
+  verde, "Seja associado", os parceiros). O fundo é a superfície
   clara, o título é um h1 comum, e o símbolo da AMI entra em máscara sobre o
   degradê de marca, a 5% de opacidade — o mesmo recurso de EstadoVazio.tsx e
   MolduraProvisoria.tsx.

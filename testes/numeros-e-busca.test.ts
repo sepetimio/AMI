@@ -236,12 +236,12 @@ describe("o contador ligado ao navegador", () => {
 });
 
 describe("os numeros", () => {
-  const html = renderToString(createElement(NumerosDaAmi, { anos: 51, medicos: 24, especialidades: 14, bairros: 8 }));
+  const html = renderToString(createElement(NumerosDaAmi, { anos: 51, medicos: 24, especialidades: 14 }));
   it("saem com o valor final no HTML (sem JavaScript, o numero certo ja esta la)", () => {
-    for (const n of ["51", "24", "14", "8"]) expect(html).toContain(`>${n}<`);
+    for (const n of ["51", "24", "14"]) expect(html).toContain(`>${n}<`);
   });
   it("com os rotulos aprovados", () => {
-    for (const r of ["anos de AMI", "médicos no diretório", "especialidades", "bairros atendidos"]) expect(html).toContain(r);
+    for (const r of ["anos de AMI", "médicos no diretório", "especialidades"]) expect(html).toContain(r);
   });
   it("marca o bloco para a auditoria", () => {
     expect(html).toContain('data-bloco="numeros"');
@@ -257,32 +257,29 @@ describe("os numeros", () => {
       ["51", "anos de AMI"],
       ["24", "médicos no diretório"],
       ["14", "especialidades"],
-      ["8", "bairros atendidos"],
     ]);
   });
 
-  it("os quatro botoes, com seus destinos, nesta ordem", () => {
+  it("os tres botoes, com seus destinos, nesta ordem", () => {
     const botoes = [...html.matchAll(/<a class="botao-linha" href="([^"]+)">([^<]+)<\/a>/g)].map((m) => [m[2], m[1]]);
     expect(botoes).toEqual([
       ["Conheça a história", "/associacao"],
       ["Ver os médicos", "/busca"],
       ["Ver especialidades", "/medicos"],
-      ["Ver bairros", "/medicos#por-bairro"],
     ]);
   });
 
-  it("os icones selo, estetoscopio, batimento e mapa, nesta ordem", () => {
-    const posicoes = (["selo", "estetoscopio", "batimento", "mapa"] as const).map((nome) =>
+  it("os icones selo, estetoscopio e batimento, nesta ordem", () => {
+    const posicoes = (["selo", "estetoscopio", "batimento"] as const).map((nome) =>
       html.indexOf(renderToString(createElement(LadrilhoIcone, { nome }))),
     );
     for (const p of posicoes) expect(p).toBeGreaterThan(-1);
     expect([...posicoes].sort((a, b) => a - b)).toEqual(posicoes);
   });
 
-  it("o ano de fundacao vem de lib/ami.ts; os bairros nao sao escritos a mao", () => {
+  it("o ano de fundacao vem de lib/ami.ts, e nenhum bairro aparece", () => {
     expect(html).toContain(`Em atividade desde ${AMI.fundadaEm}, reunindo`);
-    expect(html).toContain("Encontre quem atende perto de casa.");
-    expect(html).not.toContain("Vila Lobão");
+    expect(html).not.toMatch(/bairro/i);
   });
 
   it("o ano do texto muda junto com o de lib/ami.ts", async () => {
@@ -295,7 +292,7 @@ describe("os numeros", () => {
     });
     try {
       const { NumerosDaAmi: ComOutroAno } = await import("@/components/home/NumerosDaAmi");
-      const h = renderToString(createElement(ComOutroAno, { anos: 1, medicos: 1, especialidades: 1, bairros: 1 }));
+      const h = renderToString(createElement(ComOutroAno, { anos: 1, medicos: 1, especialidades: 1 }));
       expect(h).toContain("Em atividade desde 1999, reunindo");
     } finally {
       vi.doUnmock("@/lib/ami");
@@ -318,17 +315,17 @@ describe("os numeros", () => {
   });
 
   it("no singular quando o banco devolve um", () => {
-    const um = renderToString(createElement(NumerosDaAmi, { anos: 51, medicos: 1, especialidades: 1, bairros: 1 }));
+    const um = renderToString(createElement(NumerosDaAmi, { anos: 51, medicos: 1, especialidades: 1 }));
     const rotulos = [...um.matchAll(new RegExp(`<div class="${estilosNum.rotulo}">([^<]+)<`, "g"))].map((m) => m[1]);
-    expect(rotulos).toEqual(["anos de AMI", "médico no diretório", "especialidade", "bairro atendido"]);
+    expect(rotulos).toEqual(["anos de AMI", "médico no diretório", "especialidade"]);
   });
 });
 
 describe("o CSS dos numeros", () => {
   const css = semNotas(CSS_NUM);
 
-  it("no computador, quatro colunas com fio entre elas e os botoes no pe da coluna", () => {
-    expect(regra(base(css), ".numeros")).toMatch(/grid-template-columns:\s*repeat\(4, 1fr\)/);
+  it("no computador, tres colunas com fio entre elas e os botoes no pe da coluna", () => {
+    expect(regra(base(css), ".numeros")).toMatch(/grid-template-columns:\s*repeat\(3, 1fr\)/);
     expect(regra(base(css), ".numero")).toMatch(/border-left:\s*1px solid var\(--color-line-strong\)/);
     expect(regra(base(css), ".numero :global(.botao-linha)")).toMatch(/margin-top:\s*auto/);
   });
@@ -338,17 +335,21 @@ describe("o CSS dos numeros", () => {
     expect(regra(base(css), ".numero")).not.toMatch(/background|box-shadow/);
   });
 
-  it("no tablet, dois por linha", () => {
-    expect(regra(bloco(css, "@media (max-width: 980px)"), ".numeros")).toMatch(/grid-template-columns:\s*1fr 1fr/);
+  it("no tablet, continuam tres por linha, com o fio entre eles", () => {
+    expect(bloco(css, "@media (max-width: 980px)")).not.toMatch(/grid-template-columns/);
+    expect(bloco(css, "@media (max-width: 980px)")).not.toMatch(/border-left:\s*0/);
   });
 
-  it("no celular, quatro cartoezinhos brancos sem descricao e sem botao", () => {
+  it("no celular, tres cartoezinhos brancos, o terceiro na largura toda", () => {
     const cel = bloco(css, "@media (max-width: 700px)");
     expect(regra(cel, ".numeros")).toMatch(/grid-template-columns:\s*1fr 1fr/);
     const cartao = regra(cel, ".numero,\n  .numero:first-child,\n  .numero:last-child");
     expect(cartao).toMatch(/background:\s*var\(--color-surface\)/);
     expect(cartao).toMatch(/box-shadow:\s*var\(--shadow-erguido\)/);
     expect(regra(cel, ".apoio,\n  .numero :global(.botao-linha)")).toMatch(/display:\s*none/);
+    /* `:last-child` junto: o terceiro só ocupa a linha toda quando sobra
+       sozinho nela. Com um quarto número, ele volta a dividir a linha. */
+    expect(regra(cel, ".numero:nth-child(3):last-child")).toMatch(/grid-column:\s*1 \/ -1/);
   });
 });
 

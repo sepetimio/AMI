@@ -5,9 +5,9 @@
   centralizada é a largura do próprio bloco, e as faixas de ponta a ponta
   (`data-faixa`) ficam com a largura da página. Assim nenhum invólucro fica
   vazio quando um bloco devolve `null` (o carrossel sem banner, "Sua AMI"
-  fora da demonstração, as notícias sem publicação, os bairros sem bairro), e
-  o último elemento da página é sempre o último bloco que existe, que é o
-  que a regra do rodapé pergunta (components/layout/Rodape.module.css).
+  fora da demonstração, as notícias sem publicação, os parceiros fora da
+  demonstração), e o último elemento da página é sempre o último bloco que
+  existe, que é o que a regra do rodapé pergunta (components/layout/Rodape.module.css).
 
   O `100%` de `--borda-faixa`, no padding das faixas, vale a largura de
   `.home`, que é a da página: nem `.home` nem o `<main>` têm margem lateral.

@@ -1,9 +1,8 @@
 /*
-  A faixa branca dos bairros e dos parceiros, transcrita do desenho aprovado
+  A faixa branca dos parceiros, transcrita do desenho aprovado
   (docs/desenho-aprovado/home-aprovada.html: `.faixa-branca`,
-  `.faixa-branca .cab-secao`, `.separa`, e os @media de 980 e 700px). A
-  grade dos bairros é de components/diretorio/LadrilhosBairros.module.css;
-  a dos parceiros, de components/home/EmpresasParceiras.module.css.
+  `.faixa-branca .cab-secao`, e os @media de 980 e 700px). A grade dos
+  parceiros é de components/home/EmpresasParceiras.module.css.
 
   Faixa de ponta a ponta: sem canto nem sombra, e a margem lateral é
   `--borda-faixa` (app/globals.css). Sem margem embaixo: o rodapé emenda.
@@ -22,20 +21,10 @@
   margin-top: 14px;
 }
 
-.separa {
-  height: 1px;
-  margin: 72px 0;
-  background: var(--color-line);
-}
-
 @media (max-width: 980px) {
   .faixa {
     padding-top: 64px;
     padding-bottom: 64px;
-  }
-
-  .separa {
-    margin: 48px 0;
   }
 }
 
