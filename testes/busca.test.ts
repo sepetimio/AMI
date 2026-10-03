@@ -196,13 +196,13 @@ describe("o formulário ligado ao navegador", () => {
   const LISTA = FORM.slice(FORM.indexOf("<select"), FORM.indexOf("</select>"));
 
   it("enviar não recarrega nem rola: vai para o endereço montado pelos filtros", () => {
-    expect(FORM).toMatch(/onSubmit=\{\(e\) => \{\s*e\.preventDefault\(\);\s*ir\(e\.currentTarget\);/);
-    expect(FORM).toContain("router.push(enderecoDaBusca(filtrosDaQuery(campos)), { scroll: false });");
+    expect(FORM).toMatch(/onSubmit=\{\(e\) => \{\s*e\.preventDefault\(\);\s*ir\(valores\);/);
+    expect(FORM).toContain("router.push(enderecoDosValores(novos), { scroll: false });");
     expect(FORM.match(/router\.push\(/g)).toHaveLength(1);
   });
 
   it("trocar a lista já busca; digitar no campo, não", () => {
-    expect(LISTA).toMatch(/onChange=\{\(e\) => \{[^}]*\}\);\s*ir\(e\.currentTarget\.form!\);\s*\}\}/);
+    expect(LISTA).toContain("onChange={(e) => ir({ ...valores, especialidade: e.currentTarget.value })}");
     expect(CAMPO).toContain("onChange=");
     expect(CAMPO).not.toContain("ir(");
     expect(FORM.match(/onChange/g)).toHaveLength(2);
@@ -211,15 +211,19 @@ describe("o formulário ligado ao navegador", () => {
   it("o formulário não é remontado a cada busca: quem usa teclado não perde o foco", () => {
     /* Uma `key` que muda com a URL troca o campo e a lista por elementos
        novos, e o foco cai no <body>. Os dois são controlados e acompanham a
-       URL ajustando o estado durante a renderização. */
+       URL ajustando o estado durante a renderização. O que mostrar quando a
+       URL muda é de `valoresAposNavegar`, testada como função em
+       testes/formulario-da-busca.test.ts; aqui só a ligação dela e de
+       `aoEnviar` ao componente. */
     const uso = FAIXA.slice(FAIXA.indexOf("<FormularioDaBusca"), FAIXA.indexOf("/>", FAIXA.indexOf("<FormularioDaBusca")));
     expect(uso).not.toContain("key=");
     expect(CAMPO).toContain("value={valores.termo}");
     expect(LISTA).toContain("value={valores.especialidade}");
     expect(FORM).not.toContain("defaultValue");
     expect(FORM).toMatch(
-      /if \(daUrl\.termo !== termo \|\| daUrl\.especialidade !== especialidade\) \{\s*setDaUrl\(\{ termo, especialidade \}\);\s*setValores\(\{ termo, especialidade \}\);\s*\}/,
+      /if \(estado\.daUrl\.termo !== termo \|\| estado\.daUrl\.especialidade !== especialidade\) \{\s*setEstado\(valoresAposNavegar\(estado, \{ termo, especialidade \}\)\);\s*\}/,
     );
+    expect(FORM).toContain("setEstado((atual) => aoEnviar(atual, novos));");
   });
 });
 

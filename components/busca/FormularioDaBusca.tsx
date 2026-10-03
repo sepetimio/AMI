@@ -5,8 +5,14 @@ import { useRouter } from "next/navigation";
 import { Icone } from "@/components/base/Icone";
 import campo from "@/components/home/EncontreUmMedico.module.css";
 import styles from "@/components/busca/FaixaDaBusca.module.css";
-import { enderecoDaBusca, filtrosDaQuery } from "@/lib/dados/urlFiltros";
 import type { OpcaoDeEspecialidade } from "@/lib/encontre";
+import {
+  aoEnviar,
+  enderecoDosValores,
+  estadoInicial,
+  valoresAposNavegar,
+  type ValoresDaBusca,
+} from "@/lib/formulario-da-busca";
 
 /*
   O formulário da busca: o campo "Nome ou especialidade" e a lista "Todas
@@ -15,8 +21,8 @@ import type { OpcaoDeEspecialidade } from "@/lib/encontre";
   É um formulário HTML de verdade, GET para `/busca`: sem JavaScript, o
   "Buscar" envia, e o "Aplicar" de dentro do <noscript> envia a lista. Com
   JavaScript, enviar e trocar a lista vão para o endereço montado por
-  `enderecoDaBusca` (lib/dados/urlFiltros.ts), sem os campos vazios na URL,
-  e sem rolar a página. Digitar no campo não busca nada: a busca é do
+  `enderecoDosValores` (lib/formulario-da-busca.ts), sem os campos vazios na
+  URL, e sem rolar a página. Digitar no campo não busca nada: a busca é do
   servidor e fica no endereço.
 
   O formulário nunca é remontado: o campo e a lista continuam os mesmos
@@ -25,8 +31,9 @@ import type { OpcaoDeEspecialidade } from "@/lib/encontre";
   Por isso os dois são controlados, e acompanham a URL pelo padrão do React
   de guardar a prop anterior e ajustar o estado durante a renderização
   (react.dev, "Storing information from previous renders"): quando `termo`
-  ou `especialidade` mudam (o × do filtro, o voltar do navegador), os
-  valores mostrados passam a ser os da URL.
+  ou `especialidade` mudam, `valoresAposNavegar` decide o que mostrar. A URL
+  de um envio anterior ao último, que chega depois da escolha nova, não
+  volta a lista; o × do filtro e o voltar do navegador, sim.
 */
 export function FormularioDaBusca({
   termo,
@@ -38,16 +45,15 @@ export function FormularioDaBusca({
   opcoes: OpcaoDeEspecialidade[];
 }) {
   const router = useRouter();
-  const [valores, setValores] = useState({ termo, especialidade });
-  const [daUrl, setDaUrl] = useState({ termo, especialidade });
-  if (daUrl.termo !== termo || daUrl.especialidade !== especialidade) {
-    setDaUrl({ termo, especialidade });
-    setValores({ termo, especialidade });
+  const [estado, setEstado] = useState(() => estadoInicial({ termo, especialidade }));
+  if (estado.daUrl.termo !== termo || estado.daUrl.especialidade !== especialidade) {
+    setEstado(valoresAposNavegar(estado, { termo, especialidade }));
   }
+  const { valores } = estado;
 
-  const ir = (formulario: HTMLFormElement) => {
-    const campos = Object.fromEntries(new FormData(formulario)) as Record<string, string>;
-    router.push(enderecoDaBusca(filtrosDaQuery(campos)), { scroll: false });
+  const ir = (novos: ValoresDaBusca) => {
+    setEstado((atual) => aoEnviar(atual, novos));
+    router.push(enderecoDosValores(novos), { scroll: false });
   };
 
   return (
@@ -59,7 +65,7 @@ export function FormularioDaBusca({
       className={styles.filtros}
       onSubmit={(e) => {
         e.preventDefault();
-        ir(e.currentTarget);
+        ir(valores);
       }}
     >
       <div className={`${campo.campo} ${styles.campo}`}>
@@ -72,7 +78,10 @@ export function FormularioDaBusca({
           name="termo"
           type="search"
           value={valores.termo}
-          onChange={(e) => setValores({ ...valores, termo: e.currentTarget.value })}
+          onChange={(e) => {
+            const texto = e.currentTarget.value;
+            setEstado((atual) => ({ ...atual, valores: { ...atual.valores, termo: texto } }));
+          }}
           placeholder="Nome ou especialidade"
           enterKeyHint="search"
           autoComplete="off"
@@ -87,10 +96,7 @@ export function FormularioDaBusca({
         <select
           name="especialidade"
           value={valores.especialidade}
-          onChange={(e) => {
-            setValores({ ...valores, especialidade: e.currentTarget.value });
-            ir(e.currentTarget.form!);
-          }}
+          onChange={(e) => ir({ ...valores, especialidade: e.currentTarget.value })}
         >
           <option value="">Todas as especialidades</option>
           {opcoes.map((o) => (
