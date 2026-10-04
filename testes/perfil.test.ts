@@ -207,12 +207,38 @@ describe("onde atende", () => {
     const secao = trecho(html, 'id="onde-atende"');
     expect(secao.match(/<article /g)).toHaveLength(2);
     expect(tela(secao)).toContain("Nova Imperatriz Rua Projetada 114, 198 Nova Imperatriz, Imperatriz – MA (99) 3018-9994");
-    expect(secao).toContain('aria-label="Ligar para o consultório de Nova Imperatriz"');
-    expect(secao).toContain('aria-label="WhatsApp do consultório de Juçara"');
+    expect(secao).toContain('aria-label="Ligar para o consultório em Rua Projetada 114, 198"');
+    expect(secao).toContain('aria-label="WhatsApp do consultório em Rua Projetada 117, 219"');
     expect(secao).toContain(
       'href="https://www.google.com/maps/search/?api=1&amp;query=Rua%20Projetada%20114%2C%20198%2C%20Nova%20Imperatriz%2C%20Imperatriz%20%E2%80%93%20MA"',
     );
-    expect(secao).toContain('aria-label="Como chegar ao consultório de Juçara (abre o mapa)"');
+    expect(secao).toContain('aria-label="Como chegar ao consultório em Rua Projetada 117, 219 (abre o mapa)"');
+  });
+
+  it("dois consultórios no mesmo bairro: títulos e nomes dos botões diferentes", async () => {
+    const html = await perfil({
+      ...ALINE,
+      locais: [
+        local(1, "Centro", "Rua Coronel Manoel Bandeira", "1200", "(99) 3018-9994"),
+        local(2, "Centro", "Avenida Getúlio Vargas", "80", "(99) 3023-0707"),
+      ],
+    });
+    const resto = trecho(html, 'id="onde-atende"');
+    const secao = resto.slice(0, resto.indexOf("</section>"));
+    const titulos = [...secao.matchAll(/<h3>([^<]*)<\/h3>/g)].map((m) => m[1]);
+    expect(titulos).toEqual(["Centro (1)", "Centro (2)"]);
+    const nomes = [...secao.matchAll(/aria-label="([^"]*)"/g)].map((m) => m[1]);
+    expect(nomes).toHaveLength(6);
+    expect(new Set(nomes).size).toBe(6);
+    expect(nomes).toContain("Ligar para o consultório em Rua Coronel Manoel Bandeira, 1200");
+    expect(nomes).toContain("Ligar para o consultório em Avenida Getúlio Vargas, 80");
+  });
+
+  it("sem logradouro nem número: o endereço começa no bairro, sem linha vazia, e os botões nomeiam pelo título", async () => {
+    const html = await perfil({ ...ALINE, locais: [local(1, "Centro", " ", "", "(99) 3018-9994")] });
+    const secao = trecho(html, 'id="onde-atende"');
+    expect(secao).toContain("<address>Centro, Imperatriz – MA</address>");
+    expect(secao).toContain('aria-label="Ligar para o consultório de Centro"');
   });
 
   it("o WhatsApp de cada cartão abre o número daquele consultório, com o 55 uma vez só", async () => {
@@ -225,10 +251,10 @@ describe("onde atende", () => {
     });
     const secao = trecho(html, 'id="onde-atende"');
     expect(secao).toContain(
-      '<a class="botao-contorno" href="https://wa.me/5599981189994" aria-label="WhatsApp do consultório de Nova Imperatriz">',
+      '<a class="botao-contorno" href="https://wa.me/5599981189994" aria-label="WhatsApp do consultório em Rua Projetada 114, 198">',
     );
     expect(secao).toContain(
-      '<a class="botao-contorno" href="https://wa.me/559930230707" aria-label="WhatsApp do consultório de Juçara">',
+      '<a class="botao-contorno" href="https://wa.me/559930230707" aria-label="WhatsApp do consultório em Rua Projetada 117, 219">',
     );
   });
 

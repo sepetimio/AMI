@@ -13,7 +13,7 @@ import { AMI } from "@/lib/ami";
   empresas parceiras (o quarto era bairros atendidos, que saiu do site com
   os bairros em 03/10/2026). O das parceiras pode faltar: com `parceiras`
   nulo, que é o que `moldurasDaHome` (lib/molduras.ts) dá fora da
-  demonstração quando não há nenhuma cadastrada, ficam três. O contêiner
+  demonstração quando não há nenhuma cadastrada, ou zero, ficam três. O contêiner
   diz quantos são em `data-quantos`, e o CSS desenha cada caso por ele.
 
   Os números chegam por propriedade: os anos são calculados de `lib/ami.ts`
@@ -77,7 +77,8 @@ export function NumerosDaAmi({
     },
   ];
 
-  if (parceiras !== null) {
+  /* Zero conta como falta: "0 empresas parceiras" não é número para mostrar. */
+  if (parceiras !== null && parceiras > 0) {
     itens.push({
       icone: "parceria",
       valor: parceiras,

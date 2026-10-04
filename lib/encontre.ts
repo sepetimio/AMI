@@ -76,19 +76,54 @@ export function telefoneDoCartao(m: Pick<Medico, "locais">): string | null {
   return null;
 }
 
-/** O endereço em duas linhas, como o cartão do consultório mostra. */
+/* Os pedaços aparados e sem os vazios, separados por vírgula: um campo em
+   branco não deixa ", " sobrando. */
+function juntar(pedacos: (string | null)[]): string {
+  return pedacos
+    .map((p) => p?.trim() ?? "")
+    .filter(Boolean)
+    .join(", ");
+}
+
+/**
+ * O endereço em duas linhas, como o cartão do consultório mostra. Campo em
+ * branco some; sem logradouro nem número, a primeira linha fica vazia ("").
+ */
 export function enderecoDoLocal(
   l: Pick<LocalAtendimento, "logradouro" | "numero" | "bairro">,
 ): [string, string] {
-  return [
-    [l.logradouro, l.numero].filter(Boolean).join(", "),
-    `${l.bairro.nome}, Imperatriz – MA`,
-  ];
+  return [juntar([l.logradouro, l.numero]), juntar([l.bairro.nome, "Imperatriz – MA"])];
+}
+
+/**
+ * O título de cada cartão de "Onde atende": o bairro. Dois ou mais
+ * consultórios no mesmo bairro levam o número, na ordem da lista
+ * ("Centro (1)", "Centro (2)"), para os títulos não ficarem iguais.
+ */
+export function titulosDosConsultorios(locais: Pick<LocalAtendimento, "bairro">[]): string[] {
+  const nomes = locais.map((l) => l.bairro.nome.trim());
+  const vistos = new Map<string, number>();
+  return nomes.map((nome) => {
+    if (nomes.filter((n) => n === nome).length < 2) return nome;
+    const n = (vistos.get(nome) ?? 0) + 1;
+    vistos.set(nome, n);
+    return `${nome} (${n})`;
+  });
+}
+
+/**
+ * Como os botões de um consultório o nomeiam para o leitor de tela: pela
+ * primeira linha do endereço ("em Rua Projetada 114, 198"), que distingue
+ * dois consultórios no mesmo bairro; sem ela, pelo título do cartão. "em", e
+ * não "na": serve a rua, avenida, conjunto ou residencial.
+ */
+export function nomeDoConsultorio(primeiraLinha: string, titulo: string): string {
+  return primeiraLinha ? `em ${primeiraLinha}` : `de ${titulo}`;
 }
 
 /** "Como chegar": a busca do Google Maps pelo endereço, sem chave nem serviço novo. */
 export function linkDoMapa(l: Pick<LocalAtendimento, "logradouro" | "numero" | "bairro">): string {
-  const endereco = enderecoDoLocal(l).join(", ");
+  const endereco = juntar(enderecoDoLocal(l));
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco)}`;
 }
 

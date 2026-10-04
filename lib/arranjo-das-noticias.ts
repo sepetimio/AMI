@@ -42,9 +42,10 @@ export function arranjoDasNoticias(quantas: number): Arranjo | null {
   segue o CSS de components/editorial/UltimasNoticias.module.css e as
   réguas de app/globals.css:
 
-    largura da coluna de notícias (W) = caixa (até 1240px, menos 24px de
-    cada lado; 12px no celular) menos `--m` de cada lado (48px; 28px até
-    980px; 20px até 700px):
+    largura da coluna de notícias (W) = coluna (`--coluna`, até 1192px,
+    com `--folga-da-coluna` de 24px de cada lado; 12px no celular) menos
+    `--m` de cada lado (48px; 28px até 980px; 20px até 700px). O `sizes`
+    não lê variável de CSS, por isso os números vão escritos:
       a partir de 1240px   1096px
       981 a 1239px         100vw - 144px
       701 a 980px          100vw - 104px

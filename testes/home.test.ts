@@ -61,11 +61,10 @@ function regra(css: string, seletor: string): string {
   return css.slice(ini, css.indexOf("}", ini));
 }
 
-/** O que vem depois de `@media (max-width: 700px) {`: o último bloco do arquivo. */
-function noCelular(css: string): string {
-  const ini = css.indexOf("@media (max-width: 700px) {");
-  expect(ini, "falta o @media (max-width: 700px)").toBeGreaterThan(-1);
-  return css.slice(ini);
+/** Uma régua em px do primeiro `:root` de app/globals.css, o do computador. */
+function regua(nome: string): number {
+  const raiz = /:root\s*\{([^}]*)\}/.exec(CSS_GLOBAL)?.[1] ?? "";
+  return Number(new RegExp(`${nome}:\\s*(\\d+)px;`).exec(raiz)?.[1]);
 }
 
 describe("o CSS da home", () => {
@@ -96,13 +95,16 @@ describe("o CSS da home", () => {
     ]);
   });
 
-  it("a coluna e a caixa de 1240px com 24px de folga (12px no celular)", () => {
+  it("a coluna e a caixa de 1240px com 24px de folga (12px no celular), pelas réguas de app/globals.css", () => {
     const coluna = regra(CSS_HOME, ".home > [data-bloco]:not([data-faixa])");
-    expect(coluna).toMatch(/width:\s*min\(100% - 48px, 1192px\);/);
+    expect(coluna).toMatch(/width:\s*min\(100% - 2 \* var\(--folga-da-coluna\), var\(--coluna\)\);/);
     expect(coluna).toMatch(/margin-inline:\s*auto;/);
-    expect(regra(noCelular(CSS_HOME), ".home > [data-bloco]:not([data-faixa])")).toMatch(
-      /width:\s*calc\(100% - 24px\);/,
-    );
+    /* O celular não tem regra própria: a folga é que muda, no :root. */
+    expect(CSS_HOME).not.toContain("@media");
+    expect(regua("--coluna")).toBe(1192);
+    expect(regua("--folga-da-coluna")).toBe(24);
+    const raizDoCelular = /@media \(max-width: 700px\) \{\s*:root\s*\{([^}]*)\}/.exec(CSS_GLOBAL)?.[1] ?? "";
+    expect(raizDoCelular).toMatch(/--folga-da-coluna:\s*12px;/);
   });
 
   it("a coluna menos --m dos dois lados e a largura que o sizes das capas usa", () => {
@@ -113,7 +115,7 @@ describe("o CSS da home", () => {
        depois, dentro de @media). */
     const m = Number(/:root\s*\{[^}]*--m:\s*(\d+)px;/.exec(CSS_GLOBAL)?.[1]);
     expect(m, "falta o --m do :root em app/globals.css").toBeGreaterThan(0);
-    const coluna = Number(/min\(100% - 48px, (\d+)px\)/.exec(CSS_HOME)?.[1]);
+    const coluna = regua("--coluna");
     const capas = tamanhosDasCapas(arranjoDasNoticias(1)!).destaque;
     const w = Number(/\(min-width: 1240px\) (\d+)px/.exec(capas)?.[1]);
     expect(w).toBe(1096);

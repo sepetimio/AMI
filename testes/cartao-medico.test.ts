@@ -231,6 +231,17 @@ describe("o CSS do cartão e da grade", () => {
     expect(SIZES_DO_CARTAO.endsWith(", 280px")).toBe(true);
   });
 
+  it("o sizes do cartão conta com a coluna das réguas de app/globals.css", () => {
+    /* 4 por linha com --gap de 24px dentro de `--coluna`, e a coluna cheia a
+       partir de `--coluna` mais a folga dos dois lados. Se a régua mudar sem
+       o sizes, o navegador baixa a foto no tamanho errado. */
+    const raiz = /:root\s*\{([^}]*)\}/.exec(semNotas(fonte("../app/globals.css")))?.[1] ?? "";
+    const coluna = Number(/--coluna:\s*(\d+)px;/.exec(raiz)?.[1]);
+    const folga = Number(/--folga-da-coluna:\s*(\d+)px;/.exec(raiz)?.[1]);
+    expect(SIZES_DO_CARTAO.endsWith(`, ${(coluna - 3 * 24) / 4}px`)).toBe(true);
+    expect(SIZES_DO_CARTAO).toContain(`(max-width: ${coluna + 2 * folga}px) calc((100vw - ${2 * folga + 3 * 24}px) / 4)`);
+  });
+
   it("as iniciais em Bricolage, na cor lima, no tamanho que quem usa decide", () => {
     const r = regra(base(CSS_FOTO), ".iniciais");
     expect(r).toMatch(/font-family: var\(--font-titulo\)/);

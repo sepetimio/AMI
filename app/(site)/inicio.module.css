@@ -42,17 +42,11 @@
 /*
   A coluna dos blocos que não são faixa: a caixa de 1240px do desenho, com
   24px de folga de cada lado (12px no celular), a mesma do cabeçalho
-  (components/layout/Cabecalho.module.css, `.caixa`). Se mudar, mude também
-  `tamanhosDasCapas` (lib/arranjo-das-noticias.ts), que conta com estas
-  medidas para o `sizes` das capas das notícias.
+  (components/layout/Cabecalho.module.css, `.caixa`). As medidas são as
+  réguas `--coluna` e `--folga-da-coluna` de app/globals.css, que dizem
+  também quem mais conta com elas.
 */
 .home > [data-bloco]:not([data-faixa]) {
-  width: min(100% - 48px, 1192px);
+  width: min(100% - 2 * var(--folga-da-coluna), var(--coluna));
   margin-inline: auto;
-}
-
-@media (max-width: 700px) {
-  .home > [data-bloco]:not([data-faixa]) {
-    width: calc(100% - 24px);
-  }
 }

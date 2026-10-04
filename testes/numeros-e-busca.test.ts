@@ -372,13 +372,18 @@ describe("os numeros com as empresas parceiras", () => {
     expect(rotulos.at(-1)).toBe("empresa parceira");
   });
 
-  it("zero parceiras e um numero, e nao a falta dele", () => {
-    /* `moldurasDaHome` nunca manda 0 (sem cadastro, manda 6 ou null), mas o
-       componente só some com o quarto número quando recebe null. */
+  it("zero parceiras conta como falta: tres numeros, sem 0 empresas parceiras", () => {
+    /* `moldurasDaHome` nunca manda 0 (sem cadastro, manda 6 ou null), mas,
+       se mandar, o componente não desenha "0 empresas parceiras". */
     const zero = renderToString(
       createElement(NumerosDaAmi, { anos: 51, medicos: 24, especialidades: 14, parceiras: 0 }),
     );
-    expect(zero).toContain('data-quantos="4"');
+    const nulo = renderToString(
+      createElement(NumerosDaAmi, { anos: 51, medicos: 24, especialidades: 14, parceiras: null }),
+    );
+    expect(zero).toBe(nulo);
+    expect(zero).toContain('data-quantos="3"');
+    expect(zero).not.toContain("parceira");
   });
 });
 

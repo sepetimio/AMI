@@ -312,12 +312,28 @@
     bloco que contém o elemento — na faixa e no rodapé, a página inteira. O
     `var(--m)` de dentro, ao contrário, é lido aqui mesmo, no `:root`, que é
     o único lugar onde `--m` muda.
+
+    E a coluna dos blocos que não são faixa, a caixa de 1240px do desenho:
+
+      --coluna            a largura máxima dela, 1192px (os 1240 menos a
+                          folga dos dois lados)
+      --folga-da-coluna   o mínimo que sobra de cada lado dela: 24px, 12px
+                          no celular
+
+    Leem estas duas a home (app/(site)/inicio.module.css) e as páginas de
+    "Encontre um médico" (app/(site)/encontre.module.css). O `sizes` das
+    imagens não lê variável de CSS: `tamanhosDasCapas`
+    (lib/arranjo-das-noticias.ts) e `SIZES_DO_CARTAO`
+    (components/diretorio/CartaoMedico.tsx) escrevem os mesmos números e
+    citam estas duas. Se mudarem aqui, mudam lá.
   */
   :root {
     --m: 48px;
     --ritmo: 72px;
     --gap: 24px;
     --borda-faixa: max(calc(24px + var(--m)), calc((100% - 1240px) / 2 + 24px + var(--m)));
+    --coluna: 1192px;
+    --folga-da-coluna: 24px;
   }
 
   @media (max-width: 980px) {
@@ -334,6 +350,7 @@
       --ritmo: 32px;
       --gap: 12px;
       --borda-faixa: calc(12px + var(--m));
+      --folga-da-coluna: 12px;
     }
   }
 

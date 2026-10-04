@@ -247,16 +247,15 @@ describe("o CSS da coluna e do ritmo da busca e do perfil", () => {
     expect(css.match(/margin-top:[^;]*;/g)).toEqual(["margin-top: var(--ritmo);"]);
   });
 
-  it("a coluna é a caixa de 1240px com 24px de folga, e a faixa fica fora dela", () => {
+  it("a coluna é a da home, pelas réguas de app/globals.css, e a faixa fica fora dela", () => {
     const coluna = regra(base(css), ".pagina > [data-bloco]:not([data-faixa])");
-    expect(coluna).toMatch(/width: min\(100% - 48px, 1192px\);/);
+    expect(coluna).toMatch(/width: min\(100% - 2 \* var\(--folga-da-coluna\), var\(--coluna\)\);/);
     expect(coluna).toMatch(/margin-inline: auto;/);
   });
 
-  it("no celular, 12px de folga de cada lado", () => {
-    expect(regra(bloco(css, "@media (max-width: 700px)"), ".pagina > [data-bloco]:not([data-faixa])")).toMatch(
-      /width: calc\(100% - 24px\);/,
-    );
+  it("no celular, sem regra própria: a folga de 12px vem da régua", () => {
+    /* `--folga-da-coluna` é 12px abaixo de 700px (testes/home.test.ts). */
+    expect(css).not.toContain("@media");
   });
 });
 

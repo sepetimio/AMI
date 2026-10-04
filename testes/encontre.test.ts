@@ -8,12 +8,14 @@ import {
   iniciais,
   linkDoMapa,
   linkDoWhatsapp,
+  nomeDoConsultorio,
   numeroPreenchido,
   opcoesDeEspecialidade,
   outrosMedicos,
   paragrafosDaBio,
   telefoneDoCartao,
   textoDaContagem,
+  titulosDosConsultorios,
 } from "@/lib/encontre";
 import * as contato from "@/lib/contato";
 import type { LocalAtendimento, Medico } from "@/lib/dados/tipos";
@@ -137,6 +139,32 @@ describe("o endereço e os links do consultório", () => {
         "Rua%20Projetada%20114%2C%20198%2C%20Nova%20Imperatriz%2C%20Imperatriz%20%E2%80%93%20MA",
     );
   });
+  it("campo com espaço nas pontas sai aparado, e campo em branco não deixa vírgula sobrando", () => {
+    const solto = local(1, " Centro ", { logradouro: "  Rua Projetada 114 ", numero: " 198 " });
+    expect(enderecoDoLocal(solto)).toEqual(["Rua Projetada 114, 198", "Centro, Imperatriz – MA"]);
+    expect(enderecoDoLocal(local(1, "Centro", { numero: "  " }))[0]).toBe("Rua Projetada 114");
+    expect(enderecoDoLocal(local(1, "Centro", { logradouro: " ", numero: "198" }))[0]).toBe("198");
+    expect(enderecoDoLocal(local(1, "Centro", { logradouro: "", numero: null }))[0]).toBe("");
+    expect(enderecoDoLocal(local(1, " ", { numero: null }))[1]).toBe("Imperatriz – MA");
+  });
+  it("Como chegar sem logradouro nem número: o endereço começa no bairro, sem vírgula na frente", () => {
+    expect(linkDoMapa(local(1, "Centro", { logradouro: " ", numero: null }))).toBe(
+      "https://www.google.com/maps/search/?api=1&query=Centro%2C%20Imperatriz%20%E2%80%93%20MA",
+    );
+    expect(linkDoMapa(local(1, " Centro ", { logradouro: " Rua A ", numero: "" }))).toBe(
+      "https://www.google.com/maps/search/?api=1&query=Rua%20A%2C%20Centro%2C%20Imperatriz%20%E2%80%93%20MA",
+    );
+  });
+  it("os títulos dos cartões: o bairro, numerado quando dois ou mais são do mesmo", () => {
+    expect(titulosDosConsultorios([local(1, "Centro"), local(2, "Juçara")])).toEqual(["Centro", "Juçara"]);
+    expect(
+      titulosDosConsultorios([local(1, "Centro"), local(2, "Juçara"), local(3, "Centro "), local(4, "Centro")]),
+    ).toEqual(["Centro (1)", "Juçara", "Centro (2)", "Centro (3)"]);
+  });
+  it("o nome do consultório nos botões: a primeira linha do endereço, ou o título sem ela", () => {
+    expect(nomeDoConsultorio("Rua Projetada 114, 198", "Centro (1)")).toBe("em Rua Projetada 114, 198");
+    expect(nomeDoConsultorio("", "Centro (2)")).toBe("de Centro (2)");
+  });
   it("WhatsApp: wa.me/55 e o número só com dígitos", () => {
     expect(linkDoWhatsapp("(99) 3018-9994")).toBe("https://wa.me/559930189994");
     expect(linkDoWhatsapp("99 98802 0205")).toBe("https://wa.me/5599988020205");
@@ -192,6 +220,14 @@ describe("outros médicos", () => {
     const copia = [...todos];
     outrosMedicos(aline, todos);
     expect(todos).toEqual(copia);
+  });
+  it("o limite passado vale no lugar dos 4", () => {
+    expect(outrosMedicos(aline, todos, 2).map((m) => m.nome)).toEqual(["Álvaro Dias", "Bruna Reis"]);
+    expect(outrosMedicos(aline, todos, 1).map((m) => m.nome)).toEqual(["Álvaro Dias"]);
+  });
+  it("do lado do perfil, só a principal conta: quem tem Neurologia como secundária vê os cardiologistas", () => {
+    const dora = medico("Dora Alves", "Cardiologia");
+    expect(outrosMedicos(secundaria, [...todos, dora]).map((m) => m.nome)).toEqual(["Dora Alves"]);
   });
 });
 
