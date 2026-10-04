@@ -38,7 +38,11 @@ import { fileURLToPath } from "node:url";
    e `testes/pagina-de-especialidade.test.ts` renderizam `/medicos` e uma
    especialidade, com `htmlDe` e as fontes de dados (o banco e o Sanity)
    trocadas por dublês; `testes/blocos-da-especialidade.test.ts`, os três
-   blocos da página da especialidade, com `renderToString`. */
+   blocos da página da especialidade, com `renderToString`.
+   `testes/modelo-de-texto.test.ts`, `testes/seja-associado.test.ts`,
+   `testes/diretoria-na-tela.test.ts` e `testes/associacao.test.ts`
+   renderizam as páginas de A Associação e as de texto com `htmlDe`, com o
+   Sanity, a diretoria e o banco trocados por dublês. */
 export default defineConfig({
   test: {
     include: ["testes/**/*.test.ts"],

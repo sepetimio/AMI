@@ -27,12 +27,21 @@ Detalhes em `docs/superpowers/specs/2026-10-03-associacao-design.md`. Desenho e 
 
 1. **Página "A Associação":** a ordem dos blocos e o título "Desde 1975 com os médicos de Imperatriz".
 2. **Diretoria:** a presidente vem em primeiro, sem cartão maior. O botão se chama "Ver a diretoria".
-3. **Mandato da diretoria:** o banco já tem as colunas de início e fim do mandato, vazias. Por enquanto o site não as lê, e o mandato aparece só no modo demonstração, como moldura. Preenchidas, viram "Gestão 2025–2027" numa etapa à parte.
+3. **Mandato da diretoria:** o banco já tem as colunas de início e fim do mandato (`mandato_inicio` e `mandato_fim`, na tabela `diretoria`), vazias. Por enquanto o site não as lê, e não criei campo novo: o período aparece só no modo demonstração, como moldura "Gestão (período a entrar)". Preenchidas, viram "Gestão 2025–2027" numa etapa à parte.
 4. **"Saiba mais":** um atalho só aparece se a página existir. "Benefícios" ficou de fora.
 5. **Modelo das páginas de texto:** faixa verde, corpo branco em coluna de leitura e o índice "Nesta página". Ele serve também para os textos legais. Cada página tem seu ícone; a lista está na spec.
 6. **Seja associado:** o botão de WhatsApp fica de fora até a AMI confirmar o número. Os dados da entidade passam a aparecer em lista, e não mais em frase corrida.
 7. **Números 01/02/03 de Missão, visão e valores:** ficam no cinza escuro legível que a home já usa.
 8. **Aviso de "página provisória":** passou de âmbar para cinza neutro.
+9. **Diretoria em destaque:** a página A Associação mostra os quatro primeiros da diretoria, na ordem da AMI. A lista inteira fica em "Ver a diretoria".
+10. **"Saiba mais" no modo demonstração:** Estatuto e Política editorial aparecem com a etiqueta "texto a entrar", sem link, porque as páginas ainda não existem.
+11. **Textos legais:** levam o link "← Início" no alto. A data diz "Atualizado em", como no desenho, e não mais "Rascunho de"; o quadro logo abaixo continua dizendo que é rascunho.
+12. **O que falta nos rascunhos:** o que estava marcado "[PROVISÓRIO]" sai em cinza e itálico, sem a marca. Em Seja associado (a anuidade), só no modo demonstração, e some fora dele. Na política de privacidade (o encarregado de dados e o prazo de guarda), nos dois modos (ver "Decisões que valem para várias páginas", item 3). O documento para o advogado continua com a marca.
+13. **Ícones:** Política editorial com o ícone de artigo, como no desenho (a spec falava em caneta ou jornal); privacidade com o escudo com o visto.
+14. **Índice "Nesta página" no tablet:** abaixo de 980px ele fica recolhido no alto do texto, como no celular. O desenho só o desenhava abaixo de 700px.
+15. **Números da faixa verde de A Associação:** sem a contagem animada da home.
+16. **Frase da diretoria:** "Quem responde pela associação. Cada nome traz o número de inscrição no CRM.", a do desenho, mais curta que a de antes.
+17. **Foto da sede a entrar:** a tarja diz "Fotografia a entrar: Fachada da sede da AMI", o mesmo nome do pedido de foto.
 
 ## Grupos 4 e 5: Notícias e Contato
 

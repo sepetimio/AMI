@@ -1,6 +1,6 @@
 # Estado do projeto — Site da Associação Médica de Imperatriz
 
-> Atualizado em 3 de outubro de 2026 · ramo `paginas-encontre` (a reforma visual, fatia B, grupos 1 e 2), feito a partir de `redesign-visual` (fatia A); nada vai para a `main` até todas as páginas estarem reformadas
+> Atualizado em 4 de outubro de 2026 · ramo `paginas-encontre` (a reforma visual, fatia B, grupos 1, 2 e 3), feito a partir de `redesign-visual` (fatia A); nada vai para a `main` até todas as páginas estarem reformadas
 > Repositório: `github.com/sepetimio/AMI`
 > Especificação: [`docs/superpowers/specs/2026-08-19-site-ami-diretorio-design.md`](superpowers/specs/2026-08-19-site-ami-diretorio-design.md)
 
@@ -355,13 +355,167 @@ a contagem na mesma linha em cada fileira.
 6. **O contraste do parágrafo da especialidade**, mais largo que o texto da busca: ficaria
    decidido subir a opacidade do texto se desse menos de 4,5:1. Deu 4,84:1, e nada mudou
 
+### A Associação — fatia B, grupo 3 (a página institucional, a diretoria e as páginas de texto)
+
+Feito no ramo `paginas-encontre`, em 03 e 04/10/2026. O cliente estava fora e autorizou seguir
+pelas recomendações; o desenho foi aprovado contra as diretrizes já aprovadas:
+[`docs/desenho-aprovado/associacao/`](desenho-aprovado/associacao/). Decisões em
+[`docs/superpowers/specs/2026-10-03-associacao-design.md`](superpowers/specs/2026-10-03-associacao-design.md);
+as tomadas sem o cliente, em [`docs/decisoes-sem-o-cliente.md`](decisoes-sem-o-cliente.md).
+
+**O que mudou no site**
+
+- **`/associacao`, `/associacao/diretoria`, Seja associado e os três textos legais novos**, sem
+  a Cabeceira cinza, sem trilha e sem `BreadcrumbList`
+- **A Associação**: a faixa verde com os três números (anos, médicos e especialidades);
+  "Quem somos" com a sede, "Como chegar" e o telefone; Missão, visão e valores; a diretoria em
+  destaque; "Saiba mais"; e o convite para se associar
+- **A diretoria** nos cartões da busca, com o cargo acima do nome e "Ver perfil"
+- **As páginas de texto num modelo só**: faixa verde curta, corpo numa coluna de leitura,
+  índice "Nesta página" (à direita no computador, recolhido no alto abaixo de 980px) e o aviso
+  de rascunho em cinza neutro. No rascunho, o telefone, o CNPJ e o CEP no meio do texto não quebram no meio
+- **Seja associado** com o quadro "Fale com a AMI" e os dados da entidade em lista
+- **Nenhum "[PROVISÓRIO]" na tela**: o que falta nos rascunhos aparece como "a entrar", em
+  cinza e itálico, só no modo demonstração. Nos textos legais, aparece nos dois modos (ver
+  "Decisões que valem para várias páginas" em [`docs/decisoes-sem-o-cliente.md`](decisoes-sem-o-cliente.md))
+- **A `Cabeceira` e o `Breadcrumb`** continuam só no contato e nas notícias; a `Placa` saiu
+- **Toda moldura "a entrar" do site leva a marca `data-a-entrar`** no HTML, também na home
+  (os logotipos e as notícias) e no "Sobre" das especialidades, sem mudar nenhum pixel. É por
+  ela que a auditoria conta as molduras
+
+**O que a AMI precisa saber**
+
+- **"Saiba mais"** mostra Estatuto e Política editorial só quando a página existir no Studio
+- **Fora do modo demonstração**, o que a AMI ainda não entregou some da página em vez de
+  aparecer vazio: a apresentação, a foto da sede, Missão, visão e valores e o período da gestão
+- **O WhatsApp** entra em "Fale com a AMI" quando a AMI confirmar o número
+
+**Pendências do cliente** (os passos 1 a 3 pedem a conta do Sanity; os outros, uma resposta
+da AMI)
+
+1. **A apresentação oficial.** Abrir o site em `/studio` e entrar com a conta do Sanity. Na
+   coluna da esquerda, clicar em **Página institucional** e, no alto da lista, no botão de
+   criar documento novo. Preencher:
+   - **Título**: "A Associação Médica de Imperatriz";
+   - **Endereço**: `associacao` (a ajuda do campo diz "A Associação (texto da apresentação)");
+   - **Resumo**: de 60 a 220 caracteres; aparece na busca do Google;
+   - **Atualizado em**: a data do texto;
+   - **Texto**: a apresentação.
+
+   Depois, clicar em **Publicar**. Abrir `/associacao`: o texto aparece em "Quem somos", no
+   lugar de "Texto da AMI a entrar.".
+2. **Estatuto e Política editorial.** Os mesmos passos do item 1, com **Endereço**
+   `estatuto` e, depois, `politica-editorial`. Publicada, cada página ganha o link em
+   "Saiba mais", em `/associacao`.
+3. **O webhook.** Em [sanity.io/manage](https://www.sanity.io/manage), clicar no projeto da
+   AMI, depois em **API** e, nela, em **Webhooks**. Abrir o webhook que aponta para o site e
+   olhar o campo **Filter** (o painel do Sanity é em inglês):
+   - vazio: nada a fazer;
+   - com uma lista de tipos: conferir que `"paginaInstitucional"` está nela, acrescentar se
+     não estiver e salvar na própria tela do webhook. Sem isso, a página publicada demora até
+     uma hora para aparecer.
+4. **A foto da sede.** Pedir à AMI a foto descrita em `lib/imagens.ts` (`ESPACOS.sede`, campo
+   `precisa`): a fachada da sede, ou uma reunião da diretoria, horizontal, com pelo menos
+   1600px de largura. Quem receber salva o arquivo em `public/imagens/sede-ami.jpg` e troca
+   `provisoria` para `false` no mesmo lugar.
+5. **Missão, visão e valores.** Pedir à AMI os três textos. Eles entram em `lib/molduras.ts`
+   (`TEXTO_INSTITUCIONAL`), e aparecem na home e em A Associação.
+6. **O texto da anuidade.** Pedir à AMI o valor da anuidade, os benefícios e os critérios de
+   admissão. Eles entram pelo Studio, como no item 1, com **Endereço** `seja-associado`: o
+   texto publicado substitui o rascunho inteiro, então ele precisa trazer também o que o
+   rascunho já diz.
+7. **O período da gestão** da diretoria atual: a data de início e a de fim do mandato. Ver a
+   dúvida 1, abaixo.
+8. **O WhatsApp:** perguntar à AMI se o celular (99) 98802-0205 atende por WhatsApp.
+9. **O encarregado de dados** da política de privacidade: a AMI precisa designar a pessoa (o
+   artigo 41 da Lei 13.709/2018 exige) e informar o nome e o contato. Eles entram no texto
+   revisado pelo advogado, publicado no Studio como no item 1, com **Endereço**
+   `politica-de-privacidade`. Até lá, a frase que pede o encarregado aparece em cinza e
+   itálico, como tudo o que falta nos rascunhos.
+
+**Próximo passo de código** (não depende do cliente): o banco já tem as colunas
+`mandato_inicio` e `mandato_fim` na tabela `diretoria`, vazias, e o site ainda não as lê.
+Preenchidas, a pílula da faixa da diretoria vira "Gestão 2025–2027", numa tarefa pequena que
+precisa decidir de qual linha sai o período (a da presidência, por exemplo).
+
+**Os números medidos** (produção, `next build` + `next start`, com
+`scripts/auditoria-visual.js`, nas oito larguras de 375 a 1920px; cada número abaixo saiu de
+uma rodada de 04/10/2026). Nenhum problema nas 88 rodadas com a chave de demonstração ligada
+(as seis páginas do grupo e, para conferir que nada voltou atrás, `/`, `/busca`, `/medicos`,
+`/medicos/cardiologia` e `/contato`), nem nas 48 refeitas nas seis páginas do grupo depois das
+correções, nem nas 32 com ela desligada (`/associacao`, `/associacao/diretoria`, Seja
+associado e a política de privacidade). A auditoria agora confere também os atalhos de "Saiba
+mais" (a mesma altura, e o título e a seta na mesma linha, em cada fileira) e o índice "Nesta
+página" (rolando até cada título, o item dele fica marcado).
+
+| Largura | Espaço entre blocos | Coluna do texto | Logotipo | Fileiras de cartões de diretor | Fileiras de atalhos |
+|---|---|---|---|---|---|
+| 375, 390, 430 | 32px | 32px | 28px | 4 | 3 |
+| 768 | 56px | 52px | 52px | 2 | 2 |
+| 1024 | 72px | 72px | 72px | 2 | 1 |
+| 1280 | 72px | 92px | 92px | 1 | 1 |
+| 1440 | 72px | 172px | 172px | 1 | 1 |
+| 1920 | 72px | 412px | 412px | 1 | 1 |
+
+- O mesmo espaço vale entre todos os blocos das seis páginas, e a coluna do texto é a mesma
+  em todos eles e no rodapé. Em cada fileira de cartões de diretor, os "Ver perfil" ficam na
+  mesma altura, em `/associacao` e na diretoria
+- **Do último bloco ao rodapé**: 0 em `/associacao` e nas páginas de texto (a faixa branca
+  encosta no rodapé); na diretoria, um espaço entre blocos (32, 56 e 72px)
+- **O índice "Nesta página"** aparece à direita acima de 980px e marca o item de cada
+  título ao rolar até ele: Seja associado com 3 itens, privacidade com 9, termos com 7 e
+  cookies com 5. A 1920px, os títulos do fim da página não chegam à linha de leitura, porque a
+  página acaba antes; ali vale o último marcado no fim da página
+- **Abertura no topo**: 14 medidas por rodada da auditoria, pelo menu, vindo de outra página
+  parada no topo e no meio, todas em 0. Com cliques de verdade (Chrome sem janela, a 1440 e a
+  390px, pelo menu, pela gaveta, pelos botões das páginas e pelo rodapé), 15 caminhos por
+  largura entre a home, a busca, as três páginas e os textos legais, vindo do topo, do meio ou
+  do fim: os 30 casos em 0, também durante a chegada. Tirando o atributo da rolagem, os casos
+  que partem de uma página rolada voltam a abrir rolados (156px a 1440, 94px a 390)
+- **Contraste sobre as faixas verdes**, medido em pixel na posição real de cada texto, com o
+  grão médio e a luz que passeia no ponto mais claro do caminho dela (1440, 768, 430 e 320px;
+  pior caso de cada texto):
+
+  | Texto | Pior razão | Onde |
+  |---|---|---|
+  | parágrafo da faixa de A Associação (#cfd8c9) | 5,14:1 | 430px |
+  | parágrafo das faixas curtas (#cfd8c9) | 4,61:1 | Seja associado, 430px |
+  | rótulo "A ASSOCIAÇÃO" (lima; lima clareado no celular) | 5,17:1 | 320px |
+  | link "← A ASSOCIAÇÃO" e "← INÍCIO" (idem) | 5,40:1 | diretoria, 320px |
+  | rótulos dos números (#DDE7D6) | 7,48:1 | 430px |
+  | "Gestão" (#DDE7D6) | 6,00:1 | 430px |
+  | "(período a entrar)" (#B9C6B2) | 5,12:1 | 430px |
+
+  Todos acima de 4,5:1 no grão médio, o critério já usado na home e nas outras faixas. No
+  pico do grão (um pixel isolado), o parágrafo das faixas curtas a 430px fica em 4,33:1. No
+  branco e no cinza claro: o cinza #646B75 da data, do título do índice e do texto a entrar dá
+  5,38:1; o #4F5661 sobre o fundo do quadro e da etiqueta, 6,90:1; e, no quadro "Fale com a
+  AMI", o #4F5661 dá 6,51:1 e o verde #0D2E0C, 13,07:1
+
+**Dúvidas que ficaram em aberto** (decididas na execução; o cliente pode mudar)
+
+1. **Mandato.** O banco tem `mandato_inicio` e `mandato_fim`, vazias. Decidido não ler agora:
+   a pílula "Gestão (período a entrar)" sai só na demonstração, e ler as colunas fica para o
+   próximo passo de código, acima
+2. **Diretoria em destaque com quatro.** Decidido: os quatro primeiros, na ordem da AMI; a
+   lista inteira fica em "Ver a diretoria"
+3. **O encarregado de dados na política de privacidade.** Decidido: nos textos legais, o que
+   falta aparece marcado "a entrar" nos dois modos, para o texto legal não esconder em
+   silêncio um item obrigatório
+4. **"Atualizado em" num rascunho legal**, como no desenho, e não mais "Rascunho de".
+   Decidido assim; o quadro logo abaixo continua dizendo que é rascunho
+5. **Ícone de Política editorial**: o de artigo, como no desenho (a spec falava em caneta ou
+   jornal)
+6. **Unificar a faixa da especialidade com a faixa curta deste grupo**: fica para a correção
+   final deste grupo, se não mudar nada na tela. Ainda não foi feita
+
 ---
 
 ## O que falta
 
 ### 1. Conteúdo da AMI, e isto bloqueia o lançamento
 
-**Três páginas de texto** ainda não existem, criadas em `/studio`, tipo "Página institucional". Enquanto não existirem, três endereços dão 404 e há links quebrados na página da associação.
+**Três páginas de texto** ainda não existem, criadas em `/studio`, tipo "Página institucional". Enquanto não existirem, os três endereços dão 404, e a página A Associação não leva a eles: no modo demonstração, Estatuto e Política editorial aparecem em "Saiba mais" com a etiqueta "texto a entrar", sem link; fora dele, não aparecem.
 
 | Endereço a escolher no campo "Endereço" | Prioridade |
 |---|---|
@@ -387,26 +541,28 @@ Cada página pede: Título, Endereço, Resumo entre 60 e 220 caracteres, data de
   - **Foto com texto montado no site**: a AMI sobe só uma foto e escreve rótulo, título, texto curto, texto do botão e destino. **Não precisa de designer.** Sem foto, fora do modo demonstração, esse banner não aparece
   - O primeiro banner real tira as três molduras de uma vez
 - **As primeiras notícias**. A primeira publicada tira os quatro cartões provisórios
-- **Missão, Visão e Valores**: os três textos da AMI. A home tem o lugar deles em "Quem é a AMI?" (três cartões), e hoje cada um diz "Texto da AMI a entrar." no modo demonstração. Fora dele, o cartão sem texto não aparece. Ainda não há campo no Studio para eles: o texto entra hoje em `app/(site)/page.tsx` (`TEXTO_DA_AMI`)
+- **Missão, Visão e Valores**: os três textos da AMI. A home tem o lugar deles em "Quem é a AMI?" (três cartões), e hoje cada um diz "Texto da AMI a entrar." no modo demonstração. Fora dele, o cartão sem texto não aparece. A página A Associação mostra os mesmos três cartões em "Princípios", e sem texto, fora do modo demonstração, o bloco some. Ainda não há campo no Studio para eles: o texto entra hoje em `lib/molduras.ts` (`TEXTO_INSTITUCIONAL`)
 - **Duas fotografias**, declaradas em `lib/imagens.ts`, as duas em uso na home:
   - **o auditório ou o hall de eventos da sede** (`salao`), para Sua AMI. Horizontal, no mínimo 2000px de largura
   - **associados da AMI reunidos** (`associados`), para Seja associado. Horizontal, no mínimo 1600px de largura, só com pessoas que autorizaram o uso da imagem
 - **Sua AMI**: o bloco diz "O auditório e o hall de eventos da AMI", com a etiqueta "em breve", e leva a Fale com a AMI. Ele só existe no modo demonstração, e some do menu e do rodapé junto, fora dele. Para ganhar página própria faltam as fotos, a capacidade e como reservar
 - **Os logotipos das empresas parceiras**, cadastrados em `/studio`, tipo "Empresa parceira" (nome, logotipo em PNG, site e ordem). A primeira cadastrada tira as seis molduras "Logotipo a entrar", e o número de cadastradas vira o quarto número da home ("empresas parceiras"). Sem nenhuma, fora do modo demonstração, a faixa e o quarto número não aparecem. Antes, o cliente precisa conferir o Studio e o webhook: ver "Pendências do cliente" na seção da fatia B
-- **O texto de Seja associado**, que hoje é provisório e marcado como tal
+- **O texto de Seja associado**, que hoje é provisório e marcado como tal. O valor da anuidade, os benefícios e os critérios de admissão aparecem como "texto da AMI a entrar." no modo demonstração e somem fora dele
+- **A apresentação oficial da AMI**, em `/studio`, tipo "Página institucional", endereço `associacao`: o texto de "Quem somos" na página A Associação
 
 **O que as páginas de especialidade esperam da AMI:**
 
 - Os textos "Sobre a especialidade" das 14 especialidades, com o médico revisor, o CRM dele e a data da revisão, cadastrados no Studio (tipo "Texto de especialidade"). O passo a passo está em "Pendências do cliente", na seção de Especialidades
 
-As fotos da **fachada da sede** (`sede`) e da **vista de Imperatriz** (`cidade`) continuam declaradas em `lib/imagens.ts`, mas **saíram da home** na reforma. Elas ficam para a página da Associação, na fatia B, e **não entram no pedido de material à AMI agora**: pedir foto que nenhuma página usa é pedir trabalho à toa.
+A foto da **fachada da sede** (`sede`) voltou a ter lugar: é a de "Quem somos", na página A Associação, e **entra no pedido de material à AMI** (o que ela precisa ter está em `lib/imagens.ts`). Sem ela, fora do modo demonstração, o bloco fica só com o texto, em duas colunas. A **vista de Imperatriz** (`cidade`) continua declarada e sem uso, e **não entra no pedido agora**: pedir foto que nenhuma página usa é pedir trabalho à toa.
 
 ### 2. Dados reais da AMI, e isto também bloqueia
 
 - ~~Razão social, CNPJ, endereço e telefone da sede~~ **Recebidos em 21/08/2026** e no ar. O CNPJ foi conferido pelos dígitos verificadores. Vivem em `lib/ami.ts`, fonte única lida pelo rodapé e pelo dado estruturado
 - **A diretoria real**: nome, cargo, **CRM**, UF e ordem hierárquica de cada diretor. Vai para o banco, não para o Studio. Só a presidente é conhecida, a Dra. Paula Bretas, e **falta o CRM dela**: exibir nome de médica sem inscrição viola o Art. 4º, I da Resolução CFM, e a restrição do banco impede gravar
 - **A planilha dos cerca de 500 associados**
-- **Qual dos dois telefones é WhatsApp**, se algum for. Não foi suposto: botão apontando para linha que não atende por lá é pior que não ter botão
+- **Qual dos dois telefones é WhatsApp**, se algum for. Não foi suposto: botão apontando para linha que não atende por lá é pior que não ter botão. Confirmado, o botão entra em "Fale com a AMI", em Seja associado
+- **O período da gestão da diretoria atual**: a faixa da diretoria tem o lugar dele, e hoje mostra "Gestão (período a entrar)" só no modo demonstração
 
 ### 3. A trava de indexação
 
@@ -422,7 +578,7 @@ Previstas na especificação, seção 8, e ainda não construídas:
 
 - ~~**Importador de planilha**~~ **Construído.** Três comandos: `npm run importar -- --modelo` gera a planilha modelo, `npm run importar -- arquivo.xlsx` confere sem gravar, e `--gravar` executa. A publicação é comando à parte, `npm run publicar`, com filtro de completude. Falta a planilha real da AMI
 - **Painel da agência**, em `/painel`: a fatia 1 está construída — entrar com e-mail e senha, listar os médicos incluindo os que não estão no ar, pôr e tirar do ar um a um, e editar os campos do médico. A primeira conta se cria pelos passos de [`docs/como-criar-a-conta-do-painel.md`](como-criar-a-conta-do-painel.md), e **já existe** desde 23/08/2026. **A fatia 1 foi verificada de ponta a ponta contra o banco de produção naquele dia**, com `next build` + `next start`, que é o único arranjo que exercita o cache: tirar do ar derruba a página do médico, o sitemap e a home; pôr no ar traz as três de volta. `supabase/testes-rls.sql` também passou contra o banco real. A verificação achou um defeito, corrigido em `003dda2`: `alternarPublicacao` não conferia se a gravação alterou alguma linha, e o painel mostrava um estado que o banco não tinha. **A fatia 2 foi construída e verificada em 23/08/2026**, no mesmo dia: o painel passa a dar ao médico especialidades (com RQE e qual é a principal) e consultórios (com telefone, WhatsApp e acessibilidade, ligando a um endereço já cadastrado ou criando novo), mais o interruptor "é associado da AMI". A migração `0006_painel_vinculos.sql` concede escrita em quatro tabelas e remoção em três, todas de ligação — é a primeira do projeto que permite apagar linha, e médico continua impossível de apagar. `supabase/testes-rls.sql` passou contra o banco real cobrindo as quatro tabelas e os três papéis, e a corrente inteira foi conferida com o dedo. **Os horários saíram do produto** na mesma fatia: a planilha da AMI não tem coluna de horário, então a grade, o selo de "aberto agora" e o filtro de sábado ficariam vazios para sempre; a tabela `horario` fica no banco, intocada. As 37 decisões tomadas durante a execução estão em [`docs/superpowers/2026-08-23-painel-fatia-2-decisoes.md`](superpowers/2026-08-23-painel-fatia-2-decisoes.md). Falta a foto do médico (fatia própria, porque não existe armazenamento de arquivo configurado) e a fatia 3 (fila de revisões e "Atualizar meus dados"). Diretoria, comunicados e anuidades saíram do escopo da fatia 2 no levantamento
-- **Reforma visual, fatia B: as outras páginas.** O grupo 1 (a busca e o perfil) está feito; ver "Encontre um médico — fatia B, grupo 1". Faltam especialidades, notícias e matéria, associação, diretoria, contato, Seja associado e as três páginas legais. Antes de construir cada grupo de páginas, o cliente vê e aprova um desenho, do mesmo jeito que a home (spec da reforma, seção 3). A fatia B também resolve a lista "feio, mas legível" da seção da fatia A, acima, e usa as fotos `sede` e `cidade` na página da Associação, se o desenho pedir
+- **Reforma visual, fatia B: as outras páginas.** Os grupos 1 (a busca e o perfil), 2 (especialidades) e 3 (A Associação, a diretoria, Seja associado e as três páginas legais) estão feitos; ver as seções de cada um, acima. Faltam notícias e matéria, e contato. Antes de construir cada grupo de páginas, o cliente vê e aprova um desenho, do mesmo jeito que a home (spec da reforma, seção 3). A fatia B também resolve a lista "feio, mas legível" da seção da fatia A, acima, e usa as fotos `sede` e `cidade` na página da Associação, se o desenho pedir
 - **A foto do médico pelo painel** (próximo passo, não pendência do cliente): todo médico terá foto, e enquanto não houver, o site mostra as iniciais. O envio pelo painel é uma fatia à parte e depende do armazenamento de arquivos do Supabase, que ainda não está configurado
 - **Área do associado** (Fase 2): login do médico, edição do próprio perfil, anuidade, carteirinha, comunicados e eventos
 - ~~**Home nova**~~ **Construída** no ramo `home-nova`, entre 23/08 e 03/10/2026. "Encontre um médico" deixou de ser a página e virou um serviço da associação, com campo de busca dentro do cartão. O `<h1>` passou de "Encontre um médico em Imperatriz" para "Associação Médica de Imperatriz". O carrossel lê os banners do Sanity e para de girar em quatro situações: mouse ou teclado em cima, botão de pausa, aba fora da frente e preferência do sistema por menos movimento. A pedido do cliente, em 03/10/2026, cada peça sem conteúdo ganhou uma moldura "a entrar" no modo demonstração. A trava está em `lib/molduras.ts`, e `testes/home-renderizada.test.ts` monta a página de verdade com a chave ligada e desligada. Decisões em [`docs/superpowers/specs/2026-08-23-home-nova-decisoes.md`](superpowers/specs/2026-08-23-home-nova-decisoes.md). Em 03/10/2026 a reforma visual (fatia A) redesenhou essa home inteira; ver "Reforma visual — fatia A"

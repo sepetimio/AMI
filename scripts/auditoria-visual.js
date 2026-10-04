@@ -24,7 +24,8 @@
   - um único `h1`, nenhum `id` repetido, nenhuma imagem quebrada;
   - o cabeçalho no topo em cinco pontos de rolagem;
   - o menu em linha acima de 1180px e em gaveta abaixo, e a gaveta abre e fecha.
-  Nas páginas com `data-bloco` (a home, a busca, o perfil e as de especialidades):
+  Nas páginas com `data-bloco` (a home, a busca, o perfil, as de
+  especialidades, as de A Associação e as de texto):
   - espaços iguais entre blocos consecutivos;
   - o texto das seções com `data-coluna` (e o rodapé) na mesma linha vertical.
     Os números e "Sua AMI" não têm `data-coluna` de propósito: os cartões dos
@@ -40,6 +41,12 @@
   - os cartões do índice de especialidades: todos com a mesma altura, e em
     cada fileira o nome e a contagem na mesma linha
     (`data-cartao-de-especialidade`, `data-nome`, `data-contagem`);
+  - os atalhos de "Saiba mais" (A Associação): em cada fileira, a mesma
+    altura, e o título e a seta na mesma linha (`data-atalho`, `data-nome`,
+    `data-seta`);
+  - o índice "Nesta página" das páginas de texto: rolando até cada título,
+    o item dele fica marcado (`aria-current`), e no fim da página o último
+    (`data-nesta-pagina`);
   - acima de 700px, o texto na mesma linha vertical do logotipo;
   - a barra do pé: nunca acima de 700px; até 700px, aparece se e só se o
     bloco de abertura (o carrossel ou a faixa da busca, `[data-abertura]`)
@@ -437,6 +444,57 @@
     problemas.push(`cartões de especialidade de alturas diferentes: ${[...new Set(alturasDeEsp)].join("/")}`);
   info.fileirasDeEspecialidades = fileirasDeEsp.size;
   info.alturaDosCartoesDeEspecialidade = [...new Set(alturasDeEsp)].join("/");
+
+  /* 15. Os atalhos de "Saiba mais": em cada fileira, a mesma altura, e o
+     título e a seta na mesma linha. No celular cada atalho é uma fileira,
+     e a altura acompanha a frase. */
+  const fileirasDeAtalhos = new Map();
+  for (const c of document.querySelectorAll("[data-atalho]")) {
+    if (R(c).height === 0) continue;
+    const topo = Math.round(topoAbs(c));
+    if (!fileirasDeAtalhos.has(topo)) fileirasDeAtalhos.set(topo, []);
+    fileirasDeAtalhos.get(topo).push({
+      altura: Math.round(R(c).height * 10) / 10,
+      nome: Math.round(topoAbs(c.querySelector("[data-nome]")) * 10) / 10,
+      seta: Math.round(topoAbs(c.querySelector("[data-seta]")) * 10) / 10,
+    });
+  }
+  for (const [topo, cs] of fileirasDeAtalhos) {
+    for (const medida of ["altura", "nome", "seta"]) {
+      const xs = cs.map((c) => c[medida]);
+      if (espalha(xs) > 0.5)
+        problemas.push(`atalhos com ${medida} desigual na fileira de ${topo}px: ${xs.join("/")}`);
+    }
+  }
+  info.fileirasDeAtalhos = fileirasDeAtalhos.size;
+
+  /* 16. O índice "Nesta página" das páginas de texto: rolando até cada
+     título (20px acima da linha de leitura, 140px, lib/nestaPagina.ts), o
+     item dele fica marcado; no fim da página, o último. Só onde o índice
+     da lateral aparece (acima de 980px). */
+  const indice = document.querySelector("[data-nesta-pagina]");
+  if (indice && visivel(indice)) {
+    const links = [...indice.querySelectorAll("a")];
+    const marcado = () => links.findIndex((l) => l.getAttribute("aria-current") === "location");
+    const marcados = [];
+    for (const [i, a] of links.entries()) {
+      const alvo = document.getElementById(a.hash.slice(1));
+      if (!alvo) {
+        problemas.push(`índice aponta para âncora que não existe: ${a.hash}`);
+        continue;
+      }
+      await rolar(topoAbs(alvo) - 120, 250);
+      const noFim = innerHeight + scrollY >= raiz.scrollHeight - 4;
+      marcados.push(marcado());
+      if (marcado() !== i && !noFim)
+        problemas.push(`índice: rolando até "${a.textContent}", o marcado é o ${marcado()}`);
+    }
+    await rolar(raiz.scrollHeight, 250);
+    if (marcado() !== links.length - 1)
+      problemas.push(`índice: no fim da página, o marcado é o ${marcado()}`);
+    await rolar(0, 250);
+    info.nestaPagina = marcados.join("/");
+  }
 
   /* 10. O menu: em linha acima de 1180px, em gaveta abaixo. */
   const menu = document.querySelector('nav[aria-label="Principal"]');
