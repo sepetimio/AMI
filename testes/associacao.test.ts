@@ -306,6 +306,10 @@ describe("o CSS dos blocos de baixo", () => {
     expect(regra(base(css), ".fechoTexto")).toMatch(/text-wrap: pretty;/);
   });
 
+  it("a frase do atalho também, pelo pé, que é o p do desenho", () => {
+    expect(regra(base(css), ".atalho .pe")).toMatch(/text-wrap: pretty;/);
+  });
+
   it("a etiqueta: cinza neutro, sem tom quente", () => {
     expect(regra(base(css), ".etiqueta")).toMatch(/background: var\(--color-surface-fundo\);/);
   });

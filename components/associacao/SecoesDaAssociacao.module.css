@@ -54,6 +54,9 @@
 
 .atalho .pe {
   align-items: flex-end;
+  /* O pé é o `p` do desenho: a frase herda dele a quebra sem palavra
+     sozinha na última linha, também no celular (`display: contents`). */
+  text-wrap: pretty;
 }
 
 .atalho .frase {
