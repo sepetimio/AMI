@@ -147,7 +147,8 @@ function focoDe(imagem: ImagemCru | null | undefined): Foco | null {
   quebrada) passa o filtro do banco e só se revela aqui, quando
   `urlDaImagem` devolve "". Na arte, descartar o banner inteiro nesse caso, e
   não montar um objeto com `imagem: ""`, é o mesmo padrão de
-  `components/editorial/TextoRico.tsx`: sem URL não há o que desenhar, e o
+  `components/editorial/CorpoDoTexto.tsx` com a imagem do texto: sem URL
+  não há o que desenhar, e o
   carrossel não pode receber um `<img src="">`. A AMI perde um banner, não o
   carrossel inteiro.
 

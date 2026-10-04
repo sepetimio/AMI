@@ -23,9 +23,11 @@
   (docs/desenho-aprovado/noticias-contato/noticia.html: `.coluna > ol` e o
   número no círculo, aqui `.coluna .numerada`; `.coluna > blockquote`,
   `.coluna > figure`, `.coluna figcaption`, `.coluna > p a`,
-  `.coluna strong`, e o @media de 700px): a lista numerada, a citação, a
-  imagem com legenda, o link e o negrito. Valem também para as páginas de
-  texto, quando o texto do Studio os tiver.
+  `.coluna strong`, `.autor-fim`, `.aviso-saude`, e o @media de 700px): a
+  lista numerada, a citação, a imagem com legenda, o link, o negrito e o
+  fim da notícia (quem assina e o aviso de saúde). Os cinco primeiros
+  valem também para as páginas de texto, quando o texto do Studio os
+  tiver.
 
   O relógio da data é `inline-block`: a camada base do Tailwind faz todo
   `svg` virar bloco, e ele cairia numa linha acima do texto; no desenho,
@@ -318,6 +320,46 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* O fim da notícia (components/editorial/AutorDaNoticia.tsx): quem assina,
+   com "Ver perfil" quando há perfil, e o aviso de saúde. Mora aqui, e não
+   na folha da notícia, porque vive dentro da coluna de leitura e as regras
+   dele precisam valer sobre as da coluna (`.coluna p`). O ladrilho é o
+   global (`.ladrilho-icone--pequeno`, 44px). */
+.coluna .autorFim {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  column-gap: 16px;
+  align-items: center;
+  margin-top: 56px;
+  padding-top: 28px;
+  border-top: 1px solid var(--color-line);
+}
+
+.coluna .autorFim .autorNome {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--color-ami-green-800);
+}
+
+.coluna .autorFim .autorCrm {
+  margin-top: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-400);
+}
+
+.coluna .avisoSaude {
+  margin-top: 28px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-ink-400);
+}
+
 @media (max-width: 1180px) {
   .grade {
     grid-template-columns: minmax(0, 1fr) 220px;
@@ -457,6 +499,40 @@
   }
 
   .coluna figcaption {
+    font-size: 13.5px;
+  }
+
+  .coluna .autorFim {
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 14px;
+    margin-top: 40px;
+    padding-top: 22px;
+  }
+
+  .autorFim :global(.ladrilho-icone) {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .autorFim :global(.ladrilho-icone) svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .autorFim .autorAcoes {
+    grid-column: 1 / -1;
+    margin-top: 16px;
+  }
+
+  .autorFim .autorAcoes > a {
+    width: 100%;
+    height: 46px;
+    font-size: 14px;
+  }
+
+  .coluna .avisoSaude {
+    margin-top: 22px;
     font-size: 13.5px;
   }
 }

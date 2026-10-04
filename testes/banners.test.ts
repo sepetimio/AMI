@@ -130,7 +130,7 @@ describe("paraBanner", () => {
       `defined(imagem.asset)` no GROQ so garante que existe um asset, nao
       que a URL sai: um `_ref` corrompido (upload em andamento, referencia
       quebrada) passa o filtro do banco e so se revela aqui. O carrossel nao
-      pode receber `<img src="">` - mesmo padrao de TextoRico.tsx, que
+      pode receber `<img src="">` - mesmo padrao de CorpoDoTexto.tsx, que
       descarta o bloco de imagem inteiro pelo mesmo motivo.
     */
     vi.stubEnv("NEXT_PUBLIC_SANITY_PROJECT_ID", "abcd1234");

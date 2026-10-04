@@ -295,9 +295,9 @@ const TEXTO_DE_CORPO = ["ink-900", "ink-600", "ink-400", "warn", "ami-green-600"
 
   `surface-fundo` é o fundo de `.moldura`, em `app/globals.css` — e aqui a
   frase exata importa, porque a fácil seria falsa: `.moldura` não é
-  aplicada em componente nenhum hoje. O efeito de casca dupla foi refeito
-  à mão com `bg-surface p-2` em `app/(site)/page.tsx` e em
-  `app/(site)/noticias/[slug]/page.tsx`. O token entra nesta lista porque a
+  aplicada em componente nenhum hoje, e a casca dupla feita à mão com
+  `bg-surface` e `p-2`, em volta da capa e da imagem da notícia, saiu com o
+  desenho novo, que não põe moldura em foto. O token entra nesta lista porque a
   declaração é real e o dia em que alguém usar a classe não pode ser o dia
   em que o par deixa de ser medido; que a classe esteja sem consumidor é
   outro assunto, registrado na seção 6 da spec desta fatia.

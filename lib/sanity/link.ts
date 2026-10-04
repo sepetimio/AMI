@@ -2,7 +2,7 @@
   Como renderizar um link escrito no Studio: navegação interna do Next ou
   âncora comum.
 
-  Vive em `lib/` e não dentro de `TextoRico.tsx` pelo mesmo motivo que
+  Vive em `lib/` e não dentro de `CorpoDoTexto.tsx` pelo mesmo motivo que
   `etiquetasDoDocumento` e as demais: é a única decisão daquele componente
   que tem regra própria, e sem ela em função pura não há como travá-la em
   teste. A anotação de link do Studio aceita `http`, `https`, `mailto`,

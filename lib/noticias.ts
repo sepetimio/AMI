@@ -48,7 +48,7 @@ export function listaDeNoticias(demonstracao: boolean, noticias: ResumoNoticia[]
 /** Quantas "Outras notícias" a notícia aberta mostra. */
 export const LIMITE_DE_OUTRAS = 3;
 
-/** Três por linha: as molduras da lista e "Outras notícias" com três. */
+/** Três por linha: as molduras "Notícia a entrar" da lista. */
 export const TRES_POR_LINHA: ArranjoDaLista = { colunas: 3, deitado: false };
 
 /** As mais recentes que não são a notícia aberta, até três; com menos, as que houver. */

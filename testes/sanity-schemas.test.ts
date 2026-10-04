@@ -413,7 +413,7 @@ describe("anotação de link do texto rico", () => {
   /* A anotação de link padrão do próprio Sanity usa estes quatro esquemas e
      aceita endereço relativo. Sem declarar, a secretaria não consegue linkar
      /associacao/diretoria nem o e-mail da AMI de dentro de uma página
-     institucional, e o ramo de link interno de TextoRico fica inalcançável. */
+     institucional, e o ramo de link interno de CorpoDoTexto fica inalcançável. */
   for (const nome of ["noticia", "paginaInstitucional"]) {
     it(`${nome} aceita endereço interno, e-mail e telefone`, () => {
       const espiao = espiarValidacaoDoLink(nome);

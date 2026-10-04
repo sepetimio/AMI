@@ -134,7 +134,7 @@ const FOTO = { largura: 1600, altura: 1200 };
   lib/carrossel.ts, e `next.config.ts` não registra
   `cdn.sanity.io` em `images.remotePatterns` — nenhum outro consumidor de
   imagem do Sanity no site usa `next/image` pelo mesmo motivo (ver
-  components/editorial/LinhaNoticia.tsx e TextoRico.tsx).
+  components/editorial/FotoDaNoticia.tsx e CorpoDoTexto.tsx).
 
   Três desenhos de slide:
   - "arte": a imagem pronta cobre o slide; no celular, a versão 4:5 quando

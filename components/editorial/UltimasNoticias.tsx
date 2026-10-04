@@ -50,7 +50,7 @@ export async function UltimasNoticias({
 /* O destaque e as três da lista. */
 const QUANTAS = 4;
 
-/* Larguras pedidas ao CDN do Sanity para o `srcset`, como em LinhaNoticia.
+/* Larguras pedidas ao CDN do Sanity para o `srcset`.
    O destaque chega a 1096px (2192 numa tela de densidade 2); a miniatura do
    arranjo "ao-lado" chega a uns 330px de 701 a 1180px (660 em densidade 2).
    O item de pé (três notícias: duas embaixo do destaque) chega a 536px do
@@ -150,9 +150,9 @@ function Lista({ children }: { children: ReactNode[] }) {
   A capa de uma notícia real, ou nada.
 
   `urlDaImagem` devolve "" quando `asset._ref` está malformado; um
-  `<img src="">` faria o navegador pedir a página de novo (ver
-  LinhaNoticia). Sem URL, a notícia cai no mesmo desenho de quem não tem
-  capa.
+  `<img src="">` faria o navegador pedir a página de novo (endereço vazio
+  é "esta mesma página"). Sem URL, a notícia cai no mesmo desenho de quem
+  não tem capa.
 
   `alt=""`: a imagem está dentro do link, e o nome do link é o título. A
   descrição da foto entraria no nome do link antes do título e o alongaria

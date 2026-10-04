@@ -24,11 +24,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-/* Mesma classe de link que `TextoRico` usa para os links do texto editorial
-   (components/editorial/TextoRico.tsx): verde de marca, sublinhado, mais
-   escuro no hover. Repetida aqui, e não extraída, porque só existem estes
-   dois lugares usando; extrair um componente para dois usos teria sido
-   indireção sem ganho. */
+/* A classe dos links desta página: verde de marca, sublinhado, mais
+   escuro no hover. */
 const CLASSE_LINK =
   "font-semibold text-ami-green-600 underline underline-offset-2 hover:text-ami-green-700";
 
