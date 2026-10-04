@@ -3,6 +3,7 @@ import {
   LIMITE_DE_OUTROS,
   consultorioPrincipal,
   enderecoDoLocal,
+  especialidadeDoCartao,
   especialidadePrincipal,
   iniciais,
   linkDoMapa,
@@ -222,5 +223,36 @@ describe("a contagem e a biografia", () => {
     expect(paragrafosDaBio("Um.\n\nDois.\n  \nTrês.")).toEqual(["Um.", "Dois.", "Três."]);
     expect(paragrafosDaBio("Linha\núnica")).toEqual(["Linha\núnica"]);
     expect(paragrafosDaBio("   ")).toEqual([]);
+  });
+});
+
+describe("a especialidade do cartão", () => {
+  const aline = medico("Aline Peixoto", null, {
+    especialidades: [
+      { nome: "Neurologia", slug: "neurologia", rqe: "12222", principal: true },
+      { nome: "Ortopedia e Traumatologia", slug: "ortopedia-e-traumatologia", rqe: "30111", principal: false },
+    ],
+  });
+
+  it("na página de uma especialidade que o médico tem, a dela, com o RQE dela", () => {
+    expect(especialidadeDoCartao(aline, "ortopedia-e-traumatologia")).toEqual({
+      nome: "Ortopedia e Traumatologia",
+      slug: "ortopedia-e-traumatologia",
+      rqe: "30111",
+      principal: false,
+    });
+  });
+
+  it("fora de uma página de especialidade (a busca, o perfil), a principal", () => {
+    expect(especialidadeDoCartao(aline)?.slug).toBe("neurologia");
+    expect(especialidadeDoCartao(aline, null)?.slug).toBe("neurologia");
+  });
+
+  it("na página de uma especialidade que ele não tem, a principal", () => {
+    expect(especialidadeDoCartao(aline, "pediatria")?.slug).toBe("neurologia");
+  });
+
+  it("sem especialidade nenhuma, null", () => {
+    expect(especialidadeDoCartao(medico("Sem Nada", null), "pediatria")).toBeNull();
   });
 });

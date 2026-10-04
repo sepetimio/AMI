@@ -1,6 +1,7 @@
 import { numeroPreenchido } from "@/lib/contato";
 import { porNome } from "@/lib/dados/filtros";
 import { contagem } from "@/lib/formato";
+import { especialidadesComMedico } from "@/lib/especialidades";
 import type {
   EspecialidadeComContagem,
   EspecialidadeDoMedico,
@@ -39,6 +40,19 @@ export function especialidadePrincipal(
   m: Pick<Medico, "especialidades">,
 ): EspecialidadeDoMedico | null {
   return m.especialidades.find((e) => e.principal) ?? m.especialidades[0] ?? null;
+}
+
+/**
+ * A especialidade que o cartão do médico mostra. Na página de uma
+ * especialidade (`slug`), é a dela, com o RQE dela, quando o médico a tem;
+ * fora dela, ou se ele não a tem, é a principal.
+ */
+export function especialidadeDoCartao(
+  m: Pick<Medico, "especialidades">,
+  slug: string | null = null,
+): EspecialidadeDoMedico | null {
+  const daPagina = slug ? m.especialidades.find((e) => e.slug === slug) : undefined;
+  return daPagina ?? especialidadePrincipal(m);
 }
 
 /**
@@ -96,10 +110,10 @@ export type OpcaoDeEspecialidade = { valor: string; rotulo: string };
 
 /** A lista "Todas as especialidades" da busca: alfabética, com a contagem, sem as vazias. */
 export function opcoesDeEspecialidade(lista: EspecialidadeComContagem[]): OpcaoDeEspecialidade[] {
-  return lista
-    .filter((e) => e.total > 0)
-    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
-    .map((e) => ({ valor: e.slug, rotulo: `${e.nome} (${e.total})` }));
+  return especialidadesComMedico(lista).map((e) => ({
+    valor: e.slug,
+    rotulo: `${e.nome} (${e.total})`,
+  }));
 }
 
 /** A contagem acima da grade: "24 médicos", "1 médico", "3 médicos em Cardiologia". */

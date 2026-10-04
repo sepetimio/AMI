@@ -23,6 +23,17 @@ import {
   MapPin,
   ArrowLeft,
   CaretDown,
+  HandPalm,
+  DropHalf,
+  ForkKnife,
+  GenderFemale,
+  Brain,
+  Bone,
+  Ear,
+  Baby,
+  ChatsCircle,
+  Hand,
+  Drop,
 } from "@phosphor-icons/react/dist/ssr";
 
 export type NomeIcone =
@@ -47,7 +58,18 @@ export type NomeIcone =
   | "whatsapp"
   | "comoChegar"
   | "voltar"
-  | "abaixo";
+  | "abaixo"
+  | "palma"
+  | "meiaGota"
+  | "garfoEFaca"
+  | "feminino"
+  | "cerebro"
+  | "osso"
+  | "orelha"
+  | "bebe"
+  | "conversa"
+  | "mao"
+  | "gota";
 
 const mapaDeIcones: Record<NomeIcone, typeof SealCheck> = {
   selo: SealCheck,
@@ -72,6 +94,17 @@ const mapaDeIcones: Record<NomeIcone, typeof SealCheck> = {
   comoChegar: MapPin,
   voltar: ArrowLeft,
   abaixo: CaretDown,
+  palma: HandPalm,
+  meiaGota: DropHalf,
+  garfoEFaca: ForkKnife,
+  feminino: GenderFemale,
+  cerebro: Brain,
+  osso: Bone,
+  orelha: Ear,
+  bebe: Baby,
+  conversa: ChatsCircle,
+  mao: Hand,
+  gota: Drop,
 };
 
 export function Icone({

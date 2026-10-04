@@ -118,3 +118,20 @@ export type EmpresaParceira = {
   /** Endereço de fora, só http ou https. Null: o logotipo não é link. */
   site: string | null;
 };
+
+/*
+  O texto "Sobre a {especialidade}" da página de cada especialidade, como o
+  site o desenha: o que o especialista faz e quando procurar, em texto rico
+  (parágrafos e lista), quem revisou, o CRM dele e o mês da revisão, já por
+  extenso.
+*/
+export type TextoDeEspecialidade = {
+  oQueFaz: PortableTextBlock[];
+  quandoProcurar: PortableTextBlock[];
+  /** Como a AMI escreveu no Studio: "Dra. Maria da Silva". */
+  revisorNome: string;
+  /** "CRM/MA 10822". */
+  revisorCrm: string;
+  /** O mês da revisão por extenso: "setembro de 2026". */
+  mesDaRevisao: string;
+};

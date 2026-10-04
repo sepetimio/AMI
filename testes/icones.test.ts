@@ -8,13 +8,24 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
+  Baby,
+  Bone,
+  Brain,
   Buildings,
   CaretDown,
   CaretLeft,
   CaretRight,
+  ChatsCircle,
+  Drop,
+  DropHalf,
+  Ear,
   Eye,
   FlagBanner,
+  ForkKnife,
+  GenderFemale,
+  Hand,
   HandHeart,
+  HandPalm,
   Handshake,
   Heartbeat,
   List,
@@ -78,6 +89,17 @@ describe("os icones", () => {
       comoChegar: MapPin,
       voltar: ArrowLeft,
       abaixo: CaretDown,
+      palma: HandPalm,
+      meiaGota: DropHalf,
+      garfoEFaca: ForkKnife,
+      feminino: GenderFemale,
+      cerebro: Brain,
+      osso: Bone,
+      orelha: Ear,
+      bebe: Baby,
+      conversa: ChatsCircle,
+      mao: Hand,
+      gota: Drop,
     };
     for (const [nome, Componente] of Object.entries(esperado) as [NomeIcone, Icon][]) {
       for (const duotone of [false, true]) {
@@ -93,9 +115,9 @@ describe("os icones", () => {
         expect(nosso, `${nome}${duotone ? " duotone" : ""}`).toBe(dele);
       }
     }
-    /* E os 22 são diferentes entre si: nenhum par repetido na tabela. */
+    /* E os 33 são diferentes entre si: nenhum par repetido na tabela. */
     const htmls = Object.keys(esperado).map((nome) => renderToString(createElement(Icone, { nome: nome as NomeIcone })));
-    expect(new Set(htmls).size).toBe(22);
+    expect(new Set(htmls).size).toBe(33);
   });
 
   it("duotone inclui opacity 0.2, regular nao", () => {
