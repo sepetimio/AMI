@@ -321,11 +321,20 @@
                           no celular
 
     Leem estas duas a home (app/(site)/inicio.module.css) e as páginas de
-    "Encontre um médico" (app/(site)/encontre.module.css). O `sizes` das
-    imagens não lê variável de CSS: `tamanhosDasCapas`
-    (lib/arranjo-das-noticias.ts) e `SIZES_DO_CARTAO`
-    (components/diretorio/CartaoMedico.tsx) escrevem os mesmos números e
-    citam estas duas. Se mudarem aqui, mudam lá.
+    "Encontre um médico" (app/(site)/encontre.module.css).
+
+    Outros lugares escrevem os mesmos números (1192, 1240 e 24) em vez de
+    ler as variáveis. O `sizes` das imagens não lê variável de CSS, e o
+    resto é anterior a elas:
+    - `tamanhosDasCapas` (lib/arranjo-das-noticias.ts) e `SIZES_DO_CARTAO`
+      (components/diretorio/CartaoMedico.tsx), que citam estas duas;
+    - o `sizes` do carrossel (lib/carrossel.ts), o da foto de "Sua AMI"
+      (components/home/SuaAmi.tsx) e o dos logotipos das parceiras
+      (components/home/EmpresasParceiras.tsx);
+    - a `.caixa` do cabeçalho (components/layout/Cabecalho.module.css);
+    - a `--borda-faixa`, logo abaixo.
+    A lista é a que se achou ao criar as duas variáveis, e pode não ser
+    completa: antes de mudá-las, procure 1192 e 1240 no repositório.
   */
   :root {
     --m: 48px;

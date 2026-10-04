@@ -243,11 +243,20 @@ describe("os dois mapas de icones", () => {
   });
 
   it("o mapa do cliente so tem icones que o cliente desenha", () => {
+    /* Só o atributo `nome` de um `<Icone>`: `nome="x"`, ou os textos entre
+       aspas de `nome={…}` (os dois lados de um ternário). Procurar "x" em
+       todo o código casava com nomes de campo do painel e do importador
+       ("telefone", "whatsapp"), e um ícone sobrando no mapa passava. */
     const codigo = [...cliente.keys()]
       .filter((arquivo) => arquivo !== join(RAIZ, "components", "base", "Icone.tsx"))
       .map((arquivo) => semComentarios(readFileSync(arquivo, "utf8")))
       .join("\n");
-    const semUso = Object.keys(mapaDoCliente).filter((nome) => !codigo.includes(`"${nome}"`));
-    expect(semUso, "nomes do mapa do cliente que nenhum arquivo de cliente usa").toEqual([]);
+    const desenhados = new Set<string>();
+    for (const m of codigo.matchAll(/<Icone\b[^>]*?\bnome=(?:"([^"]*)"|\{([^{}]*)\})/g)) {
+      if (m[1] !== undefined) desenhados.add(m[1]);
+      for (const literal of (m[2] ?? "").matchAll(/"([^"]*)"/g)) desenhados.add(literal[1]);
+    }
+    const semUso = Object.keys(mapaDoCliente).filter((nome) => !desenhados.has(nome));
+    expect(semUso, "nomes do mapa do cliente que nenhum <Icone> de cliente desenha").toEqual([]);
   });
 });

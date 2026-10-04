@@ -11,9 +11,10 @@ import type { Medico } from "@/lib/dados/tipos";
   A largura desenhada da foto do cartão, pelas réguas de GradeMedicos.module.css
   e da coluna das páginas (`--coluna` de 1192px e `--folga-da-coluna` de 24px
   de cada lado, 12px no celular, em app/globals.css; o `sizes` não lê
-  variável de CSS, por isso os números vão escritos): 4 por linha com --gap 24 acima de 1180px (280px a partir de
-  1240), 3 com --gap 24 até 1180, 2 com --gap 16 até 980, e a foto de 116px
-  (112px a 380) no cartão deitado do celular.
+  variável de CSS, por isso os números vão escritos): 4 por linha com --gap
+  24 acima de 1180px (280px a partir de 1240), 3 com --gap 24 até 1180, 2
+  com --gap 16 até 980, e a foto de 116px (112px a 380) no cartão deitado
+  do celular.
 */
 export const SIZES_DO_CARTAO =
   "(max-width: 380px) 112px, (max-width: 700px) 116px, " +
