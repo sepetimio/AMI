@@ -216,7 +216,7 @@ describe("Outras notícias", () => {
       `<section data-bloco="outras" aria-labelledby="outras-titulo" class="revelar ${estilosLista.outras}">` +
         `<div class="${estilosHome.cabSecao}"><div><span class="rotulo-secao" data-coluna="">Notícias</span>` +
         `<h2 id="outras-titulo" class="${estilosHome.titulo}">Outras notícias</h2></div>` +
-        `<a class="botao-linha" href="/noticias">Ver todas as notícias ${desenho(ArrowUpRight, 16, "regular")}</a></div>`,
+        `<a class="botao-linha" href="/noticias">Ver todas as notícias ${desenho(ArrowUpRight, 13, "regular")}</a></div>`,
     )).toBe(true);
   });
 

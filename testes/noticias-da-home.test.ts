@@ -1,5 +1,6 @@
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
+import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NoticiasDaHome, UltimasNoticias } from "@/components/editorial/UltimasNoticias";
 import { SIZES_DO_LOGOTIPO } from "@/components/home/EmpresasParceiras";
@@ -194,6 +195,13 @@ describe("o bloco de notícias", () => {
     expect(html(QUATRO)).toMatch(
       /<a class="botao-linha" href="\/noticias">Ver todas as notícias <svg[^>]*aria-hidden="true"/,
     );
+  });
+
+  it("a seta de 'Ver todas as notícias' com 13px, a letra do botão, como no desenho", () => {
+    const seta = renderToString(
+      createElement(ArrowUpRight, { size: 13, weight: "regular", className: "", "aria-hidden": "true" }),
+    );
+    expect(html(QUATRO)).toContain(`Ver todas as notícias ${seta}</a>`);
   });
 
   it("com quatro reais, a primeira é o destaque: título h3 sobre a foto, link para a notícia", () => {

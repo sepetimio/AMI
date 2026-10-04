@@ -101,7 +101,7 @@ export function NoticiasDaHome({
           </p>
         </div>
         <Link className="botao-linha" href="/noticias">
-          Ver todas as notícias <Icone nome="setaDiagonal" tamanho={16} />
+          Ver todas as notícias <Icone nome="setaDiagonal" tamanho={13} />
         </Link>
       </div>
 
