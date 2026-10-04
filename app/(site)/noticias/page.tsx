@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { Cabeceira } from "@/components/layout/Cabeceira";
-import { EstadoVazio } from "@/components/base/EstadoVazio";
-import { LinhaNoticia } from "@/components/editorial/LinhaNoticia";
+import paginas from "@/app/(site)/encontre.module.css";
+import { ListaDeNoticias } from "@/components/editorial/ListaDeNoticias";
+import { FaixaCurta } from "@/components/layout/FaixaCurta";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { breadcrumbList, itemList } from "@/lib/seo/jsonld";
-import { tituloDePagina } from "@/lib/seo/metadados";
+import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
+import { LIMITE_DA_LISTA, listaDeNoticias } from "@/lib/noticias";
 import { listarNoticias } from "@/lib/sanity/consultas";
+import { itemList } from "@/lib/seo/jsonld";
+import { tituloDePagina } from "@/lib/seo/metadados";
 
 export const revalidate = 3600;
 
@@ -19,66 +21,50 @@ export const metadata: Metadata = {
   alternates: { canonical: "/noticias" },
 };
 
-export default async function PaginaNoticias() {
-  const noticias = await listarNoticias(20);
+/*
+  A lista de notícias (item "Notícias" do menu), como no desenho aprovado
+  (docs/desenho-aprovado/noticias-contato/noticias.html):
+  - a faixa verde curta, com o rótulo, o título, a frase e o jornal no
+    ladrilho;
+  - a lista: a mais recente em destaque e as outras em cartões, no arranjo
+    da home para poucas notícias; sem notícia, as molduras da home na
+    demonstração, ou a frase de lista vazia fora dela (`listaDeNoticias`,
+    lib/noticias.ts).
 
-  const trilha = [
-    { nome: "Início", caminho: "/" },
-    { nome: "Notícias", caminho: "/noticias" },
-  ];
+  No máximo 20, como antes, e sem paginação: "Mais antigas" entra numa
+  fatia própria, quando a AMI passar de 20.
+
+  O `ItemList` (spec da fundação, seção 7: toda listagem tem um) só sai
+  quando há o que listar: um de zero itens descreve uma página vazia. Sem
+  trilha e sem BreadcrumbList: dado estruturado sem o equivalente visível é
+  marcação enganosa (lib/seo/jsonld.ts).
+
+  Os blocos são filhos diretos de `.pagina` (app/(site)/encontre.module.css),
+  a --ritmo um do outro; a lista fecha a página, a --ritmo do rodapé.
+*/
+export default async function PaginaNoticias() {
+  const noticias = await listarNoticias(LIMITE_DA_LISTA);
+  const lista = listaDeNoticias(DADOS_DEMONSTRACAO, noticias);
 
   return (
     <>
-      <JsonLd dados={breadcrumbList(trilha, SITE)} />
-      {/* A spec, seção 7, pede ItemList em toda listagem. Só sai quando há o
-          que listar: um ItemList de zero itens não informa nada ao Google e
-          ainda por cima descreve uma página vazia. */}
-      {noticias.length > 0 ? (
+      {lista.tipo === "noticias" ? (
         <JsonLd
           dados={itemList(
-            noticias.map((n) => ({
-              nome: n.titulo,
-              caminho: `/noticias/${n.slug}`,
-            })),
+            [lista.destaque, ...lista.grade].map((n) => ({ nome: n.titulo, caminho: `/noticias/${n.slug}` })),
             SITE,
           )}
         />
       ) : null}
 
-      <Cabeceira
-        trilha={trilha}
-        titulo="Notícias da AMI"
-        contagem={noticias.length}
-        rotuloContagem={
-          noticias.length === 1 ? "publicação" : "publicações"
-        }
-      >
-        Comunicados, eventos e notas da associação. Cada texto é assinado por
-        um médico, com o número de inscrição no CRM.
-      </Cabeceira>
-
-      <div className="mx-auto max-w-[1200px] px-4 py-12 md:px-6">
-        {/* Sem isto, quem navega por cabeçalhos pula do h1 da Cabeceira
-            direto para o h3 de cada LinhaNoticia. Mesma convenção de
-            app/(site)/busca/page.tsx e
-            app/(site)/medicos/[especialidade]/page.tsx: o h2 marca a região
-            de resultados mesmo quando ela está vazia, porque o marco
-            precisa existir para quem navega por cabeçalhos encontrar
-            "nenhuma publicação" também. */}
-        <h2 className="sr-only">Resultados</h2>
-
-        {noticias.length === 0 ? (
-          <EstadoVazio
-            titulo="Ainda não há publicações"
-            descricao="Quando a AMI publicar a primeira notícia, ela aparece aqui."
-          />
-        ) : (
-          <ul className="grid gap-3">
-            {noticias.map((n) => (
-              <LinhaNoticia key={n.slug} noticia={n} />
-            ))}
-          </ul>
-        )}
+      <div className={paginas.pagina}>
+        <FaixaCurta
+          rotulo="Notícias"
+          titulo="Notícias da AMI"
+          texto="Comunicados, eventos e notas da associação. Cada texto é assinado por um médico, com o número de inscrição no CRM."
+          icone="jornal"
+        />
+        <ListaDeNoticias lista={lista} />
       </div>
     </>
   );
