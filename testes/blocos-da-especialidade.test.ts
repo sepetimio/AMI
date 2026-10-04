@@ -221,6 +221,10 @@ describe("o CSS da faixa da especialidade", () => {
     expect(regra(base(css), ".especialidade h1 + p")).toMatch(/max-width: 34em;/);
   });
 
+  it("o parágrafo quebra como o `p` do desenho, sem palavra sozinha na última linha", () => {
+    expect(regra(base(css), ".especialidade h1 + p")).toMatch(/text-wrap: pretty;/);
+  });
+
   it("o ladrilho de vidro: 168px, 128px no tablet, fora no celular", () => {
     const selo = regra(base(css), ".selo");
     expect(selo).toMatch(/width: 168px;/);
@@ -267,6 +271,13 @@ describe("o CSS do Sobre", () => {
     expect(r).toMatch(/border-top: 1px solid var\(--color-line\);/);
     expect(r).toMatch(/color: var\(--color-ink-400\);/);
     expect(regra(cel(), ".revisao")).toMatch(/flex-direction: column;/);
+  });
+
+  it("os parágrafos quebram como o `p` do desenho, sem palavra sozinha na última linha", () => {
+    /* Sem isso, a 390px o aviso "Conteúdo informativo; não substitui a
+       consulta médica." terminava em "médica." sozinho; no desenho, em
+       "consulta médica.". As listas ficam de fora, como no desenho. */
+    expect(regra(base(css), ".faixa p")).toMatch(/text-wrap: pretty;/);
   });
 
   it("o texto a entrar, como em Quem é a AMI?: cinza e em itálico", () => {

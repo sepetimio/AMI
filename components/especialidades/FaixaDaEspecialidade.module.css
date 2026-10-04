@@ -13,6 +13,9 @@
   vidro, alinhado à borda direita do texto. As duas colunas ficam até o
   celular, onde o ícone sai e a faixa fica curta.
 
+  O parágrafo leva o `text-wrap: pretty` que o desenho põe em todo `p` e a
+  folha da busca não põe.
+
   As regras daqui valem sobre as da busca qualquer que seja a ordem em que
   as duas folhas chegam ao navegador:
   - `.especialidade[data-faixa]` pesa mais que `.faixa`;
@@ -33,6 +36,7 @@
 
 .especialidade h1 + p {
   max-width: 34em;
+  text-wrap: pretty;
 }
 
 .volta {

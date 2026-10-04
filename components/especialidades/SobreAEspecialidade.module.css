@@ -13,6 +13,9 @@
   o espaço entre dois parágrafos, e entre um parágrafo e uma lista que vem
   depois dele. São 16px, o mesmo do `ul + p` do desenho.
 
+  Os parágrafos (não as listas) levam o `text-wrap: pretty` que o desenho
+  põe em todo `p`.
+
   O "Texto da AMI a entrar." usa o cinza e o itálico de "Quem é a AMI?"
   (components/home/SejaAssociado.module.css, `.falta`).
 */
@@ -20,6 +23,10 @@
 .faixa {
   padding: 96px var(--borda-faixa);
   background: var(--color-surface);
+}
+
+.faixa p {
+  text-wrap: pretty;
 }
 
 .colunas {
