@@ -288,6 +288,17 @@ describe("o bloco de notícias", () => {
     expect(saida).not.toContain(`class="${estilosNoticias.data}"`);
   });
 
+  it("toda peça 'a entrar' leva a marca data-a-entrar: a capa, o título e o resumo", () => {
+    const saida = html([], true);
+    expect(vezes(saida, ' data-a-entrar="">Notícia a entrar</h3>')).toBe(4);
+    expect(vezes(saida, ' data-a-entrar="">Espaço reservado para uma publicação da AMI.</p>')).toBe(1);
+    /* Quatro capas, quatro títulos e um resumo; nada mais leva a marca. */
+    expect(vezes(saida, ' data-a-entrar="')).toBe(9);
+    /* Com notícias reais, nenhuma marca. */
+    expect(html(QUATRO, true)).not.toContain("data-a-entrar");
+    expect(html([noticia(1)], true)).not.toContain("data-a-entrar");
+  });
+
   it("a capa real vem do CDN do Sanity, com srcset e sem alt (o nome do link é o título)", () => {
     vi.stubEnv("NEXT_PUBLIC_SANITY_PROJECT_ID", "projeto");
     vi.stubEnv("NEXT_PUBLIC_SANITY_DATASET", "production");
@@ -337,8 +348,14 @@ describe("a faixa dos parceiros", () => {
 
   it("seis 'Logotipo a entrar' depois do título", () => {
     const titulo = com.indexOf(">Quem caminha com a AMI</h2>");
-    const espacos = [...com.matchAll(/<li class="([^"]+)">([^<]*)<\/li>/g)].map((m) => [m[1], m[2]]);
-    expect(espacos).toEqual(Array(6).fill([estilosParceiros.logoVazio, "Logotipo a entrar"]));
+    const espacos = [...com.matchAll(/<li class="([^"]+)"( data-a-entrar="")?>([^<]*)<\/li>/g)].map((m) => [
+      m[1],
+      m[2] ?? "sem a marca",
+      m[3],
+    ]);
+    expect(espacos).toEqual(
+      Array(6).fill([estilosParceiros.logoVazio, ' data-a-entrar=""', "Logotipo a entrar"]),
+    );
     expect(com.indexOf(`<ul class="${estilosParceiros.parceiros}">`)).toBeGreaterThan(titulo);
   });
 
@@ -389,6 +406,7 @@ describe("a faixa dos parceiros com empresas cadastradas", () => {
     expect(reais).toMatch(/^<section id="parceiros" data-bloco="parceiros" data-faixa=""/);
     expect(visivel(reais)).toEqual(["Empresas parceiras da AMI", "Quem caminha com a AMI"]);
     expect(reais).not.toContain(estilosParceiros.logoVazio);
+    expect(reais).not.toContain("data-a-entrar");
   });
 
   it("cada empresa numa caixa da grade, na ordem dada", () => {

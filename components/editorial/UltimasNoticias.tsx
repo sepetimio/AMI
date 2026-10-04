@@ -28,9 +28,11 @@ import type { ResumoNoticia } from "@/lib/sanity/tipos";
   `moldurasDaHome`, em lib/molduras.ts): sem publicação, saem quatro peças
   "Notícia a entrar" na forma do desenho, o destaque e as três da lista,
   para o cliente ver a home inteira antes de a AMI publicar. Elas não são
-  link: não há página de notícia para elas. Havendo UMA notícia real, só a
-  real sai, com ou sem `provisorias`: real e provisório nunca se misturam. O
-  padrão `false` faz quem esquecer de passar a prop cair no null.
+  link: não há página de notícia para elas. A capa, o título e o resumo
+  delas levam `data-a-entrar`, a marca de toda moldura "a entrar" do site,
+  sem estilo nenhum. Havendo UMA notícia real, só a real sai, com ou sem
+  `provisorias`: real e provisório nunca se misturam. O padrão `false` faz
+  quem esquecer de passar a prop cair no null.
 
   O bloco entra na tela com a `.revelar` global (app/globals.css): se abrir
   abaixo da tela, entra ao rolar; se já abrir nela, fica parado
@@ -230,8 +232,10 @@ function Destaque({ noticia, sizes }: { noticia?: ResumoNoticia; sizes: string }
         </div>
         <div className={styles.sobreFoto}>
           {noticia ? <span className={styles.data}>{dataPorExtenso(noticia.publicadoEm)}</span> : null}
-          <h3 className={styles.destaqueTitulo}>{noticia ? noticia.titulo : "Notícia a entrar"}</h3>
-          <p className={styles.resumo}>
+          <h3 className={styles.destaqueTitulo} data-a-entrar={noticia ? undefined : ""}>
+            {noticia ? noticia.titulo : "Notícia a entrar"}
+          </h3>
+          <p className={styles.resumo} data-a-entrar={noticia ? undefined : ""}>
             {noticia ? noticia.resumo : "Espaço reservado para uma publicação da AMI."}
           </p>
         </div>
@@ -265,7 +269,9 @@ function Item({
         </div>
         <div className={styles.itemTexto}>
           {noticia ? <span className={styles.data}>{dataPorExtenso(noticia.publicadoEm)}</span> : null}
-          <h3 className={styles.itemTitulo}>{noticia ? noticia.titulo : "Notícia a entrar"}</h3>
+          <h3 className={styles.itemTitulo} data-a-entrar={noticia ? undefined : ""}>
+            {noticia ? noticia.titulo : "Notícia a entrar"}
+          </h3>
         </div>
       </Casca>
     </article>

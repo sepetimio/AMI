@@ -13,7 +13,9 @@ import type { EmpresaParceira } from "@/lib/sanity/tipos";
 
   Sem nenhuma cadastrada, saem os seis espaços "Logotipo a entrar", a
   caixa tracejada do desenho. Nenhum nome de empresa é escrito aqui:
-  escrever um seria anunciar uma parceria que não existe.
+  escrever um seria anunciar uma parceria que não existe. Cada espaço leva
+  `data-a-entrar`, a marca de toda moldura "a entrar" do site, sem estilo
+  nenhum.
 
   Este componente não decide se aparece, nem se os espaços vazios podem
   sair. Quem decide é `moldurasDaHome`, em lib/molduras.ts: os espaços, só
@@ -82,7 +84,7 @@ export function EmpresasParceiras({ parceiras }: { parceiras: EmpresaParceira[] 
   return (
     <ul className={styles.parceiros}>
       {Array.from({ length: ESPACOS_DE_PARCEIRAS }, (_, i) => (
-        <li key={i} className={styles.logoVazio}>
+        <li key={i} className={styles.logoVazio} data-a-entrar="">
           Logotipo a entrar
         </li>
       ))}
