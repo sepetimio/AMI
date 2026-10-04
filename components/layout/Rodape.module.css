@@ -25,10 +25,12 @@
   O rodapé emenda na faixa de ponta a ponta de cima (spec, seção 6, item 8),
   sem espaço entre as duas, mas SÓ quando a página termina numa faixa.
 
-  Faixa é o bloco que leva `data-faixa` (a busca verde, "Seja associado" e
-  os parceiros, na home). A regra pergunta se o último elemento do
-  `<main>` é uma faixa, ou se o último elemento do último filho dele é (a
-  home põe os blocos dentro de um invólucro, app/(site)/page.tsx). Quando o
+  Faixa é o bloco que leva `data-faixa`: na home, a busca verde, "Seja
+  associado" e os parceiros; na página de cada especialidade, o "Sobre". A
+  regra pergunta se o último elemento do `<main>` é uma faixa, ou se o
+  último elemento do último filho dele é: a home e as páginas do diretório
+  põem os blocos dentro de um invólucro (app/(site)/page.tsx e
+  app/(site)/encontre.module.css). Quando o
   bloco que fecharia a página some (a home fora da demonstração, em que
   `Parceiros` devolve `null`), o último passa a ser outro; se não for faixa,
   a regra não casa e o `--ritmo` fica.

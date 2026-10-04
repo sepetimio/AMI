@@ -82,13 +82,9 @@ vi.mock("@/lib/dados/especialidades", () => ({
   especialidadesComContagem: async () => [
     { nome: "Cardiologia", slug: "cardiologia", total: 1 },
   ],
-  especialidadePorSlug: async () => ({
-    nome: "Cardiologia",
-    slug: "cardiologia",
-    oQueFaz: null,
-    quandoProcurar: null,
-  }),
+  especialidadePorSlug: async () => ({ nome: "Cardiologia", slug: "cardiologia" }),
 }));
+vi.mock("@/lib/sanity/consultas", () => ({ textoDaEspecialidade: async () => null }));
 
 const { EncontreUmMedico } = await import("@/components/home/EncontreUmMedico");
 const { default: PaginaBusca } = await import("@/app/(site)/busca/page");

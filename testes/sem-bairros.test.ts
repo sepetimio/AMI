@@ -46,8 +46,9 @@ const MEDICO: Medico = {
 vi.mock("@/lib/dados/medicos", () => ({ buscarMedicos: async () => [MEDICO] }));
 vi.mock("@/lib/dados/especialidades", () => ({
   especialidadesComContagem: async () => [{ nome: "Cardiologia", slug: "cardiologia", total: 1 }],
-  especialidadePorSlug: async () => ({ nome: "Cardiologia", slug: "cardiologia", oQueFaz: null, quandoProcurar: null }),
+  especialidadePorSlug: async () => ({ nome: "Cardiologia", slug: "cardiologia" }),
 }));
+vi.mock("@/lib/sanity/consultas", () => ({ textoDaEspecialidade: async () => null }));
 
 const { default: PaginaMedicos } = await import("@/app/(site)/medicos/page");
 const { default: PaginaEspecialidade } = await import("@/app/(site)/medicos/[especialidade]/page");

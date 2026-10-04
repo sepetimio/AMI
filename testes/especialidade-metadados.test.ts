@@ -29,7 +29,7 @@ vi.mock("@/lib/dados/medicos", () => ({ buscarMedicos: async () => dados.medicos
 vi.mock("@/lib/dados/especialidades", () => ({
   especialidadesComContagem: async () => [{ nome: "Cardiologia", slug: "cardiologia", total: 1 }],
   especialidadePorSlug: async (slug: string) =>
-    slug === "cardiologia" ? { nome: "Cardiologia", slug, oQueFaz: null, quandoProcurar: null } : null,
+    slug === "cardiologia" ? { nome: "Cardiologia", slug } : null,
 }));
 
 const pagina = await import("@/app/(site)/medicos/[especialidade]/page");
