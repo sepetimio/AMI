@@ -24,7 +24,7 @@
   - um único `h1`, nenhum `id` repetido, nenhuma imagem quebrada;
   - o cabeçalho no topo em cinco pontos de rolagem;
   - o menu em linha acima de 1180px e em gaveta abaixo, e a gaveta abre e fecha.
-  Nas páginas com `data-bloco` (a home, a busca e o perfil):
+  Nas páginas com `data-bloco` (a home, a busca, o perfil e as de especialidades):
   - espaços iguais entre blocos consecutivos;
   - o texto das seções com `data-coluna` (e o rodapé) na mesma linha vertical.
     Os números e "Sua AMI" não têm `data-coluna` de propósito: os cartões dos
@@ -37,6 +37,9 @@
     linha do texto dos slides com botão;
   - os "Ligar" dos cartões de médico de uma mesma fileira na mesma altura
     (`data-ligar`, o botão ou o espaço dele);
+  - os cartões do índice de especialidades: todos com a mesma altura, e em
+    cada fileira o nome e a contagem na mesma linha
+    (`data-cartao-de-especialidade`, `data-nome`, `data-contagem`);
   - acima de 700px, o texto na mesma linha vertical do logotipo;
   - a barra do pé: nunca acima de 700px; até 700px, aparece se e só se o
     bloco de abertura (o carrossel ou a faixa da busca, `[data-abertura]`)
@@ -406,6 +409,34 @@
       problemas.push(`"Ligar" desalinhado na fileira de ${topo}px: ${ys.join("/")}`);
   }
   info.fileirasDeCartoes = fileiras.size;
+
+  /* 14. Os cartões do índice de especialidades: todos com a altura do mais
+     alto, e em cada fileira o nome e a contagem na mesma linha. */
+  const fileirasDeEsp = new Map();
+  for (const c of document.querySelectorAll("[data-cartao-de-especialidade]")) {
+    if (R(c).height === 0) continue;
+    const topo = Math.round(topoAbs(c));
+    if (!fileirasDeEsp.has(topo)) fileirasDeEsp.set(topo, []);
+    fileirasDeEsp.get(topo).push({
+      altura: Math.round(R(c).height * 10) / 10,
+      nome: Math.round(topoAbs(c.querySelector("[data-nome]")) * 10) / 10,
+      conta: Math.round(topoAbs(c.querySelector("[data-contagem]")) * 10) / 10,
+    });
+  }
+  const espalha = (xs) => Math.max(...xs) - Math.min(...xs);
+  const alturasDeEsp = [];
+  for (const [topo, cs] of fileirasDeEsp) {
+    for (const medida of ["nome", "conta"]) {
+      const xs = cs.map((c) => c[medida]);
+      if (espalha(xs) > 0.5)
+        problemas.push(`cartões de especialidade com ${medida} desalinhado na fileira de ${topo}px: ${xs.join("/")}`);
+    }
+    alturasDeEsp.push(...cs.map((c) => c.altura));
+  }
+  if (alturasDeEsp.length && espalha(alturasDeEsp) > 0.5)
+    problemas.push(`cartões de especialidade de alturas diferentes: ${[...new Set(alturasDeEsp)].join("/")}`);
+  info.fileirasDeEspecialidades = fileirasDeEsp.size;
+  info.alturaDosCartoesDeEspecialidade = [...new Set(alturasDeEsp)].join("/");
 
   /* 10. O menu: em linha acima de 1180px, em gaveta abaixo. */
   const menu = document.querySelector('nav[aria-label="Principal"]');

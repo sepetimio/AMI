@@ -34,7 +34,11 @@ import { fileURLToPath } from "node:url";
    uma especialidade com `renderToPipeableStream` (`htmlDe`,
    testes/renderizar.ts) e as fontes de dados trocadas por dublês;
    `testes/barra-do-medico.test.ts`, a barra do pé do perfil, e
-   `testes/cabecalho.test.ts`, o menu. */
+   `testes/cabecalho.test.ts`, o menu. `testes/indice-de-especialidades.test.ts`
+   e `testes/pagina-de-especialidade.test.ts` renderizam `/medicos` e uma
+   especialidade, com `htmlDe` e as fontes de dados (o banco e o Sanity)
+   trocadas por dublês; `testes/blocos-da-especialidade.test.ts`, os três
+   blocos da página da especialidade, com `renderToString`. */
 export default defineConfig({
   test: {
     include: ["testes/**/*.test.ts"],

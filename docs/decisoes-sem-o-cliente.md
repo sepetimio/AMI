@@ -15,6 +15,11 @@ Detalhes em `docs/superpowers/specs/2026-10-03-especialidades-design.md`. Desenh
 5. **Linha de apoio do índice:** "{N} médicos associados, cada um com o número de registro no CRM. Escolha a área para ver quem atende."
 6. **Ícone grande:** fica na faixa verde da página de cada especialidade, e some no celular.
 7. **Rodapé:** o texto ficou com as cores que o site já usa (branco a 92% e a 70%), mais legíveis que as do desenho antigo.
+8. **Formato do texto "Sobre":** cada um dos dois textos ("O que faz" e "Quando procurar") aceita parágrafos e lista com marcadores, sem negrito nem link, como no desenho. Um texto só aparece com os seis campos preenchidos.
+9. **Sem texto cadastrado:** no modo demonstração, o bloco "Sobre" aparece com "Texto da AMI a entrar." no lugar dos dois textos, sem a linha do revisor, e mantém a frase "Conteúdo informativo; não substitui a consulta médica."; fora da demonstração, o bloco não aparece.
+10. **Barra do pé no índice:** no celular, o botão "Encontrar médico" do índice leva ao campo de busca da própria faixa, como na home e na busca. Na página de cada especialidade, que não tem campo, leva à busca.
+11. **Nomes longos no cartão:** os seis nomes do desenho quebram com hífen no ponto escolhido ("Otorrino-laringologia"). Uma especialidade nova de nome muito longo quebra onde couber.
+12. **Título do "Sobre":** "Sobre a cardiologia", com o nome em minúsculas, quando o nome da especialidade termina em "a", como as 14 de hoje. Uma especialidade nova de nome que não termina em "a" fica com "Sobre a especialidade", para não sair "Sobre a" antes de um nome masculino.
 
 ## Grupo 3: A Associação
 

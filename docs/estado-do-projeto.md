@@ -1,6 +1,6 @@
 # Estado do projeto — Site da Associação Médica de Imperatriz
 
-> Atualizado em 3 de outubro de 2026 · ramo `paginas-encontre` (a reforma visual, fatia B, grupo 1), feito a partir de `redesign-visual` (fatia A); nada vai para a `main` até todas as páginas estarem reformadas
+> Atualizado em 3 de outubro de 2026 · ramo `paginas-encontre` (a reforma visual, fatia B, grupos 1 e 2), feito a partir de `redesign-visual` (fatia A); nada vai para a `main` até todas as páginas estarem reformadas
 > Repositório: `github.com/sepetimio/AMI`
 > Especificação: [`docs/superpowers/specs/2026-08-19-site-ami-diretorio-design.md`](superpowers/specs/2026-08-19-site-ami-diretorio-design.md)
 
@@ -229,6 +229,132 @@ o perfil de dois consultórios, `/`, `/medicos`, `/medicos/cardiologia`, `/assoc
 6. O logotipo fica 4px à esquerda do texto no celular, como na home aprovada; fica para a
    revisão final do último grupo
 
+### Especialidades — fatia B, grupo 2 (o índice e a página de cada especialidade)
+
+Feito no ramo `paginas-encontre`, em 03/10/2026. O cliente escolheu o conteúdo e autorizou
+seguir pelas diretrizes já aprovadas; o desenho foi aprovado contra elas:
+[`docs/desenho-aprovado/especialidades/`](desenho-aprovado/especialidades/). Decisões em
+[`docs/superpowers/specs/2026-10-03-especialidades-design.md`](superpowers/specs/2026-10-03-especialidades-design.md);
+as tomadas sem o cliente, em [`docs/decisoes-sem-o-cliente.md`](decisoes-sem-o-cliente.md).
+
+**O que mudou no site**
+
+- **O índice (`/medicos`) e a página de cada especialidade novos, sem a Cabeceira cinza.**
+  Os dois abrem com a faixa verde com textura, como a busca
+- **O índice em ordem alfabética** (antes, pela quantidade de médicos), com um ícone por
+  especialidade e o campo de busca "Nome ou especialidade" na faixa. Cada cartão leva à
+  página da especialidade, e todos têm a mesma altura
+- **A página de cada especialidade**: o ícone grande na faixa (some no celular), um
+  parágrafo curto ("A Associação Médica de Imperatriz reúne 3 cardiologistas em Imperatriz,
+  no Maranhão. Cada perfil traz o número de registro no Conselho Regional de Medicina."),
+  a grade de cartões da busca e o bloco "Sobre a {especialidade}", que vem do Sanity.
+  **O cartão mostra a especialidade da página**, com o RQE dela: na página de Ortopedia, a
+  Dra. Aline Peixoto (neurologista, com Ortopedia como segunda especialidade) aparece como
+  "Ortopedia e Traumatologia". Na busca e no perfil continua a especialidade principal
+- **Sem "Outras especialidades"** no fim da página
+- **O site deixou de ler `o_que_faz` e `quando_procurar` do banco.** As duas colunas
+  continuam lá; o cliente decide se saem
+
+**O que a AMI precisa saber**
+
+- **O "Sobre" de cada especialidade é escrito e revisado por médico** e cadastrado no
+  Studio, com o nome e o CRM do revisor e a data da revisão. O texto só aparece com os seis
+  campos preenchidos
+- **Enquanto não houver texto**, a página mostra "Texto da AMI a entrar." no modo
+  demonstração e não mostra o bloco fora dele: a grade de médicos fecha a página
+- **Especialidade nova** recebe o estetoscópio como ícone. Para o parágrafo dizer
+  "3 cardiologistas" em vez de "3 médicos de X", o nome do profissional (no singular e no
+  plural, como "cardiologista" e "cardiologistas") precisa entrar na tabela de sinônimos
+  (`lib/dados/sinonimos.ts`); isso é trabalho de quem cuida do código, não do Studio
+
+**Pendências do cliente** (só ele pode fazer: pedem a conta do Sanity)
+
+1. Abrir o site em `/studio` e entrar com a conta do Sanity. Na coluna da esquerda, a lista
+   de conteúdos, conferir que aparece **"Texto de especialidade"**, junto de
+   "Empresa parceira".
+2. Em [sanity.io/manage](https://www.sanity.io/manage), clicar no projeto da AMI, depois
+   em **API** e, nela, em **Webhooks**. Abrir o webhook que aponta para o site e olhar o
+   campo **Filter** (o painel do Sanity é em inglês):
+   - vazio: nada a fazer;
+   - com uma lista de tipos (algo como `_type in ["banner", "noticia", ...]`):
+     acrescentar `"textoDeEspecialidade"` à lista e salvar a alteração na própria tela do
+     webhook. Sem isso, o texto cadastrado demora até uma hora para aparecer no site.
+3. De volta ao `/studio`, clicar em **Texto de especialidade** e, no alto da lista, no
+   botão de criar documento novo. Preencher:
+   - **Especialidade**: o fim do endereço da página, como `cardiologia` para
+     `/medicos/cardiologia`;
+   - **O que faz**;
+   - **Quando procurar**;
+   - **Revisado por**: o nome do médico revisor;
+   - **CRM do revisor**, escrito como "CRM/MA 12345";
+   - **Data da revisão**.
+
+   Depois, clicar em **Publicar**. Repetir para cada especialidade: são as 14 do índice.
+
+**Os números medidos** (produção, `next build` + `next start`, com
+`scripts/auditoria-visual.js`, nas oito larguras de 375 a 1920px; cada número abaixo saiu
+de uma rodada de 03/10/2026). Nenhum problema em nenhuma das 56 rodadas com a chave de
+demonstração ligada (`/medicos`, `/medicos/cardiologia`, `/medicos/ortopedia-e-traumatologia`,
+`/medicos/clinica-medica`, e, para conferir que nada voltou atrás, `/busca`, o perfil de
+dois consultórios e `/`), nem nas 16 com ela desligada (`/medicos` e `/medicos/cardiologia`).
+A auditoria agora confere também os cartões do índice: a mesma altura em todos, e o nome e
+a contagem na mesma linha em cada fileira.
+
+| Largura | Espaço entre blocos | Coluna do texto | Logotipo | Fileiras do índice | Altura dos cartões do índice | Fileiras de cartões de médico (Cardiologia / Clínica Médica) |
+|---|---|---|---|---|---|---|
+| 375, 390, 430 | 32px | 32px | 28px | 7 | 166,8px | 3 / 4 |
+| 768 | 56px | 52px | 52px | 7 | 205,3px | 2 / 2 |
+| 1024 | 72px | 72px | 72px | 5 | 230,6px | 1 / 2 |
+| 1280 | 72px | 92px | 92px | 4 | 230,6px | 1 / 1 |
+| 1440 | 72px | 172px | 172px | 4 | 230,6px | 1 / 1 |
+| 1920 | 72px | 412px | 412px | 4 | 230,6px | 1 / 1 |
+
+- O mesmo espaço vale entre todos os blocos das duas páginas, e a coluna do texto é a
+  mesma em todos eles e no rodapé. Em cada fileira, os "Ligar" dos cartões de médico ficam
+  na mesma altura
+- **Do último bloco ao rodapé**: 0 na página da especialidade com o "Sobre" (a faixa branca
+  encosta no rodapé, como na home); com a chave desligada, sem o "Sobre", a grade termina
+  a um espaço entre blocos do rodapé (32, 56 e 72px). No índice, o mesmo espaço, nas duas
+  chaves
+- **Abertura no topo**: 1008 medidas da auditoria (14 por rodada, pelo menu, vindo de outra
+  página parada no topo e no meio), todas em 0. Com cliques de verdade (Chrome sem janela,
+  a 1440 e a 390px, pelo menu e pela gaveta): da home e da busca até `/medicos`, de
+  `/medicos` até Cardiologia pelo cartão, e de Cardiologia de volta pelo "← Especialidades",
+  pelo menu e até a busca, os 22 casos em 0. Tirando o atributo da rolagem, os casos vindos
+  do meio da página voltam a abrir rolados (156px a 1440, 94px a 390)
+- **Contraste sobre as duas faixas verdes novas**, medido em pixel na posição real de cada
+  texto, com o grão médio e a luz que passeia no ponto mais claro do caminho dela
+  (1440, 768, 430 e 320px; pior caso de cada texto):
+
+  | Texto | Pior razão | Onde |
+  |---|---|---|
+  | linha de apoio do índice (#cfd8c9) | 4,99:1 | 430px |
+  | parágrafo da especialidade (#cfd8c9) | 4,84:1 | 430px |
+  | rótulo "ESPECIALIDADES" (lima; lima clareado no celular) | 5,27:1 | 320px |
+  | link "← ESPECIALIDADES" (lima; lima clareado no celular) | 5,19:1 | 320px |
+
+  Todos acima de 4,5:1, também no pico do grão (o menor, 4,52:1, é o parágrafo da
+  especialidade a 430px). No branco, o cinza #646B75 da contagem do cartão, da linha da
+  revisão e do "Texto da AMI a entrar." dá 5,38:1
+
+**Dúvidas que ficaram em aberto** (decididas na execução; o cliente pode mudar)
+
+1. **O `BreadcrumbList` saiu das duas páginas**, como saiu do perfil: elas não têm trilha
+   na tela. O `ItemList` dos médicos continua na página da especialidade. Se o cliente
+   quiser a trilha de volta no Google, ela precisa voltar à tela
+2. **No "Sobre" sem texto** (só na demonstração), a frase "Conteúdo informativo; não
+   substitui a consulta médica." fica
+3. **Especialidade de nome masculino**: o título é "Sobre a {nome}" quando o nome termina
+   em "a" (as 14 de hoje); senão, "Sobre a especialidade"
+4. **As duas gotas**: Endocrinologia (gota pela metade) e Urologia (gota inteira) ficam
+   como estão. Se parecerem iguais demais na tela, a Urologia pode passar ao estetoscópio
+5. **Os ajustes pequenos que o grupo 1 deixou** (o 0 nos números da home, o "Como chegar"
+   de meia largura, os espaços no fim do endereço, as barras sem `:has`, o teste do limite,
+   o mesmo bairro e uma régua única para a coluna) entram na correção final deste grupo,
+   que ainda não foi feita
+6. **O contraste do parágrafo da especialidade**, mais largo que o texto da busca: ficaria
+   decidido subir a opacidade do texto se desse menos de 4,5:1. Deu 4,84:1, e nada mudou
+
 ---
 
 ## O que falta
@@ -268,6 +394,10 @@ Cada página pede: Título, Endereço, Resumo entre 60 e 220 caracteres, data de
 - **Sua AMI**: o bloco diz "O auditório e o hall de eventos da AMI", com a etiqueta "em breve", e leva a Fale com a AMI. Ele só existe no modo demonstração, e some do menu e do rodapé junto, fora dele. Para ganhar página própria faltam as fotos, a capacidade e como reservar
 - **Os logotipos das empresas parceiras**, cadastrados em `/studio`, tipo "Empresa parceira" (nome, logotipo em PNG, site e ordem). A primeira cadastrada tira as seis molduras "Logotipo a entrar", e o número de cadastradas vira o quarto número da home ("empresas parceiras"). Sem nenhuma, fora do modo demonstração, a faixa e o quarto número não aparecem. Antes, o cliente precisa conferir o Studio e o webhook: ver "Pendências do cliente" na seção da fatia B
 - **O texto de Seja associado**, que hoje é provisório e marcado como tal
+
+**O que as páginas de especialidade esperam da AMI:**
+
+- Os textos "Sobre a especialidade" das 14 especialidades, com o médico revisor, o CRM dele e a data da revisão, cadastrados no Studio (tipo "Texto de especialidade"). O passo a passo está em "Pendências do cliente", na seção de Especialidades
 
 As fotos da **fachada da sede** (`sede`) e da **vista de Imperatriz** (`cidade`) continuam declaradas em `lib/imagens.ts`, mas **saíram da home** na reforma. Elas ficam para a página da Associação, na fatia B, e **não entram no pedido de material à AMI agora**: pedir foto que nenhuma página usa é pedir trabalho à toa.
 
