@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AMI } from "@/lib/ami";
 import {
+  LARGURA_DA_IMAGEM,
   comoItensDeLista,
   faqPage,
   itemList,
@@ -8,6 +9,7 @@ import {
   organizationAmi,
   physician,
 } from "@/lib/seo/jsonld";
+import { LARGURAS_DA_CAPA, capaDaNoticia } from "@/lib/noticias";
 import type { Medico } from "@/lib/dados/tipos";
 
 const SITE = "https://ami.org.br";
@@ -226,30 +228,47 @@ describe("newsArticle", () => {
     vi.unstubAllEnvs();
   });
 
-  it("inclui a capa como image, com as dimensões reais do arquivo", () => {
+  it("inclui a capa como image, no tamanho servido: a de 1200px do srcset da capa, 1200 × 675", () => {
     /* image é o que o Google exige para elegibilidade em Top Stories e
        Discover; omitir a capa aqui devolveria o dado ao alcance sem usá-lo.
+       O tamanho declarado é o da imagem que o endereço serve (a capa
+       recortada em 16:9), e não o do arquivo original no Sanity.
 
-       O projeto entra por `stubEnv` porque `newsArticle` chama
-       `urlDaImagem` sem configuração, e desde a revisão final faltar
-       `projectId` é erro alto em vez de URL vazia. É o mesmo estado que a
-       renderização real tem: a página só monta este JSON-LD depois de ter
-       buscado a matéria no Sanity. */
+       O projeto entra por `stubEnv` porque `newsArticle` monta o endereço
+       sem configuração, e desde a revisão final faltar `projectId` é erro
+       alto em vez de URL vazia. É o mesmo estado que a renderização real
+       tem: a página só monta este JSON-LD depois de ter buscado a matéria
+       no Sanity. */
     vi.stubEnv("NEXT_PUBLIC_SANITY_PROJECT_ID", "abcd1234");
+    vi.stubEnv("NEXT_PUBLIC_SANITY_DATASET", "production");
     const capa = {
-      asset: { _ref: "image-abc123def-1600x900-jpg" },
+      asset: { _ref: "image-abc123def-2000x1333-jpg" },
       alt: "Mesa de inscrição do congresso da AMI",
+      hotspot: { x: 0.5, y: 0.9, width: 0.2, height: 0.2 },
     };
     const j = newsArticle({ ...NOTICIA, capa }, "https://ami.org.br") as Record<
       string,
       unknown
     >;
     const imagem = j.image as Record<string, unknown>;
-    expect(imagem["@type"]).toBe("ImageObject");
-    expect(typeof imagem.url).toBe("string");
-    expect(imagem.url).not.toBe("");
-    expect(imagem.width).toBe(1600);
-    expect(imagem.height).toBe(900);
+    expect(LARGURA_DA_IMAGEM).toBe(1200);
+    expect(LARGURAS_DA_CAPA).toContain(LARGURA_DA_IMAGEM);
+    const daPagina = capaDaNoticia(capa)!.srcSet.split(", ").find((e) => e.endsWith(" 1200w"))!;
+    expect(imagem).toEqual({
+      "@type": "ImageObject",
+      url: daPagina.slice(0, -" 1200w".length),
+      width: 1200,
+      height: 675,
+    });
+    expect(imagem.url).toContain("w=1200&h=675");
+  });
+
+  it("omite image quando a capa tem a referência quebrada, como a página", () => {
+    vi.stubEnv("NEXT_PUBLIC_SANITY_PROJECT_ID", "abcd1234");
+    vi.stubEnv("NEXT_PUBLIC_SANITY_DATASET", "production");
+    const capa = { asset: { _ref: "quebrada" }, alt: "Foto" };
+    expect(capaDaNoticia(capa)).toBeNull();
+    expect(newsArticle({ ...NOTICIA, capa }, "https://ami.org.br")).not.toHaveProperty("image");
   });
 
   it("omite image quando a notícia não tem capa", () => {

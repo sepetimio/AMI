@@ -227,7 +227,7 @@ describe("os tokens existem", () => {
   existem — foi o que a autorrevisão desta tarefa mostrou: cruzar
   TEXTO_DE_CORPO inteiro contra `tokensEm("bg")` sem filtro dava 31 falhas,
   nenhuma delas um defeito real, e ainda por cima perdia `surface-fundo`
-  (nunca usado como classe `bg-`, só via `.moldura` no CSS — exatamente o
+  (nunca usado como classe `bg-`, só no CSS dos módulos — exatamente o
   buraco que a lista de fundos já tinha levado uma rodada para fechar).
 
   Por isso as listas de pares continuam curadas. O que a varredura faz é
@@ -291,14 +291,14 @@ const TEXTO_DE_CORPO = ["ink-900", "ink-600", "ink-400", "warn", "ami-green-600"
   de mouse e no selo "Associado AMI". O describe "a base aprovada em
   03/10/2026", mais abaixo, trava que ele não volte.
 
-  `surface-fundo` é o fundo de `.moldura`, em `app/globals.css` — e aqui a
-  frase exata importa, porque a fácil seria falsa: `.moldura` não é
-  aplicada em componente nenhum hoje, e a casca dupla feita à mão com
-  `bg-surface` e `p-2`, em volta da capa e da imagem da notícia, saiu com o
-  desenho novo, que não põe moldura em foto. O token entra nesta lista porque a
-  declaração é real e o dia em que alguém usar a classe não pode ser o dia
-  em que o par deixa de ser medido; que a classe esteja sem consumidor é
-  outro assunto, registrado na seção 6 da spec desta fatia.
+  `surface-fundo` é fundo com texto em cima, só no CSS dos módulos: o quadro
+  de aviso e o círculo da lista numerada
+  (components/editorial/PaginaDeTexto.module.css) e as etiquetas de
+  A Associação e de Sua AMI (components/associacao/SecoesDaAssociacao.module.css
+  e components/home/SuaAmi.module.css). A casca dupla `.moldura`, que o
+  usava em `app/globals.css`, saiu porque nenhum componente a aplicava, e a feita
+  à mão com `bg-surface` e `p-2`, em volta da capa e da imagem da notícia,
+  saiu com o desenho novo, que não põe moldura em foto.
 
   Esta lista continua escrita à mão de propósito: derivá-la de
   `tokensEm("bg")` sem filtro traria fundo de botão e de banner junto com

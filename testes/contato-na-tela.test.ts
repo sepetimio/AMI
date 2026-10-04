@@ -285,6 +285,11 @@ describe("a página /contato", () => {
     expect(m.description).toBe("Endereço, telefone e Instagram da Associação Médica de Imperatriz.");
     expect(m.alternates).toEqual({ canonical: "/contato" });
   });
+
+  it("refeita de hora em hora (revalidate de 3600s)", async () => {
+    const { modulo } = await pagina("true");
+    expect(modulo.revalidate).toBe(3600);
+  });
 });
 
 describe("o CSS do contato", () => {

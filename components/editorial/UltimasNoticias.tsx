@@ -2,11 +2,11 @@ import { Fragment, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import { Icone } from "@/components/base/IconeServidor";
 import { MolduraProvisoria } from "@/components/base/MolduraProvisoria";
+import { FotoDaNoticia } from "@/components/editorial/FotoDaNoticia";
 import styles from "@/components/editorial/UltimasNoticias.module.css";
 import { arranjoDasNoticias, tamanhosDasCapas } from "@/lib/arranjo-das-noticias";
 import { dataPorExtenso } from "@/lib/formato";
 import { listarNoticias } from "@/lib/sanity/consultas";
-import { urlDaImagem } from "@/lib/sanity/imagem";
 import type { ResumoNoticia } from "@/lib/sanity/tipos";
 
 /*
@@ -146,45 +146,6 @@ function Lista({ children }: { children: ReactNode[] }) {
   );
 }
 
-/*
-  A capa de uma notícia real, ou nada.
-
-  `urlDaImagem` devolve "" quando `asset._ref` está malformado; um
-  `<img src="">` faria o navegador pedir a página de novo (endereço vazio
-  é "esta mesma página"). Sem URL, a notícia cai no mesmo desenho de quem
-  não tem capa.
-
-  `alt=""`: a imagem está dentro do link, e o nome do link é o título. A
-  descrição da foto entraria no nome do link antes do título e o alongaria
-  sem dizer para onde ele leva.
-*/
-function Capa({
-  noticia,
-  larguras,
-  sizes,
-}: {
-  noticia: ResumoNoticia;
-  larguras: number[];
-  sizes: string;
-}) {
-  const capa = noticia.capa;
-  const src = capa ? urlDaImagem(capa, larguras[1]) : "";
-  if (!capa || !src) return <div className={styles.semCapa} aria-hidden="true" />;
-  return (
-    /* eslint-disable-next-line @next/next/no-img-element --
-       o CDN do Sanity já redimensiona; ver lib/sanity/imagem.ts. */
-    <img
-      src={src}
-      srcSet={larguras.map((l) => `${urlDaImagem(capa, l)} ${l}w`).join(", ")}
-      sizes={sizes}
-      alt=""
-      loading="lazy"
-      decoding="async"
-      className={styles.imagem}
-    />
-  );
-}
-
 /* Link para a notícia real; para a provisória, uma caixa que não leva a
    lugar nenhum e não deve parecer que leva. */
 function Casca({
@@ -216,11 +177,7 @@ function Destaque({ noticia, sizes }: { noticia?: ResumoNoticia; sizes: string }
       <Casca noticia={noticia} className={styles.destaqueCorpo}>
         <div className={styles.foto}>
           {noticia ? (
-            <Capa
-              noticia={noticia}
-              larguras={LARGURAS_DESTAQUE}
-              sizes={sizes}
-            />
+            <FotoDaNoticia capa={noticia.capa} larguras={LARGURAS_DESTAQUE} sizes={sizes} />
           ) : (
             <MolduraProvisoria
               largura={16}
@@ -257,7 +214,7 @@ function Item({
       <Casca noticia={noticia} className={styles.item}>
         <div className={styles.miniatura}>
           {noticia ? (
-            <Capa noticia={noticia} larguras={capa.larguras} sizes={capa.sizes} />
+            <FotoDaNoticia capa={noticia.capa} larguras={capa.larguras} sizes={capa.sizes} />
           ) : (
             <MolduraProvisoria
               largura={4}

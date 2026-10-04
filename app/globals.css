@@ -464,30 +464,6 @@
      sobre o degradê (`::before`).
      ========================================================= */
 
-  /*
-    Moldura concêntrica, ou casca dupla.
-
-    Um cartão pousado direto no fundo lê como retângulo. Envolvido por uma
-    casca de 6px com fundo um passo mais claro, ele passa a parecer peça
-    encaixada em bandeja, que é o que separa produto acabado de bloco de
-    conteúdo.
-
-    O raio do miolo é o da casca menos a espessura dela. Sem esse desconto as
-    duas curvas ficam concêntricas só por acaso, e o olho percebe o
-    desalinhamento mesmo sem saber nomear.
-  */
-  .moldura {
-    background-color: var(--color-surface-fundo);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-painel);
-    padding: 6px;
-    box-shadow: var(--shadow-erguido);
-  }
-
-  .moldura > * {
-    border-radius: calc(var(--radius-painel) - 6px);
-  }
-
   /* =========================================================
      MOVIMENTO
      ========================================================= */
@@ -548,23 +524,6 @@
 
   .pressiona:active {
     transform: translateY(1px) scale(0.99);
-  }
-
-  /*
-    Elevação que cresce ao passar o ponteiro. O deslocamento de 2px para cima
-    junto com a sombra maior é o que faz o cartão parecer subir, em vez de só
-    ganhar uma mancha embaixo.
-  */
-  .eleva {
-    transition:
-      box-shadow 400ms var(--ease-saida),
-      transform 400ms var(--ease-saida),
-      border-color 200ms var(--ease-resposta);
-  }
-
-  .eleva:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-erguido);
   }
 
   /* =========================================================

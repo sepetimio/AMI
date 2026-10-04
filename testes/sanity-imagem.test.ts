@@ -87,6 +87,23 @@ describe("urlRecortada", () => {
     ).toBe(`${BASE}?rect=500,0,1500,844&w=1600&h=900&fit=crop&auto=format`);
   });
 
+  it("o recorte sem ponto de interesse: o centro é o da imagem inteira, dentro do recorte", () => {
+    /* Medido com o construtor do Sanity em 04/10/2026. Com só a esquerda
+       cortada, a faixa de 1500px é toda a largura que sobra, e na altura o
+       16:9 fica no meio: 245 = (1333 − 844) / 2. */
+    const soEsquerda = { top: 0, bottom: 0, left: 0.25, right: 0 };
+    const esperado = `${BASE}?rect=500,245,1500,844&w=1600&h=900&fit=crop&auto=format`;
+    expect(urlRecortada({ ...CAPA, crop: soEsquerda }, 1600, 900, CONFIG)).toBe(esperado);
+    expect(urlRecortada({ ...CAPA, crop: soEsquerda, hotspot: null }, 1600, 900, CONFIG)).toBe(esperado);
+    /* Cortado em cima, embaixo e à direita: o 16:9 de 1000 × 563 não fica
+       no meio do recorte (que daria y 318), e sim no meio da imagem
+       inteira: 386 + 563 / 2 ≈ 667 ≈ 1333 / 2. Ali ele ainda cabe dentro
+       do recorte (de 133 a 1066). */
+    expect(urlRecortada({ ...CAPA, crop: { top: 0.1, bottom: 0.2, left: 0, right: 0.5 } }, 1600, 900, CONFIG)).toBe(
+      `${BASE}?rect=0,386,1000,563&w=1600&h=900&fit=crop&auto=format`,
+    );
+  });
+
   it("degrada a referência quebrada em vez de derrubar a página", () => {
     expect(urlRecortada({ asset: { _ref: "nao-e-um-ref-valido" }, alt: "" }, 1600, 900, CONFIG)).toBe("");
   });

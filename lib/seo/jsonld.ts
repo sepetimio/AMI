@@ -1,6 +1,7 @@
 import type { Medico } from "@/lib/dados/tipos";
 import type { Noticia } from "@/lib/sanity/tipos";
-import { dimensoesDoRef, urlDaImagem } from "@/lib/sanity/imagem";
+import { alturaDaCapa } from "@/lib/noticias";
+import { urlRecortada } from "@/lib/sanity/imagem";
 import { AMI } from "@/lib/ami";
 import { numeroPreenchido } from "@/lib/contato";
 
@@ -103,6 +104,9 @@ export function physician(m: Medico, siteUrl: string) {
   };
 }
 
+/* Uma das larguras do `srcset` da capa (`LARGURAS_DA_CAPA`, lib/noticias.ts). */
+export const LARGURA_DA_IMAGEM = 1200;
+
 /*
   NewsArticle das publicações da AMI.
 
@@ -116,14 +120,15 @@ export function physician(m: Medico, siteUrl: string) {
   "CRM"`) do valor em si, em vez de embutir os dois numa única string que um
   consumidor teria de reanalisar.
 
-  `image` sai da capa da matéria quando ela existe, com a mesma URL e as
-  mesmas dimensões reais que a página usa para desenhar a capa na tela
-  (`urlDaImagem` e `dimensoesDoRef`, ver lib/sanity/imagem.ts). A
-  documentação de dados estruturados do Google lista `image` como necessária
-  para elegibilidade em resultados ricos (Top Stories, Discover); omiti-la
-  quando o dado está ao alcance seria abrir mão de alcance de graça. Sem
-  capa, ou com `_ref` malformado (`urlDaImagem` devolve "" nesse caso, ver o
-  mesmo módulo), a chave some do objeto, no mesmo padrão condicional de
+  `image` é a capa que a página serve (`capaDaNoticia`, lib/noticias.ts):
+  a de 1200px de largura do `srcset` dela, recortada em 16:9 pelo ponto de
+  interesse, e declarada com o tamanho servido, 1200 × 675, e não com o do
+  arquivo original. A documentação de dados estruturados do Google lista
+  `image` como necessária para elegibilidade em resultados ricos (Top
+  Stories, Discover); omiti-la quando o dado está ao alcance seria abrir mão
+  de alcance de graça. Quando a página não desenha a capa (sem capa, ou com
+  `_ref` malformado, quando `urlRecortada` devolve "" e `capaDaNoticia`,
+  null), a chave some do objeto, no mesmo padrão condicional de
   `dateModified`.
 
   Nenhum `AggregateRating` em lugar nenhum: CFM 2.336/2023, Art. 11, XIII.
@@ -141,8 +146,9 @@ export function newsArticle(
   >,
   siteUrl: string,
 ) {
-  const imagemUrl = n.capa ? urlDaImagem(n.capa, 1200) : "";
-  const imagemDimensoes = n.capa ? dimensoesDoRef(n.capa.asset._ref) : undefined;
+  /* O mesmo endereço da largura de 1200px de `capaDaNoticia`; com a
+     referência quebrada, "", como lá. */
+  const imagemUrl = n.capa ? urlRecortada(n.capa, LARGURA_DA_IMAGEM, alturaDaCapa(LARGURA_DA_IMAGEM)) : "";
 
   return {
     "@context": "https://schema.org",
@@ -159,12 +165,8 @@ export function newsArticle(
           image: {
             "@type": "ImageObject" as const,
             url: imagemUrl,
-            ...(imagemDimensoes
-              ? {
-                  width: imagemDimensoes.largura,
-                  height: imagemDimensoes.altura,
-                }
-              : {}),
+            width: LARGURA_DA_IMAGEM,
+            height: alturaDaCapa(LARGURA_DA_IMAGEM),
           },
         }
       : {}),

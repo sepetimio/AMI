@@ -143,8 +143,8 @@ export async function noticiaPorSlug(slug: string): Promise<Noticia | null> {
     GROQ_NOTICIA,
     { slug },
     /* Duas etiquetas: a específica, para quando esta matéria é editada, e a
-       coletiva, para quando uma matéria nova entra e muda a navegação de
-       "anterior/próxima" que a página desenha. */
+       coletiva, para quando uma matéria nova entra e muda "Outras notícias",
+       que a página desenha. */
     { next: { tags: [etiquetaDeNoticia(slug), ETIQUETA_NOTICIAS] } },
   );
 }

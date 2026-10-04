@@ -214,6 +214,15 @@ describe("o cartão", () => {
     );
   });
 
+  it("capa com a referência quebrada: o verde da marca, e nenhum <img src=\"\">", () => {
+    const quebrada = noticia(2, { capa: { asset: { _ref: "nao-e-um-ref-valido" }, alt: "Foto" } });
+    const html = cartao(quebrada);
+    expect(html).toContain(
+      `<div class="${estilos.foto}" data-foto=""><div class="${estilosHome.semCapa}" aria-hidden="true"></div></div>`,
+    );
+    expect(html).not.toContain("<img");
+  });
+
   it("a moldura: sem link, sem data, com o texto da home", () => {
     const html = cartao();
     expect(html).toMatch(new RegExp(`^<li class="${estilos.cartao}" data-cartao-noticia="" data-a-entrar="notícias">`));
@@ -344,6 +353,11 @@ describe("a página /noticias", () => {
     );
     expect(modulo.metadata.alternates).toEqual({ canonical: "/noticias" });
   });
+
+  it("refeita de hora em hora (revalidate de 3600s), além da etiqueta do Sanity", async () => {
+    const { modulo } = await pagina("true");
+    expect(modulo.revalidate).toBe(3600);
+  });
 });
 
 describe("o CSS da lista", () => {
@@ -356,6 +370,11 @@ describe("o CSS da lista", () => {
     expect(regra(base(css), ".destaque")).toMatch(/box-shadow: var\(--shadow-erguido\);/);
     expect(regra(base(css), ".fotoDoDestaque")).toMatch(/aspect-ratio: 2 \/ 1;/);
     expect(regra(cel(), ".fotoDoDestaque")).toMatch(/aspect-ratio: 4 \/ 3;/);
+  });
+
+  it("o título do destaque no celular em 20px, como na foto aprovada", () => {
+    expect(regra(cel(), ".destaqueTitulo")).toMatch(/font-size: 20px;/);
+    expect(regra(cel(), ".destaqueTitulo")).not.toMatch(/font-size: 22px;/);
   });
 
   it("o destaque e a grade são um bloco só: --gap entre os dois", () => {

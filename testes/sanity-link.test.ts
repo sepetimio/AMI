@@ -1,5 +1,55 @@
 import { describe, expect, it } from "vitest";
-import { ehLinkInterno } from "@/lib/sanity/link";
+import { ehLinkInterno, hrefSeguro } from "@/lib/sanity/link";
+
+describe("hrefSeguro", () => {
+  it("aceita http, https, mailto, tel, o caminho do site e a âncora", () => {
+    for (const href of [
+      "https://portal.cfm.org.br",
+      "http://portal.cfm.org.br",
+      "HTTPS://portal.cfm.org.br",
+      "mailto:contato@ami.org.br",
+      "tel:+5599999999999",
+      "/associacao/diretoria",
+      "#fontes",
+    ]) {
+      expect(hrefSeguro(href), href).toBe(href);
+    }
+  });
+
+  it("tira os espaços das pontas, como o navegador", () => {
+    expect(hrefSeguro("  /associacao  ")).toBe("/associacao");
+    expect(hrefSeguro("\n https://portal.cfm.org.br\t")).toBe("https://portal.cfm.org.br");
+  });
+
+  it("barra javascript:, data: e vbscript:, em qualquer caixa e com espaço", () => {
+    for (const href of [
+      "javascript:alert(1)",
+      "JavaScript:alert(1)",
+      "JAVASCRIPT:alert(1)",
+      "  javascript:alert(1)",
+      "\tjavascript:alert(1)",
+      "\njavascript:alert(1)",
+      "java\tscript:alert(1)",
+      "java\nscript:alert(1)",
+      "java script:alert(1)",
+      "javascript :alert(1)",
+      "data:text/html,<script>alert(1)</script>",
+      "DATA:text/html;base64,PHNjcmlwdD4=",
+      " Data:text/html,x",
+      "vbscript:msgbox(1)",
+      "VBScript:msgbox(1)",
+      "  VBSCRIPT:msgbox(1)",
+    ]) {
+      expect(hrefSeguro(href), JSON.stringify(href)).toBeNull();
+    }
+  });
+
+  it("o resto também sai sem link: outro esquema, relativo sem barra, vazio ou sem endereço", () => {
+    for (const href of ["ftp://x.org", "file:///c:/x", "diretoria", "", "   ", undefined, null, 42]) {
+      expect(hrefSeguro(href), JSON.stringify(href)).toBeNull();
+    }
+  });
+});
 
 describe("ehLinkInterno", () => {
   it("trata caminho do próprio site como navegação interna", () => {

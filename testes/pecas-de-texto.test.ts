@@ -232,6 +232,26 @@ describe("o texto rico", () => {
     } as PortableTextBlock;
     expect(html([comLink])).toBe(`<p><a class="${estilos.link}" href="/associacao/seja-associado">Seja associado</a></p>`);
   });
+
+  it("o link com endereço que hrefSeguro barra, ou sem endereço, sai como texto", () => {
+    const comLink = (href: string | undefined) =>
+      ({
+        ...b("l", "normal", ""),
+        markDefs: [{ _type: "link", _key: "k", href }],
+        children: [
+          { _type: "span", _key: "l0", text: "Leia ", marks: [] },
+          { _type: "span", _key: "l1", text: "o estatuto", marks: ["k"] },
+        ],
+      }) as PortableTextBlock;
+    for (const href of ["javascript:alert(1)", " JavaScript:alert(1)", "data:text/html,x", "vbscript:x", undefined]) {
+      /* `<!-- -->` é a costura do React entre dois textos vizinhos. */
+      expect(html([comLink(href)]), String(href)).toBe("<p>Leia <!-- -->o estatuto</p>");
+    }
+    expect(html([comLink("https://portal.cfm.org.br")])).toBe(
+      `<p>Leia <a href="https://portal.cfm.org.br" class="${estilos.link}">o estatuto</a></p>`,
+    );
+    expect(html([comLink("  #fontes ")])).toBe(`<p>Leia <a href="#fontes" class="${estilos.link}">o estatuto</a></p>`);
+  });
 });
 
 describe("o CSS do texto rico", () => {

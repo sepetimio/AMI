@@ -148,9 +148,8 @@ function focoDe(imagem: ImagemCru | null | undefined): Foco | null {
   `urlDaImagem` devolve "". Na arte, descartar o banner inteiro nesse caso, e
   não montar um objeto com `imagem: ""`, é o mesmo padrão de
   `components/editorial/CorpoDoTexto.tsx` com a imagem do texto: sem URL
-  não há o que desenhar, e o
-  carrossel não pode receber um `<img src="">`. A AMI perde um banner, não o
-  carrossel inteiro.
+  não há o que desenhar, e o carrossel não pode receber um `<img src="">`.
+  A AMI perde um banner, não o carrossel inteiro.
 
   As imagens que NÃO sustentam o banner viram `null` em vez de derrubá-lo: a
   versão de celular da arte (o site recorta a larga) e a foto do composto (o

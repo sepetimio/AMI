@@ -5,7 +5,7 @@ import type { Icon } from "@phosphor-icons/react";
 import { ArrowRight, ArrowUpRight, Stethoscope } from "@phosphor-icons/react/dist/ssr";
 import type { PortableTextBlock } from "@portabletext/react";
 import estilosPagina from "@/app/(site)/encontre.module.css";
-import PaginaNoticia, { generateMetadata, generateStaticParams } from "@/app/(site)/noticias/[slug]/page";
+import PaginaNoticia, { generateMetadata, generateStaticParams, revalidate } from "@/app/(site)/noticias/[slug]/page";
 import { AutorDaNoticia } from "@/components/editorial/AutorDaNoticia";
 import { CapaDaNoticia } from "@/components/editorial/CapaDaNoticia";
 import { FaixaDaNoticia } from "@/components/editorial/FaixaDaNoticia";
@@ -357,6 +357,10 @@ describe("a página da notícia", () => {
     expect(m.alternates).toEqual({ canonical: "/noticias/jornada" });
     expect(await generateMetadata({ params: Promise.resolve({ slug: "nao-existe" }) })).toEqual({});
     expect(await generateStaticParams()).toEqual([{ slug: "jornada" }, { slug: "comunicado" }]);
+  });
+
+  it("refeita de hora em hora (revalidate de 3600s), além da etiqueta do Sanity", () => {
+    expect(revalidate).toBe(3600);
   });
 });
 

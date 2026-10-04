@@ -273,9 +273,11 @@
     padding: var(--folga) var(--m) 20px;
   }
 
+  /* 20px, como na foto aprovada: no desenho, o 22px escrito para esta
+     página perde para o 20px da regra do destaque da home, que pesa mais. */
   .destaqueTitulo {
     margin: 8px 0;
-    font-size: 22px;
+    font-size: 20px;
     line-height: 1.15;
   }
 

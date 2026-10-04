@@ -79,13 +79,18 @@ export type Assinatura = {
 /**
  * Quem assina a notícia. O laço com o diretório é o `slugDoPerfil` do
  * autor, opcional (sanity/schemas/autor.ts): em branco, o nome sai sem
- * link.
+ * link. O campo é texto livre do Studio, e só vira endereço quando tem a
+ * forma de um slug do diretório (letras minúsculas sem acento, algarismos e
+ * hífen, `SLUG_DO_PERFIL`); com qualquer outra coisa (barra, espaço, `?`,
+ * `#`, maiúscula), o nome sai sem link, como em branco.
  */
+const SLUG_DO_PERFIL = /^[a-z0-9-]+$/;
+
 export function assinaturaDoAutor(autor: Autor): Assinatura {
   const slug = autor.slugDoPerfil?.trim() ?? "";
   return {
     nome: autor.nome,
-    perfil: slug ? `/medico/${slug}` : null,
+    perfil: SLUG_DO_PERFIL.test(slug) ? `/medico/${slug}` : null,
     registro: identificacaoMedica(autor.crm, autor.crmUf),
   };
 }

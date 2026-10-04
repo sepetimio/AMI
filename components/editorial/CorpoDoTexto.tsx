@@ -6,7 +6,7 @@ import {
 } from "@portabletext/react";
 import styles from "@/components/editorial/PaginaDeTexto.module.css";
 import { imagemDoTexto, SIZES_DA_IMAGEM_DO_TEXTO } from "@/lib/noticias";
-import { ehLinkInterno } from "@/lib/sanity/link";
+import { ehLinkInterno, hrefSeguro } from "@/lib/sanity/link";
 import type { ImagemSanity } from "@/lib/sanity/tipos";
 
 /*
@@ -34,7 +34,9 @@ import type { ImagemSanity } from "@/lib/sanity/tipos";
     (`loading="lazy"`): nunca é a primeira coisa da tela;
   - o link: interno pelo roteador do Next, externo na mesma aba (a regra de
     qual é qual está em lib/sanity/link.ts). Abrir em aba nova sem avisar
-    tira do leitor o botão voltar.
+    tira do leitor o botão voltar. Só vira link o endereço que `hrefSeguro`
+    aceita (http, https, mailto, tel, `/` e `#`); com outro, ou sem
+    endereço, o texto sai sem link.
 
   O schema da notícia (sanity/schemas/noticia.ts) aceita parágrafo, h2, h3,
   citação, as duas listas, negrito, itálico, link e imagem; o da página
@@ -70,7 +72,8 @@ function componentes(ancoras: Record<string, string>): PortableTextComponents {
       em: ({ children }) => <em>{children}</em>,
       numero: ({ children }) => <span className={styles.inteiro}>{children}</span>,
       link: ({ value, children }) => {
-        const href: string = value?.href ?? "#";
+        const href = hrefSeguro(value?.href);
+        if (!href) return <>{children}</>;
         return ehLinkInterno(href) ? (
           <Link href={href} className={styles.link}>
             {children}

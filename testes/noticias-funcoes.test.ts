@@ -190,6 +190,26 @@ describe("a assinatura", () => {
     }
   });
 
+  it("o perfil só vira link com a forma de um slug: letras minúsculas, algarismos e hífen", () => {
+    const perfil = (slugDoPerfil: string) =>
+      assinaturaDoAutor({ nome: "Rafael Coelho", crm: "10137", crmUf: "MA", slugDoPerfil }).perfil;
+    expect(perfil("rafael-coelho-2")).toBe("/medico/rafael-coelho-2");
+    expect(perfil("  rafael-coelho  ")).toBe("/medico/rafael-coelho");
+    for (const fora of [
+      "../painel",
+      "rafael/coelho",
+      "rafael coelho",
+      "Rafael-Coelho",
+      "rafael-coelho?x=1",
+      "rafael-coelho#topo",
+      "rafaél",
+      "javascript:alert(1)",
+      "https://exemplo.com",
+    ]) {
+      expect(perfil(fora), fora).toBeNull();
+    }
+  });
+
   it("a volta da notícia aberta é a lista", () => {
     expect(VOLTA_NOTICIAS).toEqual({ href: "/noticias", rotulo: "Notícias" });
   });
