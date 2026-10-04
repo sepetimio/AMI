@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { Fotografia } from "@/components/base/Fotografia";
-import { Icone, LadrilhoIcone, type NomeIcone } from "@/components/base/Icone";
+import { Icone, LadrilhoIcone, type NomeIcone } from "@/components/base/IconeServidor";
 import styles from "@/components/home/SejaAssociado.module.css";
 import { AMI } from "@/lib/ami";
 import { ESPACOS } from "@/lib/imagens";

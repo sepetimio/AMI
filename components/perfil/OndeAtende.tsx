@@ -1,4 +1,4 @@
-import { Icone } from "@/components/base/Icone";
+import { Icone } from "@/components/base/IconeServidor";
 import styles from "@/components/perfil/Perfil.module.css";
 import { hrefTelefone } from "@/lib/ami";
 import { enderecoDoLocal, linkDoMapa, linkDoWhatsapp, numeroPreenchido } from "@/lib/encontre";

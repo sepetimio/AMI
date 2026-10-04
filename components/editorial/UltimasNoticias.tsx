@@ -1,6 +1,6 @@
 import { Fragment, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
-import { Icone } from "@/components/base/Icone";
+import { Icone } from "@/components/base/IconeServidor";
 import { MolduraProvisoria } from "@/components/base/MolduraProvisoria";
 import styles from "@/components/editorial/UltimasNoticias.module.css";
 import { arranjoDasNoticias, tamanhosDasCapas } from "@/lib/arranjo-das-noticias";

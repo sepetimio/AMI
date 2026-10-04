@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { renderToString } from "react-dom/server";
 import { createElement } from "react";
-import { fonte } from "@/testes/apoio";
-import { Icone, LadrilhoIcone, type NomeIcone } from "@/components/base/Icone";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
+import { fonte, semComentarios } from "@/testes/apoio";
+import { Icone as IconeDoCliente, mapaDoCliente, type NomeIconeDoCliente } from "@/components/base/Icone";
+import { Icone, LadrilhoIcone, type NomeIcone } from "@/components/base/IconeServidor";
 import type { Icon } from "@phosphor-icons/react";
 import {
   ArrowLeft,
@@ -113,6 +117,13 @@ describe("os icones", () => {
           }),
         );
         expect(nosso, `${nome}${duotone ? " duotone" : ""}`).toBe(dele);
+        /* O `Icone` do cliente desenha igual os nomes que tem. */
+        if (nome in mapaDoCliente) {
+          const doCliente = renderToString(
+            createElement(IconeDoCliente, { nome: nome as NomeIconeDoCliente, duotone }),
+          );
+          expect(doCliente, `${nome} no cliente`).toBe(dele);
+        }
       }
     }
     /* E os 33 são diferentes entre si: nenhum par repetido na tabela. */
@@ -140,9 +151,103 @@ describe("os icones", () => {
   });
 
   it("importa so os icones usados, pelo caminho de servidor", () => {
-    const src = fonte("../components/base/Icone.tsx");
-    expect(src).toContain("@phosphor-icons/react/dist/ssr");
-    expect(src).not.toMatch(/import\s+\*\s+as\s+\w+\s+from\s+["']@phosphor-icons\/react/);
-    expect(src).not.toMatch(/^import\s+\{[^}]*\}\s+from\s+["']@phosphor-icons\/react["']/m);
+    for (const arquivo of ["../components/base/Icone.tsx", "../components/base/IconeServidor.tsx"]) {
+      const src = fonte(arquivo);
+      expect(src, arquivo).toContain("@phosphor-icons/react/dist/ssr");
+      expect(src, arquivo).not.toMatch(/import\s+\*\s+as\s+\w+\s+from\s+["']@phosphor-icons\/react/);
+      expect(src, arquivo).not.toMatch(/^import\s+\{[^}]*\}\s+from\s+["']@phosphor-icons\/react["']/m);
+    }
+  });
+});
+
+/*
+  Os dois mapas de ícones (a regra está em components/base/Icone.tsx).
+
+  Leitura de código, e não renderização: o que se trava aqui é a ligação
+  entre módulos, que decide o que vai para o JavaScript do navegador.
+
+  Um arquivo "use client" leva para o navegador tudo o que importa, e o que
+  isso importa, e assim por diante. Por isso a varredura segue os imports a
+  partir de cada arquivo "use client" de components/ e app/:
+  - segue `import`, `export ... from` e `import()` com `@/` ou caminho
+    relativo, que resolvem para um arquivo .ts ou .tsx do repositório;
+  - pula `import type`, que some na compilação;
+  - pacotes e CSS ficam de fora: nenhum deles importa os mapas.
+*/
+const RAIZ = fileURLToPath(new URL("..", import.meta.url));
+
+function arquivosDe(pasta: string): string[] {
+  return readdirSync(join(RAIZ, pasta), { recursive: true, encoding: "utf8" })
+    .filter((nome) => /\.tsx?$/.test(nome))
+    .map((nome) => join(RAIZ, pasta, nome));
+}
+
+function ehDeCliente(arquivo: string): boolean {
+  return /^["']use client["']/.test(semComentarios(readFileSync(arquivo, "utf8")).trimStart());
+}
+
+/** Os arquivos do repositório que este importa de verdade (sem `import type`). */
+function importsDe(arquivo: string): string[] {
+  const codigo = semComentarios(readFileSync(arquivo, "utf8"));
+  const caminhos = [
+    ...codigo.matchAll(/\bimport\s+(?!type\s)(?:[\w*{}\s,$]+?\s+from\s+)?["']([^"']+)["']/g),
+    ...codigo.matchAll(/\bexport\s+(?!type\s)[\w*{}\s,$]+?\s+from\s+["']([^"']+)["']/g),
+    ...codigo.matchAll(/\bimport\s*\(\s*["']([^"']+)["']\s*\)/g),
+  ].map((m) => m[1]);
+  return caminhos.flatMap((caminho) => {
+    const base = caminho.startsWith("@/")
+      ? join(RAIZ, caminho.slice(2))
+      : caminho.startsWith(".")
+        ? join(dirname(arquivo), caminho)
+        : null;
+    if (!base) return [];
+    const achado = [base, `${base}.ts`, `${base}.tsx`, join(base, "index.ts"), join(base, "index.tsx")].find(
+      (c) => /\.tsx?$/.test(c) && existsSync(c),
+    );
+    return achado ? [achado] : [];
+  });
+}
+
+/** Tudo o que vai para o navegador a partir dos arquivos "use client": eles e o que importam. */
+function moduloDoCliente(): Map<string, string> {
+  /* arquivo -> o arquivo "use client" de onde a varredura chegou nele */
+  const vistos = new Map<string, string>();
+  const fila = [...arquivosDe("components"), ...arquivosDe("app")].filter(ehDeCliente);
+  for (const inicio of fila) vistos.set(inicio, inicio);
+  while (fila.length > 0) {
+    const atual = fila.shift()!;
+    for (const proximo of importsDe(atual)) {
+      if (!vistos.has(proximo)) {
+        vistos.set(proximo, vistos.get(atual)!);
+        fila.push(proximo);
+      }
+    }
+  }
+  return vistos;
+}
+
+describe("os dois mapas de icones", () => {
+  const cliente = moduloDoCliente();
+  const servidor = join(RAIZ, "components", "base", "IconeServidor.tsx");
+
+  it("a varredura acha os arquivos de cliente e segue os imports deles", () => {
+    /* Sem isto, uma varredura que não achasse nada passaria sempre. */
+    expect(cliente.has(join(RAIZ, "components", "layout", "BarraDoPe.tsx"))).toBe(true);
+    expect(cliente.has(join(RAIZ, "components", "base", "Icone.tsx"))).toBe(true);
+    expect(cliente.has(join(RAIZ, "lib", "barra-do-pe.ts"))).toBe(true);
+  });
+
+  it("nenhum arquivo de cliente, nem o que ele importa, chega ao mapa de servidor", () => {
+    const origem = cliente.get(servidor);
+    expect(origem && relative(RAIZ, origem), "arquivo de cliente que chega a IconeServidor.tsx").toBeUndefined();
+  });
+
+  it("o mapa do cliente so tem icones que o cliente desenha", () => {
+    const codigo = [...cliente.keys()]
+      .filter((arquivo) => arquivo !== join(RAIZ, "components", "base", "Icone.tsx"))
+      .map((arquivo) => semComentarios(readFileSync(arquivo, "utf8")))
+      .join("\n");
+    const semUso = Object.keys(mapaDoCliente).filter((nome) => !codigo.includes(`"${nome}"`));
+    expect(semUso, "nomes do mapa do cliente que nenhum arquivo de cliente usa").toEqual([]);
   });
 });

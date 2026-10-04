@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Icone } from "@/components/base/Icone";
+import { Icone } from "@/components/base/IconeServidor";
 import { FotoDoMedico } from "@/components/diretorio/FotoDoMedico";
 import styles from "@/components/perfil/Perfil.module.css";
 import { hrefTelefone } from "@/lib/ami";

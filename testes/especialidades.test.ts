@@ -19,7 +19,7 @@ import {
   Stethoscope,
 } from "@phosphor-icons/react/dist/ssr";
 import type { PortableTextBlock } from "@portabletext/react";
-import { Icone } from "@/components/base/Icone";
+import { Icone } from "@/components/base/IconeServidor";
 import {
   ICONE_PADRAO,
   especialidadesComMedico,

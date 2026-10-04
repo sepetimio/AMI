@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToString } from "react-dom/server";
 import { createElement } from "react";
-import { LadrilhoIcone } from "@/components/base/Icone";
+import { LadrilhoIcone } from "@/components/base/IconeServidor";
 import { SuaAmi } from "@/components/home/SuaAmi";
 import { SejaAssociado } from "@/components/home/SejaAssociado";
 import estilosSua from "@/components/home/SuaAmi.module.css";

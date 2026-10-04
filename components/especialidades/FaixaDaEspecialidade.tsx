@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Icone } from "@/components/base/Icone";
+import { Icone } from "@/components/base/IconeServidor";
 import busca from "@/components/busca/FaixaDaBusca.module.css";
 import styles from "@/components/especialidades/FaixaDaEspecialidade.module.css";
 import { iconeDaEspecialidade } from "@/lib/especialidades";

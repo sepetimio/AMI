@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LadrilhoIcone, type NomeIcone } from "@/components/base/Icone";
+import { LadrilhoIcone, type NomeIcone } from "@/components/base/IconeServidor";
 import { Contador } from "@/components/home/Contador";
 import styles from "@/components/home/NumerosDaAmi.module.css";
 import { AMI } from "@/lib/ami";

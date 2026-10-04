@@ -1,4 +1,4 @@
-import type { NomeIcone } from "@/components/base/Icone";
+import type { NomeIcone } from "@/components/base/IconeServidor";
 import type { EspecialidadeComContagem } from "@/lib/dados/tipos";
 import type { TextoDeEspecialidade } from "@/lib/sanity/tipos";
 

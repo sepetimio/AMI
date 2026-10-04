@@ -3,7 +3,7 @@ import { renderToString } from "react-dom/server";
 import { createElement } from "react";
 import { AMI, anosDeAmi } from "@/lib/ami";
 import { DURACAO_DO_CONTADOR, easeOutCubic, iniciarContagem, valorNoInstante } from "@/lib/contador";
-import { LadrilhoIcone } from "@/components/base/Icone";
+import { LadrilhoIcone } from "@/components/base/IconeServidor";
 import { NumerosDaAmi } from "@/components/home/NumerosDaAmi";
 import { EncontreUmMedico } from "@/components/home/EncontreUmMedico";
 import estilosNum from "@/components/home/NumerosDaAmi.module.css";

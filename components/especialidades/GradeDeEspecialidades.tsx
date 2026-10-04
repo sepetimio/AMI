@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Icone, LadrilhoIcone } from "@/components/base/Icone";
+import { Icone, LadrilhoIcone } from "@/components/base/IconeServidor";
 import resultados from "@/components/busca/ResultadosDaBusca.module.css";
 import styles from "@/components/especialidades/GradeDeEspecialidades.module.css";
 import { especialidadesComMedico, iconeDaEspecialidade, nomeComQuebras } from "@/lib/especialidades";
