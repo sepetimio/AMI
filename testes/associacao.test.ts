@@ -302,4 +302,8 @@ describe("o CSS dos blocos de baixo", () => {
   it("a etiqueta: cinza neutro, sem tom quente", () => {
     expect(regra(base(css), ".etiqueta")).toMatch(/background: var\(--color-surface-fundo\);/);
   });
+
+  it("a etiqueta herda a entrelinha do título, como no desenho: a pílula não alonga o cartão", () => {
+    expect(regra(base(css), ".etiqueta")).toMatch(/line-height: inherit;/);
+  });
 });

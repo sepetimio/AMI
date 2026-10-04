@@ -72,7 +72,9 @@
   font-family: var(--font-corpo);
   font-size: 11.5px;
   font-weight: 700;
-  line-height: 1.4;
+  /* A entrelinha do título, como no desenho, que não dá uma própria à
+     etiqueta: a pílula fica com cerca de 21px de altura, e não 24. */
+  line-height: inherit;
   letter-spacing: 0;
   vertical-align: 3px;
 }
