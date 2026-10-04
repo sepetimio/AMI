@@ -15,7 +15,8 @@ import type { Canal } from "@/lib/paginaDeContato";
   tela começa pelo que está escrito nele ("Ligar para a sede da AMI, …"),
   para quem usa comando de voz dizer o que vê, e diz para onde ele liga.
 
-  Marcas para medir no navegador se os três cartões ficam alinhados:
+  Marcas para a auditoria visual (scripts/auditoria-visual.js, conferência
+  18), que confere se os cartões de uma fileira ficam alinhados:
   `data-canal`, `data-rotulo`, `data-dado` e `data-acao`.
 */
 export function CanaisDeContato({ canais }: { canais: Canal[] }) {

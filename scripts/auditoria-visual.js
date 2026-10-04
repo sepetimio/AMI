@@ -25,7 +25,8 @@
   - o cabeçalho no topo em cinco pontos de rolagem;
   - o menu em linha acima de 1180px e em gaveta abaixo, e a gaveta abre e fecha.
   Nas páginas com `data-bloco` (a home, a busca, o perfil, as de
-  especialidades, as de A Associação e as de texto):
+  especialidades, as de A Associação, as de texto, as de notícias e o
+  contato):
   - espaços iguais entre blocos consecutivos;
   - o texto das seções com `data-coluna` (e o rodapé) na mesma linha vertical.
     Os números e "Sua AMI" não têm `data-coluna` de propósito: os cartões dos
@@ -47,6 +48,13 @@
   - o índice "Nesta página" das páginas de texto: rolando até cada título,
     o item dele fica marcado (`aria-current`), e no fim da página o último
     (`data-nesta-pagina`);
+  - os cartões de notícia (a lista e "Outras notícias"): em cada fileira,
+    a mesma altura, a foto terminando na mesma linha, e a data e o título
+    começando na mesma linha (`data-cartao-noticia`, `data-foto`,
+    `data-data`, `data-titulo`);
+  - os canais do contato: em cada fileira, o ícone, o rótulo e o dado
+    começando na mesma linha, e o botão terminando na mesma linha
+    (`data-canal`, `data-rotulo`, `data-dado`, `data-acao`);
   - acima de 700px, o texto na mesma linha vertical do logotipo;
   - a barra do pé: nunca acima de 700px; até 700px, aparece se e só se o
     bloco de abertura (o carrossel ou a faixa da busca, `[data-abertura]`)
@@ -496,6 +504,59 @@
     await rolar(0, 250);
     info.nestaPagina = marcados.join("/");
   }
+
+  /* 17. Os cartões de notícia (a lista e "Outras notícias"): em cada
+     fileira, a mesma altura, a foto terminando na mesma linha, e a data e o
+     título começando na mesma linha. A moldura "a entrar" não tem data, e
+     fica fora da medida da data. No celular cada cartão é uma fileira. */
+  const fileirasDeNoticias = new Map();
+  const decimo = (x) => Math.round(x * 10) / 10;
+  for (const c of document.querySelectorAll("[data-cartao-noticia]")) {
+    if (R(c).height === 0) continue;
+    const topo = Math.round(topoAbs(c));
+    if (!fileirasDeNoticias.has(topo)) fileirasDeNoticias.set(topo, []);
+    const foto = c.querySelector("[data-foto]");
+    const data = c.querySelector("[data-data]");
+    fileirasDeNoticias.get(topo).push({
+      altura: decimo(R(c).height),
+      foto: decimo(topoAbs(foto) + R(foto).height),
+      data: data ? decimo(topoAbs(data)) : null,
+      titulo: decimo(topoAbs(c.querySelector("[data-titulo]"))),
+    });
+  }
+  for (const [topo, cs] of fileirasDeNoticias) {
+    for (const medida of ["altura", "foto", "data", "titulo"]) {
+      const xs = cs.map((c) => c[medida]).filter((x) => x !== null);
+      if (xs.length > 1 && espalha(xs) > 0.5)
+        problemas.push(`cartões de notícia com ${medida} desigual na fileira de ${topo}px: ${xs.join("/")}`);
+    }
+  }
+  info.fileirasDeNoticias = fileirasDeNoticias.size;
+
+  /* 18. Os canais do contato: em cada fileira, o ícone, o rótulo e o dado
+     começando na mesma linha, e o botão terminando na mesma linha. Do
+     tablet para baixo cada canal é uma fileira. */
+  const fileirasDeCanais = new Map();
+  for (const c of document.querySelectorAll("[data-canal]")) {
+    if (R(c).height === 0) continue;
+    const topo = Math.round(topoAbs(c));
+    if (!fileirasDeCanais.has(topo)) fileirasDeCanais.set(topo, []);
+    const acao = c.querySelector("[data-acao]");
+    fileirasDeCanais.get(topo).push({
+      icone: decimo(topoAbs(c.querySelector(".ladrilho-icone"))),
+      rotulo: decimo(topoAbs(c.querySelector("[data-rotulo]"))),
+      dado: decimo(topoAbs(c.querySelector("[data-dado]"))),
+      botao: decimo(topoAbs(acao) + R(acao).height),
+    });
+  }
+  for (const [topo, cs] of fileirasDeCanais) {
+    for (const medida of ["icone", "rotulo", "dado", "botao"]) {
+      const xs = cs.map((c) => c[medida]);
+      if (espalha(xs) > 0.5)
+        problemas.push(`canais com ${medida} desalinhado na fileira de ${topo}px: ${xs.join("/")}`);
+    }
+  }
+  info.fileirasDeCanais = fileirasDeCanais.size;
 
   /* 10. O menu: em linha acima de 1180px, em gaveta abaixo. */
   const menu = document.querySelector('nav[aria-label="Principal"]');

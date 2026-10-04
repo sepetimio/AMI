@@ -42,7 +42,13 @@ import { fileURLToPath } from "node:url";
    `testes/modelo-de-texto.test.ts`, `testes/seja-associado.test.ts`,
    `testes/diretoria-na-tela.test.ts` e `testes/associacao.test.ts`
    renderizam as páginas de A Associação e as de texto com `htmlDe`, com o
-   Sanity, a diretoria e o banco trocados por dublês. */
+   Sanity, a diretoria e o banco trocados por dublês.
+   `testes/pecas-de-texto.test.ts` renderiza a faixa curta, o corpo das
+   páginas de texto e o texto rico com `renderToString`;
+   `testes/lista-de-noticias.test.ts`, `testes/noticia-aberta.test.ts` e
+   `testes/contato-na-tela.test.ts`, as peças e as páginas de notícias e
+   de contato, com o Sanity trocado por um dublê e as notícias de exemplo
+   escritas no próprio teste. */
 export default defineConfig({
   test: {
     include: ["testes/**/*.test.ts"],

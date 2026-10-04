@@ -15,9 +15,9 @@ import type { ResumoNoticia } from "@/lib/sanity/tipos";
   Sem `noticia`, é a moldura "a entrar" da home ("Notícia a entrar"), que
   só a demonstração mostra, e que não é link: não há página para ela.
 
-  Marcas para medir no navegador se os cartões de uma fileira ficam
-  alinhados: `data-cartao-noticia`, `data-foto`, `data-data` e
-  `data-titulo`.
+  Marcas para a auditoria visual (scripts/auditoria-visual.js, conferência
+  17), que confere se os cartões de uma fileira ficam alinhados:
+  `data-cartao-noticia`, `data-foto`, `data-data` e `data-titulo`.
 */
 export function CartaoNoticia({ noticia, sizes }: { noticia?: ResumoNoticia; sizes: string }) {
   return (

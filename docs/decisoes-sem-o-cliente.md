@@ -53,6 +53,17 @@ Detalhes em `docs/superpowers/specs/2026-10-03-noticias-contato-design.md`. Dese
 4. **Assinatura do autor:** aparece na faixa do topo e no fim do texto, com o botão "Ver perfil".
 5. **Contato:** três cartões (telefone da sede, celular e Instagram), sem e-mail, sem WhatsApp, sem formulário e sem mapa embutido. O horário de atendimento aparece como moldura até a AMI informar.
 6. **Frases de apoio novas:** "Comunicados, eventos e notas da associação…" e "Pelo telefone, pelo Instagram ou na sede…".
+7. **Notícia sem capa:** o verde da marca com o símbolo, o mesmo da home.
+8. **Lista sem notícia:** no modo demonstração, os cartões "Notícia a entrar" da home; fora dele, "Nenhuma notícia publicada ainda." e o botão "Voltar para o início".
+9. **"Outras notícias":** as três mais recentes, depois do texto da notícia; sem nenhuma, o bloco não aparece. Com uma ou duas, vale o item 2 de "Decisões que valem para várias páginas": duas ficam em duas colunas, e **uma sozinha sai num cartão deitado**, com a foto da largura de uma coluna de três, como a lista com duas notícias.
+10. **Notícia aberta:** o texto na mesma coluna de leitura das páginas de texto, com o índice "Nesta página" quando há dois títulos ou mais, e "Atualizado em" só quando a notícia foi revisada.
+11. **Lista numerada, citação e links do texto:** o número num círculo cinza, a citação com o fio verde e o link verde que escurece no mouse valem também nas páginas de texto (Estatuto, Política editorial e os textos legais), quando o texto os tiver.
+12. **Fotos da lista:** os cartões e o destaque são recortados pelo meio, como na home. Só a capa da notícia aberta usa o ponto de interesse marcado no Studio.
+13. **Instagram:** "Abrir o Instagram" na mesma aba, como os outros links para fora do site (ver "Decisões que valem para várias páginas", item 6).
+14. **Perfil do Instagram:** em tela estreita, ele pode quebrar em qualquer ponto, para não sair da tela. O desenho o quebrava num ponto fixo ("@associacaomedica" / "deimperatriz"); a 1024px, o site o quebra mais adiante, no meio de "imperatriz".
+15. **A cabeceira cinza e a trilha ("Início / …") saíram do site inteiro:** a lista de notícias, a notícia e o contato eram as últimas páginas que as tinham.
+16. **Teclado nos cartões de notícia:** o contorno do foco aparece em volta do cartão inteiro, e não só do título.
+17. **"MÉDICO · CRM" no fim da notícia:** no cinza do texto, como o desenho o mostra, e não no cinza mais claro do CRM do perfil.
 
 ## Decisões que valem para várias páginas
 
@@ -61,3 +72,5 @@ Detalhes em `docs/superpowers/specs/2026-10-03-noticias-contato-design.md`. Dese
 3. **Textos legais:** um item que a AMI ainda precisa preencher, como o encarregado de dados na política de privacidade, aparece marcado "a entrar" mesmo fora do modo demonstração. Um texto legal não pode esconder em silêncio um item obrigatório.
 4. **Dois consultórios do mesmo médico no mesmo bairro:** os títulos ganham "(1)" e "(2)", e os botões dizem o endereço, para quem usa leitor de tela.
 5. **Velocidade:** os ícones que aparecem só em algumas páginas passam a ser carregados só nelas. O código comum a todas as páginas caiu de 28 KB para 10 KB.
+6. **Nenhum link abre em nova aba:** o Instagram, "Como chegar" e os links para fora do site no meio de um texto abrem na mesma aba, e o botão voltar do navegador traz a pessoa de volta. A única exceção é o logotipo de uma empresa parceira, na home, que abre o site da empresa em outra aba e avisa quem usa leitor de tela; ele só aparece quando houver uma empresa cadastrada.
+7. **Listas no meio de um texto** (com marcador ou numeradas, nas notícias e nas páginas de texto): ficam com o mesmo espaço que há entre dois parágrafos, e não coladas ao parágrafo de cima, como estavam no desenho. **Ainda não está no site:** entra na correção final deste grupo.

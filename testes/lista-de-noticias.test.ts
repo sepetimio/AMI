@@ -32,7 +32,8 @@ import { htmlDe } from "@/testes/renderizar";
 
   O endereço das fotos sai do CDN do Sanity, com o projeto do ambiente: o
   teste o fixa por `stubEnv`. O CSS se lê do arquivo; o alinhamento dos
-  cartões se mede no navegador, pelas marcas do cartão.
+  cartões se mede no navegador, pelas marcas do cartão, na auditoria visual
+  (scripts/auditoria-visual.js, conferência 17).
 */
 
 const sanity = vi.hoisted(() => ({ publicadas: [] as ResumoNoticia[], limites: [] as number[] }));
