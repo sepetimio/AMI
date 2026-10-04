@@ -35,11 +35,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     `notFound()` nesse caso. Sitemap apontando para 404 é defeito de SEO, e
     num site de saúde avaliado sob critério YMYL isso pesa mais do que
     simplesmente deixar de listar. As seis fixas abaixo renderizam sempre:
-    `/associacao` é índice com caminhos vindos do código, `/associacao/
-    diretoria` vem do Supabase, `/contato` é texto que mora em `lib/ami.ts`,
-    e as outras três são as raízes de navegação do site. As páginas de
-    prosa (hoje sete, Seja associado incluída) entram mais abaixo, derivadas
-    do que de fato está publicado.
+    `/associacao` é a página institucional, que se monta mesmo sem a
+    apresentação no Studio, `/associacao/diretoria` vem do Supabase,
+    `/contato` é texto que mora em `lib/ami.ts`, e as outras três são as
+    raízes de navegação do site. As páginas de prosa (hoje sete, Seja
+    associado incluída) entram mais abaixo, derivadas do que de fato está
+    publicado.
 
     `/contato` fica em 0.7, o mesmo de `/associacao`: os dois são item do
     menu principal (ver lib/menu.ts), abaixo da home

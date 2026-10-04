@@ -44,15 +44,16 @@ export type PaginaConhecida = {
 
 export const PAGINAS_CONHECIDAS: Readonly<Record<string, PaginaConhecida>> = {
   /*
-    A única entrada que não é prosa pura: alimenta o texto opcional de
-    app/(site)/associacao/page.tsx, o índice, que nunca chama notFound().
+    A única entrada que não é prosa pura: alimenta a apresentação ("Quem
+    somos") de app/(site)/associacao/page.tsx, página que nunca chama
+    notFound().
     Fica em PAGINAS_CONHECIDAS (o Studio precisa aceitar o slug) mas fora de
     CAMINHO_DAS_PAGINAS logo abaixo (o sitemap já lista /associacao como
     entrada fixa, e a rota dinâmica [pagina] não gera essa página).
   */
   associacao: {
     caminho: "/associacao",
-    rotulo: "A Associação (texto do índice)",
+    rotulo: "A Associação (texto da apresentação)",
   },
   beneficios: { caminho: "/associacao/beneficios", rotulo: "Benefícios" },
   estatuto: { caminho: "/associacao/estatuto", rotulo: "Estatuto" },

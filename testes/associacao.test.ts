@@ -191,6 +191,8 @@ describe("a página A Associação", () => {
     expect(html.match(/data-diretor=""/g)).toHaveLength(4);
     expect(html).toContain(">Diretor 4<");
     expect(html).not.toContain(">Diretor 5<");
+    expect(link(html, "/associacao/diretoria")).toContain('class="botao-linha"');
+    expect(html).toMatch(/<a [^>]*href="\/associacao\/diretoria"[^>]*>Ver a diretoria/);
   });
 
   it("na demonstração, as molduras: a apresentação, a foto, os três princípios e dois atalhos a entrar", async () => {
