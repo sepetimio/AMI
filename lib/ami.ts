@@ -15,7 +15,7 @@
   verificadores antes de entrar aqui.
 */
 
-import { numeroNacional } from "@/lib/contato";
+import { buscaNoMapa, numeroNacional } from "@/lib/contato";
 
 export const AMI = {
   razaoSocial: "Associação Médica de Imperatriz",
@@ -71,6 +71,14 @@ export function anosDeAmi(agora: Date): number {
 export function enderecoEmLinha(): string {
   const e = AMI.endereco;
   return `${e.logradouro}, ${e.numero}, ${e.bairro}, ${e.cidade} - ${e.uf}`;
+}
+
+/**
+ * "Como chegar" à sede, na página da associação e em Seja associado: o
+ * endereço em uma linha, com o CEP, na busca do Google Maps.
+ */
+export function linkDoMapaDaAmi(): string {
+  return buscaNoMapa(`${enderecoEmLinha()}, ${AMI.endereco.cep}`);
 }
 
 /**

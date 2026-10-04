@@ -12,18 +12,24 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
+  Article,
   Baby,
   Bone,
   Brain,
   Buildings,
+  CalendarBlank,
   CaretDown,
   CaretLeft,
   CaretRight,
   ChatsCircle,
+  ClockCounterClockwise,
+  Cookie,
+  DeviceMobile,
   Drop,
   DropHalf,
   Ear,
   Eye,
+  FileText,
   FlagBanner,
   ForkKnife,
   GenderFemale,
@@ -32,14 +38,19 @@ import {
   HandPalm,
   Handshake,
   Heartbeat,
+  Info,
   List,
   MagnifyingGlass,
   MapPin,
   Pause,
   Phone,
+  PhoneCall,
   Play,
+  Scroll,
   SealCheck,
+  ShieldCheck,
   Stethoscope,
+  UsersThree,
   WhatsappLogo,
   X,
 } from "@phosphor-icons/react/dist/ssr";
@@ -104,6 +115,17 @@ describe("os icones", () => {
       conversa: ChatsCircle,
       mao: Hand,
       gota: Drop,
+      pergaminho: Scroll,
+      artigo: Article,
+      escudo: ShieldCheck,
+      biscoito: Cookie,
+      documento: FileText,
+      pessoas: UsersThree,
+      calendario: CalendarBlank,
+      informacao: Info,
+      relogio: ClockCounterClockwise,
+      chamada: PhoneCall,
+      celular: DeviceMobile,
     };
     for (const [nome, Componente] of Object.entries(esperado) as [NomeIcone, Icon][]) {
       for (const duotone of [false, true]) {
@@ -126,9 +148,9 @@ describe("os icones", () => {
         }
       }
     }
-    /* E os 33 são diferentes entre si: nenhum par repetido na tabela. */
+    /* E os 44 são diferentes entre si: nenhum par repetido na tabela. */
     const htmls = Object.keys(esperado).map((nome) => renderToString(createElement(Icone, { nome: nome as NomeIcone })));
-    expect(new Set(htmls).size).toBe(33);
+    expect(new Set(htmls).size).toBe(44);
   });
 
   it("duotone inclui opacity 0.2, regular nao", () => {

@@ -23,6 +23,17 @@ import {
   ChatsCircle,
   Hand,
   Drop,
+  Scroll,
+  Article,
+  ShieldCheck,
+  Cookie,
+  FileText,
+  UsersThree,
+  CalendarBlank,
+  Info,
+  ClockCounterClockwise,
+  PhoneCall,
+  DeviceMobile,
 } from "@phosphor-icons/react/dist/ssr";
 import { desenharIcone, mapaDoCliente, type PropsDoIcone } from "@/components/base/Icone";
 
@@ -63,6 +74,17 @@ const mapaDeTodos = {
   conversa: ChatsCircle,
   mao: Hand,
   gota: Drop,
+  pergaminho: Scroll,
+  artigo: Article,
+  escudo: ShieldCheck,
+  biscoito: Cookie,
+  documento: FileText,
+  pessoas: UsersThree,
+  calendario: CalendarBlank,
+  informacao: Info,
+  relogio: ClockCounterClockwise,
+  chamada: PhoneCall,
+  celular: DeviceMobile,
 } satisfies Record<string, Icon>;
 
 /** Todos os nomes de ícone do site. */

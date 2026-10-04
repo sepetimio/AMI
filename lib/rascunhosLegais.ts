@@ -35,6 +35,8 @@ import { AMI, enderecoEmLinha } from "@/lib/ami";
 export type SecaoLegal = {
   titulo: string;
   paragrafos: string[];
+  /** Um subtítulo antes da lista, quando ela precisa de nome ("Dados da entidade"). */
+  tituloDaLista?: string;
   lista?: string[];
 };
 

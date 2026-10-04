@@ -1,4 +1,4 @@
-import { numeroPreenchido } from "@/lib/contato";
+import { buscaNoMapa, numeroPreenchido } from "@/lib/contato";
 import { porNome } from "@/lib/dados/filtros";
 import { contagem } from "@/lib/formato";
 import { especialidadesComMedico } from "@/lib/especialidades";
@@ -123,8 +123,7 @@ export function nomeDoConsultorio(primeiraLinha: string, titulo: string): string
 
 /** "Como chegar": a busca do Google Maps pelo endereço, sem chave nem serviço novo. */
 export function linkDoMapa(l: Pick<LocalAtendimento, "logradouro" | "numero" | "bairro">): string {
-  const endereco = juntar(enderecoDoLocal(l));
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco)}`;
+  return buscaNoMapa(juntar(enderecoDoLocal(l)));
 }
 
 /**

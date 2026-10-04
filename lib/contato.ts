@@ -1,5 +1,5 @@
 /*
-  Os números de contato (telefone e WhatsApp), em funções puras e sem
+  Os números de contato (telefone e WhatsApp) e o link do mapa, em funções puras e sem
   dependência nenhuma: a barra do pé do perfil (components/perfil/
   BarraDoMedico.tsx) roda no navegador e importa daqui. Se isto morasse em
   lib/encontre.ts, a barra levaria junto, para o navegador, tudo o que ele
@@ -38,4 +38,9 @@ export function linkDoWhatsapp(numero: string): string {
  */
 export function numeroPreenchido(numero: string | null | undefined): string | null {
   return numero && /\d/.test(numero) ? numero : null;
+}
+
+/** "Como chegar": a busca do Google Maps por um endereço escrito, sem chave nem serviço novo. */
+export function buscaNoMapa(endereco: string): string {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco)}`;
 }

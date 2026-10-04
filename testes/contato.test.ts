@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { hrefTelefone } from "@/lib/ami";
-import { linkDoWhatsapp, numeroNacional } from "@/lib/contato";
+import { hrefTelefone, linkDoMapaDaAmi } from "@/lib/ami";
+import { buscaNoMapa, linkDoWhatsapp, numeroNacional } from "@/lib/contato";
 import { formatarTelefone } from "@/lib/formato";
 
 /*
@@ -39,5 +39,20 @@ describe("o número brasileiro, uma regra só", () => {
   it("o 0 da longa distância fica quando não sobram 10 ou 11 dígitos", () => {
     expect(numeroNacional("030189994")).toBe("030189994");
     expect(numeroNacional("0993018999412")).toBe("0993018999412");
+  });
+});
+
+describe("Como chegar", () => {
+  it("a busca do Google Maps pelo endereço escrito", () => {
+    expect(buscaNoMapa("Rua A, 1, Centro")).toBe(
+      "https://www.google.com/maps/search/?api=1&query=Rua%20A%2C%201%2C%20Centro",
+    );
+  });
+
+  it("a sede da AMI: o endereço em uma linha, com o CEP, o mesmo link do desenho", () => {
+    expect(linkDoMapaDaAmi()).toBe(
+      "https://www.google.com/maps/search/?api=1&query=" +
+        "Rua%20Coriolano%20Milhomem%2C%2039%2C%20Centro%2C%20Imperatriz%20-%20MA%2C%2065900-330",
+    );
   });
 });
