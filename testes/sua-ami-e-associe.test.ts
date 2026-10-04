@@ -179,8 +179,9 @@ describe("Seja associado", () => {
   });
 
   /** Os cartões, na ordem: [ordinal, título, texto, provisório?]. */
-  function cartoes(html: string): Array<[string, string, string, boolean]> {
-    const partes = html.split(`<div class="${estilosAssocie.cartao}">`).slice(1);
+  /* [ordinal, título, texto, texto no estilo "falta", cartão com a marca data-a-entrar] */
+  function cartoes(html: string): Array<[string, string, string, boolean, boolean]> {
+    const partes = html.split(new RegExp(`(?=<div class="${estilosAssocie.cartao}"[ >])`)).slice(1);
     return partes.map((p) => {
       const ordem = new RegExp(`<span class="${estilosAssocie.ordem}" aria-hidden="true">(\\d+)</span>`).exec(p);
       const titulo = /<h4 [^>]*>([^<]+)<\/h4>/.exec(p);
@@ -190,15 +191,16 @@ describe("Seja associado", () => {
         titulo?.[1] ?? "(sem título)",
         texto?.[2] ?? "(sem texto)",
         (texto?.[1] ?? "").split(" ").includes(estilosAssocie.falta),
+        p.startsWith(`<div class="${estilosAssocie.cartao}" data-a-entrar="">`),
       ];
     });
   }
 
   it("na demonstracao, tres cartoes 'a entrar', com o ordinal escondido do leitor de tela", () => {
     expect(cartoes(demo)).toEqual([
-      ["01", "Missão", "Texto da AMI a entrar.", true],
-      ["02", "Visão", "Texto da AMI a entrar.", true],
-      ["03", "Valores", "Texto da AMI a entrar.", true],
+      ["01", "Missão", "Texto da AMI a entrar.", true, true],
+      ["02", "Visão", "Texto da AMI a entrar.", true, true],
+      ["03", "Valores", "Texto da AMI a entrar.", true, true],
     ]);
     /* Os números não chegam ao leitor de tela: só os escondidos existem. */
     expect(visivel(demo).filter((t) => /^\d+$/.test(t))).toEqual(["01", "02", "03"]);
@@ -232,8 +234,8 @@ describe("Seja associado", () => {
       }),
     );
     expect(cartoes(h)).toEqual([
-      ["01", "Missão", "Representar os médicos.", false],
-      ["02", "Valores", "Ética.", false],
+      ["01", "Missão", "Representar os médicos.", false, false],
+      ["02", "Valores", "Ética.", false, false],
     ]);
     /* A grade tem tantas colunas quantos cartões: nenhuma vazia à direita. */
     expect(tag(h, estilosAssocie.quem)).toContain("--cartoes:2");

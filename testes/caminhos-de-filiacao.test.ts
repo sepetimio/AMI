@@ -9,14 +9,18 @@ import { describe, expect, it, vi } from "vitest";
   e o índice `/associacao` não a listava. Renderiza as duas páginas de
   verdade e lê o HTML, sem clicar nem medir pixel (ver vitest.config.ts).
 
-  `/associacao` lê o documento "associacao" do Sanity; o dublê devolve
-  `null`, que é o estado de hoje (dataset vazio) e o caso em que a página
-  mostra o texto de reserva. Os caminhos saem nos dois casos.
+  `/associacao` lê o Sanity (a apresentação e as páginas publicadas), a
+  diretoria e o banco; os dublês devolvem tudo vazio, o estado de hoje do
+  Sanity. O fecho da página leva a Seja associado em qualquer caso.
 */
 
 vi.mock("@/lib/sanity/consultas", () => ({
   paginaPorSlug: async () => null,
+  caminhosDePaginasPublicadas: async () => [],
 }));
+vi.mock("@/lib/dados/diretoria", () => ({ listarDiretoria: async () => [] }));
+vi.mock("@/lib/dados/medicos", () => ({ buscarMedicos: async () => [] }));
+vi.mock("@/lib/dados/especialidades", () => ({ especialidadesComContagem: async () => [] }));
 
 const { default: PaginaContato } = await import("@/app/(site)/contato/page");
 const { default: PaginaAssociacao } = await import(
@@ -32,7 +36,7 @@ describe("caminhos até Seja associado", () => {
     expect(CONTATO).not.toMatch(/em prepara/);
   });
 
-  it("/associacao lista Seja associado entre os caminhos", () => {
+  it("/associacao leva a Seja associado", () => {
     expect(ASSOCIACAO).toContain('href="/associacao/seja-associado"');
     expect(ASSOCIACAO).toContain("Seja associado");
   });

@@ -1,66 +1,32 @@
 import type { Metadata } from "next";
-import { AMI } from "@/lib/ami";
-import Link from "next/link";
-import { Cabeceira } from "@/components/layout/Cabeceira";
-import { TextoRico } from "@/components/editorial/TextoRico";
-import { JsonLd } from "@/components/seo/JsonLd";
-import { breadcrumbList } from "@/lib/seo/jsonld";
+import paginas from "@/app/(site)/encontre.module.css";
+import { DiretoriaEmDestaque } from "@/components/associacao/DiretoriaEmDestaque";
+import { FaixaDaAssociacao } from "@/components/associacao/FaixaDaAssociacao";
+import { FechoAssocie } from "@/components/associacao/FechoAssocie";
+import { QuemSomos } from "@/components/associacao/QuemSomos";
+import { SaibaMais } from "@/components/associacao/SaibaMais";
+import { anosDeAmi } from "@/lib/ami";
+import { apresentacaoDaAssociacao, atalhosDoSaibaMais, diretoriaEmDestaque } from "@/lib/associacao";
+import { listarDiretoria } from "@/lib/dados/diretoria";
+import { especialidadesComContagem } from "@/lib/dados/especialidades";
+import { buscarMedicos } from "@/lib/dados/medicos";
+import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
+import { TEXTO_INSTITUCIONAL } from "@/lib/molduras";
+import { RASCUNHOS_DE_ASSOCIACAO } from "@/lib/rascunhosLegais";
+import { caminhosDePaginasPublicadas, paginaPorSlug } from "@/lib/sanity/consultas";
 import { tituloDePagina } from "@/lib/seo/metadados";
-import { paginaPorSlug } from "@/lib/sanity/consultas";
-import { dataPorExtenso } from "@/lib/formato";
 
 export const revalidate = 3600;
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-
-/* Título de reserva. O documento "associacao" do Sanity tem campo `titulo`
-   obrigatório, e é ele que manda quando existe: sem isso a secretaria
-   preencheria um campo obrigatório e não veria efeito nenhum na tela. */
+/* Título e resumo de reserva. O documento "associacao" do Studio tem
+   `titulo` e `resumo` obrigatórios, e eles mandam quando existem: sem isso
+   a AMI preencheria dois campos obrigatórios e não veria efeito nenhum. */
 const TITULO = "A Associação Médica de Imperatriz";
 const RESUMO_PADRAO = "Quem é a AMI, o que faz e como se associar.";
 
-const TRILHA = [
-  { nome: "Início", caminho: "/" },
-  { nome: "A Associação", caminho: "/associacao" },
-];
-
-/*
-  Os cinco caminhos que /associacao existe para apontar. Vêm do código, não
-  do Sanity: são a navegação da seção institucional, e a seção institucional
-  precisa existir mesmo no dia em que ninguém escreveu uma linha de prosa
-  ainda. "Diretoria" está aqui mesmo sendo rota estática (tarefa 8, sem
-  Sanity envolvido); as outras quatro passam por `[pagina]/page.tsx`. Três
-  são as subpáginas de prosa da tarefa 9; "Seja associado" entrou com a home
-  nova e é a única das quatro com rascunho em código
-  (`RASCUNHOS_DE_ASSOCIACAO`, em lib/rascunhosLegais.ts).
-*/
-const CAMINHOS = [
-  {
-    titulo: "Diretoria",
-    caminho: "/associacao/diretoria",
-    nota: "Quem responde pela associação, com o CRM de cada diretor.",
-  },
-  {
-    titulo: "Seja associado",
-    caminho: "/associacao/seja-associado",
-    nota: "Quem pode se associar à AMI e como fazer isso.",
-  },
-  {
-    titulo: "Benefícios",
-    caminho: "/associacao/beneficios",
-    nota: "O que a AMI oferece a quem é associado.",
-  },
-  {
-    titulo: "Estatuto",
-    caminho: "/associacao/estatuto",
-    nota: "As regras que organizam a associação.",
-  },
-  {
-    titulo: "Política editorial",
-    caminho: "/associacao/politica-editorial",
-    nota: "Como o site escolhe, apura e revisa o que publica.",
-  },
-];
+/* As páginas da associação que têm rascunho em código: existem mesmo sem
+   documento no Studio (hoje, Seja associado). */
+const COM_RASCUNHO = Object.keys(RASCUNHOS_DE_ASSOCIACAO).map((slug) => `/associacao/${slug}`);
 
 export async function generateMetadata(): Promise<Metadata> {
   const conteudo = await paginaPorSlug("associacao");
@@ -72,94 +38,60 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /*
-  /associacao é página ÍNDICE, não prosa. É a correção do defeito do brief
-  original: ele mandava este componente chamar `notFound()` quando o Sanity
-  não tivesse o documento "associacao", e como o dataset está vazio, o efeito
-  seria trocar um 404 por outro. Todo link do menu, do rodapé e do botão da
-  home aponta para cá; o trabalho desta página é navegação, e navegação não
-  depende de conteúdo publicado.
+  A página institucional (item "A Associação" do menu), na ordem do desenho
+  aprovado:
+  - a faixa verde, com o título, a apresentação curta e os três números;
+  - "Quem somos": a apresentação oficial, a sede e Missão, visão e valores;
+  - a diretoria em destaque, com o link para a diretoria inteira;
+  - "Saiba mais": atalhos para Seja associado, Estatuto e Política
+    editorial;
+  - o fecho, com o convite para se associar.
 
-  Por isso ela nunca chama `notFound()` e não usa `PaginaDeTexto` (que é o
-  componente das páginas de prosa pura, ver o comentário lá). Os cinco
-  caminhos de `CAMINHOS`, acima, renderizam sempre. Quando a AMI escrever a
-  prosa institucional no Studio, ela entra como um bloco a mais, por cima dos
-  caminhos, nunca no lugar deles.
+  Ela nunca dá 404: a navegação da seção existe mesmo no dia em que a AMI
+  não publicou texto nenhum. O que falta segue a trava da demonstração
+  (lib/associacao.ts e lib/molduras.ts): na demonstração, sai como moldura
+  "a entrar"; fora dela, some, e os blocos que ficam sem conteúdo saem
+  inteiros.
+
+  A apresentação oficial é o texto do documento "associacao" do Studio
+  (tipo "Página institucional"); o título e o resumo dele vão para os
+  metadados. Uma página existe, para "Saiba mais", quando está publicada no
+  Studio ou tem rascunho em código.
+
+  Sem `Cabeceira`, sem trilha e sem BreadcrumbList: dado estruturado sem o
+  equivalente visível é marcação enganosa (lib/seo/jsonld.ts). Os blocos
+  são filhos diretos de `.pagina` (app/(site)/encontre.module.css), a
+  --ritmo um do outro; o fecho é faixa, e o rodapé emenda nele.
 */
 export default async function PaginaAssociacao() {
-  const conteudo = await paginaPorSlug("associacao");
+  /* O total de médicos vem da contagem de profissionais, e não da soma por
+     especialidade, que conta duas vezes quem tem duas, como na home. */
+  const [conteudo, publicadas, diretoria, especialidades, medicos] = await Promise.all([
+    paginaPorSlug("associacao"),
+    caminhosDePaginasPublicadas(),
+    listarDiretoria(),
+    especialidadesComContagem(),
+    buscarMedicos().then((m) => m.length),
+  ]);
+
+  const destaque = diretoriaEmDestaque(diretoria);
+  const atalhos = atalhosDoSaibaMais(DADOS_DEMONSTRACAO, [...publicadas, ...COM_RASCUNHO]);
 
   return (
-    <>
-      <JsonLd dados={breadcrumbList(TRILHA, SITE)} />
-
-      <Cabeceira trilha={TRILHA} titulo={conteudo?.titulo ?? TITULO}>
-        {conteudo?.resumo ?? RESUMO_PADRAO}
-      </Cabeceira>
-
-      <div className="mx-auto max-w-[1200px] px-4 pb-20 md:px-6">
-        {conteudo ? (
-          <div className="pt-2">
-            <p className="registro border-b border-line py-5 text-[15px] text-ink-400">
-              Atualizado em {dataPorExtenso(conteudo.atualizadoEm)}
-            </p>
-            <div className="mt-2">
-              <TextoRico blocos={conteudo.corpo} />
-            </div>
-          </div>
-        ) : (
-          /* Reserva de conteúdo enquanto o documento "associacao" não existe
-             no Studio. Some sozinho assim que `paginaPorSlug` passar a
-             devolver algo: o ramo acima entra no lugar deste. */
-          <div className="coluna-leitura pt-8 text-ink-600">
-            <p>
-              A Associação Médica de Imperatriz está em atividade desde{" "}
-              {AMI.fundadaEm} e representa a classe médica na região sul do
-              Maranhão. Mantém este diretório para que a população encontre
-              quem atende perto de casa, com informação correta e verificada.
-            </p>
-            <p className="mt-4">
-              A sede fica na {AMI.endereco.logradouro}, {AMI.endereco.numero},
-              no {AMI.endereco.bairro} de {AMI.endereco.cidade}.
-            </p>
-            {/* Estes dois parágrafos são reserva, e dizem só o que é
-                verificável: ano de fundação, área de atuação e endereço, todos
-                vindos de `lib/ami.ts`. A apresentação institucional escrita
-                pela diretoria entra por cima assim que existir no Studio, e
-                aí este ramo inteiro deixa de renderizar. */}
-            <p className="mt-4 text-[15px] text-ink-400">
-              [PROVISÓRIO] A apresentação oficial da entidade, escrita pela
-              diretoria, entra aqui quando for publicada.
-            </p>
-          </div>
-        )}
-
-        <nav aria-labelledby="associacao-navegacao" className="mt-16">
-          <h2
-            id="associacao-navegacao"
-            className="pb-1"
-          >
-            Saiba mais
-          </h2>
-
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2">
-            {CAMINHOS.map((c) => (
-              <li key={c.caminho}>
-                <Link
-                  href={c.caminho}
-                  className="pressiona flex min-h-[88px] flex-col justify-center rounded-bloco border border-line bg-surface px-5 py-4 hover:border-line-strong hover:shadow-erguido"
-                >
-                  <span className="font-titulo text-[17px] font-semibold">
-                    {c.titulo}
-                  </span>
-                  <span className="mt-1 text-[14px] text-ink-400">
-                    {c.nota}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
-    </>
+    <div className={paginas.pagina}>
+      <FaixaDaAssociacao
+        anos={anosDeAmi(new Date())}
+        medicos={medicos}
+        especialidades={especialidades.length}
+      />
+      <QuemSomos
+        demonstracao={DADOS_DEMONSTRACAO}
+        apresentacao={apresentacaoDaAssociacao(DADOS_DEMONSTRACAO, conteudo?.corpo)}
+        texto={TEXTO_INSTITUCIONAL}
+      />
+      {destaque.length > 0 ? <DiretoriaEmDestaque diretores={destaque} /> : null}
+      {atalhos.length > 0 ? <SaibaMais atalhos={atalhos} /> : null}
+      <FechoAssocie />
+    </div>
   );
 }

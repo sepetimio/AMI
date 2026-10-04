@@ -27,7 +27,8 @@
 
   Faixa é o bloco que leva `data-faixa`: na home, a busca verde, "Seja
   associado" e os parceiros; na página de cada especialidade, o "Sobre";
-  nas páginas de texto, o corpo. A regra pergunta se o último elemento do
+  nas páginas de texto, o corpo; em A Associação, o fecho. A regra
+  pergunta se o último elemento do
   `<main>` é uma faixa, ou se o último elemento do último filho dele é: a
   home e as outras páginas do desenho novo põem os blocos dentro de um
   invólucro (app/(site)/page.tsx e app/(site)/encontre.module.css).

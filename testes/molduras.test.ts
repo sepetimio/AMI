@@ -241,6 +241,7 @@ const MARCAS = [
   "Fotografia a entrar",
   ">empresas parceiras<",
   "Ver parceiras",
+  "data-a-entrar",
 ];
 
 /* Um slide de foto com texto, sem a foto ainda. */
@@ -434,6 +435,8 @@ describe("a fotografia provisória obedece a mesma trava", () => {
     const saida = html(createElement(Fotografia, { espaco: "sede", demonstracao: true }));
     expect(saida).toContain("Fotografia a entrar: <!-- -->Fachada da sede da AMI");
     expect(saida).toContain("aspect-ratio:1280 / 960");
+    /* A marca de toda moldura "a entrar" (components/base/MolduraProvisoria.tsx). */
+    expect(saida).toMatch(/^<div [^>]*role="img"[^>]* data-a-entrar="">/);
   });
 });
 

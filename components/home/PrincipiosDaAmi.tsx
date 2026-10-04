@@ -23,6 +23,9 @@ const ICONES: Record<CartaoInstitucional["titulo"], NomeIcone> = {
   A grade tem uma coluna por cartão (`--cartoes`), e por isso dois cartões
   não deixam uma coluna vazia à direita. O desenho é o de "Quem é a AMI?"
   (SejaAssociado.module.css), inclusive o ordinal em `ink-400`.
+
+  O cartão sem o texto da AMI ("Texto da AMI a entrar.") é moldura "a
+  entrar" e leva `data-a-entrar`, sem estilo nenhum.
 */
 export function PrincipiosDaAmi({
   cartoes,
@@ -47,7 +50,7 @@ export function PrincipiosDaAmi({
       </div>
 
       {cartoes.map((c, i) => (
-        <div key={c.titulo} className={styles.cartao}>
+        <div key={c.titulo} className={styles.cartao} data-a-entrar={c.provisorio ? "" : undefined}>
           <span className={styles.ordem} aria-hidden="true">
             {String(i + 1).padStart(2, "0")}
           </span>

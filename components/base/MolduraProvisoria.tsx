@@ -15,6 +15,9 @@ import type { ReactNode } from "react";
 
   `largura` e `altura` são o par da peça de verdade, e viram `aspect-ratio`:
   no dia em que o material entra, nada no layout se move.
+
+  `data-a-entrar` é a marca que toda moldura "a entrar" do site leva, para
+  quem precisa achá-las na página. Não tem estilo.
 */
 export function MolduraProvisoria({
   largura,
@@ -37,6 +40,7 @@ export function MolduraProvisoria({
       className={`relative isolate flex w-full items-end overflow-hidden bg-ami-green-900 ${className}`}
       role="img"
       aria-label={rotulo}
+      data-a-entrar=""
     >
       {/* Mesmo recurso de Cabeceira.tsx e EstadoVazio.tsx: o símbolo como
           máscara sobre um degradê, para a moldura ter matéria em vez de ser

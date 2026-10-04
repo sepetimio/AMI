@@ -1,0 +1,196 @@
+/*
+  Os três blocos de baixo de A Associação, transcritos do desenho aprovado
+  (docs/desenho-aprovado/associacao/associacao.html):
+  - o cabeçalho de seção da home na versão aberta (`.cab-secao`,
+    `.aberta .cab-secao`, `.cab-secao p`), da diretoria em destaque e de
+    "Saiba mais";
+  - os atalhos (`.atalhos`, `.atalho .esp-pe`, `.atalho .esp-conta`,
+    `.atalho .etiqueta` com a `.etiqueta` da home, e o @media de 700px);
+  - o fecho (`.fecho`, `.fecho h2`, `.fecho .texto`, `.fecho .acao`).
+  E os @media de 980 e 700px.
+
+  O atalho é o cartão do índice de especialidades
+  (components/especialidades/GradeDeEspecialidades.module.css: `.grade`,
+  `.cartao`, `.nome`, `.pe`, `.conta`, `.seta`), com uma frase no pé no
+  lugar da contagem. As regras daqui valem sobre as de lá qualquer que seja
+  a ordem das folhas: levam duas classes, ou classe e atributo
+  (`.atalhos[data-atalhos]`), contra uma de lá.
+
+  O atalho da página que ainda não existe ("texto a entrar", só na
+  demonstração) não é link: ao passar o mouse, ele não sobe nem escurece a
+  borda.
+
+  A etiqueta usa o `surface-fundo` no lugar do #F3F4F6 do desenho, como a
+  etiqueta de "Sua AMI" (components/home/SuaAmi.module.css).
+*/
+
+.cabSecao {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding: 0 var(--m) 32px;
+}
+
+.cabSecao > div {
+  min-width: 0;
+}
+
+.titulo {
+  margin-top: 14px;
+}
+
+.texto {
+  max-width: 34em;
+  margin-top: 16px;
+  color: var(--color-ink-600);
+}
+
+.atalhos[data-atalhos] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.atalho .pe {
+  align-items: flex-end;
+}
+
+.atalho .frase {
+  max-width: 24em;
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--color-ink-600);
+}
+
+.etiqueta {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--color-surface-fundo);
+  color: var(--color-ink-600);
+  font-family: var(--font-corpo);
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0;
+  vertical-align: 3px;
+}
+
+.atalhos .atalho[data-a-entrar]:hover {
+  transform: none;
+  border-color: var(--color-surface);
+  box-shadow: var(--shadow-erguido);
+}
+
+.atalhos .atalho[data-a-entrar]:hover .seta {
+  border-color: var(--color-line);
+}
+
+.atalhos .atalho[data-a-entrar]:hover .seta svg {
+  transform: none;
+}
+
+.fecho {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: var(--m);
+  align-items: end;
+}
+
+.fecho > div {
+  min-width: 0;
+}
+
+.fechoTitulo {
+  max-width: 18ch;
+  margin-top: 14px;
+}
+
+.fechoTexto {
+  max-width: 28em;
+  color: var(--color-ink-600);
+}
+
+.fechoAcao {
+  margin-top: 24px;
+}
+
+@media (max-width: 980px) {
+  .cabSecao {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: 24px;
+  }
+
+  .atalhos[data-atalhos] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fecho {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 700px) {
+  .cabSecao {
+    gap: 14px;
+    padding: 0 var(--m) 20px;
+  }
+
+  .atalhos[data-atalhos] {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    gap: 10px;
+  }
+
+  .atalhos .atalho {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 28px;
+    column-gap: 14px;
+    align-items: center;
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .atalho :global(.ladrilho-icone) {
+    grid-row: 1 / 3;
+    align-self: start;
+  }
+
+  .atalho .nome {
+    grid-column: 2;
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.2;
+  }
+
+  .atalho .pe {
+    display: contents;
+  }
+
+  .atalho .frase {
+    grid-column: 2;
+    grid-row: 2;
+    margin-top: 4px;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .atalho .seta {
+    grid-column: 3;
+    grid-row: 1 / 3;
+    width: 28px;
+    height: 28px;
+  }
+
+  .etiqueta {
+    margin-left: 6px;
+    vertical-align: 2px;
+  }
+
+  .fechoAcao {
+    margin-top: 18px;
+  }
+}
