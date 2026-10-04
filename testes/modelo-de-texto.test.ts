@@ -375,6 +375,28 @@ describe("o CSS da página de texto", () => {
     expect(regra(base(css), ".coluna ul > li::before")).toMatch(/background: var\(--color-ami-green-600\);/);
   });
 
+  it("as listas no ritmo da coluna: o espaço de cima é o de entre parágrafos, e o de depois do título", () => {
+    /* `.coluna ul` pesa o mesmo que `.coluna h2 + *` e vem depois; a
+       `.numerada` pesa mais que as duas regras do ritmo. Qualquer margem de
+       cima nelas passaria por cima do ritmo. Medido no navegador: o
+       relatório da correção. */
+    for (const seletor of [".coluna ul", ".coluna .numerada"]) {
+      const r = regra(base(css), seletor);
+      expect(r, seletor).toMatch(/margin-inline: 0;/);
+      expect(r, seletor).toMatch(/margin-bottom: 0;/);
+      expect(r, seletor).not.toMatch(/margin(-top|-block|-block-start)?:/);
+    }
+    const lista = /(^|,)\s*\.coluna (ul|\.numerada)\s*(,|$)/;
+    for (const m of css.matchAll(/([^{};]+)\{([^}]*)\}/g)) {
+      if (!m[1].split(",").some((s) => lista.test(s))) continue;
+      expect(m[2], m[1].trim()).not.toMatch(/margin(-top|-block|-block-start)?:/);
+    }
+    expect(regra(base(css), ".coluna > * + *")).toMatch(/margin-top: 20px;/);
+    expect(regra(cel(), ".coluna > * + *")).toMatch(/margin-top: 16px;/);
+    expect(regra(base(css), ".coluna h2 + *,\n.coluna h3 + *")).toMatch(/margin-top: 14px;/);
+    expect(regra(cel(), ".coluna h2 + *,\n  .coluna h3 + *")).toMatch(/margin-top: 10px;/);
+  });
+
   it("a lista numerada do Studio com o número, que a camada base do Tailwind tira: o do desenho da notícia, num círculo", () => {
     expect(regra(base(css), ".coluna .numerada > li::before")).toMatch(/content: counter\(passo\);/);
     expect(regra(base(css), ".coluna .numerada > li + li")).toMatch(/margin-top: 10px;/);

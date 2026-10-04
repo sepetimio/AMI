@@ -121,8 +121,15 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Sem margem dos lados nem embaixo, mas sem `margin-top`: o espaço de cima
+   é o do ritmo da coluna (`.coluna > * + *` e `.coluna h2 + *`), o mesmo
+   entre parágrafos e depois de um título. No desenho a lista fica colada,
+   porque o `margin: 0` dele pesa mais que o ritmo; aqui não (decisão
+   registrada em docs/decisoes-sem-o-cliente.md). Vale também para a
+   `.numerada`, logo abaixo. */
 .coluna ul {
-  margin: 0;
+  margin-inline: 0;
+  margin-bottom: 0;
   padding: 0;
   list-style: none;
 }
@@ -152,7 +159,8 @@
    da coluna, com os itens colados, como no desenho. O número do navegador
    sai, e cada item conta o seu num círculo cinza com fio. */
 .coluna .numerada {
-  margin: 0;
+  margin-inline: 0;
+  margin-bottom: 0;
   padding: 0;
   list-style: none;
   counter-reset: passo;
