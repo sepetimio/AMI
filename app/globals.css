@@ -693,6 +693,26 @@
     color: var(--color-ami-green-600);
   }
 
+  /* O rótulo que é link de volta ("← ESPECIALIDADES" na página da
+     especialidade, "← ENCONTRE UM MÉDICO" no perfil), com o `.rotulo-secao`:
+     a seta ao lado do texto, e no mouse ela anda para a esquerda. Vem depois
+     do `.rotulo-secao` para o `inline-flex` valer sobre o `block` dele. */
+  .link-de-volta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .link-de-volta svg {
+    width: 15px;
+    height: 15px;
+    transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .link-de-volta:hover svg {
+    transform: translateX(-3px);
+  }
+
   /* Ladrilho cinza-claro com o ícone em verde. O ícone é um `svg` que herda
      a cor do ladrilho. */
   .ladrilho-icone {

@@ -75,14 +75,18 @@
   border-radius: inherit;
 }
 
-/* O anel de foco vai no cartão inteiro, e não só no nome. */
-.nome a:focus-visible {
-  outline: none;
-}
+/* O anel de foco vai no cartão inteiro, e não só no nome. As duas regras
+   andam juntas e só valem onde há `:has`: sem ele, o nome fica com o anel
+   dele (regra global de foco), e nunca sem nenhum. */
+@supports selector(:has(*)) {
+  .nome a:focus-visible {
+    outline: none;
+  }
 
-.cartao:has(.nome a:focus-visible) {
-  outline: 2px solid var(--color-ami-green-600);
-  outline-offset: 3px;
+  .cartao:has(.nome a:focus-visible) {
+    outline: 2px solid var(--color-ami-green-600);
+    outline-offset: 3px;
+  }
 }
 
 .pe {

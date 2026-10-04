@@ -59,7 +59,7 @@ describe("a faixa da especialidade", () => {
 
   it("no lugar do rótulo, o link de volta para o índice, na coluna do texto", () => {
     const link = /<a [^>]*href="\/medicos"[^>]*>/.exec(html)![0];
-    expect(link).toContain(`class="rotulo-secao ${estilosBusca.sobre} ${estilosFaixa.volta}"`);
+    expect(link).toContain(`class="rotulo-secao link-de-volta ${estilosBusca.sobre}"`);
     expect(link).toContain('data-coluna=""');
     const ini = html.indexOf(link) + link.length;
     const dentro = html.slice(ini, html.indexOf("</a>", ini));
@@ -272,7 +272,10 @@ describe("o CSS da faixa da especialidade", () => {
   });
 
   it("o parágrafo quebra como o `p` do desenho, sem palavra sozinha na última linha", () => {
-    expect(regra(base(css), ".especialidade h1 + p")).toMatch(/text-wrap: pretty;/);
+    /* Pelo `.texto` da busca, que o parágrafo usa; não se repete aqui. */
+    const busca = semNotas(fonte("../components/busca/FaixaDaBusca.module.css"));
+    expect(regra(base(busca), ".texto")).toMatch(/text-wrap: pretty;/);
+    expect(css).not.toContain("text-wrap");
   });
 
   it("o ladrilho de vidro: 168px, 128px no tablet, fora no celular", () => {
@@ -286,9 +289,17 @@ describe("o CSS da faixa da especialidade", () => {
     expect(regra(bloco(css, "@media (max-width: 700px)"), ".selo")).toMatch(/display: none;/);
   });
 
-  it("a seta do link de volta anda para a esquerda no mouse", () => {
-    expect(regra(base(css), ".volta")).toMatch(/display: inline-flex;/);
-    expect(regra(base(css), ".volta:hover svg")).toMatch(/translateX\(-3px\)/);
+  it("a seta do link de volta anda para a esquerda no mouse, pela classe global que o perfil também usa", () => {
+    const componentes = bloco(semNotas(fonte("../app/globals.css")), "@layer components");
+    expect(regra(componentes, ".link-de-volta")).toMatch(/display: inline-flex;/);
+    expect(regra(componentes, ".link-de-volta svg")).toMatch(/width: 15px;/);
+    expect(regra(componentes, ".link-de-volta:hover svg")).toMatch(/translateX\(-3px\)/);
+    /* Depois do `.rotulo-secao`, na mesma camada: o `inline-flex` vale sobre o `block` dele. */
+    expect(componentes.indexOf(".link-de-volta {")).toBeGreaterThan(componentes.indexOf(".rotulo-secao {"));
+    /* Uma cópia só: nenhuma folha de módulo repete a regra. */
+    for (const folha of ["../components/especialidades/FaixaDaEspecialidade.module.css", "../components/perfil/Perfil.module.css"]) {
+      expect(semNotas(fonte(folha)), folha).not.toMatch(/\.volta\b/);
+    }
   });
 });
 

@@ -47,7 +47,10 @@ export function BarraDoPe() {
         abertura ? abertura.getBoundingClientRect().bottom : null,
         window.scrollY,
       );
-      setVisivel(deveMostrarBarra(passou, buscaNaTela));
+      /* Procurada a cada vez, e não uma só no começo: vale mesmo se a
+         barra do perfil entrar na página depois deste efeito. */
+      const barraDoMedico = document.querySelector("[data-barra-do-medico]") !== null;
+      setVisivel(deveMostrarBarra(passou, buscaNaTela, barraDoMedico));
     };
 
     const observador = blocoDeBusca

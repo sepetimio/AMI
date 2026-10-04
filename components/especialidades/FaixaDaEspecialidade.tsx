@@ -42,7 +42,7 @@ export function FaixaDaEspecialidade({
       <div className="brilho" aria-hidden="true"></div>
 
       <div>
-        <Link href="/medicos" className={`rotulo-secao ${busca.sobre} ${styles.volta}`} data-coluna="">
+        <Link href="/medicos" className={`rotulo-secao link-de-volta ${busca.sobre}`} data-coluna="">
           <Icone nome="voltar" /> Especialidades
         </Link>
         <h1 id="especialidade-titulo" className={busca.titulo}>

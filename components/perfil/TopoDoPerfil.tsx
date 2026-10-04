@@ -52,7 +52,7 @@ export function TopoDoPerfil({ medico }: { medico: Medico }) {
       />
 
       <div className={styles.texto}>
-        <Link href="/busca" className={`rotulo-secao ${styles.volta}`}>
+        <Link href="/busca" className="rotulo-secao link-de-volta">
           <Icone nome="voltar" /> Encontre um médico
         </Link>
         <h1 id="perfil-nome" className={styles.nome}>

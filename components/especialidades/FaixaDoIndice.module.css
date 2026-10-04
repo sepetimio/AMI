@@ -12,8 +12,8 @@
   "Especialidades" é palavra longa: a coluna do texto cresce de 340px para
   440px, e o título e a linha de apoio ficam mais estreitos.
 
-  A linha de apoio leva o `text-wrap: pretty` que o desenho põe em todo
-  `p` e a folha da busca não põe: sem ele, ela terminava numa palavra só.
+  A linha de apoio quebra com o `text-wrap: pretty` do `.texto` da busca:
+  sem ele, ela terminava numa palavra só.
 
   As regras daqui valem sobre as da busca qualquer que seja a ordem em que
   as duas folhas chegam ao navegador:
@@ -31,7 +31,6 @@
 
 .indice h1 + p {
   max-width: 24em;
-  text-wrap: pretty;
 }
 
 .campo {

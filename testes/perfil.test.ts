@@ -116,6 +116,7 @@ describe("o topo do perfil", () => {
   it("o rótulo é o link de volta para a busca", async () => {
     const html = await perfil();
     expect(html).toMatch(/<a [^>]*href="\/busca"[^>]*>.*?Encontre um médico<\/a>/);
+    expect(html).toContain('<a class="rotulo-secao link-de-volta" href="/busca">');
   });
 
   it("MÉDICO · CRM e a especialidade com RQE", async () => {
@@ -365,6 +366,13 @@ describe("o CSS do perfil", () => {
     const cel = bloco(css, "@media (max-width: 700px)");
     expect(regra(cel, ".acoesDoConsultorio")).toMatch(/grid-template-columns: 1fr 1fr/);
     expect(regra(cel, ".acoesDoConsultorio > :global(.botao)")).toMatch(/grid-column: 1 \/ -1/);
+  });
+
+  it("no celular, Como chegar sozinho na linha vai de ponta a ponta: depois do Ligar sem WhatsApp, ou sem os dois", () => {
+    const cel = bloco(css, "@media (max-width: 700px)");
+    expect(cel).toMatch(
+      /\n\s*\.acoesDoConsultorio > :global\(\.botao\) \+ a:last-child,\s*\.acoesDoConsultorio > a:only-child \{\s*grid-column: 1 \/ -1;\s*\}/,
+    );
   });
 
   it("os botões do topo meio a meio no celular, e um só na largura toda", () => {

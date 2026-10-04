@@ -15,7 +15,8 @@ import { linkDoWhatsapp } from "@/lib/contato";
 
   Quem a põe na página é o perfil, e só quando o consultório principal tem
   telefone; sem ele, fica a barra padrão. Com esta na página, a padrão não
-  aparece (a regra com `:has`, em BarraDoPe.module.css).
+  aparece: a regra com `:has` (BarraDoPe.module.css) a tira, e, sem `:has`,
+  o componente dela não a mostra (`deveMostrarBarra`, lib/barra-do-pe.ts).
 */
 export function BarraDoMedico({
   nome,

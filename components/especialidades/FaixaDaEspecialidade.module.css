@@ -2,8 +2,8 @@
   A faixa verde da página de cada especialidade, transcrita do desenho
   aprovado (docs/desenho-aprovado/especialidades/especialidade.html:
   `.esp-topo`, `.esp-topo h1`, `.esp-topo .texto`, `.esp-topo .volta`,
-  `.esp-selo`, `.esp-selo i`, o `.volta` do perfil, e os @media de 980 e
-  700px).
+  `.esp-selo`, `.esp-selo i`, e os @media de 980 e 700px). O link de volta
+  é o `.link-de-volta` global (app/globals.css), o mesmo do perfil.
 
   O resto da faixa é o da busca (components/busca/FaixaDaBusca.module.css:
   `.faixa`, `.sobre`, `.titulo`, `.texto`). O link de volta tem a cor do
@@ -13,8 +13,7 @@
   vidro, alinhado à borda direita do texto. As duas colunas ficam até o
   celular, onde o ícone sai e a faixa fica curta.
 
-  O parágrafo leva o `text-wrap: pretty` que o desenho põe em todo `p` e a
-  folha da busca não põe.
+  O parágrafo quebra com o `text-wrap: pretty` do `.texto` da busca.
 
   As regras daqui valem sobre as da busca qualquer que seja a ordem em que
   as duas folhas chegam ao navegador:
@@ -36,23 +35,6 @@
 
 .especialidade h1 + p {
   max-width: 34em;
-  text-wrap: pretty;
-}
-
-.volta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.volta svg {
-  width: 15px;
-  height: 15px;
-  transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-.volta:hover svg {
-  transform: translateX(-3px);
 }
 
 .selo {

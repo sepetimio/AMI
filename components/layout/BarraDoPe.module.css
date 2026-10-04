@@ -86,7 +86,10 @@
   }
 
   /* Com a barra do perfil na página, a padrão não aparece: as duas ficariam
-     no mesmo lugar, uma por cima da outra. */
+     no mesmo lugar, uma por cima da outra. Esta regra a tira da página onde
+     há `:has`; onde não há, ela fica escondida, porque o componente nunca a
+     mostra com a do perfil na página (`deveMostrarBarra`,
+     lib/barra-do-pe.ts). */
   :global(body:has([data-barra-do-medico])) .barra:not([data-barra-do-medico]) {
     display: none;
   }

@@ -43,10 +43,14 @@
   max-width: 13ch;
 }
 
+/* O `text-wrap: pretty` é o que o desenho põe em todo `p`: a última linha
+   não fica com uma palavra só. Vale para as três faixas que usam esta
+   classe (a busca, o índice e a página de cada especialidade). */
 .texto {
   margin-top: 18px;
   max-width: 26em;
   color: #cfd8c9;
+  text-wrap: pretty;
 }
 
 .filtros {

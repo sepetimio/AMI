@@ -157,10 +157,12 @@ describe("o CSS da faixa do índice", () => {
   });
 
   it("a linha de apoio quebra como no desenho, sem palavra sozinha na última linha", () => {
-    /* O desenho põe `text-wrap: pretty` em todo `p`; a folha da busca não
-       põe. Sem ele, a 1440, 1024 e 768px a linha de apoio terminava em
-       "atende." sozinho. */
-    expect(regra(base(css), ".indice h1 + p")).toMatch(/text-wrap: pretty;/);
+    /* O desenho põe `text-wrap: pretty` em todo `p`. Sem ele, a 1440, 1024
+       e 768px a linha de apoio terminava em "atende." sozinho. Ele vem do
+       `.texto` da busca, que a linha de apoio usa, e não se repete aqui. */
+    const busca = semNotas(fonte("../components/busca/FaixaDaBusca.module.css"));
+    expect(regra(base(busca), ".texto")).toMatch(/text-wrap: pretty;/);
+    expect(css).not.toContain("text-wrap");
   });
 
   it("o campo na largura da coluna, até 760px abaixo de 1180px", () => {
@@ -185,6 +187,17 @@ describe("o CSS da grade de especialidades", () => {
     expect(regra(base(css), ".grade")).toMatch(/grid-auto-rows: 1fr;/);
     expect(regra(base(css), ".cartao")).toMatch(/flex-direction: column;/);
     expect(regra(base(css), ".pe")).toMatch(/margin-top: auto;/);
+  });
+
+  it("o anel de foco vai no cartão só onde há :has; sem ele, o nome fica com o anel dele", () => {
+    const comHas = bloco(css, "@supports selector(:has(*))");
+    expect(regra(comHas, ".nome a:focus-visible")).toMatch(/outline: none;/);
+    expect(regra(comHas, ".cartao:has(.nome a:focus-visible)")).toMatch(
+      /outline: 2px solid var\(--color-ami-green-600\);/,
+    );
+    /* Fora do @supports, nenhum `outline: none`: um navegador sem `:has`
+       apagaria o anel do nome sem pôr o do cartão. */
+    expect(css.replace(comHas, "")).not.toContain("outline: none");
   });
 
   it("o cartão inteiro leva à especialidade: o link do nome se estica por ele", () => {

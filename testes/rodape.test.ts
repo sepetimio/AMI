@@ -259,7 +259,10 @@ describe("a barra do pe", () => {
 
   it("o observador le a entrada, e a decisao recebe o que ele leu", () => {
     expect(BARRA).toContain("buscaNaTela = entradas[0].isIntersecting");
-    expect(BARRA).toContain("deveMostrarBarra(passou, buscaNaTela)");
+    expect(BARRA).toContain("deveMostrarBarra(passou, buscaNaTela, barraDoMedico)");
+    /* A barra do perfil é procurada dentro de `atualizar`, a cada rolagem. */
+    const atualizar = BARRA.slice(BARRA.indexOf("const atualizar = () => {"), BARRA.indexOf("const observador"));
+    expect(atualizar).toContain('const barraDoMedico = document.querySelector("[data-barra-do-medico]") !== null;');
     expect(BARRA).toContain("observador?.observe(blocoDeBusca!)");
   });
 
@@ -331,9 +334,17 @@ describe("quando a barra do pe aparece", () => {
   });
 
   it("some enquanto a busca esta na tela, mesmo depois de passar do topo", () => {
-    expect(deveMostrarBarra(true, false)).toBe(true);
-    expect(deveMostrarBarra(true, true)).toBe(false);
-    expect(deveMostrarBarra(false, false)).toBe(false);
-    expect(deveMostrarBarra(false, true)).toBe(false);
+    expect(deveMostrarBarra(true, false, false)).toBe(true);
+    expect(deveMostrarBarra(true, true, false)).toBe(false);
+    expect(deveMostrarBarra(false, false, false)).toBe(false);
+    expect(deveMostrarBarra(false, true, false)).toBe(false);
+  });
+
+  it("com a barra do perfil na página, a padrão nunca aparece, nem sem :has", () => {
+    for (const passou of [true, false]) {
+      for (const buscaNaTela of [true, false]) {
+        expect(deveMostrarBarra(passou, buscaNaTela, true), `${passou} ${buscaNaTela}`).toBe(false);
+      }
+    }
   });
 });

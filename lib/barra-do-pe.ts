@@ -24,8 +24,14 @@ export function passouDoTopo(fundoDaAbertura: number | null, rolagem: number): b
   return fundoDaAbertura < 0;
 }
 
-export function deveMostrarBarra(passou: boolean, buscaNaTela: boolean): boolean {
-  return passou && !buscaNaTela;
+/**
+ * Com a barra do perfil na página (`barraDoMedico`), a padrão nunca aparece:
+ * as duas ficariam no mesmo lugar, uma por cima da outra. A regra com `:has`
+ * de BarraDoPe.module.css já a tira da tela; esta vale também no navegador
+ * sem `:has`.
+ */
+export function deveMostrarBarra(passou: boolean, buscaNaTela: boolean, barraDoMedico: boolean): boolean {
+  return passou && !buscaNaTela && !barraDoMedico;
 }
 
 /* As páginas que têm o campo de busca (`#encontre`) na própria faixa. */

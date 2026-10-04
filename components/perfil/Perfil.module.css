@@ -6,7 +6,9 @@
   `.cab-secao` da home na versão `.aberta`, `.consultorios`, `.consultorio`,
   `.consultorio-acoes`, `.leitura`, `.nota-final`, e os @media de 1180, 980
   e 700px). A foto e as iniciais são de
-  components/diretorio/FotoDoMedico.module.css; aqui só o espaço dela.
+  components/diretorio/FotoDoMedico.module.css; aqui só o espaço dela. O
+  `.volta` é o `.link-de-volta` global (app/globals.css), o mesmo da página
+  da especialidade.
 
   A coluna e o espaço entre os blocos são de app/(site)/encontre.module.css.
   O texto de cada bloco começa a `--m` da borda do bloco, na mesma linha do
@@ -31,22 +33,6 @@
 
 .texto {
   min-width: 0;
-}
-
-.volta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.volta svg {
-  width: 15px;
-  height: 15px;
-  transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-.volta:hover svg {
-  transform: translateX(-3px);
 }
 
 .nome {
@@ -292,6 +278,13 @@
   }
 
   .acoesDoConsultorio > :global(.botao) {
+    grid-column: 1 / -1;
+  }
+
+  /* "Como chegar" sozinho na linha também vai de ponta a ponta: logo depois
+     do "Ligar" (consultório sem WhatsApp), ou sem nenhum dos dois. */
+  .acoesDoConsultorio > :global(.botao) + a:last-child,
+  .acoesDoConsultorio > a:only-child {
     grid-column: 1 / -1;
   }
 
