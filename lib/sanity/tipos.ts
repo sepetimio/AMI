@@ -14,6 +14,17 @@ export type ImagemSanity = {
   legenda?: string;
 };
 
+/*
+  O ponto de interesse e o recorte que a AMI marca na capa da notícia, no
+  Studio (o "hotspot" e o "crop" do Sanity), em frações da imagem, de 0 a
+  1. O GROQ devolve null quando ela não marcou. Quem os usa é
+  `urlRecortada` (lib/sanity/imagem.ts), para a capa sair em 16:9 sem
+  cortar o que importa.
+*/
+export type PontoDeInteresse = { x: number; y: number; width: number; height: number };
+export type Recorte = { top: number; bottom: number; left: number; right: number };
+export type CapaSanity = ImagemSanity & { hotspot?: PontoDeInteresse | null; crop?: Recorte | null };
+
 export type Autor = {
   nome: string;
   crm: string;
@@ -26,7 +37,7 @@ export type ResumoNoticia = {
   titulo: string;
   slug: string;
   resumo: string;
-  capa?: ImagemSanity;
+  capa?: CapaSanity;
   autor: Autor;
   publicadoEm: string;
 };

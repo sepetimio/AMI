@@ -34,6 +34,9 @@ import {
   ClockCounterClockwise,
   PhoneCall,
   DeviceMobile,
+  Newspaper,
+  InstagramLogo,
+  Clock,
 } from "@phosphor-icons/react/dist/ssr";
 import { desenharIcone, mapaDoCliente, type PropsDoIcone } from "@/components/base/Icone";
 
@@ -85,6 +88,9 @@ const mapaDeTodos = {
   relogio: ClockCounterClockwise,
   chamada: PhoneCall,
   celular: DeviceMobile,
+  jornal: Newspaper,
+  instagram: InstagramLogo,
+  horario: Clock,
 } satisfies Record<string, Icon>;
 
 /** Todos os nomes de ícone do site. */

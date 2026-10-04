@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { dimensoesDoRef, urlDaImagem } from "@/lib/sanity/imagem";
+import { dimensoesDoRef, urlDaImagem, urlRecortada } from "@/lib/sanity/imagem";
 
 const IMAGEM = {
   asset: { _ref: "image-abc123def456-1600x900-jpg" },
@@ -30,11 +30,11 @@ describe("urlDaImagem", () => {
     expect(urlDaImagem(IMAGEM, 800, CONFIG)).toContain("auto=format");
   });
 
-  it("envia fit=crop, pronto para um chamador que também passe altura", () => {
+  it("envia fit=crop, que sem altura não recorta nada", () => {
     /* Sozinho, sem `.height()`, `fit=crop` não recorta nada (ver o
-       comentário em lib/sanity/imagem.ts). O parâmetro fica na URL para o
-       dia em que um chamador (uma capa de matéria, por exemplo) também pedir
-       altura, e ganhar o recorte pelo ponto de interesse de graça. */
+       comentário em lib/sanity/imagem.ts): a foto sai inteira. Quem quer o
+       recorte pelo ponto de interesse usa `urlRecortada`, testada logo
+       abaixo. */
     expect(urlDaImagem(IMAGEM, 800, CONFIG)).toContain("fit=crop");
   });
 
@@ -52,6 +52,43 @@ describe("urlDaImagem", () => {
         CONFIG,
       ),
     ).toBe("");
+  });
+});
+
+describe("urlRecortada", () => {
+  const CAPA = { asset: { _ref: "image-abc123def456-2000x1333-jpg" }, alt: "Plateia" };
+  const BASE = "https://cdn.sanity.io/images/abcd1234/production/abc123def456-2000x1333.jpg";
+
+  it("pede largura e altura; sem ponto de interesse, o CDN recorta pelo meio", () => {
+    const esperado = `${BASE}?rect=0,105,2000,1125&w=1600&h=900&fit=crop&auto=format`;
+    expect(urlRecortada(CAPA, 1600, 900, CONFIG)).toBe(esperado);
+    /* O GROQ devolve null quando a AMI não marcou nada. */
+    expect(urlRecortada({ ...CAPA, hotspot: null, crop: null }, 1600, 900, CONFIG)).toBe(esperado);
+  });
+
+  it("o ponto de interesse move o recorte", () => {
+    expect(urlRecortada({ ...CAPA, hotspot: { x: 0.5, y: 0.9, width: 0.2, height: 0.2 } }, 1600, 900, CONFIG)).toBe(
+      `${BASE}?rect=0,208,2000,1125&w=1600&h=900&fit=crop&auto=format`,
+    );
+  });
+
+  it("o recorte marcado no Studio também", () => {
+    expect(
+      urlRecortada(
+        {
+          ...CAPA,
+          hotspot: { x: 0.5, y: 0.1, width: 0.2, height: 0.2 },
+          crop: { top: 0, bottom: 0, left: 0.25, right: 0 },
+        },
+        1600,
+        900,
+        CONFIG,
+      ),
+    ).toBe(`${BASE}?rect=500,0,1500,844&w=1600&h=900&fit=crop&auto=format`);
+  });
+
+  it("degrada a referência quebrada em vez de derrubar a página", () => {
+    expect(urlRecortada({ asset: { _ref: "nao-e-um-ref-valido" }, alt: "" }, 1600, 900, CONFIG)).toBe("");
   });
 });
 

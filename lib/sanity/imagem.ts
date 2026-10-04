@@ -1,6 +1,6 @@
 import { createImageUrlBuilder } from "@sanity/image-url";
 import { exigir } from "@/sanity/exigir";
-import type { ImagemSanity } from "@/lib/sanity/tipos";
+import type { CapaSanity, ImagemSanity } from "@/lib/sanity/tipos";
 
 /*
   Endereço de uma imagem do Sanity, já dimensionada.
@@ -33,6 +33,9 @@ function configuracaoPadrao(): { projectId: string; dataset: string } {
   };
 }
 
+/** O projeto e o dataset do Sanity, para montar o endereço do CDN. */
+export type ConfiguracaoDoSanity = { projectId: string; dataset: string };
+
 export function urlDaImagem(
   imagem: ImagemSanity,
   largura: number,
@@ -50,13 +53,12 @@ export function urlDaImagem(
         aqui, o CDN só redimensiona proporcionalmente pela largura pedida.
 
         Isso é comportamento desejado, não um descuido: quem chama esta
-        função sem largura fixa de exibição, como `TextoRico` para imagem no
-        corpo do texto, quer a foto exatamente como a AMI enviou, sem
-        recortar rosto ou detalhe fora de um retângulo arbitrário. `fit=crop`
-        continua na cadeia porque é o parâmetro que o CDN exige para que um
-        chamador futuro que também passe altura (uma capa de matéria, por
-        exemplo, onde proporção fixa é desejada) ganhe o recorte pelo
-        hotspot de graça, sem precisar mudar esta função.
+        função quer a foto exatamente como a AMI enviou, sem recortar rosto
+        ou detalhe fora de um retângulo arbitrário (a imagem no meio do
+        texto de uma notícia, as miniaturas, os banners). Quem quer o
+        recorte numa proporção fixa, pelo ponto de interesse, usa
+        `urlRecortada`, logo abaixo: lá vão a altura e o `hotspot`, que
+        aqui ficam de fora (`.image()` recebe só o `asset`).
       */
       .width(largura)
       .fit("crop")
@@ -70,9 +72,46 @@ export function urlDaImagem(
       decisão deliberada: quem usa este endereço está desenhando uma imagem
       dentro de uma página inteira (uma notícia, uma página institucional).
       A AMI perde uma foto, não a notícia inteira. Quem chama decide o que
-      fazer com uma resposta vazia; ver `TextoRico.tsx`, que descarta o
-      bloco de imagem inteiro nesse caso.
+      fazer com uma resposta vazia: a imagem no meio do texto descarta o
+      bloco inteiro (`imagemDoTexto`, lib/noticias.ts).
     */
+    return "";
+  }
+}
+
+/*
+  Endereço de uma imagem recortada numa proporção fixa, pelo ponto de
+  interesse e pelo recorte que a AMI marcou no Studio: a capa da notícia
+  aberta, em 16:9 (`capaDaNoticia`, lib/noticias.ts).
+
+  Com largura E altura, o `@sanity/image-url` calcula o retângulo (`rect`)
+  a partir do `crop` e do `hotspot` da imagem; sem os dois, recorta pelo
+  meio. Por isso a imagem vai inteira para `.image()`, e não só o `asset`
+  como em `urlDaImagem`. O null do GROQ (a AMI não marcou) fica de fora: o
+  construtor espera objeto ou nada.
+
+  Mesmo contrato de `urlDaImagem`: `_ref` malformado devolve "", e quem
+  chama decide.
+*/
+export function urlRecortada(
+  imagem: CapaSanity,
+  largura: number,
+  altura: number,
+  configuracao: ConfiguracaoDoSanity = configuracaoPadrao(),
+): string {
+  try {
+    return createImageUrlBuilder(configuracao)
+      .image({
+        asset: imagem.asset,
+        ...(imagem.hotspot ? { hotspot: imagem.hotspot } : {}),
+        ...(imagem.crop ? { crop: imagem.crop } : {}),
+      })
+      .width(largura)
+      .height(altura)
+      .fit("crop")
+      .auto("format")
+      .url();
+  } catch {
     return "";
   }
 }

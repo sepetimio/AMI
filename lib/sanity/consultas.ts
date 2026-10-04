@@ -39,7 +39,9 @@ export const etiquetaDePagina = (slug: string) =>
   `pagina:${slug.slice(0, 200)}`;
 
 const PROJECAO_AUTOR = `autor->{nome, crm, crmUf, slugDoPerfil}`;
-const PROJECAO_CAPA = `capa{asset, alt}`;
+/* `hotspot` e `crop`: a capa da notícia aberta sai em 16:9, recortada pelo
+   ponto de interesse que a AMI marcou (`urlRecortada`, lib/sanity/imagem.ts). */
+const PROJECAO_CAPA = `capa{asset, alt, hotspot, crop}`;
 
 /*
   A fatia é interpolada no texto, e não passada como parâmetro.

@@ -136,3 +136,76 @@ export function tamanhosDasCapas(a: Arranjo): TamanhosDasCapas {
     itemDePe: true,
   };
 }
+
+/*
+  A lista de /noticias (components/editorial/ListaDeNoticias.tsx): a mais
+  recente em destaque, na largura dos painéis, e as outras em cartões
+  embaixo. Com poucas, vale a regra da home (`arranjoDasNoticias`, acima),
+  para não sobrar coluna vazia:
+  - 1: só o destaque;
+  - 2: um cartão deitado embaixo, com a foto da largura de uma coluna de
+    três;
+  - 3: duas colunas;
+  - 4 ou mais: três por linha; a última fileira pode ficar incompleta,
+    alinhada à esquerda, como numa grade comum.
+*/
+export type ArranjoDaLista = {
+  /** Colunas da grade embaixo do destaque (0 quando não há cartão). */
+  colunas: number;
+  /** Um cartão só embaixo do destaque: deitado. */
+  deitado: boolean;
+};
+
+export function arranjoDaLista(quantas: number): ArranjoDaLista | null {
+  const a = arranjoDasNoticias(quantas);
+  return a ? { colunas: a.colunas, deitado: a.deitado } : null;
+}
+
+/*
+  O `sizes` da lista, pelo CSS de components/editorial/Noticias.module.css
+  e pelas réguas de app/globals.css. A lista é um bloco da caixa da página
+  (app/(site)/encontre.module.css): 1192px (`--coluna`) a partir de 1240px
+  de tela; 100vw − 48px (`--folga-da-coluna` de cada lado) de 701 a
+  1239px; no celular, 100vw − 24px, menos `--m` (20px) de cada lado,
+  porque a lista fica na coluna do texto.
+  - O destaque ocupa o bloco inteiro.
+  - Os cartões, com o vão `--gap` (24px; 16px até 980px): três por linha
+    acima de 980px, ou tantas colunas quantas o arranjo pedir; duas no
+    tablet; no celular, a miniatura de 88px. O cartão deitado é uma
+    coluna de três em todas as larguras acima de 700px.
+  `100vw` inclui a barra de rolagem e o bloco não: o `sizes` sai uns 15px
+  maior que a imagem, o que só pode fazer o navegador escolher o arquivo de
+  cima.
+*/
+const PAINEL: Array<[string, string]> = [
+  ["(min-width: 1240px)", "1192px"],
+  ["(min-width: 981px)", "100vw - 48px"],
+  ["(min-width: 701px)", "100vw - 48px"],
+];
+
+export const SIZES_DO_DESTAQUE_DA_LISTA = sizes(
+  [
+    ["(min-width: 1240px)", "1192px"],
+    ["(min-width: 701px)", "calc(100vw - 48px)"],
+  ],
+  "calc(100vw - 64px)",
+);
+
+/** O `sizes` da foto do cartão. Só para arranjo com cartão (`colunas` > 0). */
+export function tamanhoDosCartoes(a: ArranjoDaLista): string {
+  const porLinha = a.deitado ? 3 : a.colunas;
+  return sizes(
+    [
+      [PAINEL[0][0], coluna(PAINEL[0][1], porLinha, 24)],
+      [PAINEL[1][0], coluna(PAINEL[1][1], porLinha, 24)],
+      [PAINEL[2][0], coluna(PAINEL[2][1], a.deitado ? 3 : 2, 16)],
+    ],
+    "88px",
+  );
+}
+
+/* As larguras pedidas ao CDN para o `srcset`: o destaque chega a 1192px
+   (2384 em densidade 2); o cartão de duas colunas, a 584px (1168); a
+   miniatura do celular tem 88px (176). */
+export const LARGURAS_DO_DESTAQUE_DA_LISTA = [480, 640, 960, 1280, 1600, 2400] as const;
+export const LARGURAS_DO_CARTAO = [160, 320, 480, 640, 960, 1200] as const;

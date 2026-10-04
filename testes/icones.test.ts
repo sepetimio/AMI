@@ -22,6 +22,7 @@ import {
   CaretLeft,
   CaretRight,
   ChatsCircle,
+  Clock,
   ClockCounterClockwise,
   Cookie,
   DeviceMobile,
@@ -39,9 +40,11 @@ import {
   Handshake,
   Heartbeat,
   Info,
+  InstagramLogo,
   List,
   MagnifyingGlass,
   MapPin,
+  Newspaper,
   Pause,
   Phone,
   PhoneCall,
@@ -126,6 +129,9 @@ describe("os icones", () => {
       relogio: ClockCounterClockwise,
       chamada: PhoneCall,
       celular: DeviceMobile,
+      jornal: Newspaper,
+      instagram: InstagramLogo,
+      horario: Clock,
     };
     for (const [nome, Componente] of Object.entries(esperado) as [NomeIcone, Icon][]) {
       for (const duotone of [false, true]) {
@@ -148,9 +154,9 @@ describe("os icones", () => {
         }
       }
     }
-    /* E os 44 são diferentes entre si: nenhum par repetido na tabela. */
+    /* E os 47 são diferentes entre si: nenhum par repetido na tabela. */
     const htmls = Object.keys(esperado).map((nome) => renderToString(createElement(Icone, { nome: nome as NomeIcone })));
-    expect(new Set(htmls).size).toBe(44);
+    expect(new Set(htmls).size).toBe(47);
   });
 
   it("duotone inclui opacity 0.2, regular nao", () => {
