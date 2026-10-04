@@ -55,13 +55,14 @@ function porNome(nome: string) {
 }
 
 describe("schemas do Sanity", () => {
-  it("registra os cinco tipos de documento", () => {
+  it("registra os seis tipos de documento", () => {
     expect(tipos.map((t) => t.name).sort()).toEqual([
       "autor",
       "banner",
       "empresaParceira",
       "noticia",
       "paginaInstitucional",
+      "textoDeEspecialidade",
     ]);
   });
 
@@ -130,6 +131,96 @@ describe("schemas do Sanity", () => {
       expect(rodar(campo("logotipo"), undefined).erros).toEqual(["O logotipo é obrigatório"]);
       expect(rodar(campo("logotipo"), { hotspot: {} }).erros).toEqual(["O logotipo é obrigatório"]);
       expect(rodar(campo("logotipo"), { asset: { _ref: "x" } }).erros).toEqual([true]);
+    });
+  });
+
+  describe("texto de especialidade", () => {
+    type Campo = {
+      name: string;
+      type: string;
+      options?: { isUnique?: unknown; dateFormat?: string };
+      of?: {
+        type: string;
+        styles?: { value: string }[];
+        lists?: { value: string }[];
+        marks?: { decorators?: unknown[]; annotations?: unknown[] };
+      }[];
+      validation?: (r: unknown) => unknown;
+    };
+    const campos = () => porNome("textoDeEspecialidade").fields as unknown as Campo[];
+    const campo = (nome: string): Campo => {
+      const c = campos().find((f) => f.name === nome);
+      if (!c) throw new Error(`textoDeEspecialidade sem o campo "${nome}"`);
+      return c;
+    };
+    /* Uma regra de mentira: conta os `.required()`, guarda os `.min()` e os
+       padrões de `.regex()`, e roda as funções `custom` com o valor dado. */
+    function rodar(c: Campo, valor: unknown) {
+      const saida = { obrigatorio: 0, min: [] as number[], regex: [] as RegExp[], erros: [] as unknown[] };
+      const regra: Record<string, unknown> = {
+        required: () => (saida.obrigatorio++, regra),
+        min: (n: number) => (saida.min.push(n), regra),
+        max: () => regra,
+        regex: (p: RegExp) => (saida.regex.push(p), regra),
+        custom: (f: (v: unknown) => unknown) => (saida.erros.push(f(valor)), regra),
+      };
+      c.validation?.(regra);
+      return saida;
+    }
+
+    it("tem os seis campos da spec, com os tipos que a consulta lê", () => {
+      expect((porNome("textoDeEspecialidade") as unknown as { title?: string }).title).toBe("Texto de especialidade");
+      expect(campos().map((c) => [c.name, c.type])).toEqual([
+        ["especialidade", "slug"],
+        ["oQueFaz", "array"],
+        ["quandoProcurar", "array"],
+        ["revisorNome", "string"],
+        ["revisorCrm", "string"],
+        ["revisadoEm", "date"],
+      ]);
+    });
+
+    it("os seis são obrigatórios, e cada texto tem pelo menos um bloco", () => {
+      for (const c of campos()) expect(rodar(c, undefined).obrigatorio, c.name).toBe(1);
+      expect(rodar(campo("oQueFaz"), undefined).min).toEqual([1]);
+      expect(rodar(campo("quandoProcurar"), undefined).min).toEqual([1]);
+    });
+
+    it("a especialidade é única pela regra do próprio Sanity para slug", () => {
+      /* O tipo `slug` confere sozinho que nenhum outro documento do mesmo
+         tipo usa o mesmo valor (`defaultIsUnique`, no pacote sanity). Um
+         `isUnique` nosso trocaria essa conferência. */
+      expect(campo("especialidade").options?.isUnique).toBeUndefined();
+    });
+
+    it("a especialidade só aceita o fim do endereço: minúsculas sem acento, números e hífen", () => {
+      const erros = (current: string) => rodar(campo("especialidade"), { _type: "slug", current }).erros;
+      expect(erros("ortopedia-e-traumatologia")).toEqual([true]);
+      for (const ruim of ["Cardiologia", "clínica-medica", "cardio logia", "/medicos/cardiologia", "-cardiologia", "cardiologia-"]) {
+        expect(erros(ruim), ruim).not.toEqual([true]);
+      }
+    });
+
+    it("o CRM do revisor no formato CRM/UF número", () => {
+      const [padrao] = rodar(campo("revisorCrm"), "").regex;
+      for (const bom of ["CRM/MA 12345", "CRM/PI 7"]) expect(padrao.test(bom), bom).toBe(true);
+      for (const ruim of ["CRM MA 12345", "12345", "CRM/ma 12345", "CRM/MA12345", "CRM/MA 12345 "]) {
+        expect(padrao.test(ruim), ruim).toBe(false);
+      }
+    });
+
+    it("os dois textos aceitam só parágrafo e lista com marcadores, sem negrito nem link", () => {
+      for (const nome of ["oQueFaz", "quandoProcurar"]) {
+        const [b] = campo(nome).of ?? [];
+        expect(b?.type, nome).toBe("block");
+        expect(b?.styles?.map((s) => s.value), nome).toEqual(["normal"]);
+        expect(b?.lists?.map((l) => l.value), nome).toEqual(["bullet"]);
+        expect(b?.marks, nome).toEqual({ decorators: [], annotations: [] });
+      }
+    });
+
+    it("a data se escreve como no Brasil", () => {
+      expect(campo("revisadoEm").options?.dateFormat).toBe("DD/MM/YYYY");
     });
   });
 

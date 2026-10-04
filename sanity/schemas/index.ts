@@ -4,6 +4,7 @@ import { banner } from "./banner";
 import { empresaParceira } from "./empresaParceira";
 import { noticia } from "./noticia";
 import { paginaInstitucional } from "./paginaInstitucional";
+import { textoDeEspecialidade } from "./textoDeEspecialidade";
 
 export const tipos: SchemaTypeDefinition[] = [
   autor,
@@ -11,4 +12,5 @@ export const tipos: SchemaTypeDefinition[] = [
   empresaParceira,
   noticia,
   paginaInstitucional,
+  textoDeEspecialidade,
 ];

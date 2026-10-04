@@ -48,6 +48,13 @@ describe("etiquetasDoDocumento", () => {
     expect(etiquetasDoDocumento({ _type: "empresaParceira" })).toEqual(["parceiras"]);
   });
 
+  it("um texto de especialidade invalida os textos de todas as especialidades", () => {
+    /* O webhook não manda a especialidade do texto, e são poucas páginas: a
+       etiqueta é uma só, `ETIQUETA_TEXTOS_DE_ESPECIALIDADE`
+       (lib/sanity/consultas.ts), como a dos banners e a das parceiras. */
+    expect(etiquetasDoDocumento({ _type: "textoDeEspecialidade" })).toEqual(["textos-de-especialidade"]);
+  });
+
   it("documento sem slug não produz etiqueta específica", () => {
     expect(etiquetasDoDocumento({ _type: "noticia" })).toEqual(["noticias"]);
   });

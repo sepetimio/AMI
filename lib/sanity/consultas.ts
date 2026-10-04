@@ -1,4 +1,6 @@
+import type { PortableTextBlock } from "@portabletext/react";
 import { defineQuery } from "next-sanity";
+import { mesDeAno } from "@/lib/especialidades";
 import { imagemComSrcset } from "@/lib/sanity/banners";
 import { obterCliente } from "@/lib/sanity/cliente";
 import { CAMINHO_DAS_PAGINAS } from "@/lib/sanity/paginas";
@@ -8,6 +10,7 @@ import type {
   Noticia,
   PaginaInstitucional,
   ResumoNoticia,
+  TextoDeEspecialidade,
 } from "@/lib/sanity/tipos";
 
 /*
@@ -29,6 +32,7 @@ import type {
    recusada faria a invalidação falhar em silêncio. */
 export const ETIQUETA_NOTICIAS = "noticias";
 export const ETIQUETA_PARCEIRAS = "parceiras";
+export const ETIQUETA_TEXTOS_DE_ESPECIALIDADE = "textos-de-especialidade";
 export const etiquetaDeNoticia = (slug: string) =>
   `noticia:${slug.slice(0, 200)}`;
 export const etiquetaDePagina = (slug: string) =>
@@ -285,4 +289,94 @@ export async function listarEmpresasParceiras(): Promise<EmpresaParceira[]> {
     { next: { tags: [ETIQUETA_PARCEIRAS] } },
   );
   return paraEmpresasParceiras(cruas ?? []);
+}
+
+/* --- textos de especialidade --- */
+
+/*
+  O "Sobre a {especialidade}" de uma especialidade, pelo slug. Com dois
+  documentos da mesma especialidade, o que o Studio recusa mas pode chegar
+  por fora dele, vale o atualizado por último.
+*/
+export const GROQ_TEXTO_DE_ESPECIALIDADE = defineQuery(`
+  *[_type == "textoDeEspecialidade" && especialidade.current == $especialidade]
+  | order(_updatedAt desc)[0]{
+    oQueFaz,
+    quandoProcurar,
+    revisorNome,
+    revisorCrm,
+    revisadoEm
+  }
+`);
+
+export type TextoDeEspecialidadeCru = {
+  oQueFaz: PortableTextBlock[] | null;
+  quandoProcurar: PortableTextBlock[] | null;
+  revisorNome: string | null;
+  revisorCrm: string | null;
+  revisadoEm: string | null;
+};
+
+/* Um texto rico tem texto quando algum trecho de algum bloco dele não está
+   em branco. */
+function temTexto(blocos: PortableTextBlock[] | null): blocos is PortableTextBlock[] {
+  if (!Array.isArray(blocos)) return false;
+  return blocos.some((b) => {
+    const { _type, children } = b as { _type?: unknown; children?: unknown };
+    return (
+      _type === "block" &&
+      Array.isArray(children) &&
+      children.some((t) => {
+        const texto = (t as { text?: unknown } | null)?.text;
+        return typeof texto === "string" && texto.trim() !== "";
+      })
+    );
+  });
+}
+
+/*
+  Pura, como `paraEmpresasParceiras`, para testar sem rede. Monta o texto a
+  partir do que o GROQ devolveu, só se estiver completo:
+  - os dois textos com alguma letra;
+  - o nome e o CRM do revisor preenchidos;
+  - a data no formato do Studio.
+
+  Faltando qualquer um, devolve null, e a página trata como especialidade
+  sem texto (`sobreDaEspecialidade`, lib/especialidades.ts).
+*/
+export function paraTextoDeEspecialidade(
+  cru: TextoDeEspecialidadeCru | null,
+): TextoDeEspecialidade | null {
+  if (!cru) return null;
+  const revisorNome = cru.revisorNome?.trim() ?? "";
+  const revisorCrm = cru.revisorCrm?.trim() ?? "";
+  const mesDaRevisao = mesDeAno(cru.revisadoEm);
+  if (
+    !temTexto(cru.oQueFaz) ||
+    !temTexto(cru.quandoProcurar) ||
+    !revisorNome ||
+    !revisorCrm ||
+    !mesDaRevisao
+  ) {
+    return null;
+  }
+  return {
+    oQueFaz: cru.oQueFaz,
+    quandoProcurar: cru.quandoProcurar,
+    revisorNome,
+    revisorCrm,
+    mesDaRevisao,
+  };
+}
+
+export async function textoDaEspecialidade(
+  especialidade: string,
+): Promise<TextoDeEspecialidade | null> {
+  const cliente = await obterCliente();
+  const cru: TextoDeEspecialidadeCru | null = await cliente.fetch(
+    GROQ_TEXTO_DE_ESPECIALIDADE,
+    { especialidade },
+    { next: { tags: [ETIQUETA_TEXTOS_DE_ESPECIALIDADE] } },
+  );
+  return paraTextoDeEspecialidade(cru ?? null);
 }
