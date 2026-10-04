@@ -63,25 +63,6 @@ export function tituloEspecialidade(nome: string, total: number): string {
   );
 }
 
-export function tituloFaceta(
-  especialidade: string,
-  bairro: string,
-  total: number,
-): string {
-  /* "no bairro X" concorda em português qualquer que seja o gênero do nome
-     do bairro — "no bairro Centro", "no bairro Nova Imperatriz" — sem
-     precisar de uma coluna de gênero. "Bairro" é masculino, e é ele quem
-     licencia o artigo, não o nome que segue. */
-  return montar(
-    [
-      `${especialidade} no bairro ${bairro}, ${CIDADE}`,
-      `${especialidade} no bairro ${bairro}`,
-    ],
-    [`${total} ${plural(total, "médico", "médicos")}`, MARCA],
-    LIMITE_TITULO,
-  );
-}
-
 /**
  * Sem especialidade registrada, o título omite o papel em vez de escrever
  * "Médico" ou "Médica": qualquer um dos dois erra o gênero em metade dos
@@ -135,28 +116,6 @@ export function descricaoEspecialidade(
     `${total} ${comoProfissional(nome, total)} em Imperatriz` +
     (onde ? `, com atendimento ${onde}` : "") +
     `. Endereço, telefone e CRM. Associação Médica de Imperatriz.`;
-  return cortarNaPalavra(texto, LIMITE_DESCRICAO);
-}
-
-/**
- * Descrição da página de cruzamento (especialidade + bairro).
- *
- * Não reaproveita `descricaoEspecialidade`: com todos os profissionais da
- * especialidade concentrados num bairro só e total >= 3, as duas funções
- * receberiam os mesmos argumentos e produziriam a mesma frase — mas a página
- * de especialidade e a de cruzamento são indexáveis com canonicals
- * diferentes, então não podem emitir a mesma description. Esta nomeia o
- * bairro no corpo da frase, o que a distingue sempre.
- */
-export function descricaoFaceta(
-  especialidade: string,
-  bairro: string,
-  total: number,
-): string {
-  const texto =
-    `${total} ${comoProfissional(especialidade, total)} no bairro ${bairro}, ` +
-    `Imperatriz - MA. Endereço, telefone e CRM. ` +
-    `Associação Médica de Imperatriz.`;
   return cortarNaPalavra(texto, LIMITE_DESCRICAO);
 }
 

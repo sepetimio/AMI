@@ -1,0 +1,174 @@
+/*
+  "Sua AMI", transcrito do desenho aprovado
+  (docs/desenho-aprovado/home-aprovada.html: `.vitrine`, `.vitrine > img`,
+  `.vitrine::after`, `.vitrine-cartao`, `.sobre-linha`, `.etiqueta`, e os
+  @media de 980 e 700px). As cores do desenho viram tokens; as sombras são as
+  do desenho, cinza-azuladas.
+
+  No desenho a foto é um `<img>` filho direto do bloco. Aqui ela vem de
+  `Fotografia`, que pode desenhar a foto ou a moldura "a entrar"; por isso
+  mora numa casca (`.fundo`), e a peça de dentro (`.fotografia`) só a enche.
+*/
+
+.vitrine {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  min-height: 560px;
+  padding: var(--m);
+  border-radius: var(--radius-painel);
+}
+
+.fundo {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+/* A foto ou a moldura enchem a casca. Na moldura, a tarja "Fotografia a
+   entrar" vai para o alto: embaixo mora o cartão, que a cobriria. */
+.fotografia {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  align-items: flex-start;
+}
+
+/* O zoom lento ao passar o mouse vale só para a foto de verdade (`img`):
+   na moldura ele empurrava o começo da tarja para fora do bloco, e o "F"
+   de "Fotografia" saía cortado (visto no navegador a 1440px). */
+img.fotografia {
+  transform: scale(1.04);
+  transition: transform 1.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.vitrine:hover img.fotografia {
+  transform: scale(1);
+}
+
+/* A sombra que sobe do canto do cartão, para a foto não brigar com ele. */
+.vitrine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(20deg, rgba(8, 14, 10, 0.45) 0%, rgba(8, 14, 10, 0) 55%);
+  pointer-events: none;
+}
+
+/* Vidro: branco a 90% sobre a foto. Mesmo sobre preto puro, o fundo do
+   texto fica em 230/255, e o ink-600 dá 5,91:1 ali (a conta está em
+   testes/sua-ami-e-associe.test.ts). */
+.cartao {
+  max-width: 500px;
+  padding: 36px 40px 40px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  backdrop-filter: blur(16px) saturate(1.3);
+  box-shadow: 0 24px 60px rgba(16, 24, 40, 0.22);
+}
+
+.linhaRotulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* A etiqueta: o desenho usa #F3F4F6, que não tem token; vai o
+   `surface-fundo`, o cinza mais perto. O texto é ink-600 (6,90:1 sobre ele). */
+.etiqueta {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--color-surface-fundo);
+  color: var(--color-ink-600);
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.titulo {
+  max-width: 19ch;
+  margin-top: 14px;
+}
+
+.texto {
+  max-width: 30em;
+  margin-top: 16px;
+  color: var(--color-ink-600);
+  text-wrap: pretty;
+}
+
+.acao {
+  margin-top: 28px;
+}
+
+@media (max-width: 980px) {
+  .vitrine {
+    min-height: 520px;
+    padding: 16px;
+  }
+
+  .cartao {
+    max-width: none;
+    padding: 28px 24px 30px;
+  }
+}
+
+/* Celular: a foto em cima, em 4:3, e o cartão branco sobe 40px sobre ela.
+   Sem vidro: o cartão já não fica sobre a foto inteira. */
+@media (max-width: 700px) {
+  .vitrine {
+    display: block;
+    min-height: 0;
+    padding: 0;
+    border-radius: 20px;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-erguido);
+  }
+
+  .fundo {
+    position: relative;
+    inset: auto;
+    z-index: 0;
+    aspect-ratio: 4 / 3;
+  }
+
+  img.fotografia {
+    transform: none;
+  }
+
+  .vitrine::after {
+    display: none;
+  }
+
+  .cartao {
+    position: relative;
+    margin: -40px 12px 12px;
+    padding: 22px 20px;
+    border-radius: 16px;
+    background: var(--color-surface);
+    box-shadow: 0 12px 30px rgba(16, 24, 40, 0.12);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Telas de 360px para baixo (fora do desenho, que para em 375): o botão
+   "Consultar disponibilidade" tem 260px e não quebra linha, e a 320px o
+   miolo do cartão tem 232px; ele passava 8px da borda do cartão (medido no
+   navegador). Cartão e botão perdem um pouco de folga, e o texto do botão
+   desce meio ponto. */
+@media (max-width: 360px) {
+  .cartao {
+    padding: 22px 16px;
+  }
+
+  .acao {
+    padding: 0 18px;
+    font-size: 13.5px;
+  }
+}

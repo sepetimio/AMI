@@ -1,0 +1,471 @@
+/*
+  O carrossel da home, transcrito do desenho aprovado
+  (docs/desenho-aprovado/home-aprovada.html: `.carrossel`, `.slides`,
+  `.slide`, `.anima`, `.foto`, `.controles`, `.bolinha`, `.ctl`,
+  `@keyframes progresso`, `.arte-link` e os @media de 980, 700 e 400px).
+
+  Cor só por token. Os rgba(12,14,18,…) das bolinhas e dos controles são a
+  tinta do desenho em transparência, neutros; o rgba(7,18,10,…) é o degradê
+  escuro que põe o texto sobre a foto no celular.
+
+  Diferença deliberada do desenho: o slide tem proporção fixa, 1192 / 512 no
+  computador (a medida do desenho a 1440px) e 4 / 5 no celular, para a arte
+  pronta caber exata; no tablet (701 a 980px), 3 / 2, com a arte larga
+  recortada pelo ponto de interesse. `aspect-ratio` é piso, não teto: se o texto de um slide
+  com foto não couber, o slide cresce, e a fita inteira acompanha.
+*/
+
+.carrossel {
+  position: relative;
+  /* `clip`, não `hidden`: `hidden` faz do carrossel um contêiner de rolagem,
+     e o navegador o rolaria de lado para mostrar um link focado fora da
+     tela — a fita sairia do lugar que o `translateX` diz. `clip` corta igual
+     e não rola. */
+  overflow: clip;
+  background: var(--color-surface);
+  border-radius: var(--radius-painel);
+  box-shadow: var(--shadow-erguido);
+}
+
+.slides {
+  display: flex;
+  transition: transform 0.95s cubic-bezier(0.7, 0, 0.2, 1);
+}
+
+/* Com cópias nas pontas, a fita nasce mostrando a posição 1 (o primeiro
+   real). O JavaScript assume daí, escrevendo o `transform` no próprio
+   elemento. */
+.slides[data-copias] {
+  transform: translateX(-100%);
+}
+
+.slide {
+  position: relative;
+  flex: none;
+  width: 100%;
+  min-width: 100%;
+  aspect-ratio: 1192 / 512;
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  gap: var(--m);
+  align-items: center;
+  padding: 24px 24px 76px var(--m);
+}
+
+.slide > div {
+  min-width: 0;
+}
+
+/* Arte pronta e moldura provisória: a peça cobre o slide inteiro. */
+.slide.arte {
+  display: block;
+  padding: 0;
+}
+
+.arteLink {
+  position: absolute;
+  inset: 0;
+  display: block;
+  color: inherit;
+}
+
+.arteLink:focus-visible {
+  outline-offset: -6px;
+  border-radius: var(--radius-painel);
+}
+
+.arteImagem {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* A moldura "a entrar" ocupa o slide todo, na proporção que ele tiver. */
+.cobre {
+  position: absolute;
+  inset: 0;
+}
+
+/* Texto do slide com foto. */
+.titulo {
+  font-family: var(--font-titulo);
+  font-weight: 500;
+  font-optical-sizing: auto;
+  letter-spacing: -0.035em;
+  color: var(--color-ami-green-800);
+  font-size: clamp(36px, 4.4vw, 58px);
+  line-height: 1.02;
+  max-width: 16ch;
+  text-wrap: balance;
+}
+
+.rotulo + .titulo {
+  margin-top: 14px;
+}
+
+/* `.anima p`, não `.slide p` como no desenho: aqui o slide também leva a
+   moldura "a entrar", cuja tarja é um `<p>` lima — e `.slide p` a pintava de
+   cinza (conferido no navegador). */
+.anima p {
+  font-size: 17.5px;
+  color: var(--color-ink-600);
+  max-width: 30em;
+  text-wrap: pretty;
+  margin: 0;
+}
+
+.titulo + p {
+  margin-top: 16px;
+}
+
+.acao {
+  margin-top: 28px;
+}
+
+/* No computador a foto acompanha a altura do slide; a 1440px isso dá os
+   549 × 412 (4:3) do desenho. */
+.foto {
+  height: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Entrada do conteúdo de cada slide. */
+.anima > * {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.ativo .anima > * {
+  opacity: 1;
+  transform: none;
+}
+
+.ativo .anima > :nth-child(1) {
+  transition-delay: 0.15s;
+}
+
+.ativo .anima > :nth-child(2) {
+  transition-delay: 0.25s;
+}
+
+.ativo .anima > :nth-child(3) {
+  transition-delay: 0.35s;
+}
+
+.ativo .anima > :nth-child(4) {
+  transition-delay: 0.45s;
+}
+
+/* Zoom lento na foto do slide com texto. A arte pronta não tem zoom: é peça
+   acabada, e 10% a mais cortaria as bordas dela. */
+.foto img {
+  transform: scale(1.1);
+  transition: transform 7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.ativo .foto img {
+  transform: scale(1);
+}
+
+/* Controles: o grupo fica com o centro sob o centro do botão do slide atual
+   (o componente mede e escreve `left`); sem botão, fica na margem. */
+.controles {
+  position: absolute;
+  z-index: 6;
+  left: var(--m);
+  bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  transition: left 0.7s cubic-bezier(0.7, 0, 0.2, 1);
+}
+
+.bolinhas {
+  display: flex;
+  gap: 0;
+  margin: 0 4px 0 0;
+}
+
+/* Bolinha e seta: desenho pequeno, área de toque maior. */
+.bolinha {
+  position: relative;
+  width: auto;
+  /* Alvo de toque de 24 × 24px no mínimo (WCAG 2.5.8): no celular o
+     respiro lateral cai para 7px, e 7 + 6 + 7 dava só 20px de largura. */
+  min-width: 24px;
+  height: 24px;
+  padding: 0 9px;
+  border: 0;
+  background: none;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+/* Em slide claro (o composto e a arte de tema claro), bolinha e controle
+   precisam de 3:1 contra o fundo branco (WCAG 1.4.11): a tinta a 50% dá
+   3,6:1, e a barra que enche, a 90%, fica a 4,2:1 da bolinha. As bolinhas
+   apagadas do desenho, a 14%, davam 1,4:1. A conta está em
+   testes/carrossel.test.ts. */
+.bolinha > span {
+  display: block;
+  position: relative;
+  width: 6px;
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(12, 14, 18, 0.5);
+  transition:
+    width 0.3s,
+    background 0.4s;
+}
+
+.bolinha.ativa > span {
+  width: 30px;
+}
+
+/* A barra de tempo: enche em `--intervalo` (o componente o escreve a partir
+   de INTERVALO, em lib/carrossel.ts) e, quando acaba, o carrossel passa. */
+.bolinha.ativa > span::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(12, 14, 18, 0.9);
+  transform-origin: left;
+  animation: progresso var(--intervalo) linear forwards;
+}
+
+.parado .bolinha.ativa > span::after {
+  animation-play-state: paused;
+}
+
+@keyframes progresso {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.ctl {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: none;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--color-ink-400);
+  /* 80%, e não os 60% do desenho: em slide claro, 60% dava 2,4:1. */
+  opacity: 0.8;
+  border-radius: 99px;
+  transition:
+    color 0.4s,
+    opacity 0.2s,
+    background 0.2s;
+}
+
+.ctl:hover {
+  opacity: 1;
+  color: var(--color-ink-900);
+}
+
+/* Branco sobre arte escura. */
+.escuro .ctl {
+  color: var(--color-white);
+  opacity: 0.6;
+}
+
+.escuro .ctl:hover {
+  opacity: 1;
+  color: var(--color-white);
+}
+
+.escuro .bolinha > span {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.escuro .bolinha.ativa > span::after {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.escuro :where(a, button):focus-visible {
+  outline-color: var(--color-ami-lima-400);
+}
+
+/* Quem pediu menos movimento: nada se move, e a barra não corre. */
+@media (prefers-reduced-motion: reduce) {
+  .bolinha.ativa > span::after {
+    animation: none;
+  }
+
+  .anima > * {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 980px) {
+  .controles {
+    bottom: 16px;
+  }
+}
+
+/* Tablet: duas colunas, sem virar uma tela inteira. */
+@media (min-width: 701px) and (max-width: 980px) {
+  /* 3:2, e não 1192/512: na proporção do computador o texto do slide com
+     foto não cabe nesta largura, o slide crescia e a fita inteira junto. A
+     arte larga é recortada pelo ponto de interesse. */
+  .slide {
+    aspect-ratio: 3 / 2;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    padding: 20px 20px 70px var(--m);
+  }
+
+  .slide.arte {
+    padding: 0;
+  }
+
+  .titulo {
+    font-size: 36px;
+  }
+}
+
+/* Logo acima do tablet, de 981 a 1040px, a proporção já é a do computador
+   e a coluna do texto é estreita: com o título em 4,4vw (43 a 46px) e o
+   parágrafo em 17,5px, o texto do slide com foto não cabia, e o slide
+   crescia até 44px além da proporção (a 981px), com a fita inteira junto e
+   a arte vizinha recortada. Com 38px e 16px o texto cabe em toda a faixa,
+   medido de 10 em 10px com os textos do desenho; de 1041px em diante, o
+   tamanho normal já cabe. */
+@media (min-width: 981px) and (max-width: 1040px) {
+  .titulo {
+    font-size: 38px;
+  }
+
+  .anima p {
+    font-size: 16px;
+  }
+}
+
+/* Celular: cartão vertical 4:5, texto sobre a foto. */
+@media (max-width: 700px) {
+  .carrossel {
+    border-radius: 20px;
+  }
+
+  .slide {
+    display: block;
+    padding: 0;
+    aspect-ratio: 4 / 5;
+  }
+
+  .foto {
+    position: absolute;
+    inset: 0;
+    height: auto;
+    border-radius: 0;
+  }
+
+  .anima {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 110px var(--m) 66px;
+    background: linear-gradient(0deg, rgba(7, 18, 10, 0.95) 0%, rgba(7, 18, 10, 0.8) 45%, rgba(7, 18, 10, 0) 100%);
+    /* A foto vem depois no código e cobria o texto: o defeito que a revisão
+       do desenho achou. */
+    z-index: 2;
+  }
+
+  .anima .rotulo {
+    color: var(--color-ami-lima-400);
+  }
+
+  .anima .titulo {
+    color: var(--color-white);
+    font-size: 30px;
+    line-height: 1.04;
+    max-width: none;
+  }
+
+  .anima p {
+    color: rgba(255, 255, 255, 0.86);
+    font-size: 15px;
+    line-height: 1.5;
+    margin-top: 10px;
+  }
+
+  .anima .acao {
+    margin-top: 18px;
+  }
+
+  .controles {
+    bottom: 12px;
+    gap: 0;
+  }
+
+  /* No celular troca-se deslizando o dedo. */
+  .anterior,
+  .proximo {
+    display: none;
+  }
+
+  .bolinha {
+    padding: 0 7px;
+  }
+
+  .bolinha.ativa > span {
+    width: 22px;
+  }
+
+  .pausa {
+    width: 32px;
+    height: 32px;
+    margin-left: 2px;
+  }
+
+  /* Tudo no celular é foto com degradê escuro ou arte: só a arte clara pede
+     controle escuro. */
+  .carrossel:not(.claro) .ctl {
+    color: var(--color-white);
+    opacity: 0.75;
+  }
+
+  .carrossel:not(.claro) .bolinha > span {
+    background: rgba(255, 255, 255, 0.35);
+  }
+
+  .carrossel:not(.claro) .bolinha.ativa > span::after {
+    background: var(--color-white);
+  }
+}
+
+@media (max-width: 400px) {
+  .anima {
+    padding-top: 80px;
+  }
+
+  .anima .titulo {
+    font-size: 27px;
+  }
+
+  .anima p {
+    font-size: 14.5px;
+  }
+}

@@ -3,12 +3,30 @@
 import Link from "next/link";
 import {
   useEffect,
+  useEffectEvent,
+  useLayoutEffect,
   useReducer,
   useRef,
   useState,
   useSyncExternalStore,
+  type CSSProperties,
+  type ReactNode,
 } from "react";
+import { Icone } from "@/components/base/Icone";
 import { MolduraProvisoria } from "@/components/base/MolduraProvisoria";
+import styles from "@/components/home/Carrossel.module.css";
+import {
+  INTERVALO,
+  TAMANHO_DA_ARTE,
+  TAMANHO_DA_ARTE_CELULAR,
+  TAMANHO_DA_FOTO,
+  type Destino,
+  destinoDoPasso,
+  direcaoDoDedo,
+  movimentoAte,
+  posicaoNaFita,
+  precisaSaltar,
+} from "@/lib/carrossel";
 import type { ItemDoCarrossel } from "@/lib/molduras";
 import {
   SEM_PAUSA,
@@ -16,13 +34,12 @@ import {
   parado,
   rotuloDoBotao,
 } from "@/lib/pausaDoCarrossel";
-
-const INTERVALO = 6000;
+import type { Foco } from "@/lib/sanity/tipos";
 
 const MOVIMENTO_REDUZIDO = "(prefers-reduced-motion: reduce)";
 
 /*
-  Os quatro pares abaixo alimentam os `useSyncExternalStore` do componente e
+  Os três pares abaixo alimentam os `useSyncExternalStore` do componente e
   moram fora dele de propósito: definidas no corpo do componente, seriam
   funções novas a cada renderização, e o React refaria a inscrição toda vez.
 
@@ -49,48 +66,114 @@ function lerAba() {
   return document.hidden;
 }
 
-/* O instantâneo do servidor dos dois. Lá não há nem preferência de movimento
+/* Nada a assinar: "já hidratou" só muda uma vez, e o React mesmo cuida
+   disso ao trocar o instantâneo do servidor pelo do cliente. */
+function semAssinatura() {
+  return () => {};
+}
+
+function verdadeiro() {
+  return true;
+}
+
+/* O instantâneo do servidor dos três. Lá não há nem preferência de movimento
    nem aba, e o valor precisa ser o mesmo em toda renderização de servidor. */
 function falso() {
   return false;
 }
 
+/* O ponto de interesse vira `object-position`; sem ele, o centro. */
+function posicaoDoFoco(foco: Foco | null): string | undefined {
+  return foco ? `${foco.x * 100}% ${foco.y * 100}%` : undefined;
+}
+
+/* As medidas que o CDN entrega, para o navegador reservar o espaço. São as
+   de ARTE_LARGA e ARTE_CELULAR em lib/sanity/banners.ts — que não entra aqui
+   porque traria o cliente do Sanity para o navegador; o teste do carrossel
+   confere que os números batem. A foto do composto sai com 1600px de
+   largura e sem proporção combinada: 4:3 é a da área dela no desenho. */
+const LARGA = { largura: 3000, altura: 1288 };
+const CELULAR = { largura: 1080, altura: 1350 };
+const FOTO = { largura: 1600, altura: 1200 };
+
 /*
-  O carrossel de banners, sem biblioteca.
+  O carrossel da home, sem biblioteca. A lógica é a do desenho aprovado
+  (docs/desenho-aprovado/home-aprovada.html), passada para React; as contas
+  da fita estão em lib/carrossel.ts.
 
-  Encaixe de rolagem faz o trabalho pesado: arrastar no celular vem de graça,
-  e a posição é o próprio `scrollLeft`. O JavaScript só empurra.
+  A fita: n slides reais mais uma cópia do último antes e uma do primeiro
+  depois. Do último, "próximo" anda para a cópia do primeiro, sempre para a
+  direita, e no fim do movimento a fita salta sem animação para o primeiro de
+  verdade, que é idêntico. A posição da fita é escrita direto no elemento
+  (`mover`), não pelo estado do React: "clique no meio do movimento conclui o
+  atual e atende" exige que o salto aconteça ANTES do movimento seguinte, e
+  dois `setState` no mesmo clique seriam agrupados num só, e o salto nunca
+  chegaria à tela.
 
-  A rotação para em quatro situações: alguém pausa, o mouse entra, o teclado
-  chega, ou a aba sai da frente — não faz sentido girar para ninguém. A pausa
-  do botão é a única que continua depois que o mouse ou o foco saem; a regra
-  e o porquê estão em lib/pausaDoCarrossel.ts.
+  O tempo: a bolinha do slide atual enche em INTERVALO por animação de CSS,
+  e o fim da animação passa o slide. Parar é congelar a animação
+  (`animation-play-state: paused`, pela classe `parado`), o que faz a barra
+  continuar de onde parou quando a rotação volta.
+
+  A rotação para em cinco situações: alguém pausa, o mouse entra, o teclado
+  chega, a aba sai da frente — não faz sentido girar para ninguém — ou o
+  componente ainda não hidratou (sem o React, o fim da barra não teria quem
+  ouvisse). A pausa do botão é a única que continua depois que o mouse ou o
+  foco saem; a regra e o porquê estão em lib/pausaDoCarrossel.ts.
 
   Quem liga "reduzir movimento" no sistema NÃO recebe rotação nenhuma. Quem
   liga isso costuma ter enxaqueca, vertigem ou epilepsia fotossensível: para
   essas pessoas, coisa que se move sozinha não é incômodo, é sintoma. Nesse
-  caso o botão de pausa some, porque não há o que pausar.
+  caso o botão de pausa some, porque não há o que pausar, e as trocas pelas
+  bolinhas e setas acontecem sem deslizar.
 
-  `imagem` chega como endereço pronto (ver o comentário de `Banner` em
+  As imagens chegam como endereço pronto (ver o comentário de `Banner` em
   lib/sanity/tipos.ts), não como referência do Sanity — por isso é `<img>`
-  puro, não `next/image`: o CDN do Sanity já entrega a arte no tamanho certo
-  (`lib/sanity/banners.ts` pede exatamente 3000px), e `next.config.ts` não
-  registra `cdn.sanity.io` em `images.remotePatterns` — nenhum outro
-  consumidor de imagem do Sanity no site usa `next/image` pelo mesmo motivo
-  (ver components/editorial/LinhaNoticia.tsx e TextoRico.tsx).
+  puro, não `next/image`: o CDN do Sanity já entrega cada imagem nas larguras
+  do `srcset` (lib/sanity/banners.ts), o `sizes` de cada uma vem de
+  lib/carrossel.ts, e `next.config.ts` não registra
+  `cdn.sanity.io` em `images.remotePatterns` — nenhum outro consumidor de
+  imagem do Sanity no site usa `next/image` pelo mesmo motivo (ver
+  components/editorial/FotoDaNoticia.tsx e CorpoDoTexto.tsx).
 
-  Um item pode ser também um banner PROVISÓRIO (`provisorio: true`, ver
-  lib/molduras.ts): no lugar do `<img>` sai a moldura "Arte a entrar", na
-  mesma proporção 3000 × 856 da arte real. Só o desenho de cada slide muda —
-  rotação, setas, bolinhas e pausa tratam os dois do mesmo jeito, porque o
-  cliente quer ver o mecanismo funcionando antes de ter as artes. Quem
-  garante que real e provisório nunca vêm misturados é quem monta a lista,
-  `moldurasDaHome`, não este componente.
+  Três desenhos de slide:
+  - "arte": a imagem pronta cobre o slide; no celular, a versão 4:5 quando
+    existe; sem ela, a larga recortada pelo ponto de interesse.
+  - "composto": texto à esquerda e foto à direita; no celular, o texto sobre
+    a foto. Sem foto, a área dela vira moldura.
+  - "provisorio" (lib/molduras.ts): a moldura "Arte a entrar" cobre o slide.
+    Rotação, bolinhas e pausa tratam todos do mesmo jeito, porque o cliente
+    quer ver o mecanismo funcionando antes de ter as artes. Quem garante que
+    real e provisório nunca vêm misturados é quem monta a lista,
+    `moldurasDaHome`, não este componente.
 */
-export function Carrossel({ banners }: { banners: ItemDoCarrossel[] }) {
-  const trilho = useRef<HTMLDivElement>(null);
+export function Carrossel({ itens }: { itens: ItemDoCarrossel[] }) {
+  const n = itens.length;
+  const varios = n > 1;
+
+  const raiz = useRef<HTMLElement>(null);
+  const fita = useRef<HTMLDivElement>(null);
+  const controles = useRef<HTMLDivElement>(null);
+  /* Os slides reais, pelo índice: é neles que se mede o botão. */
+  const reais = useRef<(HTMLDivElement | null)[]>([]);
+  /* Onde a fita está e se está andando: do DOM, não do React (ver o
+     comentário do componente). */
+  const posicao = useRef(1);
+  const movendo = useRef(false);
+  const relogio = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  /* O item real na tela. */
   const [atual, setAtual] = useState(0);
+  /* A posição da fita que está entrando: a cópia, enquanto o movimento até
+     ela não termina; depois, a real. Recebe a classe `ativo` junto com o
+     real correspondente, para as animações de entrada não se repetirem no
+     salto. */
+  const [entrando, setEntrando] = useState(1);
+  /* Muda a cada troca, para a barra de tempo recomeçar do zero mesmo quando
+     o destino é o próprio slide atual. */
+  const [volta, setVolta] = useState(0);
   const [pausa, avisar] = useReducer(aplicarEvento, SEM_PAUSA);
+
   /*
     `useSyncExternalStore`, e não `useState`, porque as duas árvores precisam
     bater.
@@ -106,9 +189,9 @@ export function Carrossel({ banners }: { banners: ItemDoCarrossel[] }) {
     O terceiro argumento é o instantâneo do servidor, e o React o usa tanto
     para renderizar no servidor quanto para a renderização de hidratação: as
     duas nascem iguais. Só depois de hidratar ele passa a `lerMovimento`. Isso
-    também fecha a corrida que o `useState(false)` original tinha, porque a
-    correção chega no commit da hidratação, antes de o efeito da rotação mais
-    abaixo criar o temporizador de `INTERVALO`.
+    também fecha a corrida com a rotação: até a hidratação terminar, `gira`
+    é falso (ver `hidratado`), então a barra de tempo não corre para quem
+    pediu menos movimento nem por um instante.
   */
   const semMovimento = useSyncExternalStore(
     assinarMovimento,
@@ -119,155 +202,468 @@ export function Carrossel({ banners }: { banners: ItemDoCarrossel[] }) {
   /*
     A quarta situação que para a rotação: a aba sai da frente.
 
-    Um temporizador de 6s continua rodando numa aba em segundo plano — o
-    navegador só reduz a frequência dele, não zera. Sem isto, um banner
-    pode trocar sozinho enquanto ninguém olha, e quem volta à aba encontra
-    a rotação fora de sincronia com o que fez por último (setas, bolinhas,
-    arrastar). `visibilitychange` é o evento que o próprio navegador
-    dispara nas duas transições, então um só listener cobre ir e voltar.
+    O que o navegador faz com a animação de uma aba em segundo plano varia
+    de navegador para navegador; esta pausa não depende disso. Sem ela, um
+    banner pode trocar sozinho enquanto ninguém olha, e
+    quem volta à aba encontra a rotação fora de sincronia com o que fez por
+    último (setas, bolinhas, dedo). `visibilitychange` é o evento que o
+    próprio navegador dispara nas duas transições, então um só listener cobre
+    ir e voltar.
 
     Mesma forma do `semMovimento` acima, pela mesma razão: hoje `abaOculta`
-    não entra em nenhum JSX condicional, mas quem for mexer nisso depois não
-    tem como saber disso, e o defeito só apareceria em produção.
+    entra na classe `parado`, que sai no HTML do servidor, e um valor lido
+    diferente lá e na hidratação faria as duas árvores divergirem.
   */
   const abaOculta = useSyncExternalStore(assinarAba, lerAba, falso);
 
-  const gira =
-    banners.length > 1 && !semMovimento && !parado(pausa) && !abaOculta;
-
   /*
-    `[gira, atual, banners.length]`, não `[]`.
-
-    Sem vetor, o efeito reexecutava a cada render — recriando o temporizador
-    sem necessidade, mas ainda com `atual` fresco a cada vez, porque cada
-    render tinha o seu.
-
-    Um vetor que esquecesse `atual` (por exemplo `[gira, banners.length]`)
-    quebraria de verdade: o efeito só reconstrói o `setInterval` quando uma
-    dependência listada muda, então o fecho (closure) de dentro dele ficaria
-    preso no `atual` de quando o efeito rodou pela última vez. O primeiro
-    disparo chama `irPara(1)`, o estado muda para 1, mas `gira` e
-    `banners.length` continuam iguais — o efeito não reexecuta, e o
-    temporizador antigo, ainda fechado sobre `atual = 0`, dispara de novo
-    `irPara((0 + 1) % N)`, ou seja `irPara(1)`. A rotação empaca oscilando
-    entre o primeiro e o segundo banner para sempre.
-
-    Com `atual` no vetor, toda troca de banner (pelo temporizador, pelas
-    setas, pelas bolinhas ou por arrastar) reconstrói o temporizador com o
-    valor novo, e a rotação continua avançando.
+    Falso no servidor e na hidratação, verdadeiro logo depois. A barra de
+    tempo é animação de CSS e começaria a correr assim que o HTML chegasse;
+    se ela terminasse antes de o React estar ouvindo, ninguém passaria o
+    slide, e o carrossel ficaria parado para sempre. Com isto ela nasce
+    congelada no zero e só anda depois de hidratar.
   */
-  useEffect(() => {
-    if (!gira) return;
-    const t = setInterval(() => irPara((atual + 1) % banners.length), INTERVALO);
-    return () => clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gira, atual, banners.length]);
+  const hidratado = useSyncExternalStore(semAssinatura, verdadeiro, falso);
 
-  function irPara(i: number) {
-    const el = trilho.current;
+  const gira =
+    varios && hidratado && !semMovimento && !parado(pausa) && !abaOculta;
+
+  /* Escreve a posição da fita. Sem animação: desliga a transição, escreve,
+     força o navegador a aplicar (`offsetWidth`) e religa. */
+  function mover(pos: number, animar: boolean) {
+    const el = fita.current;
     if (!el) return;
-    el.scrollTo({ left: el.clientWidth * i, behavior: semMovimento ? "auto" : "smooth" });
-    setAtual(i);
+    posicao.current = pos;
+    el.style.transition = animar ? "" : "none";
+    el.style.transform = `translateX(-${pos * 100}%)`;
+    if (!animar) {
+      void el.offsetWidth;
+      el.style.transition = "";
+    }
   }
 
-  if (banners.length === 0) return null;
+  /* Fim do movimento: pelo aviso do navegador ou, se ele não vier (aba
+     oculta), pelo relógio. Numa cópia, salta para o real idêntico. */
+  function aoParar() {
+    clearTimeout(relogio.current);
+    movendo.current = false;
+    const salto = precisaSaltar(posicao.current, n);
+    if (salto !== null) {
+      mover(salto, false);
+      setEntrando(salto);
+    }
+  }
 
-  const varios = banners.length > 1;
+  /* Um passo a partir do atual (+1, −1, ou 0 com o índice de uma bolinha).
+     A conta de para onde ele leva — inclusive as cópias — é `destinoDoPasso`. */
+  function passo(de: number, direcao: -1 | 0 | 1) {
+    ir(destinoDoPasso(de, direcao, n));
+  }
+
+  function ir(destino: Destino) {
+    if (movendo.current) aoParar(); // clique no meio do movimento: conclui e atende
+    setAtual(destino.indice);
+    setVolta((v) => v + 1);
+    const { posicao: alvo, animar } = movimentoAte(destino, semMovimento);
+    setEntrando(alvo);
+    if (!animar) {
+      mover(alvo, false);
+      return;
+    }
+    if (alvo !== posicao.current) movendo.current = true;
+    mover(alvo, true);
+    clearTimeout(relogio.current);
+    relogio.current = setTimeout(aoParar, 1200);
+  }
+
+  /* O grupo de controles fica com o centro alinhado ao centro do botão do
+     slide atual. A conta é relativa ao próprio slide, então vale com a fita
+     parada ou andando. Slide sem botão (arte, moldura): a margem do CSS. */
+  function centralizar() {
+    const slide = reais.current[atual];
+    const grupo = controles.current;
+    if (!slide || !grupo) return;
+    const botao = slide.querySelector<HTMLElement>("[data-botao]");
+    if (!botao) {
+      grupo.style.left = "";
+      return;
+    }
+    const rs = slide.getBoundingClientRect();
+    const rb = botao.getBoundingClientRect();
+    const centro = rb.left - rs.left + rb.width / 2;
+    grupo.style.left = `${Math.round(centro - grupo.offsetWidth / 2)}px`;
+  }
+
+  /* Antes de pintar, para o grupo já sair andando para o lugar certo. */
+  useLayoutEffect(centralizar);
+
+  /* Os ouvintes nativos chamam a versão mais nova destas, sem precisar se
+     reinscrever a cada troca de slide. */
+  const recentralizar = useEffectEvent(centralizar);
+  const deslizar = useEffectEvent((direcao: -1 | 1) => passo(atual, direcao));
+  const usar = useEffectEvent(
+    (evento: "mouseEntrou" | "mouseSaiu" | "focoEntrou" | "focoSaiu") =>
+      avisar(evento),
+  );
+
+  /* A largura do botão muda quando a fonte termina de carregar, e a posição
+     dele muda com a largura da tela. */
+  useEffect(() => {
+    if (!varios) return;
+    let vivo = true;
+    const aoRedimensionar = () => recentralizar();
+    window.addEventListener("resize", aoRedimensionar);
+    void document.fonts?.ready.then(() => {
+      if (vivo) recentralizar();
+    });
+    return () => {
+      vivo = false;
+      window.removeEventListener("resize", aoRedimensionar);
+    };
+  }, [varios]);
+
+  useEffect(() => () => clearTimeout(relogio.current), []);
+
+  /*
+    Mouse, teclado e dedo, em ouvintes nativos.
+
+    Mouse: só `pointerType === "mouse"`. No celular, o toque dispara "mouse
+    entrou" e nunca "saiu": o carrossel ficava parado para sempre depois do
+    primeiro toque — defeito achado no desenho.
+
+    Teclado: só quando o foco é visível (`:focus-visible`). Clicar numa
+    bolinha com o mouse também põe o foco nela, e isso não é "o teclado
+    chegou".
+
+    Mouse e foco são dois motivos de uso; o carrossel volta a girar só
+    quando os dois acabaram, por isso os dois sinalizadores locais.
+
+    Dedo: deslizar para os lados troca o slide; para cima e para baixo
+    continua rolando a página (`passive`, e a decisão em `direcaoDoDedo`).
+  */
+  useEffect(() => {
+    const el = raiz.current;
+    if (!el || !varios) return;
+    let mouseDentro = false;
+    let focoDentro = false;
+    let x0: number | null = null;
+    let y0 = 0;
+
+    const aoEntrarPonteiro = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      mouseDentro = true;
+      usar("mouseEntrou");
+    };
+    const aoSairPonteiro = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      mouseDentro = false;
+      if (!focoDentro) usar("mouseSaiu");
+    };
+    const aoEntrarFoco = (e: FocusEvent) => {
+      if (!(e.target instanceof Element) || !e.target.matches(":focus-visible")) return;
+      focoDentro = true;
+      usar("focoEntrou");
+    };
+    const aoSairFoco = (e: FocusEvent) => {
+      if (e.relatedTarget instanceof Node && el.contains(e.relatedTarget)) return;
+      focoDentro = false;
+      if (!mouseDentro) usar("focoSaiu");
+    };
+    const aoTocar = (e: TouchEvent) => {
+      x0 = e.touches[0].clientX;
+      y0 = e.touches[0].clientY;
+    };
+    const aoSoltar = (e: TouchEvent) => {
+      if (x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0;
+      const dy = e.changedTouches[0].clientY - y0;
+      x0 = null;
+      const direcao = direcaoDoDedo(dx, dy);
+      if (direcao !== 0) deslizar(direcao);
+    };
+
+    el.addEventListener("pointerenter", aoEntrarPonteiro);
+    el.addEventListener("pointerleave", aoSairPonteiro);
+    el.addEventListener("focusin", aoEntrarFoco);
+    el.addEventListener("focusout", aoSairFoco);
+    el.addEventListener("touchstart", aoTocar, { passive: true });
+    el.addEventListener("touchend", aoSoltar, { passive: true });
+    return () => {
+      el.removeEventListener("pointerenter", aoEntrarPonteiro);
+      el.removeEventListener("pointerleave", aoSairPonteiro);
+      el.removeEventListener("focusin", aoEntrarFoco);
+      el.removeEventListener("focusout", aoSairFoco);
+      el.removeEventListener("touchstart", aoTocar);
+      el.removeEventListener("touchend", aoSoltar);
+    };
+  }, [varios]);
+
+  if (n === 0) return null;
+
+  /* n + 2 posições com cópias nas pontas; um item só não gira nem copia. */
+  const naFita = varios
+    ? [
+        { item: itens[n - 1], copia: true },
+        ...itens.map((item) => ({ item, copia: false })),
+        { item: itens[0], copia: true },
+      ]
+    : [{ item: itens[0], copia: false }];
+
+  const corrente = itens[atual];
+  const tema =
+    corrente.tipo === "arte"
+      ? corrente.tema
+      : corrente.tipo === "provisorio"
+        ? "escuro"
+        : null;
+
+  const classes = [
+    styles.carrossel,
+    tema === "escuro" ? styles.escuro : "",
+    tema === "claro" ? styles.claro : "",
+    gira ? "" : styles.parado,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <section
+      ref={raiz}
+      data-bloco="carrossel"
+      aria-roledescription="carrossel"
       aria-label="Destaques da AMI"
-      className="mx-auto max-w-[1200px] px-4 md:px-6"
-      onMouseEnter={() => avisar("mouseEntrou")}
-      onMouseLeave={() => avisar("mouseSaiu")}
-      onFocusCapture={() => avisar("focoEntrou")}
-      onBlurCapture={() => avisar("focoSaiu")}
+      className={classes}
+      style={{ "--intervalo": `${INTERVALO}ms` } as CSSProperties}
     >
-      <div className="relative">
-        <div
-          ref={trilho}
-          onScroll={(e) => {
-            const el = e.currentTarget;
-            setAtual(Math.round(el.scrollLeft / el.clientWidth));
-          }}
-          className="flex snap-x snap-mandatory overflow-x-auto rounded-bloco [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {banners.map((b, i) => {
-            const arte = "provisorio" in b ? (
-              <MolduraProvisoria
-                largura={3000}
-                altura={856}
-                rotulo={`Arte a entrar: ${b.rotulo}`}
-                legenda={<>Arte a entrar: {b.rotulo}</>}
-              />
-            ) : (
-              /* eslint-disable-next-line @next/next/no-img-element --
-                 o CDN do Sanity já redimensiona; ver lib/sanity/imagem.ts e
-                 o comentário no topo deste arquivo. */
-              <img
-                src={b.imagem}
-                alt={b.alt}
-                width={3000}
-                height={856}
-                loading={i === 0 ? undefined : "lazy"}
-                className="h-auto w-full"
-              />
-            );
-            return (
-              <div key={b.id} className="w-full shrink-0 snap-start">
-                {b.destino ? <Link href={b.destino}>{arte}</Link> : arte}
-              </div>
-            );
-          })}
-        </div>
+      <div
+        ref={fita}
+        className={styles.slides}
+        data-copias={varios ? "" : undefined}
+        onTransitionEnd={(e) => {
+          if (e.target === e.currentTarget && e.propertyName === "transform") aoParar();
+        }}
+      >
+        {naFita.map(({ item, copia }, p) => {
+          /* Sem cópias, a posição 0 é o próprio item. */
+          const indice = varios ? (copia ? -1 : p - 1) : 0;
+          const ativo =
+            !varios || p === entrando || p === posicaoNaFita(atual);
+          /* O real fora da tela não recebe foco nem é lido: quem navega
+             pelo teclado troca de slide pelos controles. */
+          const escondido = varios && !copia && indice !== atual;
+          return (
+            <div
+              key={copia ? `copia-${p}` : item.id}
+              ref={
+                copia
+                  ? undefined
+                  : (no) => {
+                      reais.current[indice] = no;
+                    }
+              }
+              data-slide=""
+              data-copia={copia ? "" : undefined}
+              aria-hidden={copia ? "true" : undefined}
+              inert={escondido || undefined}
+              className={[
+                styles.slide,
+                item.tipo === "composto" ? "" : styles.arte,
+                ativo ? styles.ativo : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              <Slide item={item} copia={copia} primeiro={!copia && indice === 0} />
+            </div>
+          );
+        })}
       </div>
 
       {varios ? (
-        <div className="mt-4 flex items-center justify-center gap-3">
-          <button
-            type="button"
-            onClick={() => irPara((atual - 1 + banners.length) % banners.length)}
-            className="pressiona rounded-controle border border-line px-3 py-2 text-[14px] text-ink-600 hover:text-ink-900"
-          >
-            Anterior
-          </button>
-
-          <div className="flex gap-2">
-            {banners.map((b, i) => (
+        <div ref={controles} className={styles.controles}>
+          <div className={styles.bolinhas}>
+            {itens.map((b, i) => (
               <button
                 key={b.id}
                 type="button"
-                onClick={() => irPara(i)}
-                aria-label={`Ir para o banner ${i + 1} de ${banners.length}`}
-                aria-current={i === atual}
+                onClick={() => passo(i, 0)}
+                aria-label={`Ir para o banner ${i + 1} de ${n}`}
+                aria-current={i === atual ? "true" : undefined}
                 className={
-                  i === atual
-                    ? "size-2.5 rounded-full bg-ami-green-600"
-                    : "size-2.5 rounded-full border border-line-strong bg-surface"
+                  i === atual ? `${styles.bolinha} ${styles.ativa}` : styles.bolinha
                 }
-              />
+              >
+                <span
+                  key={i === atual ? volta : undefined}
+                  onAnimationEnd={(e) => {
+                    if (e.target !== e.currentTarget || i !== atual || !gira) return;
+                    passo(atual, 1);
+                  }}
+                />
+              </button>
             ))}
           </div>
-
           <button
             type="button"
-            onClick={() => irPara((atual + 1) % banners.length)}
-            className="pressiona rounded-controle border border-line px-3 py-2 text-[14px] text-ink-600 hover:text-ink-900"
+            onClick={() => passo(atual, -1)}
+            aria-label="Anterior"
+            className={`${styles.ctl} ${styles.anterior}`}
           >
-            Próximo
+            <Icone nome="anterior" tamanho={16} />
           </button>
-
+          <button
+            type="button"
+            onClick={() => passo(atual, 1)}
+            aria-label="Próximo"
+            className={`${styles.ctl} ${styles.proximo}`}
+          >
+            <Icone nome="proximo" tamanho={16} />
+          </button>
           {semMovimento ? null : (
             <button
               type="button"
               onClick={() => avisar("botao")}
-              className="pressiona ml-2 rounded-controle border border-line px-3 py-2 text-[14px] font-medium text-ink-600 hover:text-ink-900"
+              aria-label={rotuloDoBotao(pausa)}
+              className={`${styles.ctl} ${styles.pausa}`}
             >
-              {rotuloDoBotao(pausa)}
+              <Icone nome={pausa.pausaDoBotao ? "retomar" : "pausar"} tamanho={16} />
             </button>
           )}
         </div>
       ) : null}
     </section>
+  );
+}
+
+/* O desenho de um slide. Numa cópia, nenhum link entra na ordem do Tab. */
+function Slide({
+  item,
+  copia,
+  primeiro,
+}: {
+  item: ItemDoCarrossel;
+  copia: boolean;
+  primeiro: boolean;
+}) {
+  const tabIndex = copia ? -1 : undefined;
+  /* Só a primeira imagem do carrossel tem prioridade; as outras baixam
+     logo, mas com prioridade baixa, depois do que a página precisa.
+
+     Nenhuma é `loading="lazy"`: o carrossel corta com `overflow: clip` (ver
+     o CSS), que não é contêiner de rolagem, e o navegador não adianta uma
+     imagem preguiçosa cortada fora dele — ela só começaria a baixar quando
+     o slide já estivesse entrando (a revisão mediu 310ms de atraso). */
+  const carga = primeiro
+    ? ({ fetchPriority: "high" } as const)
+    : ({ fetchPriority: "low" } as const);
+
+  if (item.tipo === "composto") {
+    return (
+      <>
+        <div className={styles.anima}>
+          {item.rotulo ? (
+            <span className={`rotulo-secao ${styles.rotulo}`}>{item.rotulo}</span>
+          ) : null}
+          <div className={styles.titulo}>{item.titulo}</div>
+          {item.texto ? <p>{item.texto}</p> : null}
+          {item.destino && item.botao ? (
+            <Link
+              href={item.destino}
+              tabIndex={tabIndex}
+              data-botao=""
+              className={`botao ${styles.acao}`}
+            >
+              {item.botao} <Icone nome="seta" />
+            </Link>
+          ) : null}
+        </div>
+        <div className={styles.foto}>
+          {item.foto ? (
+            /* eslint-disable-next-line @next/next/no-img-element --
+               o CDN do Sanity já redimensiona; ver o comentário do
+               Carrossel. */
+            <img
+              src={item.foto}
+              srcSet={item.fotoSrcset ?? undefined}
+              sizes={item.fotoSrcset ? TAMANHO_DA_FOTO : undefined}
+              alt={item.fotoAlt}
+              width={FOTO.largura}
+              height={FOTO.altura}
+              decoding="async"
+              {...carga}
+              style={{ objectPosition: posicaoDoFoco(item.foco) }}
+            />
+          ) : (
+            /* Tarja no alto: no celular a moldura cobre o cartão, e embaixo
+               moram o texto e os controles. */
+            <MolduraProvisoria
+              largura={FOTO.largura}
+              altura={FOTO.altura}
+              className="h-full items-start!"
+              rotulo="Foto a entrar"
+              legenda="Foto a entrar"
+            />
+          )}
+        </div>
+      </>
+    );
+  }
+
+  let peca: ReactNode;
+  if (item.tipo === "provisorio") {
+    /* A tarja vai para o alto: embaixo moram os controles. */
+    peca = (
+      <div className={styles.cobre}>
+        <MolduraProvisoria
+          largura={1192}
+          altura={512}
+          className="h-full items-start!"
+          rotulo={`Arte a entrar: ${item.rotulo}`}
+          legenda={<>Arte a entrar: {item.rotulo}</>}
+        />
+      </div>
+    );
+  } else {
+    peca = (
+      <picture>
+        {item.imagemCelularSrcset ? (
+          <source
+            media="(max-width: 700px)"
+            srcSet={item.imagemCelularSrcset}
+            sizes={TAMANHO_DA_ARTE_CELULAR}
+            width={CELULAR.largura}
+            height={CELULAR.altura}
+          />
+        ) : null}
+        {/* `<img>` puro: o CDN do Sanity já redimensiona; ver o comentário
+            do Carrossel. (Dentro de `<picture>` a regra no-img-element do
+            Next não reclama, por isso não há eslint-disable aqui.) */}
+        <img
+          src={item.imagem}
+          srcSet={item.imagemSrcset}
+          sizes={TAMANHO_DA_ARTE}
+          alt={item.alt}
+          width={LARGA.largura}
+          height={LARGA.altura}
+          decoding="async"
+          {...carga}
+          className={styles.arteImagem}
+          style={{
+            /* Mesmo com versão de celular: no tablet o slide é 3:2 e a larga
+               é recortada. No computador ela cabe inteira e isto não pesa; no
+               celular a de 4:5 também cabe inteira. */
+            objectPosition: posicaoDoFoco(item.foco),
+          }}
+        />
+      </picture>
+    );
+  }
+
+  return item.destino ? (
+    <Link href={item.destino} tabIndex={tabIndex} className={styles.arteLink}>
+      {peca}
+    </Link>
+  ) : (
+    peca
   );
 }

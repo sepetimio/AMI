@@ -1,0 +1,188 @@
+import { buscaNoMapa, numeroPreenchido } from "@/lib/contato";
+import { porNome } from "@/lib/dados/filtros";
+import { contagem } from "@/lib/formato";
+import { especialidadesComMedico } from "@/lib/especialidades";
+import { MARCA_PROVISORIA } from "@/lib/paginaDeTexto";
+import type {
+  EspecialidadeComContagem,
+  EspecialidadeDoMedico,
+  LocalAtendimento,
+  Medico,
+} from "@/lib/dados/tipos";
+
+/*
+  O que a busca e o perfil decidem sobre um médico, em funções puras: entra
+  o dado, sai o texto ou o endereço. Ficam fora dos componentes para serem
+  testadas sem navegador (testes/encontre.test.ts).
+
+  O link do WhatsApp e o número preenchido moram em lib/contato.ts, sem
+  dependência nenhuma, porque a barra do pé do perfil os leva ao navegador;
+  daqui saem reexportados, para a busca e o perfil importarem de um lugar só.
+*/
+export { linkDoWhatsapp, numeroPreenchido } from "@/lib/contato";
+
+/** Quantos "outros médicos" o perfil mostra, no máximo. */
+export const LIMITE_DE_OUTROS = 4;
+
+/**
+ * As iniciais do espaço da foto, enquanto o médico não manda retrato: a
+ * primeira letra do primeiro nome e a do último. Nome de uma palavra só dá
+ * as duas primeiras letras dela; "JJ" seria a mesma letra duas vezes.
+ */
+export function iniciais(nome: string): string {
+  const partes = nome.trim().split(/\s+/).filter(Boolean);
+  if (partes.length === 0) return "?";
+  if (partes.length === 1) return partes[0].slice(0, 2).toUpperCase();
+  return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
+}
+
+/** A especialidade marcada como principal; sem marca, a primeira; sem nenhuma, null. */
+export function especialidadePrincipal(
+  m: Pick<Medico, "especialidades">,
+): EspecialidadeDoMedico | null {
+  return m.especialidades.find((e) => e.principal) ?? m.especialidades[0] ?? null;
+}
+
+/**
+ * A especialidade que o cartão do médico mostra. Na página de uma
+ * especialidade (`slug`), é a dela, com o RQE dela, quando o médico a tem;
+ * fora dela, ou se ele não a tem, é a principal.
+ */
+export function especialidadeDoCartao(
+  m: Pick<Medico, "especialidades">,
+  slug: string | null = null,
+): EspecialidadeDoMedico | null {
+  const daPagina = slug ? m.especialidades.find((e) => e.slug === slug) : undefined;
+  return daPagina ?? especialidadePrincipal(m);
+}
+
+/**
+ * O consultório principal: o primeiro da lista. `locais` chega ordenado pelo
+ * id do local (lib/dados/medicos.ts), então é sempre o mesmo.
+ */
+export function consultorioPrincipal(m: Pick<Medico, "locais">): LocalAtendimento | null {
+  return m.locais[0] ?? null;
+}
+
+/**
+ * O telefone do "Ligar" do cartão: o do primeiro consultório que tem
+ * telefone preenchido (`numeroPreenchido`: em branco não conta). Sem
+ * telefone em nenhum, null, e o cartão fica sem o botão.
+ */
+export function telefoneDoCartao(m: Pick<Medico, "locais">): string | null {
+  for (const l of m.locais) {
+    const telefone = numeroPreenchido(l.telefone);
+    if (telefone) return telefone;
+  }
+  return null;
+}
+
+/* Os pedaços aparados e sem os vazios, separados por vírgula: um campo em
+   branco não deixa ", " sobrando. */
+function juntar(pedacos: (string | null)[]): string {
+  return pedacos
+    .map((p) => p?.trim() ?? "")
+    .filter(Boolean)
+    .join(", ");
+}
+
+/**
+ * O endereço em duas linhas, como o cartão do consultório mostra. Campo em
+ * branco some; sem logradouro nem número, a primeira linha fica vazia ("").
+ */
+export function enderecoDoLocal(
+  l: Pick<LocalAtendimento, "logradouro" | "numero" | "bairro">,
+): [string, string] {
+  return [juntar([l.logradouro, l.numero]), juntar([l.bairro.nome, "Imperatriz – MA"])];
+}
+
+/**
+ * O título de cada cartão de "Onde atende": o bairro. Dois ou mais
+ * consultórios no mesmo bairro levam o número, na ordem da lista
+ * ("Centro (1)", "Centro (2)"), para os títulos não ficarem iguais.
+ */
+export function titulosDosConsultorios(locais: Pick<LocalAtendimento, "bairro">[]): string[] {
+  const nomes = locais.map((l) => l.bairro.nome.trim());
+  const vistos = new Map<string, number>();
+  return nomes.map((nome) => {
+    if (nomes.filter((n) => n === nome).length < 2) return nome;
+    const n = (vistos.get(nome) ?? 0) + 1;
+    vistos.set(nome, n);
+    return `${nome} (${n})`;
+  });
+}
+
+/**
+ * Como os botões de um consultório o nomeiam para o leitor de tela: pela
+ * primeira linha do endereço ("em Rua Projetada 114, 198"), que distingue
+ * dois consultórios no mesmo bairro; sem ela, pelo título do cartão. "em", e
+ * não "na": serve a rua, avenida, conjunto ou residencial.
+ */
+export function nomeDoConsultorio(primeiraLinha: string, titulo: string): string {
+  return primeiraLinha ? `em ${primeiraLinha}` : `de ${titulo}`;
+}
+
+/** "Como chegar": a busca do Google Maps pelo endereço, sem chave nem serviço novo. */
+export function linkDoMapa(l: Pick<LocalAtendimento, "logradouro" | "numero" | "bairro">): string {
+  return buscaNoMapa(juntar(enderecoDoLocal(l)));
+}
+
+/**
+ * "Outros médicos de {especialidade}", no perfil: até `limite` médicos cuja
+ * especialidade principal é a mesma deste, sem ele, em ordem alfabética.
+ * Médico sem especialidade não tem outros.
+ */
+export function outrosMedicos(m: Medico, todos: Medico[], limite = LIMITE_DE_OUTROS): Medico[] {
+  const principal = especialidadePrincipal(m);
+  if (!principal) return [];
+  return todos
+    .filter((o) => o.slug !== m.slug && especialidadePrincipal(o)?.slug === principal.slug)
+    .sort(porNome)
+    .slice(0, limite);
+}
+
+export type OpcaoDeEspecialidade = { valor: string; rotulo: string };
+
+/** A lista "Todas as especialidades" da busca: alfabética, com a contagem, sem as vazias. */
+export function opcoesDeEspecialidade(lista: EspecialidadeComContagem[]): OpcaoDeEspecialidade[] {
+  return especialidadesComMedico(lista).map((e) => ({
+    valor: e.slug,
+    rotulo: `${e.nome} (${e.total})`,
+  }));
+}
+
+/** A contagem acima da grade: "24 médicos", "1 médico", "3 médicos em Cardiologia". */
+export function textoDaContagem(total: number, especialidade: string | null): string {
+  const texto = contagem(total, "médico", "médicos");
+  return especialidade ? `${texto} em ${especialidade}` : texto;
+}
+
+/** A biografia em parágrafos: uma linha em branco separa um do outro. */
+export function paragrafosDaBio(bio: string): string[] {
+  return bio
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
+
+/** O "Sobre" do perfil: os parágrafos da biografia, ou a moldura "a entrar". */
+export type BioNaTela = { estilo: "texto"; paragrafos: string[] } | { estilo: "aEntrar" };
+
+/**
+ * A biografia como ela sai no "Sobre" do perfil, ou null quando o bloco não
+ * sai.
+ *
+ * Uma biografia com a marca de texto provisório (`MARCA_PROVISORIA`, a dos
+ * rascunhos, em lib/paginaDeTexto.ts) é texto que falta, e não texto: o
+ * banco de demonstração traz "[PROVISÓRIO] Biografia de …" em todo perfil.
+ * Na demonstração, ela vira a moldura "Apresentação do médico a entrar.";
+ * fora dela, o "Sobre" não sai. A marca nunca aparece, nem no meio do
+ * texto. Sem a marca, um parágrafo por bloco (`paragrafosDaBio`); vazia, o
+ * bloco não sai.
+ */
+export function bioNaTela(bio: string | null | undefined, demonstracao: boolean): BioNaTela | null {
+  const texto = bio ?? "";
+  if (texto.includes(MARCA_PROVISORIA.trim())) return demonstracao ? { estilo: "aEntrar" } : null;
+  const paragrafos = paragrafosDaBio(texto);
+  return paragrafos.length > 0 ? { estilo: "texto", paragrafos } : null;
+}

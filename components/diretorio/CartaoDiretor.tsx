@@ -1,58 +1,67 @@
 import Link from "next/link";
-import { Placa } from "@/components/diretorio/Placa";
-import { identificacaoMedica } from "@/lib/formato";
+import { Icone } from "@/components/base/IconeServidor";
+import styles from "@/components/diretorio/CartaoDiretor.module.css";
+import { SIZES_DO_CARTAO } from "@/components/diretorio/CartaoMedico";
+import cartao from "@/components/diretorio/CartaoMedico.module.css";
+import { FotoDoMedico } from "@/components/diretorio/FotoDoMedico";
 import type { Diretor } from "@/lib/dados/diretoria";
+import { identificacaoMedica } from "@/lib/formato";
 
 /*
-  Cartão de um membro da diretoria.
+  O cartão de um membro da diretoria: o cartão do médico da busca
+  (CartaoMedico.module.css, com a mesma foto, o mesmo nome e o mesmo
+  "MÉDICO · CRM/UF"), com o cargo acima do nome e "Ver perfil" no lugar do
+  "Ligar". Num cartão de diretoria a pergunta é "quem é o presidente", e
+  não "onde está a Mayara": o cargo vem antes da pessoa.
 
-  O cargo vem antes do nome, em caixa alta pequena: numa página de diretoria a
-  pergunta é "quem é o presidente", não "onde está a Mayara". É a única tela
-  do site onde a função precede a pessoa.
+  - Com perfil publicado no diretório, o cartão inteiro leva a ele, pelo
+    link do nome, esticado em CSS. "Ver perfil" só desenha (`aria-hidden`):
+    o teclado não para duas vezes no mesmo destino.
+  - Sem perfil, o cartão não é link (um link que leva a 404 é pior que
+    texto) e não tem botão, mas o espaço do botão fica, para os pés dos
+    cartões de uma fileira continuarem na mesma linha. `data-ligar` marca o
+    botão ou o espaço dele para a auditoria visual, como no cartão da busca.
+
+  A linha do CRM sai só com CRM e UF: `lib/dados/diretoria` já os resolve
+  entre as duas origens, e quem não é médico (um contador na tesouraria)
+  não tem inscrição. A palavra MÉDICO ao lado do CRM é exigência da
+  Resolução CFM 2.336/2023, Art. 4º, I (`identificacaoMedica`).
 */
-export function CartaoDiretor({ diretor }: { diretor: Diretor }) {
-  const miolo = (
-    <>
-      <Placa nome={diretor.nome} foto={diretor.foto} tamanho={88} />
-      <div className="min-w-0">
-        <p className="text-[13px] font-medium uppercase tracking-[0.09em] text-ami-green-600">
-          {diretor.cargo}
-        </p>
-        <p className="mt-2 text-[21px] font-semibold leading-tight tracking-[-0.02em]">
-          {diretor.nome}
-        </p>
-        {/* `diretor.crm`/`crmUf` já vêm resolvidos por `lib/dados/diretoria`
-            entre as duas origens possíveis, com as colunas próprias da linha
-            na frente e o perfil ligado como reserva: o cartão não precisa
-            saber qual das duas venceu, só exibir quando há inscrição.
-            Com a constraint `diretor_medico_tem_inscricao` no banco, isto só
-            falta para quem não é médico, um contador na tesouraria por
-            exemplo. A guarda fica de pé mesmo assim: a Resolução CFM
-            2.336/2023, Art. 4º, I não admite nome de médico sem inscrição, e
-            um `null` que escape por qualquer caminho tem de sumir da tela em
-            vez de virar "MÉDICO · CRM/null". */}
-        {diretor.crm && diretor.crmUf ? (
-          <p className="registro mt-1 text-[14px] text-ink-600">
-            {identificacaoMedica(diretor.crm, diretor.crmUf)}
-          </p>
-        ) : null}
-      </div>
-    </>
-  );
+export function CartaoDiretor({ diretor, imediata = false }: { diretor: Diretor; imediata?: boolean }) {
+  const perfil = diretor.slugDoPerfil;
 
-  const classe =
-    "flex items-center gap-4 rounded-bloco border border-line bg-surface p-5 shadow-apoio";
-
-  /* Sem perfil publicado, o cartão não é link: um link que leva a 404 é pior
-     que texto. */
-  return diretor.slugDoPerfil ? (
-    <Link
-      href={`/medico/${diretor.slugDoPerfil}`}
-      className={`pressiona eleva ${classe} hover:border-line-strong`}
+  return (
+    <li
+      className={`${cartao.medico} ${styles.diretor}`}
+      data-diretor=""
+      data-sem-perfil={perfil ? undefined : ""}
     >
-      {miolo}
-    </Link>
-  ) : (
-    <div className={classe}>{miolo}</div>
+      <FotoDoMedico
+        nome={diretor.nome}
+        foto={diretor.foto}
+        alt=""
+        sizes={SIZES_DO_CARTAO}
+        carga={imediata ? "imediata" : "preguicosa"}
+        className={`${cartao.foto} ${styles.foto}`}
+      />
+      <div className={cartao.corpo}>
+        <div className={cartao.texto}>
+          <p className={styles.cargo}>{diretor.cargo}</p>
+          <h3 className={cartao.nome}>
+            {perfil ? <Link href={`/medico/${perfil}`}>{diretor.nome}</Link> : diretor.nome}
+          </h3>
+          {diretor.crm && diretor.crmUf ? (
+            <p className={cartao.crm}>{identificacaoMedica(diretor.crm, diretor.crmUf)}</p>
+          ) : null}
+        </div>
+        {perfil ? (
+          <span className={`botao ${cartao.ligar} ${styles.verPerfil}`} aria-hidden="true" data-ligar="">
+            Ver perfil <Icone nome="seta" />
+          </span>
+        ) : (
+          <div className={cartao.semLigar} aria-hidden="true" data-ligar=""></div>
+        )}
+      </div>
+    </li>
   );
 }

@@ -11,9 +11,10 @@ import { fileURLToPath } from "node:url";
    Não há teste de interface no sentido usual — nada de clicar, digitar ou
    afirmar sobre pixel: o custo de manter não se paga num site deste porte.
    `testes/carrossel.test.ts` é a segunda exceção, e não é disso que ele
-   trata: ele renderiza o carrossel com `renderToString` só para comparar
+   trata: ele renderiza o carrossel com `renderToString` para comparar
    duas saídas de servidor entre si, porque compatibilidade de hidratação não
-   dá para ler no código nem o `npm run build` verifica.
+   dá para ler no código nem o `npm run build` verifica, e para ler no HTML
+   de servidor a fita com as cópias e o desenho de cada tipo de slide.
    `testes/porta-da-busca.test.ts`, `testes/molduras.test.ts`,
    `testes/fotografia-trava.test.ts` e `testes/aviso-do-rascunho.test.ts`
    também
@@ -23,11 +24,43 @@ import { fileURLToPath } from "node:url";
    `renderToPipeableStream` e as fontes de dados trocadas por dublês;
    `testes/porta-da-busca.test.ts` também renderiza assim `/busca` e uma
    página de especialidade, e `testes/caminhos-de-filiacao.test.ts`, com
-   `renderToString`, `/contato` e `/associacao`. */
+   `renderToString`, `/contato` e `/associacao`. `testes/numeros-e-busca.test.ts`
+   renderiza assim os números da home e o bloco "Encontre um médico", e
+   `testes/sua-ami-e-associe.test.ts`, "Sua AMI", "Seja associado" e
+   "Quem é a AMI?", e `testes/noticias-da-home.test.ts`, as notícias e os
+   parceiros da home. `testes/cartao-medico.test.ts` renderiza o cartão, a
+   foto e a grade de médicos; `testes/busca.test.ts`, `testes/perfil.test.ts`
+   e `testes/sem-bairros.test.ts` renderizam `/busca`, o perfil, `/medicos` e
+   uma especialidade com `renderToPipeableStream` (`htmlDe`,
+   testes/renderizar.ts) e as fontes de dados trocadas por dublês;
+   `testes/barra-do-medico.test.ts`, a barra do pé do perfil, e
+   `testes/cabecalho.test.ts`, o menu. `testes/indice-de-especialidades.test.ts`
+   e `testes/pagina-de-especialidade.test.ts` renderizam `/medicos` e uma
+   especialidade, com `htmlDe` e as fontes de dados (o banco e o Sanity)
+   trocadas por dublês; `testes/blocos-da-especialidade.test.ts`, os três
+   blocos da página da especialidade, com `renderToString`.
+   `testes/modelo-de-texto.test.ts`, `testes/seja-associado.test.ts`,
+   `testes/diretoria-na-tela.test.ts` e `testes/associacao.test.ts`
+   renderizam as páginas de A Associação e as de texto com `htmlDe`, com o
+   Sanity, a diretoria e o banco trocados por dublês.
+   `testes/pecas-de-texto.test.ts` renderiza a faixa curta, o corpo das
+   páginas de texto e o texto rico com `renderToString`;
+   `testes/lista-de-noticias.test.ts`, `testes/noticia-aberta.test.ts` e
+   `testes/contato-na-tela.test.ts`, as peças e as páginas de notícias e
+   de contato, com o Sanity trocado por um dublê e as notícias de exemplo
+   escritas no próprio teste. */
 export default defineConfig({
   test: {
     include: ["testes/**/*.test.ts"],
     environment: "node",
+    /* 30s por teste, e não os 5s de fábrica. Alguns testes importam o site
+       dentro do próprio `it`, depois de `vi.resetModules()`: o cabeçalho e o
+       rodapé por `renderizar` (testes/renderizar.ts) em sua-ami-no-menu e
+       rodape, o layout em revelar, a home em home-renderizada. Pagam ali a
+       primeira importação, a frio, enquanto os outros arquivos de teste são
+       transformados em paralelo: às vezes ela passa de 5s e o teste fica
+       vermelho sem defeito nenhum. */
+    testTimeout: 30_000,
   },
   resolve: {
     /* Forma de array, com `find` em regex de correspondência exata (`^...$`),

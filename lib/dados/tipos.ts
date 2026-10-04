@@ -58,17 +58,14 @@ export type EspecialidadeComContagem = {
   total: number;
 };
 
-/** Relevância e nome. Nenhuma ordenação por reputação existe neste site. */
-export type Ordem = "relevancia" | "nome";
-
+/*
+  Os dois filtros do site: o texto digitado (nome do médico ou
+  especialidade) e a especialidade escolhida na lista. Bairro, telemedicina,
+  acessibilidade e associados saíram do site em 03/10/2026; os dados
+  continuam no banco e no painel.
+*/
 export type Filtros = {
   termo?: string;
   /** slug da especialidade */
   especialidade?: string;
-  /** slug do bairro */
-  bairro?: string;
-  telemedicina?: boolean;
-  acessibilidade?: RecursoAcessibilidade[];
-  somenteAssociados?: boolean;
-  ordem?: Ordem;
 };

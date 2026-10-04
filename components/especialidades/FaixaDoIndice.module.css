@@ -1,0 +1,48 @@
+/*
+  A faixa verde do índice de especialidades, transcrita do desenho aprovado
+  (docs/desenho-aprovado/especialidades/especialidades.html: `.indice-topo`,
+  `.indice-topo h1`, `.indice-topo .texto`, `.indice-topo .campo`, e o
+  @media de 1180px).
+
+  O resto da faixa é o da busca (components/busca/FaixaDaBusca.module.css:
+  `.faixa`, `.sobre`, `.titulo`, `.texto`). O campo é o da busca da home
+  (components/home/EncontreUmMedico.module.css: `.campo`, `.lupa`,
+  `.buscar`).
+
+  "Especialidades" é palavra longa: a coluna do texto cresce de 340px para
+  440px, e o título e a linha de apoio ficam mais estreitos.
+
+  A linha de apoio quebra com o `text-wrap: pretty` do `.texto` da busca:
+  sem ele, ela terminava numa palavra só.
+
+  As regras daqui valem sobre as da busca qualquer que seja a ordem em que
+  as duas folhas chegam ao navegador:
+  - `.indice[data-faixa]` (classe e atributo) pesa mais que `.faixa`;
+  - `.indice h1` e `.indice h1 + p` pesam mais que `.titulo` e `.texto`.
+*/
+
+.indice[data-faixa] {
+  grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
+}
+
+.indice h1 {
+  max-width: 12ch;
+}
+
+.indice h1 + p {
+  max-width: 24em;
+}
+
+.campo {
+  width: 100%;
+}
+
+@media (max-width: 1180px) {
+  .indice[data-faixa] {
+    grid-template-columns: 1fr;
+  }
+
+  .campo {
+    max-width: 760px;
+  }
+}

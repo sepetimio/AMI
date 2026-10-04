@@ -1,0 +1,52 @@
+/*
+  O espaço da foto do médico, transcrito do desenho aprovado
+  (docs/desenho-aprovado/encontre/busca.html: `.medico-foto`,
+  `.medico-foto:not(.textura-verde)`, `.medico-foto img`, `.sem-foto`,
+  `.sem-foto .iniciais`, `.sem-foto .brilho`). Tamanho, proporção e canto
+  são de quem usa (o cartão, o perfil), pelo `className`; o tamanho das
+  iniciais também, pela variável `--tamanho-iniciais`.
+
+  #DDE2E0 é o cinza do desenho atrás do retrato enquanto ele carrega; só
+  existe aqui, e não tem token.
+*/
+
+.foto {
+  position: relative;
+  overflow: hidden;
+}
+
+.comFoto {
+  background: #DDE2E0;
+}
+
+.foto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+  transition: transform 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.semFoto {
+  display: grid;
+  place-items: center;
+}
+
+.iniciais {
+  font-family: var(--font-titulo);
+  font-weight: 600;
+  font-size: var(--tamanho-iniciais, 96px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: var(--color-ami-lima-400);
+}
+
+/* A luz que passeia, maior e mais lenta que a da faixa, no espaço pequeno. */
+.semFoto :global(.brilho) {
+  top: -60%;
+  right: -70%;
+  width: 150%;
+  height: 150%;
+  animation-duration: 22s;
+}

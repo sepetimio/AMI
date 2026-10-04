@@ -1,0 +1,555 @@
+/*
+  O modelo de página de texto, transcrito do desenho aprovado
+  (docs/desenho-aprovado/associacao/seja-associado.html: `.faixa-branca`,
+  `.leitura-grade`, `.coluna`, `.coluna > * + *`, `.coluna .atualizado`,
+  `.atualizado i`, `.coluna h2`, `.coluna h3`, `.coluna h2 + *`,
+  `.coluna p`, `.coluna ul` e o ponto da lista, `.coluna .falta`,
+  `.quadro`, `.quadro > i`, `.coluna .quadro p`,
+  `.coluna .quadro .quadro-titulo`, `.quadro-titulo + p`, `.chamada` e o
+  que vem dentro dele, e os @media de 1180, 980 e 700px). O índice é de
+  IndiceNestaPagina.module.css.
+
+  O corpo numa faixa branca de ponta a ponta, sem canto nem sombra, com a
+  margem lateral das faixas (`--borda-faixa`, app/globals.css) e sem
+  margem embaixo: o rodapé emenda nele (components/layout/Rodape.module.css).
+  A coluna de leitura tem 680px e começa na linha do texto de todos os
+  blocos; o texto corre em 17,5px com entrelinha de 1,7, como a leitura do
+  perfil (components/perfil/Perfil.module.css).
+
+  O quadro do aviso é cinza neutro (`surface-fundo`), e não o âmbar de
+  antes: nenhum tom quente no site.
+
+  Do desenho da notícia aberta
+  (docs/desenho-aprovado/noticias-contato/noticia.html: `.coluna > ol` e o
+  número no círculo, aqui `.coluna .numerada`; `.coluna > blockquote`,
+  `.coluna > figure`, `.coluna figcaption`, `.coluna > p a`,
+  `.coluna strong`, `.autor-fim`, `.aviso-saude`, e o @media de 700px): a
+  lista numerada, a citação, a imagem com legenda, o link, o negrito e o
+  fim da notícia (quem assina e o aviso de saúde). Os cinco primeiros
+  valem também para as páginas de texto, quando o texto do Studio os
+  tiver.
+
+  O relógio da data é `inline-block`: a camada base do Tailwind faz todo
+  `svg` virar bloco, e ele cairia numa linha acima do texto; no desenho,
+  ele é um `<i>`, que já fica na linha.
+
+  Os seletores começam por `.coluna`, como no desenho: assim o que vale
+  para um parágrafo comum (`.coluna p`) não passa por cima da data, do
+  quadro nem do texto a entrar, que têm o próprio tamanho.
+
+  A linha "MÉDICO · CRM" do fim da notícia sai no cinza do texto da
+  coluna (`ink-600`), e não no cinza claro do CRM do perfil: no desenho, a
+  regra `.coluna p` pesa mais que a `.medico-crm` e dá a ela o `--tinta-2`.
+  No celular, o espaço entre as letras é o do `.medico-crm` de lá (0,08em).
+*/
+
+.faixa {
+  padding: 96px var(--borda-faixa);
+  background: var(--color-surface);
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: minmax(0, 680px) 248px;
+  justify-content: space-between;
+  align-items: start;
+  column-gap: var(--m);
+}
+
+.coluna {
+  min-width: 0;
+}
+
+.coluna > * + * {
+  margin-top: 20px;
+}
+
+.coluna .atualizado {
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--color-line);
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-ink-400);
+}
+
+.atualizado svg {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  vertical-align: -2px;
+  margin-right: 6px;
+}
+
+.coluna h2 {
+  font-size: clamp(28px, 2.6vw, 34px);
+  line-height: 1.1;
+  margin-top: 56px;
+}
+
+.coluna h3 {
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  margin-top: 32px;
+}
+
+.coluna h2 + *,
+.coluna h3 + * {
+  margin-top: 14px;
+}
+
+.coluna p,
+.coluna li {
+  font-size: 17.5px;
+  line-height: 1.7;
+  color: var(--color-ink-600);
+}
+
+/* Como o `p` do desenho: a última linha não fica com uma palavra só. Os
+   itens de lista, não (no desenho, só o `p` leva a regra). */
+.coluna p {
+  text-wrap: pretty;
+}
+
+/* O telefone, o CNPJ e o CEP no meio do texto (a marca "numero" do
+   rascunho, components/editorial/CorpoDoTexto.tsx): inteiros na linha e
+   com algarismos tabulares, como o `.num` do desenho. */
+.coluna .inteiro {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sem margem dos lados nem embaixo, mas sem `margin-top`: o espaço de cima
+   é o do ritmo da coluna (`.coluna > * + *` e `.coluna h2 + *`), o mesmo
+   entre parágrafos e depois de um título. No desenho a lista fica colada,
+   porque o `margin: 0` dele pesa mais que o ritmo; aqui não (decisão
+   registrada em docs/decisoes-sem-o-cliente.md). Vale também para a
+   `.numerada`, logo abaixo. */
+.coluna ul {
+  margin-inline: 0;
+  margin-bottom: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.coluna ul > li {
+  position: relative;
+  padding-left: 22px;
+}
+
+.coluna ul > li::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 0.74em;
+  width: 6px;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--color-ami-green-600);
+}
+
+.coluna ul > li + li {
+  margin-top: 8px;
+}
+
+/* A lista numerada do texto pela classe dela (components/editorial/
+   CorpoDoTexto.tsx), e não por `ol`: o índice recolhido é outro `ol` dentro
+   da coluna, com os itens colados, como no desenho. O número do navegador
+   sai, e cada item conta o seu num círculo cinza com fio. */
+.coluna .numerada {
+  margin-inline: 0;
+  margin-bottom: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: passo;
+}
+
+.coluna .numerada > li {
+  position: relative;
+  padding-left: 38px;
+  counter-increment: passo;
+}
+
+.coluna .numerada > li::before {
+  content: counter(passo);
+  position: absolute;
+  left: 0;
+  top: 0.28em;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 99px;
+  background: var(--color-surface-fundo);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ami-green-800);
+}
+
+.coluna .numerada > li + li {
+  margin-top: 10px;
+}
+
+.coluna > blockquote {
+  margin: 36px 0 0;
+  padding: 4px 0 4px 24px;
+  border-left: 2px solid var(--color-ami-green-600);
+  font-size: 20px;
+  line-height: 1.55;
+  font-weight: 500;
+  color: var(--color-ink-900);
+}
+
+.coluna > blockquote + * {
+  margin-top: 24px;
+}
+
+.coluna > figure {
+  margin: 40px 0 0;
+}
+
+.coluna > figure + * {
+  margin-top: 32px;
+}
+
+.coluna > figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+}
+
+.coluna figcaption {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-ink-400);
+}
+
+.coluna strong {
+  font-weight: 600;
+  color: var(--color-ink-900);
+}
+
+.coluna .falta {
+  font-size: 16.5px;
+  color: var(--color-ink-400);
+  font-style: italic;
+}
+
+.link {
+  font-weight: 600;
+  color: var(--color-ami-green-600);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 0.2s;
+}
+
+.link:hover {
+  color: var(--color-ami-green-800);
+}
+
+.quadro {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  column-gap: 14px;
+  padding: 20px 24px 22px;
+  border-radius: 16px;
+  background: var(--color-surface-fundo);
+  border: 1px solid var(--color-line);
+}
+
+.quadro > svg {
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  color: var(--color-ami-green-600);
+}
+
+.coluna .quadro p {
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+
+.coluna .quadro .quadroTitulo {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-ami-green-800);
+}
+
+.quadroTitulo + p {
+  margin-top: 4px;
+}
+
+/* O quadro de chamada "Fale com a AMI", no fim da coluna de Seja
+   associado (components/associacao/FaleComAmi.tsx). O ladrilho é o global
+   (`.ladrilho-icone--pequeno`, 44px), branco sobre o fundo da página. */
+.coluna .chamada {
+  margin-top: 40px;
+  padding: 28px;
+  border-radius: 18px;
+  background: var(--color-canvas);
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  column-gap: 16px;
+}
+
+.chamada :global(.ladrilho-icone) {
+  background: var(--color-surface);
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.05),
+    inset 0 0 0 1px rgba(16, 24, 40, 0.06);
+}
+
+.coluna .chamada h3 {
+  margin: 0;
+  font-family: var(--font-titulo);
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.coluna .chamada p {
+  margin-top: 6px;
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+
+.chamada .acoes {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.numero {
+  font-variant-numeric: tabular-nums;
+}
+
+/* O fim da notícia (components/editorial/AutorDaNoticia.tsx): quem assina,
+   com "Ver perfil" quando há perfil, e o aviso de saúde. Mora aqui, e não
+   na folha da notícia, porque vive dentro da coluna de leitura e as regras
+   dele precisam valer sobre as da coluna (`.coluna p`). O ladrilho é o
+   global (`.ladrilho-icone--pequeno`, 44px). */
+.coluna .autorFim {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  column-gap: 16px;
+  align-items: center;
+  margin-top: 56px;
+  padding-top: 28px;
+  border-top: 1px solid var(--color-line);
+}
+
+.coluna .autorFim .autorNome {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--color-ami-green-800);
+}
+
+.coluna .autorFim .autorCrm {
+  margin-top: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-600);
+}
+
+.coluna .avisoSaude {
+  margin-top: 28px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-ink-400);
+}
+
+@media (max-width: 1180px) {
+  .grade {
+    grid-template-columns: minmax(0, 1fr) 220px;
+  }
+}
+
+@media (max-width: 980px) {
+  .faixa {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  .grade {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .faixa {
+    padding: 44px var(--borda-faixa);
+  }
+
+  .coluna > * + * {
+    margin-top: 16px;
+  }
+
+  .coluna .atualizado {
+    padding-bottom: 16px;
+    font-size: 13px;
+  }
+
+  .coluna h2 {
+    font-size: 25px;
+    margin-top: 40px;
+  }
+
+  .coluna h3 {
+    font-size: 19px;
+    margin-top: 24px;
+  }
+
+  .coluna h2 + *,
+  .coluna h3 + * {
+    margin-top: 10px;
+  }
+
+  .coluna p,
+  .coluna li {
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  .coluna .falta {
+    font-size: 15px;
+  }
+
+  .quadro {
+    grid-template-columns: 20px minmax(0, 1fr);
+    column-gap: 12px;
+    padding: 16px 16px 18px;
+  }
+
+  .quadro > svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .coluna .quadro p {
+    font-size: 14.5px;
+  }
+
+  .coluna .quadro .quadroTitulo {
+    font-size: 15px;
+  }
+
+  .coluna .chamada {
+    margin-top: 32px;
+    padding: 20px;
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 14px;
+  }
+
+  .chamada :global(.ladrilho-icone) {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .coluna .chamada h3 {
+    font-size: 21px;
+  }
+
+  .coluna .chamada p {
+    font-size: 14.5px;
+  }
+
+  .chamada .acoes {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 18px;
+  }
+
+  .chamada .acoes > a {
+    width: 100%;
+    height: 46px;
+    font-size: 14px;
+  }
+
+  .coluna .numerada > li {
+    padding-left: 34px;
+  }
+
+  .coluna .numerada > li::before {
+    top: 0.2em;
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+
+  .coluna > blockquote {
+    margin-top: 28px;
+    padding-left: 18px;
+    font-size: 17.5px;
+  }
+
+  .coluna > figure {
+    margin-top: 28px;
+  }
+
+  .coluna > figure + * {
+    margin-top: 24px;
+  }
+
+  .coluna > figure img {
+    border-radius: 14px;
+  }
+
+  .coluna figcaption {
+    font-size: 13.5px;
+  }
+
+  .coluna .autorFim {
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 14px;
+    margin-top: 40px;
+    padding-top: 22px;
+  }
+
+  .autorFim :global(.ladrilho-icone) {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .autorFim :global(.ladrilho-icone) svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .autorFim .autorAcoes {
+    grid-column: 1 / -1;
+    margin-top: 16px;
+  }
+
+  .coluna .autorFim .autorCrm {
+    letter-spacing: 0.08em;
+  }
+
+  .autorFim .autorAcoes > a {
+    width: 100%;
+    height: 46px;
+    font-size: 14px;
+  }
+
+  .coluna .avisoSaude {
+    margin-top: 22px;
+    font-size: 13.5px;
+  }
+}

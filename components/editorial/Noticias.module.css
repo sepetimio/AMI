@@ -1,0 +1,353 @@
+/*
+  A lista de notícias e o cartão de notícia, transcritos do desenho
+  aprovado (docs/desenho-aprovado/noticias-contato/noticias.html:
+  `.lista-noticias`, `.destaque-pagina` e o que vem dentro dele, a `.data`,
+  `.grade-noticias`, `.cartao-noticia` e o que vem dentro dele,
+  `.grade-noticias[data-deitado]`, `.nenhuma`, `.outras-noticias`, e os
+  @media de 980 e 700px). O cartão serve também a "Outras notícias", na
+  notícia aberta.
+
+  O destaque: a notícia mais recente, na largura dos painéis, em 2:1, com o
+  título sobre a foto. Foto e texto ficam na mesma célula de grade, o texto
+  encostado embaixo: um título longo faz o bloco crescer, em vez de ser
+  cortado. O degradê é o do site construído (UltimasNoticias.module.css,
+  `.sobreFoto`): do alto da data para baixo ele nunca fica abaixo de 75%.
+
+  Uma diferença do desenho, de propósito: o canto e o recorte (`overflow`)
+  ficam no link (`.casca`), e não no `<article>`. No desenho, o anel de
+  foco do link, 4px para fora, era cortado pelo recorte do `<article>`.
+
+  O cartão: branco, canto de 18px, sombra, sobe 3px ao passar o mouse (só o
+  que é link), e o cartão inteiro é o link, pelo título esticado. O anel
+  de foco do título vai para o cartão inteiro onde o navegador sabe `:has`;
+  onde não sabe, fica o do próprio link.
+
+  Poucas notícias: a regra da home (`arranjoDaLista`,
+  lib/arranjo-das-noticias.ts), com uma coluna por cartão (`--colunas`,
+  escrito pelo componente) e o cartão deitado (`data-deitado`).
+
+  No celular, a lista fica na coluna do texto, como na home: o destaque em
+  4:3 e as outras em linhas com a miniatura quadrada de 88px.
+
+  A notícia sem capa e a moldura "a entrar" são as da home (`.semCapa` de
+  UltimasNoticias.module.css e components/base/MolduraProvisoria.tsx).
+  #DDE2E0, o cinza atrás da foto enquanto ela carrega, é o do retrato do
+  médico (components/diretorio/FotoDoMedico.module.css).
+
+  O resumo do destaque, o dos cartões e a frase de lista vazia quebram com o
+  `text-wrap: pretty` que o desenho põe em todo `p`: sem ele, a última
+  palavra do resumo do destaque ficava sozinha na linha, no celular.
+*/
+
+.lista > .grade {
+  margin-top: var(--gap);
+}
+
+.destaque {
+  border-radius: var(--radius-painel);
+  box-shadow: var(--shadow-erguido);
+}
+
+.casca {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
+  border-radius: inherit;
+  background: var(--color-ami-green-900);
+  color: var(--color-white);
+}
+
+.casca:focus-visible {
+  outline-offset: 4px;
+}
+
+.fotoDoDestaque {
+  grid-area: 1 / 1;
+  align-self: stretch;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  overflow: hidden;
+}
+
+.destaque:hover .fotoDoDestaque img {
+  transform: scale(1.05);
+}
+
+.sobreFoto {
+  --folga: 96px;
+  position: relative;
+  grid-area: 1 / 1;
+  align-self: end;
+  padding: var(--folga) var(--m) 40px;
+  background: linear-gradient(
+    0deg,
+    rgba(8, 14, 10, 0.88) 0%,
+    rgba(8, 14, 10, 0.75) calc(100% - var(--folga)),
+    rgba(8, 14, 10, 0) 100%
+  );
+}
+
+.data {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-400);
+}
+
+.sobreFoto .data {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.destaqueTitulo {
+  max-width: 28ch;
+  margin: 12px 0 14px;
+  font-size: clamp(28px, 2.7vw, 38px);
+  line-height: 1.1;
+  color: var(--color-white);
+}
+
+.destaqueResumo {
+  max-width: 40em;
+  font-size: 16.5px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+  text-wrap: pretty;
+}
+
+.grade {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--colunas, 3), minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+.cartao {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--color-surface);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: var(--shadow-erguido);
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 0.35s;
+}
+
+.cartao:has(a):hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.05),
+    0 18px 40px rgba(16, 24, 40, 0.1);
+}
+
+.foto {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #DDE2E0;
+}
+
+.cartao:hover .foto img {
+  transform: scale(1.04);
+}
+
+.corpo {
+  min-width: 0;
+  padding: 20px 24px 26px;
+}
+
+.titulo {
+  margin-top: 10px;
+  font-size: 21px;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.titulo a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.resumo {
+  margin-top: 10px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--color-ink-600);
+  text-wrap: pretty;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@supports selector(:has(a)) {
+  .titulo a:focus-visible {
+    outline: none;
+  }
+
+  .cartao:has(.titulo a:focus-visible) {
+    outline: 2px solid var(--color-ami-green-600);
+    outline-offset: 3px;
+  }
+}
+
+.nenhuma {
+  padding: 0 var(--m);
+}
+
+.nenhuma p {
+  font-family: var(--font-titulo);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  font-size: 28px;
+  line-height: 1.2;
+  color: var(--color-ami-green-800);
+  text-wrap: pretty;
+}
+
+.acao {
+  margin-top: 20px;
+}
+
+@media (min-width: 701px) {
+  .grade[data-deitado] .cartao {
+    display: grid;
+    grid-template-columns: calc((100% - 2 * var(--gap)) / 3) minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .grade[data-deitado] .corpo {
+    padding: 32px var(--m);
+  }
+
+  .grade[data-deitado] .titulo {
+    max-width: 30ch;
+    font-size: 26px;
+  }
+
+  .grade[data-deitado] .resumo {
+    max-width: 40em;
+    font-size: 15.5px;
+  }
+}
+
+@media (max-width: 980px) {
+  .grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grade[data-deitado] {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .lista,
+  .outras > .grade {
+    padding: 0 var(--m);
+  }
+
+  .lista .nenhuma {
+    padding: 0;
+  }
+
+  .destaque {
+    border-radius: 16px;
+  }
+
+  .fotoDoDestaque {
+    aspect-ratio: 4 / 3;
+  }
+
+  .sobreFoto {
+    --folga: 70px;
+    padding: var(--folga) var(--m) 20px;
+  }
+
+  /* 20px, como na foto aprovada: no desenho, o 22px escrito para esta
+     página perde para o 20px da regra do destaque da home, que pesa mais. */
+  .destaqueTitulo {
+    margin: 8px 0;
+    font-size: 20px;
+    line-height: 1.15;
+  }
+
+  .destaqueResumo {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .lista > .grade {
+    margin-top: 6px;
+  }
+
+  .grade,
+  .grade[data-deitado] {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .cartao,
+  .grade[data-deitado] .cartao {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    column-gap: 14px;
+    align-items: center;
+    padding: 14px 0;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+    overflow: visible;
+  }
+
+  .cartao + .cartao {
+    border-top: 1px solid var(--color-line);
+  }
+
+  .cartao:has(a):hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .foto {
+    width: 88px;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+  }
+
+  .corpo,
+  .grade[data-deitado] .corpo {
+    padding: 0;
+  }
+
+  .titulo,
+  .grade[data-deitado] .titulo {
+    margin-top: 4px;
+    font-size: 16px;
+    line-height: 1.25;
+  }
+
+  .resumo {
+    display: none;
+  }
+
+  .nenhuma p {
+    font-size: 22px;
+  }
+
+  @supports selector(:has(a)) {
+    .cartao:has(.titulo a:focus-visible) {
+      outline-offset: 0;
+      border-radius: 12px;
+    }
+  }
+}

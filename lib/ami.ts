@@ -15,6 +15,8 @@
   verificadores antes de entrar aqui.
 */
 
+import { buscaNoMapa, numeroNacional } from "@/lib/contato";
+
 export const AMI = {
   razaoSocial: "Associação Médica de Imperatriz",
   sigla: "AMI",
@@ -49,6 +51,22 @@ export const AMI = {
   },
 } as const;
 
+/**
+ * Anos de AMI no instante `agora`, contados do ano de fundação: o número da
+ * home é calculado, nunca escrito à mão.
+ *
+ * O ano é o do relógio de Imperatriz (America/Fortaleza, UTC−3, o mesmo de
+ * lib/formato.ts), e não o do servidor: num servidor em UTC, das 21h às 24h
+ * do dia 31 de dezembro `getFullYear()` já daria o ano seguinte.
+ */
+export function anosDeAmi(agora: Date): number {
+  const ano = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Fortaleza",
+    year: "numeric",
+  }).format(agora);
+  return Number(ano) - Number(AMI.fundadaEm);
+}
+
 /** Endereço em uma linha, para uso corrido. */
 export function enderecoEmLinha(): string {
   const e = AMI.endereco;
@@ -56,15 +74,24 @@ export function enderecoEmLinha(): string {
 }
 
 /**
+ * "Como chegar" à sede, na página da associação e em Seja associado: o
+ * endereço em uma linha, com o CEP, na busca do Google Maps.
+ */
+export function linkDoMapaDaAmi(): string {
+  return buscaNoMapa(`${enderecoEmLinha()}, ${AMI.endereco.cep}`);
+}
+
+/**
  * Telefone no formato que o link `tel:` exige: só dígitos, com o código do
- * país. O que o usuário vê continua sendo o número formatado.
+ * país, que entra uma vez só (`numeroNacional`, lib/contato.ts, tira o 55
+ * de quem já o trouxe). O que o usuário vê continua sendo o número formatado.
  *
  * Fica de fora dos exports de propósito: o rodapé já usou isto direto num
  * `href`, sem o `tel:`, e o link quebrou em todo o site. Quem precisa de
  * link usa `hrefTelefone`.
  */
 function telefoneParaLigar(numero: string): string {
-  return `+55${numero.replace(/\D/g, "")}`;
+  return `+55${numeroNacional(numero)}`;
 }
 
 /**

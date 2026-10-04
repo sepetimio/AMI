@@ -1,0 +1,195 @@
+/*
+  Rodapé, transcrito de `footer`, `.rod`, `.rod h4`, `.rod a`, `.lema` e
+  `.base` do desenho aprovado. A matéria verde (degradê, grão, luz) vem da
+  classe global `.textura-verde`, posta no próprio `<footer>`; aqui só o
+  layout e o texto.
+
+  Cor só por token ou por branco translúcido; sombra nenhuma.
+*/
+
+.rodape {
+  /* O espaço entre o último bloco e o rodapé, como entre dois blocos. A
+     regra logo abaixo o tira quando a página termina numa faixa. */
+  margin-top: var(--ritmo);
+  padding: 64px 0 28px;
+  font-size: 14px;
+  /* Branco a 92%, e não os 82% do desenho: a luz do canto passa por baixo do
+     texto, e no ponto mais claro possível do fundo (a luz parada sobre o
+     degradê, calculado à mão, sem o grão) 82% dava 4,04:1 e 92% dá 4,60:1. O
+     texto de baixo (`.base`) fica mais longe da luz e sobre fundo mais escuro,
+     e 70% dá pelo menos 5,12:1 ali. */
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/*
+  O rodapé emenda na faixa de ponta a ponta de cima (spec, seção 6, item 8),
+  sem espaço entre as duas, mas SÓ quando a página termina numa faixa.
+
+  Faixa é o bloco que leva `data-faixa`: na home, a busca verde, "Seja
+  associado" e os parceiros; na página de cada especialidade, o "Sobre";
+  nas páginas de texto, o corpo; em A Associação, o fecho. A regra pergunta
+  se o último elemento do `<main>` é uma faixa, ou se o último elemento do
+  último filho dele é: a home e as outras páginas do desenho novo põem os
+  blocos dentro de um invólucro (app/(site)/page.tsx e
+  app/(site)/encontre.module.css). Quando o bloco que fecharia a página some
+  (a home fora da demonstração, em que `Parceiros` devolve `null`), o
+  último passa a ser outro; se não for faixa, a regra não casa e o
+  `--ritmo` fica.
+
+  O rodapé vem logo depois do `<main>` (app/(site)/layout.tsx), por isso o
+  `+`. Navegador sem `:has` ignora a regra inteira e fica com o espaço: o
+  erro barato.
+*/
+:global(main):has(> [data-faixa]:last-child, > :last-child > [data-faixa]:last-child) + .rodape {
+  margin-top: 0;
+}
+
+/*
+  A margem interna do conteúdo é a das faixas de ponta a ponta,
+  `--borda-faixa` (app/globals.css): a mesma `--m` das réguas, mais os 24px
+  (12px no celular) da caixa de 1240px, centralizada. Assim o texto do rodapé
+  fica na mesma coluna do cabeçalho, dos blocos e da busca verde da home. O
+  `100%` da fórmula, aqui, vale a largura do rodapé, que é a da página.
+*/
+.caixa {
+  padding: 0 var(--borda-faixa);
+}
+
+/* A luz do canto: a posição é a do desenho, o resto é o `.brilho` global. */
+.luz {
+  top: -260px;
+  right: 6%;
+}
+
+.colunas {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 40px;
+}
+
+.lema {
+  font-family: var(--font-titulo);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  font-size: 26px;
+  color: var(--color-white);
+  line-height: 1.15;
+  max-width: 12em;
+  margin: -4px 0 14px;
+}
+
+/* É um `h2` (a ordem dos títulos da página pede), mas com a cara do `h4` do
+   desenho: a base dá ao `h2` corpo grande, peso 500 e verde escuro, e aqui
+   tudo isso é desfeito. */
+.titulo {
+  font-family: var(--font-corpo);
+  color: var(--color-white);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: inherit;
+  letter-spacing: normal;
+  margin: 0 0 14px;
+}
+
+.coluna a {
+  display: block;
+  padding: 3px 0;
+  transition: color 0.25s;
+}
+
+/* Branco, e não verde-claro: o cliente recusou "passar o mouse e ficar
+   verde claro". */
+.coluna a:hover,
+.base a:hover {
+  color: var(--color-white);
+}
+
+.coluna address {
+  font-style: normal;
+}
+
+/* O CNPJ do desenho, um passo abaixo do corpo do rodapé. */
+.cnpj {
+  font-size: 13px;
+}
+
+.telefones {
+  margin-top: 12px;
+}
+
+.coluna .instagram {
+  margin-top: 10px;
+}
+
+.base {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 40px;
+  padding-top: 20px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.linha {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.legais {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* O ponto vai no fim de cada item menos o último: se a lista quebrar linha,
+   o ponto fica no fim da linha de cima e nunca abre a de baixo. */
+.legais li:not(:last-child)::after {
+  content: "·";
+  margin: 0 0.5em;
+}
+
+.avisos {
+  margin-top: 12px;
+}
+
+.avisos p + p {
+  margin-top: 6px;
+}
+
+/* Dois pontos de quebra, como no desenho. O de 560px do desenho (uma coluna
+   só) é sobreposto pelo de 700px, que vem depois e vence; na tela, o celular
+   sempre mostrou duas colunas, e é o que está aqui. */
+@media (max-width: 980px) {
+  .colunas {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .rodape {
+    /* O fim do rodapé não pode ficar atrás da barra do pé: 100px é a altura
+       dela mais a folga, e a área segura do aparelho entra por cima. */
+    padding: 44px 0 calc(100px + env(safe-area-inset-bottom));
+  }
+
+  .colunas {
+    gap: 28px 20px;
+  }
+
+  .colunas > div:first-child,
+  .colunas > div:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .linha {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .base {
+    margin-top: 28px;
+  }
+}

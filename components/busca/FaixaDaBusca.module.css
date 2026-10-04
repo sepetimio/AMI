@@ -1,0 +1,215 @@
+/*
+  A faixa verde do topo da busca, transcrita do desenho aprovado
+  (docs/desenho-aprovado/encontre/busca.html: `.encontre.secao.busca-topo`,
+  `.busca-topo h1`, `.busca-topo .sobre`, `.busca-topo h1 + p`, `.filtros`,
+  `.lista-esp`, `.filtro-ativo`, `.chip.tira`, e os @media de 1180, 980,
+  820, 700 e 400px). A matéria verde é a classe global `.textura-verde`. O
+  campo branco com a lupa e o botão é o da busca da home
+  (components/home/EncontreUmMedico.module.css: `.campo`, `.lupa`,
+  `.buscar`), usado do mesmo arquivo pelo formulário, para os dois não
+  divergirem.
+
+  #cfd8c9 é o branco esverdeado do texto sobre o verde, o mesmo da busca da
+  home; o contraste está em testes/busca.test.ts.
+
+  Duas diferenças medidas em relação ao desenho, as mesmas da busca da home:
+  o rótulo do celular é o lima clareado (contraste sobre a luz que passeia),
+  e a lista tem letra de 16px no celular (abaixo disso o Safari do iPhone
+  aproxima a página ao tocar). O anel de foco da lista é contorno lima, como
+  o do campo.
+*/
+
+.faixa {
+  display: grid;
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+  gap: var(--m);
+  align-items: center;
+  padding: 96px var(--borda-faixa);
+}
+
+.faixa > div {
+  min-width: 0;
+}
+
+.sobre {
+  color: var(--color-ami-lima-400);
+}
+
+.titulo {
+  margin-top: 14px;
+  color: var(--color-white);
+  font-size: clamp(38px, 4.2vw, 56px);
+  line-height: 1.02;
+  max-width: 13ch;
+}
+
+/* O `text-wrap: pretty` é o que o desenho põe em todo `p`: a última linha
+   não fica com uma palavra só. Vale para as três faixas que usam esta
+   classe (a busca, o índice e a página de cada especialidade). */
+.texto {
+  margin-top: 18px;
+  max-width: 26em;
+  color: #cfd8c9;
+  text-wrap: pretty;
+}
+
+.filtros {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.campo {
+  min-width: 0;
+}
+
+.listaEsp {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.listaEsp select {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 60px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink-900);
+  font: 500 16px var(--font-corpo);
+  padding: 0 52px 0 22px;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  text-overflow: ellipsis;
+}
+
+.listaEsp select:focus-visible {
+  outline: 2px solid var(--color-ami-lima-400);
+  outline-offset: 3px;
+}
+
+.seta {
+  position: absolute;
+  right: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--color-ink-400);
+  pointer-events: none;
+}
+
+.filtroAtivo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #cfd8c9;
+}
+
+/* A pílula do filtro: o `.chip` da busca da home, com a borda e o fundo
+   mais fortes do `.chip.tira` do desenho. */
+.tira {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-white);
+  font: 600 13px/1 var(--font-corpo);
+  white-space: nowrap;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.2s;
+}
+
+.tira svg {
+  width: 15px;
+  height: 15px;
+  opacity: 0.85;
+}
+
+.tira:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 1180px) {
+  .faixa {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .texto {
+    max-width: 40em;
+  }
+
+  .filtros {
+    max-width: 760px;
+  }
+}
+
+@media (max-width: 980px) {
+  .faixa {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+}
+
+@media (max-width: 820px) {
+  .filtros {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 700px) {
+  .faixa {
+    padding: 44px var(--borda-faixa);
+  }
+
+  .sobre {
+    color: color-mix(in srgb, var(--color-ami-lima-400) 70%, white);
+  }
+
+  .titulo {
+    font-size: 32px;
+    line-height: 1.04;
+  }
+
+  .texto {
+    margin-top: 12px;
+    font-size: 14.5px;
+  }
+
+  .listaEsp select {
+    height: 56px;
+    font-size: 16px;
+    padding: 0 48px 0 18px;
+  }
+
+  .seta {
+    right: 18px;
+  }
+
+  .filtroAtivo {
+    margin-top: 14px;
+  }
+}
+
+@media (max-width: 400px) {
+  .titulo {
+    font-size: 30px;
+  }
+}

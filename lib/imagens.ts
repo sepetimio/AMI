@@ -66,6 +66,30 @@ export const ESPACOS = {
       "Vargas. Horizontal, no mínimo 2000px de largura.",
     provisoria: true,
   },
+  salao: {
+    fonte: "/imagens/auditorio-ami.jpg",
+    alt: "Auditório da sede da Associação Médica de Imperatriz",
+    largura: 2000,
+    altura: 1125,
+    rotulo: "Auditório da AMI",
+    precisa:
+      "O auditório ou o hall de eventos da sede da AMI, de preferência " +
+      "arrumado para um evento. Horizontal, no mínimo 2000px de largura; o " +
+      "canto inferior esquerdo fica atrás do cartão de texto.",
+    provisoria: true,
+  },
+  associados: {
+    fonte: "/imagens/associados-ami.jpg",
+    alt: "Médicos associados da AMI reunidos",
+    largura: 1600,
+    altura: 1100,
+    rotulo: "Associados da AMI",
+    precisa:
+      "Associados da AMI reunidos, num evento ou numa assembleia. " +
+      "Horizontal, no mínimo 1600px de largura, só com pessoas que " +
+      "autorizaram o uso da imagem.",
+    provisoria: true,
+  },
 } satisfies Record<string, Espaco>;
 
 export type NomeEspaco = keyof typeof ESPACOS;

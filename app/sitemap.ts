@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 import { buscarMedicos } from "@/lib/dados/medicos";
-import { facetaEhIndexavel } from "@/lib/dados/facetas";
 import {
   caminhosDePaginasPublicadas,
   slugsDeNoticias,
@@ -11,39 +10,45 @@ export const revalidate = 3600;
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 /*
-  Gerado do banco. Só entram as URLs que são de fato indexáveis — o mesmo
-  corte que a página aplica no seu robots. Sitemap e meta em desacordo é
-  sinal contraditório: o sitemap convida, a página recusa.
+  Gerado do banco. Só entram URLs indexáveis: nenhuma página que se recusa
+  no seu robots entra aqui, porque sitemap e meta em desacordo é sinal
+  contraditório (o sitemap convida, a página recusa). O contrário não vale:
+  as páginas que respondem pelo rascunho em código ficam fora do sitemap
+  sem levar `noindex` (ver as páginas de prosa, abaixo).
 */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   /*
     Uma consulta só, e todo o resto se calcula em memória.
 
-    A versão anterior chamava bairrosComContagem dentro do laço de
-    especialidades, e cada chamada varre a tabela inteira: dezesseis idas ao
-    banco para montar um arquivo. O `cache` do React não ajuda aqui — ele
-    depende do armazenamento por renderização do Next, e uma rota de
-    metadados como esta compila como manipulador, não como componente.
+    Uma versão antiga chamava a camada de dados dentro do laço de
+    especialidades, e cada chamada varria a tabela inteira. O `cache` do
+    React não ajuda aqui — ele depende do armazenamento por renderização do
+    Next, e uma rota de metadados como esta compila como manipulador, não
+    como componente.
   */
   const todos = await buscarMedicos();
 
   /*
-    Seis entradas fixas, e não onze como o brief original desta tarefa
-    mandava. O brief acrescentava direto as seis páginas de prosa
-    (`/associacao/beneficios`, `/associacao/estatuto`,
-    `/associacao/politica-editorial`, as três legais) como fixas, mas todas
-    dão 404 hoje: o Sanity ainda não tem o texto, e cada uma chama
-    `notFound()` nesse caso. Sitemap apontando para 404 é defeito de SEO, e
-    num site de saúde avaliado sob critério YMYL isso pesa mais do que
-    simplesmente deixar de listar. As seis fixas abaixo renderizam sempre:
-    `/associacao` é índice com caminhos vindos do código, `/associacao/
-    diretoria` vem do Supabase, `/contato` é texto que mora em `lib/ami.ts`,
-    e as outras três são as raízes de navegação do site. As páginas de
-    prosa (hoje sete, Seja associado incluída) entram mais abaixo, derivadas
-    do que de fato está publicado.
+    Seis entradas fixas, que renderizam sempre: `/associacao` é a página
+    institucional, que se monta mesmo sem a apresentação no Studio,
+    `/associacao/diretoria` vem do Supabase, `/contato` é texto que mora em
+    `lib/ami.ts`, e as outras três são as raízes de navegação do site.
+
+    As sete páginas de prosa não são fixas. Hoje, sem texto no Sanity:
+    - Estatuto, Política editorial e Benefícios dão 404: sem documento nem
+      rascunho, a rota chama `notFound()`. Sitemap apontando para 404 é
+      defeito de SEO, e num site de saúde avaliado sob critério YMYL isso
+      pesa mais do que deixar de listar;
+    - as três legais e Seja associado respondem 200, pelo rascunho em
+      código (lib/rascunhosLegais.ts), com o aviso visível de que é
+      rascunho. Elas ficam fora do sitemap até haver texto publicado, para
+      o site não convidar o buscador a um texto provisório. O rascunho não
+      leva `noindex`: quem chegar por um link acha a página, e o buscador
+      pode indexá-la mesmo fora do sitemap.
+    As sete entram mais abaixo, derivadas do que de fato está publicado.
 
     `/contato` fica em 0.7, o mesmo de `/associacao`: os dois são item do
-    menu principal (ver components/layout/MenuPrincipal.tsx), abaixo da home
+    menu principal (ver lib/menu.ts), abaixo da home
     e das duas listagens que trazem a busca.
   */
   const fixas: MetadataRoute.Sitemap = [
@@ -59,21 +64,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  /* Profissionais distintos por especialidade e por cruzamento. Conjuntos,
-     não contadores: quem tem dois consultórios no mesmo bairro conta uma vez. */
+  /* Profissionais distintos por especialidade. Conjuntos, não contadores. */
   const porEspecialidade = new Map<string, Set<number>>();
-  const porCruzamento = new Map<string, Set<number>>();
 
   for (const m of todos) {
-    const bairros = new Set(m.locais.map((l) => l.bairro.slug));
     for (const e of m.especialidades) {
       if (!porEspecialidade.has(e.slug)) porEspecialidade.set(e.slug, new Set());
       porEspecialidade.get(e.slug)!.add(m.id);
-      for (const b of bairros) {
-        const chave = `${e.slug}/${b}`;
-        if (!porCruzamento.has(chave)) porCruzamento.set(chave, new Set());
-        porCruzamento.get(chave)!.add(m.id);
-      }
     }
   }
 
@@ -83,22 +80,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${SITE}/medicos/${slug}`,
       changeFrequency: "weekly",
       priority: 0.8,
-    }));
-
-  /*
-    Cruzamento só entra acima do corte de indexação.
-
-    Listar um cruzamento que a própria página marca como noindex seria sinal
-    contraditório: o sitemap convidando o robô e a página o recusando.
-  */
-  const cruzamentos: MetadataRoute.Sitemap = [...porCruzamento.entries()]
-    .filter(([, ids]) => facetaEhIndexavel(ids.size))
-    .map(([caminho]) => caminho)
-    .sort()
-    .map((caminho) => ({
-      url: `${SITE}/medicos/${caminho}`,
-      changeFrequency: "monthly",
-      priority: 0.6,
     }));
 
   const perfis: MetadataRoute.Sitemap = todos
@@ -111,9 +92,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
   /* As sete páginas de prosa (institucionais, legais e Seja associado), só
-     as que já têm texto publicado no Sanity. `caminhosDePaginasPublicadas` já devolve o endereço
-     completo, não o slug: a tradução de um para o outro mora só lá, ver o
-     comentário em lib/sanity/consultas.ts. */
+     as que já têm texto publicado no Sanity: a página que responde pelo
+     rascunho em código fica de fora (ver acima). `caminhosDePaginasPublicadas`
+     já devolve o endereço completo, não o slug: a tradução de um para o
+     outro mora só lá, ver o comentário em lib/sanity/consultas.ts. */
   const paginas: MetadataRoute.Sitemap = (await caminhosDePaginasPublicadas())
     .sort()
     .map((caminho) => ({
@@ -135,7 +117,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...fixas,
     ...especialidades,
-    ...cruzamentos,
     ...perfis,
     ...paginas,
     ...noticias,

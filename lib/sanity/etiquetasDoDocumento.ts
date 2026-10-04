@@ -1,5 +1,7 @@
 import {
   ETIQUETA_NOTICIAS,
+  ETIQUETA_PARCEIRAS,
+  ETIQUETA_TEXTOS_DE_ESPECIALIDADE,
   etiquetaDeNoticia,
   etiquetaDePagina,
 } from "@/lib/sanity/consultas";
@@ -40,6 +42,16 @@ export function etiquetasDoDocumento(doc: DocumentoDoWebhook): string[] {
          qualquer banner publicado, despublicado ou com a validade trocada
          invalida a lista inteira. Não há slug: banner não tem página. */
       return [ETIQUETA_BANNERS];
+
+    case "empresaParceira":
+      /* Mesmo caso do banner: as parceiras saem numa consulta só, a da home
+         (a faixa de logotipos e o quarto número). */
+      return [ETIQUETA_PARCEIRAS];
+
+    case "textoDeEspecialidade":
+      /* Uma etiqueta para os textos de todas as especialidades: o corpo do
+         webhook não traz a especialidade do texto, e são poucas páginas. */
+      return [ETIQUETA_TEXTOS_DE_ESPECIALIDADE];
 
     default:
       return [];

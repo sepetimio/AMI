@@ -21,7 +21,7 @@ mudam junto.
 | Nenhuma página pública grava cookie | Nenhum cabeçalho `Set-Cookie` em `/`, `/medicos` e `/noticias` |
 | Não há ferramenta de análise nem rastreamento | Nenhuma dependência de análise, pixel ou telemetria no projeto |
 | Não há script de terceiro | Nenhum `script` externo no HTML servido |
-| Não há formulário que colete dado pessoal | A busca é `GET` e envia só termo e bairro |
+| Não há formulário que colete dado pessoal | A busca é `GET` e envia só termo e especialidade |
 | Nenhuma tela pergunta sintoma ou diagnóstico | Decisão de projeto, registrada na especificação |
 | O único endereço externo é o link do Instagram | É link, não carregamento: nada é requisitado antes do clique |
 
@@ -144,7 +144,7 @@ Em emergência, procure serviço de urgência ou ligue para o SAMU, no 192.
 
 O site não atribui nota, não faz ranking e não compara profissionais entre si. Não existe posição paga nem promoção de associado.
 
-A ordem dos resultados é definida de forma verificável: correspondência do termo buscado no nome e na especialidade, com desempate alfabético. Sem termo digitado, a ordem é alfabética.
+Os resultados aparecem em ordem alfabética; nenhuma ordenação depende de pagamento, avaliação ou destaque.
 
 Essa vedação atende à Resolução CFM 2.336/2023 e é decisão permanente de projeto, não configuração.
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { arranjoDasNoticias, tamanhosDasCapas } from "@/lib/arranjo-das-noticias";
 import { fonte, semComentarios } from "@/testes/apoio";
 
 /*
@@ -10,19 +11,16 @@ import { fonte, semComentarios } from "@/testes/apoio";
   PEGA — o componente foi removido do arquivo, teve o nome trocado, ou a
   ordem em que as seções aparecem no código mudou.
 
-  NÃO PEGA, AQUI — que o componente RENDERIZE alguma coisa. Envolver a
-  faixa em `{false && <FaixaDaAmi … />}` deixa os oito testes deste arquivo
-  VERDES: a substring "<FaixaDaAmi" continua no arquivo. Medido de novo em
-  03/10/2026, com a mutação aplicada. `null` devolvido de dentro do próprio
-  componente passa pelo mesmo motivo.
+  NÃO PEGA, AQUI — que o componente RENDERIZE alguma coisa. Envolver a busca
+  em `{false && <EncontreUmMedico … />}` deixa os testes deste arquivo
+  VERDES: a substring "<EncontreUmMedico" continua no arquivo. `null`
+  devolvido de dentro do próprio componente passa pelo mesmo motivo.
 
   ESSE BURACO ESTÁ COBERTO em testes/home-renderizada.test.ts, que importa
-  esta página de verdade, troca só as quatro fontes de dados (especialidades,
-  médicos, banners, notícias) e confere o HTML que sai. A mesma mutação da
-  faixa deixa dois testes de lá vermelhos ("falta \"<h1\""); embrulhar o
-  carrossel, as notícias ou os parceiros também. Lá a cobertura vale para o
-  que aquele arquivo procura: o <h1> da faixa, o carrossel, os títulos e os
-  `id` das seções, e as molduras — com dados de mentira, não com o banco.
+  esta página de verdade, troca só as cinco fontes de dados (especialidades,
+  médicos, banners, notícias, empresas parceiras) e confere o HTML que sai. Lá a cobertura vale
+  para o que aquele arquivo procura: o <h1>, a marca `data-bloco` de cada
+  seção, os `id` e as molduras — com dados de mentira, não com o banco.
 
   NÃO PEGA, em nenhum dos dois — ordem VISUAL. `indexOf` mede posição no
   texto (aqui, no arquivo; lá, no HTML), não na tela: um `order-*` do
@@ -34,89 +32,143 @@ import { fonte, semComentarios } from "@/testes/apoio";
 */
 const HOME = semComentarios(fonte("../app/(site)/page.tsx"));
 
-describe("a home", () => {
-  it("monta as tres secoes novas", () => {
-    for (const c of ["FaixaDaAmi", "Carrossel", "ServicosDaAmi"]) {
-      expect(HOME, `falta <${c}> na home`).toContain(`<${c}`);
-    }
+/* A ordem da spec da reforma visual, seção 6. */
+const ORDEM = [
+  "<Carrossel",
+  "<NumerosDaAmi",
+  "<EncontreUmMedico",
+  "<SuaAmi",
+  "<SejaAssociado",
+  "<UltimasNoticias",
+  "<Parceiros",
+];
+
+/*
+  O CSS da home: o espaço entre os blocos e a coluna. É regra de CSS, que só
+  o navegador aplica, então se lê o arquivo; as distâncias na tela, a
+  auditoria visual (scripts/auditoria-visual.js) mede e confere contra
+  `--ritmo`. Espaço desigual entre blocos é a queixa
+  central do cliente: estas asserções são as que ficam vermelhas se alguém
+  trocar a régua de um deles.
+*/
+const CSS_HOME = semComentarios(fonte("../app/(site)/inicio.module.css"));
+const CSS_GLOBAL = semComentarios(fonte("../app/globals.css"));
+
+/** O corpo de `seletor { ... }` dentro de `css`. */
+function regra(css: string, seletor: string): string {
+  const ini = css.indexOf(`${seletor} {`);
+  expect(ini, `falta a regra ${seletor}`).toBeGreaterThan(-1);
+  return css.slice(ini, css.indexOf("}", ini));
+}
+
+/** Uma régua em px do primeiro `:root` de app/globals.css, o do computador. */
+function regua(nome: string): number {
+  const raiz = /:root\s*\{([^}]*)\}/.exec(CSS_GLOBAL)?.[1] ?? "";
+  return Number(new RegExp(`${nome}:\\s*(\\d+)px;`).exec(raiz)?.[1]);
+}
+
+describe("o CSS da home", () => {
+  it("todo bloco fica a --ritmo do anterior", () => {
+    expect(regra(CSS_HOME, ".home > [data-bloco]")).toMatch(/margin-top:\s*var\(--ritmo\);/);
   });
 
-  it("mantem as quatro secoes que ja existiam", () => {
-    for (const c of ["IndiceEspecialidades", "UltimasNoticias", "LadrilhosBairros"]) {
-      expect(HOME, `a home perdeu <${c}>`).toContain(`<${c}`);
-    }
+  it("o carrossel, primeiro bloco, fica a --gap do cabecalho", () => {
+    expect(regra(CSS_HOME, '.home > h1 + [data-bloco="carrossel"]')).toMatch(
+      /margin-top:\s*var\(--gap\);/,
+    );
   });
 
-  it("o titulo da pagina nao fala mais de buscar medico", () => {
-    /*
-      O <h1> era "Encontre um médico em Imperatriz" e ocupava a tela inteira.
-      Ele desceu para o cartao de servico. Se voltar ao topo, o site voltou a
-      ser a busca em vez da porta da associacao.
-    */
-    expect(HOME).not.toMatch(/<h1[^>]*>\s*Encontre um médico/);
+  it("sem carrossel, o primeiro bloco fica a --ritmo: a --gap vale so para o carrossel", () => {
+    /* Os números logo abaixo do cabeçalho, a 12px no celular, liam como
+       caixa atrás de caixa. A única regra com `--gap` é a do carrossel; o
+       primeiro bloco que não é carrossel cai na regra geral, `--ritmo`. */
+    const seletores = [...CSS_HOME.matchAll(/([^{}]+)\{[^}]*margin-top:\s*var\(--gap\)/g)].map((m) =>
+      m[1].trim(),
+    );
+    expect(seletores).toEqual(['.home > h1 + [data-bloco="carrossel"]']);
   });
 
-  it("a faixa vem antes do carrossel, e o carrossel antes dos servicos", () => {
-    const faixa = HOME.indexOf("<FaixaDaAmi");
-    const carrossel = HOME.indexOf("<Carrossel");
-    const servicos = HOME.indexOf("<ServicosDaAmi");
-    expect(faixa).toBeLessThan(carrossel);
-    expect(carrossel).toBeLessThan(servicos);
+  it("nao ha outro margin-top no arquivo: nenhuma excecao ao ritmo", () => {
+    expect(CSS_HOME.match(/margin-top:[^;]*;/g)).toEqual([
+      "margin-top: var(--ritmo);",
+      "margin-top: var(--gap);",
+    ]);
+  });
+
+  it("a coluna e a caixa de 1240px com 24px de folga (12px no celular), pelas réguas de app/globals.css", () => {
+    const coluna = regra(CSS_HOME, ".home > [data-bloco]:not([data-faixa])");
+    expect(coluna).toMatch(/width:\s*min\(100% - 2 \* var\(--folga-da-coluna\), var\(--coluna\)\);/);
+    expect(coluna).toMatch(/margin-inline:\s*auto;/);
+    /* O celular não tem regra própria: a folga é que muda, no :root. */
+    expect(CSS_HOME).not.toContain("@media");
+    expect(regua("--coluna")).toBe(1192);
+    expect(regua("--folga-da-coluna")).toBe(24);
+    const raizDoCelular = /@media \(max-width: 700px\) \{\s*:root\s*\{([^}]*)\}/.exec(CSS_GLOBAL)?.[1] ?? "";
+    expect(raizDoCelular).toMatch(/--folga-da-coluna:\s*12px;/);
+  });
+
+  it("a coluna menos --m dos dois lados e a largura que o sizes das capas usa", () => {
+    /* 1192px de coluna menos o `--m` do computador de cada lado das
+       notícias: o W de lib/arranjo-das-noticias.ts. Se um mudar sem o outro,
+       o navegador baixa a capa no tamanho errado. O `--m` é lido do primeiro
+       `:root` de app/globals.css, o do computador (os de 980 e 700px vêm
+       depois, dentro de @media). */
+    const m = Number(/:root\s*\{[^}]*--m:\s*(\d+)px;/.exec(CSS_GLOBAL)?.[1]);
+    expect(m, "falta o --m do :root em app/globals.css").toBeGreaterThan(0);
+    const coluna = regua("--coluna");
+    const capas = tamanhosDasCapas(arranjoDasNoticias(1)!).destaque;
+    const w = Number(/\(min-width: 1240px\) (\d+)px/.exec(capas)?.[1]);
+    expect(w).toBe(1096);
+    expect(coluna - 2 * m).toBe(w);
   });
 });
 
-describe("a home, depois das molduras provisórias", () => {
-  it("monta a faixa de empresas parceiras", () => {
-    expect(HOME, "falta <EmpresasParceiras> na home").toContain("<EmpresasParceiras");
-  });
-
-  it("tem as oito secoes na ordem aprovada, com os parceiros por ultimo", () => {
-    /* Mesma limitação do resto do arquivo: posição no texto-fonte, não na
-       tela. As seções sem componente próprio entram pelo `id` do título. */
-    const ordem = [
-      "<FaixaDaAmi",
-      "<Carrossel",
-      "<ServicosDaAmi",
-      'id="especialidades"',
-      'id="institucional"',
-      "<UltimasNoticias",
-      'id="bairros"',
-      "<EmpresasParceiras",
-    ];
-    const posicoes = ordem.map((marca) => HOME.indexOf(marca));
-    for (const [i, marca] of ordem.entries()) {
+describe("a home", () => {
+  it("monta as sete secoes da spec, nesta ordem", () => {
+    const posicoes = ORDEM.map((marca) => HOME.indexOf(marca));
+    for (const [i, marca] of ORDEM.entries()) {
       expect(posicoes[i], `falta ${marca} na home`).toBeGreaterThanOrEqual(0);
       if (i > 0) {
-        expect(posicoes[i], `${marca} veio antes de ${ordem[i - 1]}`).toBeGreaterThan(
+        expect(posicoes[i], `${marca} veio antes de ${ORDEM[i - 1]}`).toBeGreaterThan(
           posicoes[i - 1],
         );
       }
     }
   });
 
+  it("nao monta mais as pecas que sairam", () => {
+    /* A faixa do topo, os quatro cartoes de servico, o indice em grade e o
+       bloco institucional com a foto da sede (spec, secao 6: "Sai da home
+       atual"). */
+    for (const c of ["FaixaDaAmi", "ServicosDaAmi", "IndiceEspecialidades", "Fotografia"]) {
+      expect(HOME, `a home ainda cita ${c}`).not.toContain(c);
+    }
+    expect(HOME).not.toContain('id="institucional"');
+  });
+
+  it("o titulo da pagina nao fala de buscar medico", () => {
+    /*
+      O <h1> foi "Encontre um médico em Imperatriz" e ocupava a tela inteira.
+      Se voltar, o site volta a ser a busca em vez da porta da associacao.
+    */
+    expect(HOME).not.toMatch(/<h1[^>]*>\s*Encontre um médico/);
+  });
+
   it("a trava recebe a chave de verdade, e cada moldura sai da decisão dela", () => {
     /*
       O teste de testes/molduras.test.ts prova a decisão e os componentes,
       mas não vê esta página. Aqui se confere, por texto, que a página passa
-      `DADOS_DEMONSTRACAO` — e não um `true` escrito à mão — e que cada uma
-      das quatro molduras sai da saída de `moldurasDaHome`.
+      `DADOS_DEMONSTRACAO` — e não um `true` escrito à mão — à trava e aos
+      blocos que decidem sozinhos.
     */
     expect(HOME).toMatch(/moldurasDaHome\(\s*DADOS_DEMONSTRACAO\s*,/);
-    expect(HOME).toContain("<Carrossel banners={molduras.banners}");
-    expect(HOME).toMatch(/suaAmi=\{molduras\.suaAmi\}/);
+    expect(HOME).toContain("<Carrossel itens={molduras.banners}");
+    expect(HOME).toContain("<SuaAmi demonstracao={DADOS_DEMONSTRACAO}");
+    expect(HOME).toMatch(/<SejaAssociado\s+demonstracao=\{DADOS_DEMONSTRACAO\}/);
     expect(HOME).toContain("<UltimasNoticias provisorias={molduras.noticiasProvisorias}");
-    expect(HOME).toContain("{molduras.parceiros ? <EmpresasParceiras");
-  });
-
-  it("a casca da foto da sede pergunta a mesma trava antes de existir", () => {
-    /*
-      `Fotografia` devolve null sozinha fora do modo demonstração, mas a casca
-      em volta (fio, respiro, sombra) é da página. Sem esta condição, a casca
-      ficaria vazia na home de produção.
-    */
     expect(HOME).toMatch(
-      /fotoDaSede\s*=\s*desenhoDaFotografia\(\s*ESPACOS\.sede\.provisoria\s*,\s*DADOS_DEMONSTRACAO\s*\)\s*!==\s*"nada"/,
+      /<Parceiros\s+parceiras=\{molduras\.parceiras\}\s+provisorias=\{molduras\.parceirasProvisorias\}/,
     );
-    expect(HOME).toMatch(/\{fotoDaSede \? \(\s*<div className="rounded-bloco[^"]*"[^>]*>\s*<Fotografia/);
+    expect(HOME).toMatch(/<NumerosDaAmi[^>]*\sparceiras=\{molduras\.numeroDeParceiras\}/);
   });
 });

@@ -70,7 +70,8 @@ describe("link de telefone", () => {
     for (const esperado of [
       "app/(site)/contato/page.tsx",
       "app/(site)/medico/[slug]/page.tsx",
-      "components/diretorio/LinhaMedico.tsx",
+      "components/diretorio/CartaoMedico.tsx",
+      "components/perfil/OndeAtende.tsx",
       "components/layout/Rodape.tsx",
     ]) {
       expect(ARQUIVOS).toContain(esperado);

@@ -1,0 +1,174 @@
+/*
+  Os números da AMI, transcritos do desenho aprovado
+  (docs/desenho-aprovado/home-aprovada.html: `.numeros`, `.numero`, `.icone`,
+  `.numero .grande`, `.numero .rot`, `.numero p`, `.numero .botao-linha`, as
+  variantes `.numeros.aberta` e os @media de 980 e 700px).
+
+  É a versão "aberta" do desenho: sem fundo nem sombra, direto no fundo da
+  página. O fio entre as colunas é `line-strong`; o desenho usa #D9DDE3, que
+  não tem token, entre `line` (#E5E7EB, que some sobre o fundo da página) e
+  `line-strong` (#D1D5DB), e o token mais perto ficou.
+
+  O @media de 560px do desenho (uma coluna só) não entra: o de 700px, que vem
+  depois no desenho, o sobrepõe com `!important`, e na tela o celular sempre
+  mostra os cartõezinhos em duas colunas.
+
+  São quatro números, como no desenho, ou três, quando o das empresas
+  parceiras falta (components/home/NumerosDaAmi.tsx). Quem diz quantos é o
+  atributo `data-quantos` do contêiner. Com quatro, vale o desenho aprovado
+  inteiro: quatro colunas, dois por linha no tablet e quatro cartõezinhos de
+  dois em dois no celular. Com três: três colunas, que continuam três no
+  tablet, e no celular dois cartõezinhos mais o terceiro na largura toda.
+*/
+
+.numeros {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.numeros[data-quantos="4"] {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.numero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 40px 32px;
+  border-left: 1px solid var(--color-line-strong);
+}
+
+/* A primeira e a última coluna encostam o texto na margem do bloco, e com
+   isso o número da primeira fica na mesma linha vertical do texto das outras
+   seções. */
+.numero:first-child {
+  padding-left: var(--m);
+  border-left: 0;
+}
+
+.numero:last-child {
+  padding-right: var(--m);
+}
+
+/* Na versão aberta o ladrilho é branco, com fio e sombra curtos, para não
+   sumir no fundo da página. Ao passar o mouse ele dá um pulo; a sombra fica
+   (a regra da versão aberta, no desenho, vence a do mouse). */
+.numero :global(.ladrilho-icone) {
+  background: var(--color-surface);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), inset 0 0 0 1px rgba(16, 24, 40, 0.06);
+  transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.numero:hover :global(.ladrilho-icone) {
+  transform: translateY(-3px) rotate(-6deg);
+}
+
+.grande {
+  font-family: var(--font-titulo);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  font-size: 48px;
+  line-height: 1;
+  color: var(--color-ami-green-800);
+  margin: 24px 0 8px;
+  /* Algarismos de largura igual: durante a contagem o número não balança. */
+  font-variant-numeric: tabular-nums;
+}
+
+.rotulo {
+  font-weight: 700;
+  color: var(--color-ami-green-800);
+  font-size: 14.5px;
+}
+
+.apoio {
+  font-size: 14px;
+  color: var(--color-ink-600);
+  margin: 8px 0 24px;
+  line-height: 1.55;
+  max-width: 24em;
+}
+
+/* Os botões no pé da coluna, na mesma altura, mesmo com textos de
+   apoio de tamanhos diferentes. */
+.numero :global(.botao-linha) {
+  margin-top: auto;
+}
+
+/* Tablet: a margem interna encolhe. Com três, continuam três por linha, com
+   o fio entre eles. Com quatro, dois por linha, sem fio vertical; um fio
+   horizontal separa as duas linhas. */
+@media (max-width: 980px) {
+  .numero,
+  .numero:first-child,
+  .numero:last-child {
+    padding: 32px var(--m);
+  }
+
+  .numeros[data-quantos="4"] {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .numeros[data-quantos="4"] .numero {
+    border-left: 0;
+  }
+
+  .numeros[data-quantos="4"] .numero:nth-child(n + 3) {
+    border-top: 1px solid var(--color-line-strong);
+  }
+}
+
+/* Celular: cartõezinhos brancos, sem texto de apoio e sem botão, dois por
+   linha. Com quatro, duas linhas de dois. Com três, o terceiro fica na
+   largura toda (três lado a lado não cabem "especialidades" a 375px). */
+@media (max-width: 700px) {
+  .numeros {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .numero,
+  .numero:first-child,
+  .numero:last-child {
+    border: 0;
+    background: var(--color-surface);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: var(--shadow-erguido);
+  }
+
+  /* O fio do tablet entre as linhas não entra no cartãozinho. */
+  .numeros[data-quantos="4"] .numero:nth-child(n + 3) {
+    border-top: 0;
+  }
+
+  .numeros[data-quantos="3"] .numero:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .apoio,
+  .numero :global(.botao-linha) {
+    display: none;
+  }
+
+  .numero :global(.ladrilho-icone) {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+  }
+
+  .numero :global(.ladrilho-icone) svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .grande {
+    font-size: 32px;
+    margin: 14px 0 4px;
+  }
+
+  .rotulo {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+}

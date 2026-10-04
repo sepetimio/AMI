@@ -1,50 +1,93 @@
-import { MolduraProvisoria } from "@/components/base/MolduraProvisoria";
+import styles from "@/components/home/EmpresasParceiras.module.css";
+import { ESPACOS_DE_PARCEIRAS } from "@/lib/molduras";
+import type { EmpresaParceira } from "@/lib/sanity/tipos";
 
 /*
-  Empresas parceiras da AMI: a faixa que fecha a home.
+  A grade dos logotipos das empresas parceiras da AMI. O título e o rótulo
+  são de `Parceiros`, que monta esta grade na faixa branca.
 
-  Hoje é INTEIRA provisória: o cliente pediu, em 03/10/2026, para ver o
-  lugar dos parceiros antes de ter qualquer um. São seis espaços "Logotipo a
-  entrar" e nenhum nome de empresa — escrever um nome aqui seria anunciar
-  uma parceria que não existe.
+  Com empresas cadastradas no Sanity, cada logotipo vai numa caixa do mesmo
+  tamanho do `.logo-vazio` do desenho aprovado, com borda cheia e fundo
+  branco, e aparece inteiro, sem cortar nem distorcer. O nome da empresa é o
+  texto alternativo. Com site, a caixa é link e abre em outra aba.
 
-  Este componente não decide se aparece. Quem decide é `moldurasDaHome`, em
-  lib/molduras.ts, e só no modo demonstração: fora dele a faixa não é
-  montada, e a home termina em "Onde os médicos atendem", como antes.
+  Sem nenhuma cadastrada, saem os seis espaços "Logotipo a entrar", a
+  caixa tracejada do desenho. Nenhum nome de empresa é escrito aqui:
+  escrever um seria anunciar uma parceria que não existe. Cada espaço leva
+  `data-a-entrar`, a marca de toda moldura "a entrar" do site, sem estilo
+  nenhum.
 
-  A proporção 3 × 2 dos espaços é escolha minha, não medida: não há logotipo
-  real nem padrão de arte combinado para eles ainda. No dia em que houver,
-  a proporção acompanha o padrão.
+  Este componente não decide se aparece, nem se os espaços vazios podem
+  sair. Quem decide é `moldurasDaHome`, em lib/molduras.ts: os espaços, só
+  no modo demonstração.
 
-  Grade de 3 do tablet para cima (duas linhas de 3) e 2 no celular. Seis lado
-  a lado foi medido e recusado em 03/10/2026: a 1024 cada espaço tinha 147px
-  e a tarja "Logotipo a entrar" quebrava em duas linhas, cobrindo 74 dos 98px
-  de altura. Com 3, ela cabe numa linha a 768, 1024 e 1280. No celular ainda
-  quebra em duas (74 dos 109px a 375); uma coluna só caberia numa linha, mas
-  faria seis blocos de 229px de altura em fila.
+  Seis lado a lado no computador, três por linha abaixo de 980px e no
+  celular (a versão final do desenho: duas linhas de três, nada cortado na
+  borda).
 */
-const ESPACOS = 6;
 
-export function EmpresasParceiras() {
+/*
+  A largura da imagem dentro da caixa, pelas réguas do CSS: a faixa tem
+  `--borda-faixa` de cada lado (72px no computador, 52px até 980px, 32px até
+  700px, e o texto numa coluna de 1096px a partir de 1240px de tela); a
+  grade tem 6 colunas com 12px entre elas, ou 3 com 12px, ou 3 com 8px no
+  celular; e a caixa tira 1px de borda e 8px de folga de cada lado (6px no
+  celular).
+*/
+export const SIZES_DO_LOGOTIPO =
+  "(max-width: 700px) calc((100vw - 80px) / 3 - 14px), " +
+  "(max-width: 980px) calc((100vw - 128px) / 3 - 18px), " +
+  "(max-width: 1240px) calc((100vw - 204px) / 6 - 18px), 155px";
+
+function Logotipo({ parceira }: { parceira: EmpresaParceira }) {
+  const imagem = (
+    /* eslint-disable-next-line @next/next/no-img-element --
+       o CDN do Sanity já redimensiona; ver lib/sanity/imagem.ts. */
+    <img
+      src={parceira.logotipo}
+      srcSet={parceira.logotipoSrcset}
+      sizes={SIZES_DO_LOGOTIPO}
+      alt={parceira.nome}
+      loading="lazy"
+      decoding="async"
+    />
+  );
+
+  if (!parceira.site) return <div className={styles.logo}>{imagem}</div>;
+
   return (
-    <section aria-labelledby="parceiros" className="revelar border-t border-line">
-      <div className="mx-auto max-w-[1200px] px-4 py-16 md:px-6 md:py-20">
-        <h2 id="parceiros">Empresas parceiras da AMI</h2>
+    <a
+      className={styles.logo}
+      href={parceira.site}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${parceira.nome} (abre em outra aba)`}
+    >
+      {imagem}
+    </a>
+  );
+}
 
-        <ul className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3">
-          {Array.from({ length: ESPACOS }, (_, i) => (
-            <li key={i}>
-              <MolduraProvisoria
-                largura={3}
-                altura={2}
-                rotulo="Espaço reservado para o logotipo de uma empresa parceira"
-                legenda="Logotipo a entrar"
-                className="rounded-bloco"
-              />
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
+export function EmpresasParceiras({ parceiras }: { parceiras: EmpresaParceira[] }) {
+  if (parceiras.length > 0) {
+    return (
+      <ul className={styles.parceiros}>
+        {parceiras.map((p) => (
+          <li key={p.id} className={styles.parceira}>
+            <Logotipo parceira={p} />
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  return (
+    <ul className={styles.parceiros}>
+      {Array.from({ length: ESPACOS_DE_PARCEIRAS }, (_, i) => (
+        <li key={i} className={styles.logoVazio} data-a-entrar="">
+          Logotipo a entrar
+        </li>
+      ))}
+    </ul>
   );
 }

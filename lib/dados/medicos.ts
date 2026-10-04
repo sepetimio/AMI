@@ -1,6 +1,6 @@
 ﻿import { cache } from "react";
 import { clienteServidor } from "@/lib/dados/cliente";
-import { aplicarFiltros, ordenar } from "@/lib/dados/filtros";
+import { aplicarFiltros, emOrdemAlfabetica } from "@/lib/dados/filtros";
 import type {
   Filtros,
   Medico,
@@ -48,9 +48,9 @@ function paraDominio(linha: any): Medico {
       ordem estável em recursos aninhados, então este sort é cinto e
       suspensório: garante a mesma ordem independentemente do que o banco
       devolver, e continua correto mesmo que a consulta mude no futuro e
-      perca aquele `.order`. Sem isso, `locais[0]` — que `LinhaMedico`,
-      `jsonld.ts` e a página de perfil usam para decidir bairro, telefone
-      e endereço do JSON-LD — poderia apontar para um consultório diferente
+      perca aquele `.order`. Sem isso, `locais[0]` — o consultório
+      principal do perfil (`consultorioPrincipal`, lib/encontre.ts) e o
+      endereço do JSON-LD (`jsonld.ts`) — poderia apontar para um consultório diferente
       a cada renderização de um médico com dois endereços, e o ISR
       congelaria essa escolha arbitrária por uma hora.
     */
@@ -75,11 +75,11 @@ function paraDominio(linha: any): Medico {
 /**
  * Todos os profissionais visíveis, uma vez por requisição.
  *
- * Envolvido em `cache` do React de propósito. Uma página de faceta chama a
- * camada de dados cinco vezes — para o título, para o resumo, para a lista
- * filtrada, para os bairros e para as especialidades relacionadas. Sem isto,
- * seriam cinco varreduras da tabela inteira e cinco mapeamentos completos na
- * mesma renderização. Com `cache`, é uma só, e as outras quatro reaproveitam.
+ * Envolvido em `cache` do React de propósito. Uma página de especialidade
+ * chama a camada de dados três vezes — para o título, para a lista e para as
+ * especialidades relacionadas. Sem isto, seriam três varreduras da tabela
+ * inteira e três mapeamentos completos na mesma renderização. Com `cache`, é
+ * uma só, e as outras duas reaproveitam.
  *
  * Sem argumento de propósito: `cache` compara argumentos por identidade, e
  * dois objetos de filtro iguais mas distintos furariam a memoização. Filtrar
@@ -93,8 +93,8 @@ const todosVisiveis = cache(async (): Promise<Medico[]> => {
     .eq("situacao", "ativo")
     /*
       Sem ordem explícita, o PostgREST não promete estabilidade nos registros
-      de um recurso aninhado — `LinhaMedico`, `jsonld.ts` e a página de
-      perfil tomam `locais[0]` como "o" consultório do médico, e um médico com
+      de um recurso aninhado — o perfil e `jsonld.ts` tomam `locais[0]` como
+      o consultório principal, e um médico com
       dois endereços poderia alternar entre um e outro a cada renderização.
       Ordenar pelo id do próprio `atendimento` torna a resposta determinística
       na origem; `paraDominio` ainda reordena por id do local como garantia
@@ -107,7 +107,7 @@ const todosVisiveis = cache(async (): Promise<Medico[]> => {
 });
 
 /**
- * Busca com filtros.
+ * Busca com filtros, em ordem alfabética.
  *
  * A publicação é filtrada no banco — e a RLS garante isso de novo, mesmo que
  * alguém remova aquela linha. O restante é filtrado em memória por
@@ -115,11 +115,7 @@ const todosVisiveis = cache(async (): Promise<Medico[]> => {
  * diferença de desempenho é irrelevante, e a lógica fica testável sem banco.
  */
 export async function buscarMedicos(filtros: Filtros = {}): Promise<Medico[]> {
-  return ordenar(
-    aplicarFiltros(await todosVisiveis(), filtros),
-    filtros.ordem ?? "relevancia",
-    filtros.termo,
-  );
+  return emOrdemAlfabetica(aplicarFiltros(await todosVisiveis(), filtros));
 }
 
 /**

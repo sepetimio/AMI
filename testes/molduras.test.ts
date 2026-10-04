@@ -4,14 +4,19 @@ import { describe, expect, it, vi } from "vitest";
 import { Fotografia } from "@/components/base/Fotografia";
 import { UltimasNoticias } from "@/components/editorial/UltimasNoticias";
 import { Carrossel } from "@/components/home/Carrossel";
-import { EmpresasParceiras } from "@/components/home/EmpresasParceiras";
-import { ServicosDaAmi } from "@/components/home/ServicosDaAmi";
+import { NumerosDaAmi } from "@/components/home/NumerosDaAmi";
+import { Parceiros } from "@/components/home/Parceiros";
+import { SejaAssociado } from "@/components/home/SejaAssociado";
+import { SuaAmi } from "@/components/home/SuaAmi";
+import { ESPACOS, espacosProvisorios, type NomeEspaco } from "@/lib/imagens";
 import {
   BANNERS_PROVISORIOS,
+  ESPACOS_DE_PARCEIRAS,
   desenhoDaFotografia,
   moldurasDaHome,
+  quemEhAmi,
 } from "@/lib/molduras";
-import type { Banner, ResumoNoticia } from "@/lib/sanity/tipos";
+import type { Banner, EmpresaParceira, ResumoNoticia } from "@/lib/sanity/tipos";
 
 /* `UltimasNoticias` busca as notícias ela mesma. Aqui não há Sanity: este
    dublê devolve o que cada teste puser em `publicadas`. */
@@ -43,15 +48,22 @@ async function noticias(publicadas: ResumoNoticia[], provisorias?: boolean) {
   Renderiza com `renderToString` pelo mesmo motivo de
   testes/porta-da-busca.test.ts: uma varredura de texto-fonte não distingue
   uma moldura viva de uma dentro de `{false && …}` (ver o topo de
-  testes/home.test.ts). O que este arquivo NÃO vê está no relatório da
-  tarefa e no fim deste arquivo.
+  testes/home.test.ts). O que este arquivo NÃO vê (a ligação da própria
+  página, o valor da chave na build de produção, nada visual e o carrossel
+  girando) está listado no fim deste arquivo.
 */
 
 const REAL: Banner = {
+  tipo: "arte",
   id: "real",
   nome: "Assembleia",
   imagem: "https://exemplo.test/assembleia.jpg",
+  imagemSrcset: "https://exemplo.test/assembleia.jpg 3000w",
   alt: "Assembleia geral no dia 12 de março, às 19h, na sede da AMI",
+  imagemCelular: null,
+  imagemCelularSrcset: null,
+  tema: "escuro",
+  foco: null,
   destino: null,
   ordem: 10,
 };
@@ -66,7 +78,7 @@ function vezes(texto: string, trecho: string): number {
 }
 
 describe("o carrossel com os três banners provisórios", () => {
-  const saida = html(createElement(Carrossel, { banners: BANNERS_PROVISORIOS }));
+  const saida = html(createElement(Carrossel, { itens: BANNERS_PROVISORIOS }));
 
   it("desenha as três molduras, nesta ordem, cada uma com o seu destino", () => {
     const ordem = [
@@ -84,101 +96,43 @@ describe("o carrossel com os três banners provisórios", () => {
     }
   });
 
-  it("na proporção da arte real, 3000 × 856, e sem <img>", () => {
-    expect(vezes(saida, "aspect-ratio:3000 / 856")).toBe(3);
+  it("cobre o slide inteiro, na proporção do slide do computador (1192 × 512), e sem <img>", () => {
+    /* Cinco: os três reais mais as duas cópias das pontas da fita
+       (lib/carrossel.ts), que repetem o último e o primeiro. */
+    expect(vezes(saida, "aspect-ratio:1192 / 512")).toBe(5);
     expect(saida).not.toContain("<img");
   });
 
   it("gira como o real: setas, três bolinhas e pausa", () => {
-    expect(saida).toContain(">Anterior<");
-    expect(saida).toContain(">Próximo<");
-    expect(saida).toContain(">Pausar<");
+    expect(saida).toContain('aria-label="Anterior"');
+    expect(saida).toContain('aria-label="Próximo"');
+    expect(saida).toContain('aria-label="Pausar"');
     expect(vezes(saida, "Ir para o banner ")).toBe(3);
   });
 
   it("um banner real continua saindo como <img>, sem moldura", () => {
-    const real = html(createElement(Carrossel, { banners: [REAL] }));
+    const real = html(createElement(Carrossel, { itens: [REAL] }));
     expect(real).toContain('<img src="https://exemplo.test/assembleia.jpg"');
     expect(real).not.toContain("a entrar");
   });
 });
 
-describe("o cartão provisório Sua AMI", () => {
-  const props = { total: 24, especialidades: 9, ultimaNoticia: null };
-  const com = html(createElement(ServicosDaAmi, { ...props, suaAmi: true }));
-  const sem = html(createElement(ServicosDaAmi, props));
+/* O bloco "Sua AMI" (que substituiu o cartão provisório de mesmo nome) é
+   medido em testes/sua-ami-e-associe.test.ts: o texto visível inteiro,
+   sem número nenhum, e nada fora da demonstração. */
 
-  /** O cartão inteiro, do `<a>` tracejado até o `</a>` dele. */
-  function cartao(saida: string): string {
-    const inicio = saida.lastIndexOf("<a", saida.indexOf("border-dashed"));
-    return saida.slice(inicio, saida.indexOf("</a>", inicio) + 4);
-  }
-
-  it("é um link para /contato, com título, texto e ação aprovados", () => {
-    const c = cartao(com);
-    /* Sem depender da ordem dos atributos: o `Link` imprime `class` antes
-       de `href`. */
-    expect(c).toMatch(/^<a [^>]*href="\/contato"/);
-    expect(c).toContain(">Sua AMI</h3>");
-    expect(c).toContain("Auditório e hall de eventos da AMI para alugar.");
-    expect(c).toContain("Consultar disponibilidade");
-  });
-
-  it("vem marcado como provisório", () => {
-    expect(cartao(com)).toContain("Serviço a entrar");
-  });
-
-  it("não inventa preço, capacidade, metragem nem horário, e não tem foto", () => {
-    /*
-      Todo o texto visível do cartão, tirado o HTML, comparado por inteiro.
-      A versão anterior só procurava algarismos, e uma revisão provou que
-      "Capacidade para cem pessoas, das oito às dezoito horas, a partir de
-      mil reais." passava com a suíte inteira verde: número por extenso não
-      é algarismo. Qualquer palavra a mais aqui é um fato que alguém pôs.
-    */
-    const visivel = cartao(com)
-      .replace(/<[^>]+>/g, "\n")
-      .split("\n")
-      .map((t) => t.trim())
-      .filter(Boolean);
-    expect(visivel).toEqual([
-      "Sua AMI",
-      "Serviço a entrar",
-      "Auditório e hall de eventos da AMI para alugar.",
-      "Consultar disponibilidade",
-    ]);
-    expect(cartao(com)).not.toMatch(/<img|role="img"/);
-  });
-
-  /** As classes da grade dos cartões, inteiras. */
-  function grade(saida: string): string {
-    return /class="mt-6 grid gap-4 ([^"]*)"/.exec(saida)?.[1].trim() ?? "(sem grade)";
-  }
-
-  it("com ele, a grade passa a 2 por linha do tablet para cima, nunca 4", () => {
-    /* Quatro lado a lado espremia o campo de busca para 128px a 1280 (226px
-       com três) — medido, ver o comentário no componente. */
-    expect(grade(com)).toBe("md:grid-cols-2");
-  });
-
-  it("sem ele, o cartão some e a grade volta a ser a de três", () => {
-    expect(sem).not.toContain("Sua AMI");
-    expect(sem).not.toContain("a entrar");
-    expect(grade(sem)).toBe("md:grid-cols-3");
-  });
-});
-
-describe("as três notícias provisórias", () => {
-  it("sem notícia real e com provisorias, saem três cartões Notícia a entrar", async () => {
+describe("as quatro notícias provisórias", () => {
+  it("sem notícia real e com provisorias, saem quatro peças Notícia a entrar", async () => {
     const saida = await noticias([], true);
-    expect(vezes(saida, ">Notícia a entrar</h3>")).toBe(3);
+    expect(vezes(saida, ">Notícia a entrar</h3>")).toBe(4);
   });
 
-  it("com a forma do cartão real: <li> com a caixa de capa de 160 × 112", async () => {
+  it("na forma do desenho: o destaque e três na lista, cada uma com a moldura no lugar da capa", async () => {
+    /* A forma em detalhe (destaque, lista, divisórias) está em
+       testes/noticias-da-home.test.ts. */
     const saida = await noticias([], true);
-    expect(vezes(saida, "<li ")).toBe(3);
-    expect(vezes(saida, "h-[112px]")).toBe(3);
-    expect(vezes(saida, "sm:w-[160px]")).toBe(3);
+    expect(vezes(saida, "<article")).toBe(4);
+    expect(vezes(saida, 'aria-label="Espaço reservado para a capa de uma notícia"')).toBe(4);
   });
 
   it("não levam a lugar nenhum", async () => {
@@ -200,32 +154,29 @@ describe("as três notícias provisórias", () => {
   });
 });
 
-describe("a faixa de empresas parceiras", () => {
-  const saida = html(createElement(EmpresasParceiras));
+describe("a parte de empresas parceiras", () => {
+  const saida = html(createElement(Parceiros, { parceiras: [], provisorias: true }));
+  const parte = saida.slice(saida.indexOf('<section id="parceiros"'));
 
-  it("tem o título aprovado e seis espaços de logotipo", () => {
-    expect(saida).toContain(">Empresas parceiras da AMI</h2>");
-    expect(vezes(saida, ">Logotipo a entrar</p>")).toBe(6);
-    expect(vezes(saida, 'role="img"')).toBe(6);
-  });
-
-  it("em duas linhas de 3 do tablet para cima, 2 no celular — nunca 6 lado a lado", () => {
-    /* Com 6, a tarja quebrava em duas linhas a 1024 (medido, ver o
-       comentário no componente). */
-    const classes = /<ul class="mt-8 grid ([^"]*)"/.exec(saida)?.[1].trim();
-    expect(classes).toBe("grid-cols-2 gap-4 md:grid-cols-3");
+  it("tem o rótulo e o título aprovados e seis espaços de logotipo", () => {
+    expect(parte).toContain(">Empresas parceiras da AMI</span>");
+    expect(parte).toContain(">Quem caminha com a AMI</h2>");
+    expect(vezes(parte, ">Logotipo a entrar</li>")).toBe(6);
   });
 
   it("não escreve nome de empresa nenhuma", () => {
-    /* Todo texto visível da faixa, tirado o HTML: só pode sobrar o título e
-       as seis legendas. Qualquer outra palavra é um nome que alguém pôs. */
-    const visivel = saida
+    /* Todo texto visível da parte, tirado o HTML: só pode sobrar o rótulo,
+       o título e as seis legendas. Qualquer outra palavra é um nome que
+       alguém pôs. A grade (seis, três e três) está no CSS, conferida em
+       testes/noticias-da-home.test.ts. */
+    const visivel = parte
       .replace(/<[^>]+>/g, "\n")
       .split("\n")
       .map((t) => t.trim())
       .filter(Boolean);
     expect(visivel).toEqual([
       "Empresas parceiras da AMI",
+      "Quem caminha com a AMI",
       ...Array<string>(6).fill("Logotipo a entrar"),
     ]);
   });
@@ -235,45 +186,88 @@ describe("a faixa de empresas parceiras", () => {
   A trava. É a parte que mais importa: nenhuma moldura "a entrar" pode
   chegar ao público no lançamento.
 
-  `home()` liga a saída de `moldurasDaHome` aos quatro componentes, mais a
-  fotografia provisória do bloco institucional, do jeito
-  que app/(site)/page.tsx liga — a ligação de lá é conferida por texto-fonte
-  em testes/home.test.ts, porque a página busca dados e não renderiza aqui.
+  `home()` liga a saída de `moldurasDaHome` ao carrossel, aos números, às
+  notícias e aos parceiros, e a chave a "Sua AMI" e a "Seja
+  associado", que decidem sozinhos, do jeito que app/(site)/page.tsx liga. A
+  página de verdade, com as mesmas peças, é renderizada em
+  testes/home-renderizada.test.ts.
 */
 async function home(
   demonstracao: boolean,
-  real: { banners: Banner[]; publicadas: ResumoNoticia[] },
+  real: { banners: Banner[]; publicadas: ResumoNoticia[]; parceiras?: EmpresaParceira[] },
 ) {
   const m = moldurasDaHome(demonstracao, {
     banners: real.banners,
     temNoticia: real.publicadas.length > 0,
+    parceiras: real.parceiras ?? [],
   });
   return [
-    html(createElement(Carrossel, { banners: m.banners })),
+    html(createElement(Carrossel, { itens: m.banners })),
     html(
-      createElement(ServicosDaAmi, {
-        total: 24,
-        especialidades: 9,
-        ultimaNoticia: null,
-        suaAmi: m.suaAmi,
+      createElement(NumerosDaAmi, {
+        anos: 51,
+        medicos: 24,
+        especialidades: 14,
+        parceiras: m.numeroDeParceiras,
+      }),
+    ),
+    html(createElement(SuaAmi, { demonstracao })),
+    html(
+      createElement(SejaAssociado, {
+        demonstracao,
+        texto: { missao: null, visao: null, valores: null },
       }),
     ),
     await noticias(real.publicadas, m.noticiasProvisorias),
-    m.parceiros ? html(createElement(EmpresasParceiras)) : "",
-    html(createElement(Fotografia, { espaco: "sede", demonstracao })),
+    html(
+      createElement(Parceiros, {
+        parceiras: m.parceiras,
+        provisorias: m.parceirasProvisorias,
+      }),
+    ),
   ].join("\n");
 }
 
-/* Uma marca de cada moldura. Se alguma sair, a trava vazou. */
+/* Uma marca de cada moldura. Se alguma sair, a trava vazou. O quarto número
+   ("empresas parceiras", com o botão "Ver parceiras") entra aqui porque,
+   sem empresa cadastrada, ele conta os seis espaços provisórios. */
 const MARCAS = [
   "Arte a entrar",
   "Sua AMI",
-  "Serviço a entrar",
+  "Texto da AMI a entrar",
   "Notícia a entrar",
   "Empresas parceiras da AMI",
   "Logotipo a entrar",
   "Fotografia a entrar",
+  ">empresas parceiras<",
+  "Ver parceiras",
+  "data-a-entrar",
 ];
+
+/* Um slide de foto com texto, sem a foto ainda. */
+const COMPOSTO_SEM_FOTO: Banner = {
+  tipo: "composto",
+  id: "composto",
+  nome: "Os médicos de Imperatriz",
+  foto: null,
+  fotoSrcset: null,
+  foco: null,
+  fotoAlt: "",
+  rotulo: null,
+  titulo: "Os médicos de Imperatriz",
+  texto: null,
+  botao: null,
+  destino: "/busca",
+  ordem: 20,
+};
+
+const COMPOSTO_COM_FOTO: Banner = {
+  ...COMPOSTO_SEM_FOTO,
+  id: "composto-com-foto",
+  foto: "https://exemplo.test/medicos.jpg",
+  fotoSrcset: "https://exemplo.test/medicos.jpg 1600w",
+  fotoAlt: "Médicos reunidos no auditório da AMI",
+};
 
 describe("a trava", () => {
   it("com a chave falsa e sem conteúdo real, nenhuma moldura sai — nem a da foto", async () => {
@@ -284,17 +278,17 @@ describe("a trava", () => {
     /* E as seções sem conteúdo somem, como antes: carrossel e notícias não
        deixam nem a casca. */
     expect(saida).not.toContain("Destaques da AMI");
-    expect(saida).not.toContain("Da associação");
+    expect(saida).not.toContain("Fique por dentro da AMI");
   });
 
   it("com a chave falsa, nada provisório sai em nenhuma combinação de conteúdo", () => {
     for (const banners of [[], [REAL]]) {
       for (const temNoticia of [false, true]) {
-        const m = moldurasDaHome(false, { banners, temNoticia });
+        const m = moldurasDaHome(false, { banners, temNoticia, parceiras: [] });
         expect(m.banners).toEqual(banners);
-        expect(m.suaAmi).toBe(false);
         expect(m.noticiasProvisorias).toBe(false);
-        expect(m.parceiros).toBe(false);
+        expect(m.parceirasProvisorias).toBe(false);
+        expect(m.numeroDeParceiras).toBeNull();
       }
     }
   });
@@ -309,13 +303,114 @@ describe("a trava", () => {
   });
 
   it("um banner real tira os três provisórios, mesmo com a chave verdadeira", () => {
-    const m = moldurasDaHome(true, { banners: [REAL], temNoticia: false });
+    const m = moldurasDaHome(true, { banners: [REAL], temNoticia: false, parceiras: [] });
     expect(m.banners).toEqual([REAL]);
   });
 
+  it("os três provisórios são do tipo provisorio, e um banner real nunca é", () => {
+    expect(BANNERS_PROVISORIOS.map((b) => b.tipo)).toEqual([
+      "provisorio",
+      "provisorio",
+      "provisorio",
+    ]);
+    expect(REAL.tipo).toBe("arte");
+  });
+
+  it("um banner com foto e texto também conta como real: tira os provisórios", () => {
+    const m = moldurasDaHome(true, { banners: [REAL, COMPOSTO_SEM_FOTO], temNoticia: false, parceiras: [] });
+    expect(m.banners).toEqual([REAL, COMPOSTO_SEM_FOTO]);
+  });
+
+  it("fora da demonstração, o slide de foto com texto sem foto sai do carrossel", () => {
+    /* Dentro dela, a área da foto vira moldura (o caso de cima); fora, uma
+       moldura seria "a entrar" chegando ao público. O com foto fica. */
+    const m = moldurasDaHome(false, {
+      banners: [REAL, COMPOSTO_SEM_FOTO, COMPOSTO_COM_FOTO],
+      temNoticia: false,
+      parceiras: [],
+    });
+    expect(m.banners).toEqual([REAL, COMPOSTO_COM_FOTO]);
+  });
+
+  it("fora da demonstração, só com slides sem foto, o carrossel fica vazio e some", () => {
+    /* Vazio, e não os provisórios: fora da demonstração eles nunca saem. */
+    expect(
+      moldurasDaHome(false, { banners: [COMPOSTO_SEM_FOTO], temNoticia: false, parceiras: [] }).banners,
+    ).toEqual([]);
+    /* Na demonstração, o mesmo slide fica, e os provisórios não entram. */
+    expect(
+      moldurasDaHome(true, { banners: [COMPOSTO_SEM_FOTO], temNoticia: false, parceiras: [] }).banners,
+    ).toEqual([COMPOSTO_SEM_FOTO]);
+  });
+
   it("uma notícia real tira as provisórias, mesmo com a chave verdadeira", () => {
-    const m = moldurasDaHome(true, { banners: [], temNoticia: true });
+    const m = moldurasDaHome(true, { banners: [], temNoticia: true, parceiras: [] });
     expect(m.noticiasProvisorias).toBe(false);
+  });
+});
+
+/* Empresas de mentira, com nomes que não existem. */
+function parceira(letra: string, site: string | null = null): EmpresaParceira {
+  return {
+    id: `parceira-${letra}`,
+    nome: `Empresa Exemplo ${letra}`,
+    logotipo: `https://exemplo.test/logo-${letra}.png`,
+    logotipoSrcset: `https://exemplo.test/logo-${letra}.png 640w`,
+    site,
+  };
+}
+const UMA = [parceira("A")];
+const SETE = ["A", "B", "C", "D", "E", "F", "G"].map((l) => parceira(l));
+
+describe("as empresas parceiras e o quarto número", () => {
+  const casos: [string, boolean, EmpresaParceira[], boolean, number | null][] = [
+    /* [caso, demonstração, reais, espaços provisórios, quarto número] */
+    ["nenhuma real, na demonstração: os seis espaços e o número 6", true, [], true, 6],
+    ["nenhuma real, fora da demonstração: nem faixa nem número", false, [], false, null],
+    ["uma real, na demonstração: a real e o número 1", true, UMA, false, 1],
+    ["uma real, fora da demonstração: a real e o número 1", false, UMA, false, 1],
+    ["sete reais, na demonstração: as sete e o número 7", true, SETE, false, 7],
+    ["sete reais, fora da demonstração: as sete e o número 7", false, SETE, false, 7],
+  ];
+  for (const [caso, demonstracao, reais, provisorias, numero] of casos) {
+    it(caso, () => {
+      const m = moldurasDaHome(demonstracao, { banners: [], temNoticia: false, parceiras: reais });
+      expect([m.parceiras, m.parceirasProvisorias, m.numeroDeParceiras]).toEqual([
+        reais,
+        provisorias,
+        numero,
+      ]);
+    });
+  }
+
+  it("o 6 da demonstração é o número de espaços que a faixa desenha", () => {
+    const m = moldurasDaHome(true, { banners: [], temNoticia: false, parceiras: [] });
+    const faixa = html(createElement(Parceiros, { parceiras: [], provisorias: true }));
+    expect(m.numeroDeParceiras).toBe(ESPACOS_DE_PARCEIRAS);
+    expect(vezes(faixa, ">Logotipo a entrar</li>")).toBe(ESPACOS_DE_PARCEIRAS);
+  });
+
+  it("há quarto número exatamente quando há faixa: o Ver parceiras sempre tem aonde levar", async () => {
+    for (const demonstracao of [true, false]) {
+      for (const parceiras of [[], UMA, SETE]) {
+        const saida = await home(demonstracao, { banners: [], publicadas: [], parceiras });
+        const caso = `demonstração ${demonstracao}, ${parceiras.length} reais`;
+        expect(saida.includes('href="/#parceiros"'), caso).toBe(saida.includes('id="parceiros"'));
+      }
+    }
+  });
+
+  it("com a chave falsa e empresas reais: os logotipos e o número delas, nada provisório", async () => {
+    const saida = await home(false, { banners: [], publicadas: [], parceiras: SETE });
+    for (const p of SETE) expect(saida).toContain(`alt="${p.nome}"`);
+    expect(saida).toContain("<span>7</span>");
+    expect(saida).not.toContain("Logotipo a entrar");
+  });
+
+  it("com a chave verdadeira e uma empresa real, os seis espaços saem todos", async () => {
+    const saida = await home(true, { banners: [], publicadas: [], parceiras: UMA });
+    expect(saida).toContain('alt="Empresa Exemplo A"');
+    expect(saida).not.toContain("Logotipo a entrar");
   });
 });
 
@@ -328,9 +423,11 @@ describe("a fotografia provisória obedece a mesma trava", () => {
     expect(desenhoDaFotografia(false, true)).toBe("foto");
   });
 
-  it("chave falsa + foto provisória = nada desenhado, nos dois espaços", () => {
-    for (const espaco of ["sede", "cidade"] as const) {
-      expect(html(createElement(Fotografia, { espaco, demonstracao: false }))).toBe("");
+  it("chave falsa + foto provisória = nada desenhado, em todos os espaços", () => {
+    const espacos = Object.keys(ESPACOS) as NomeEspaco[];
+    expect(espacos).toEqual(["sede", "cidade", "salao", "associados"]);
+    for (const espaco of espacos) {
+      expect(html(createElement(Fotografia, { espaco, demonstracao: false })), espaco).toBe("");
     }
   });
 
@@ -338,6 +435,91 @@ describe("a fotografia provisória obedece a mesma trava", () => {
     const saida = html(createElement(Fotografia, { espaco: "sede", demonstracao: true }));
     expect(saida).toContain("Fotografia a entrar: <!-- -->Fachada da sede da AMI");
     expect(saida).toContain("aspect-ratio:1280 / 960");
+    /* A marca de toda moldura "a entrar" (components/base/MolduraProvisoria.tsx). */
+    expect(saida).toMatch(/^<div [^>]*role="img"[^>]* data-a-entrar="">/);
+  });
+});
+
+describe("os dois espaços de foto da tarefa 8", () => {
+  it("auditório e associados, nas proporções do desenho, ainda provisórios", () => {
+    const { salao, associados } = ESPACOS;
+    expect([salao.largura, salao.altura, salao.rotulo, salao.provisoria]).toEqual([
+      2000,
+      1125,
+      "Auditório da AMI",
+      true,
+    ]);
+    expect([associados.largura, associados.altura, associados.rotulo, associados.provisoria]).toEqual([
+      1600,
+      1100,
+      "Associados da AMI",
+      true,
+    ]);
+  });
+
+  it("entram na lista de pendências da AMI, cada um dizendo o que falta", () => {
+    const pendentes = espacosProvisorios().map(([nome]) => nome);
+    expect(pendentes).toContain("salao");
+    expect(pendentes).toContain("associados");
+    /* O `precisa` é o pedido que a AMI lê: diz o assunto e a largura
+       mínima, como os dois de antes. */
+    expect(ESPACOS.salao.precisa).toMatch(/auditório/i);
+    expect(ESPACOS.salao.precisa).toMatch(/no mínimo \d+px de largura/);
+    expect(ESPACOS.associados.precisa).toMatch(/associados/i);
+    expect(ESPACOS.associados.precisa).toMatch(/no mínimo \d+px de largura/);
+  });
+
+  it("com a chave verdadeira, as molduras saem na proporção da foto", () => {
+    const salao = html(createElement(Fotografia, { espaco: "salao", demonstracao: true }));
+    expect(salao).toContain("Fotografia a entrar: <!-- -->Auditório da AMI");
+    expect(salao).toContain("aspect-ratio:2000 / 1125");
+    const associados = html(createElement(Fotografia, { espaco: "associados", demonstracao: true }));
+    expect(associados).toContain("Fotografia a entrar: <!-- -->Associados da AMI");
+    expect(associados).toContain("aspect-ratio:1600 / 1100");
+  });
+});
+
+describe("quem e a AMI", () => {
+  const vazio = { missao: null, visao: null, valores: null };
+
+  it("sem texto e em demonstracao, os tres cartoes saem como 'Texto da AMI a entrar'", () => {
+    expect(quemEhAmi(true, vazio).cartoes.map((c) => [c.titulo, c.texto, c.provisorio])).toEqual([
+      ["Missão", "Texto da AMI a entrar.", true],
+      ["Visão", "Texto da AMI a entrar.", true],
+      ["Valores", "Texto da AMI a entrar.", true],
+    ]);
+  });
+
+  it("sem texto e fora da demonstracao, nenhum cartao sai", () => {
+    expect(quemEhAmi(false, vazio).cartoes).toEqual([]);
+  });
+
+  it("com texto, sai o texto, nos dois modos", () => {
+    const t = { missao: "M", visao: null, valores: "V" };
+    expect(quemEhAmi(false, t).cartoes.map((c) => c.titulo)).toEqual(["Missão", "Valores"]);
+    expect(quemEhAmi(false, t).cartoes.map((c) => [c.texto, c.provisorio])).toEqual([
+      ["M", false],
+      ["V", false],
+    ]);
+    /* Na demonstração o que falta vira moldura no lugar dele, e o real
+       continua real: a ordem é sempre missão, visão, valores. */
+    expect(quemEhAmi(true, t).cartoes.map((c) => [c.titulo, c.texto, c.provisorio])).toEqual([
+      ["Missão", "M", false],
+      ["Visão", "Texto da AMI a entrar.", true],
+      ["Valores", "V", false],
+    ]);
+  });
+
+  it("texto em branco conta como texto nenhum", () => {
+    const branco = { missao: "", visao: "   ", valores: null };
+    expect(quemEhAmi(false, branco).cartoes).toEqual([]);
+    expect(quemEhAmi(true, branco).cartoes.every((c) => c.provisorio)).toBe(true);
+  });
+
+  it("o texto real sai aparado, sem os espaços das pontas", () => {
+    expect(quemEhAmi(false, { missao: "  Cuidar.\n", visao: null, valores: null }).cartoes).toEqual([
+      { titulo: "Missão", texto: "Cuidar.", provisorio: false },
+    ]);
   });
 });
 
@@ -347,7 +529,8 @@ describe("a fotografia provisória obedece a mesma trava", () => {
   - A página em si. `home()` acima refaz a ligação de app/(site)/page.tsx;
     se a página ligar diferente, isto continua verde. A ligação de lá é
     conferida por texto-fonte em testes/home.test.ts, que não distingue
-    `{molduras.parceiros ? …}` de `{false && molduras.parceiros ? …}`.
+    `{molduras.noticiasProvisorias ? …}` de
+    `{false && molduras.noticiasProvisorias ? …}`.
   - O valor da chave em produção. `DADOS_DEMONSTRACAO` é `NEXT_PUBLIC_`, e o
     Next grava o valor no código durante `next build`: trocar a variável sem
     refazer a build não muda a home. O que este arquivo prova é a decisão

@@ -1,0 +1,170 @@
+/*
+  A faixa verde e a capa da notícia aberta, transcritas do desenho
+  aprovado (docs/desenho-aprovado/noticias-contato/noticia.html:
+  `.materia-topo`, `.materia-topo h1`, `.materia-topo .texto`,
+  `.assinatura` e o que vem dentro dela, `.ladrilho-vidro`, `.capa-materia`,
+  e o @media de 700px).
+
+  A faixa é a faixa curta (components/layout/FaixaCurta.tsx), sem o
+  ladrilho à direita: o título de uma notícia tem até 110 caracteres e
+  precisa da largura. Por isso o título é menor que o das outras faixas
+  (de 34 a 50px, até 24 caracteres por linha), e a grade tem uma coluna
+  só.
+
+  As regras daqui valem sobre as da faixa curta e da busca qualquer que
+  seja a ordem em que as folhas chegam ao navegador:
+  - `.materia[data-faixa][data-abertura]` (classe e dois atributos) pesa
+    mais que `.especialidade[data-faixa]`;
+  - `.materia[data-faixa] h1` e `.materia[data-faixa] h1 + p` pesam mais
+    que `.especialidade h1`, `.especialidade h1 + p`, `.titulo` e `.texto`.
+
+  A assinatura, embaixo de um fio claro: o estetoscópio num ladrilho de
+  vidro, "Por {autor}" (com o link do perfil, sublinhado claro) e a linha
+  "MÉDICO · CRM/UF n · data", em caixa alta. O vidro e o fio são branco
+  translúcido, sem tom. #DDE7D6, a linha do CRM, é a cor dos rótulos dos
+  números de A Associação (components/associacao/FaixaDaAssociacao.module.css).
+
+  A capa: em 16:9, na largura dos painéis, com o canto dos painéis. O
+  recorte é o do CDN, pelo ponto de interesse (`capaDaNoticia`,
+  lib/noticias.ts); o `object-fit` só cobre a caixa enquanto o arquivo
+  chega. #DDE2E0, atrás dela, é o cinza do retrato do médico
+  (components/diretorio/FotoDoMedico.module.css).
+*/
+
+.materia[data-faixa][data-abertura] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.materia[data-faixa] h1 {
+  max-width: 24ch;
+  font-size: clamp(34px, 3.6vw, 50px);
+  line-height: 1.06;
+}
+
+.materia[data-faixa] h1 + p {
+  max-width: 40em;
+  font-size: 17.5px;
+  line-height: 1.6;
+}
+
+.assinatura {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  column-gap: 14px;
+  align-items: center;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.vidro {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.03) 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  color: var(--color-ami-lima-400);
+}
+
+.vidro svg {
+  width: 23px;
+  height: 23px;
+}
+
+.nome {
+  font-size: 15.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-white);
+}
+
+.nome a {
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.45);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.2s;
+}
+
+.nome a:hover {
+  text-decoration-color: var(--color-white);
+}
+
+.meta {
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: #DDE7D6;
+}
+
+.capa {
+  margin: 0;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-painel);
+  background: #DDE2E0;
+  box-shadow: var(--shadow-erguido);
+}
+
+.capa img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 700px) {
+  .materia[data-faixa] h1 {
+    font-size: 30px;
+    line-height: 1.08;
+  }
+
+  .materia[data-faixa] h1 + p {
+    font-size: 15.5px;
+    line-height: 1.55;
+  }
+
+  .assinatura {
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 12px;
+    margin-top: 22px;
+    padding-top: 18px;
+  }
+
+  .vidro {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .vidro svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .nome {
+    font-size: 15px;
+  }
+
+  .meta {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .ponto {
+    display: none;
+  }
+
+  .meta time {
+    display: block;
+  }
+
+  .capa {
+    border-radius: 20px;
+  }
+}

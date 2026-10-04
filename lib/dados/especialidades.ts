@@ -34,44 +34,23 @@ export async function especialidadesComContagem(): Promise<
 
 /* Memoizada: a página chama isto no generateMetadata e de novo no corpo,
    e sem cache seriam duas idas ao banco por requisição. O argumento é uma
-   string, então a comparação por identidade do cache funciona. */
-export const especialidadePorSlug = cache(async (slug: string) => {
-  const { data, error } = await clienteServidor()
-    .from("especialidade")
-    .select("nome, slug, o_que_faz, quando_procurar")
-    .eq("slug", slug)
-    .maybeSingle();
+   string, então a comparação por identidade do cache funciona.
 
-  if (error) throw new Error(`Falha ao buscar a especialidade: ${error.message}`);
-  if (!data) return null;
+   Só o nome e o slug. O "Sobre a especialidade" (o que faz, quando
+   procurar, o revisor) vem do Sanity (`textoDaEspecialidade`,
+   lib/sanity/consultas.ts). As colunas `o_que_faz` e `quando_procurar`
+   continuam no banco, sem uso no site. */
+export const especialidadePorSlug = cache(
+  async (slug: string): Promise<{ nome: string; slug: string } | null> => {
+    const { data, error } = await clienteServidor()
+      .from("especialidade")
+      .select("nome, slug")
+      .eq("slug", slug)
+      .maybeSingle();
 
-  return {
-    nome: data.nome as string,
-    slug: data.slug as string,
-    oQueFaz: data.o_que_faz as string | null,
-    quandoProcurar: data.quando_procurar as string | null,
-  };
-});
+    if (error) throw new Error(`Falha ao buscar a especialidade: ${error.message}`);
+    if (!data) return null;
 
-/** Bairros com oferta, opcionalmente dentro de uma especialidade. */
-export async function bairrosComContagem(especialidadeSlug?: string) {
-  const medicos = await buscarMedicos(
-    especialidadeSlug ? { especialidade: especialidadeSlug } : {},
-  );
-  const contagem = new Map<string, { nome: string; slug: string; total: number }>();
-
-  for (const m of medicos) {
-    /* Um médico com dois consultórios no mesmo bairro conta uma vez só. */
-    const bairrosDoMedico = new Set(m.locais.map((l) => l.bairro.slug));
-    for (const slug of bairrosDoMedico) {
-      const bairro = m.locais.find((l) => l.bairro.slug === slug)!.bairro;
-      const atual = contagem.get(slug);
-      if (atual) atual.total += 1;
-      else contagem.set(slug, { nome: bairro.nome, slug, total: 1 });
-    }
-  }
-
-  return [...contagem.values()].sort(
-    (a, b) => b.total - a.total || a.nome.localeCompare(b.nome, "pt-BR"),
-  );
-}
+    return { nome: data.nome as string, slug: data.slug as string };
+  },
+);

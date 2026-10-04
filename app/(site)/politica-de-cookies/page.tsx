@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { PaginaDeTexto } from "@/components/editorial/PaginaDeTexto";
-import { RascunhoLegalNaTela } from "@/components/editorial/RascunhoLegalNaTela";
-import { paginaPorSlug } from "@/lib/sanity/consultas";
+import { conteudoDaPagina, iconeDaPagina, VOLTA_INICIO } from "@/lib/paginaDeTexto";
 import { COOKIES } from "@/lib/rascunhosLegais";
+import { paginaPorSlug } from "@/lib/sanity/consultas";
 
 export const revalidate = 3600;
 
@@ -18,11 +19,6 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const TRILHA = [
-  { nome: "Início", caminho: "/" },
-  { nome: "Política de cookies", caminho: `/${SLUG}` },
-];
-
 /*
   Duas origens possíveis, e a revisada sempre vence.
 
@@ -31,14 +27,23 @@ const TRILHA = [
   A alternativa era esta página dar 404, e num site que lida com saúde a
   ausência de política é falha mais visível do que um rascunho assinalado.
 
-  Publicado o texto revisado, `paginaPorSlug` passa a devolver algo e o ramo
-  de cima assume: o rascunho some da tela sem ninguém precisar apagar nada, e
-  o aviso some junto com ele.
+  Publicado o texto revisado, `paginaPorSlug` passa a devolver algo e ele
+  vence (`conteudoDaPagina`, lib/paginaDeTexto.ts): o rascunho some da tela
+  sem ninguém precisar apagar nada, e o aviso some junto com ele.
+
+  O que ainda falta no rascunho (o parágrafo marcado) sai como moldura "a
+  entrar" nos dois modos, e não só na demonstração, como nas páginas da
+  associação: um texto legal não pode perder calado um item obrigatório, e
+  o quadro de aviso já diz que o texto é rascunho. Por isso o terceiro
+  argumento é `true`, e não a chave de demonstração.
+
+  O desenho é o modelo de página de texto
+  (components/editorial/PaginaDeTexto.tsx), com o link de volta para o
+  início.
 */
 export default async function PaginaCookies() {
-  const revisado = await paginaPorSlug(SLUG);
+  const conteudo = conteudoDaPagina(await paginaPorSlug(SLUG), COOKIES, true);
+  if (!conteudo) notFound();
 
-  if (revisado) return <PaginaDeTexto slug={SLUG} trilha={TRILHA} />;
-
-  return <RascunhoLegalNaTela rascunho={COOKIES} trilha={TRILHA} />;
+  return <PaginaDeTexto conteudo={conteudo} volta={VOLTA_INICIO} icone={iconeDaPagina(SLUG)} />;
 }

@@ -1,26 +1,38 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 
 /*
-  Uma família só, em toda a interface, com peso variável de 100 a 900.
+  Texto corrido, Plus Jakarta Sans. Escolhida pelo cliente em 03/10/2026,
+  junto da Bricolage nos títulos: "as fontes do site estão muito simples".
 
-  Antes eram duas: Archivo condensada nos títulos e Source Sans 3 no corpo. A
-  Archivo entrou por um argumento que parecia bom, ecoar o letreiro comprimido
-  da marca, e envelheceu mal na tela: título condensado é a assinatura visual
-  de jornal e de folheto, e puxava o site inteiro para um registro impresso e
-  datado. O eco da marca passa a vir do símbolo, que é onde ele de fato mora.
-
-  Geist é grotesca de desenho contemporâneo, com contraforma aberta e números
-  bem resolvidos, e aguenta o salto de peso que o nível de display precisa sem
-  precisar de uma segunda família. Menos fonte carregada, mais unidade.
+  Era a Geist, em uma família só para tudo. A reforma separou os papéis: uma
+  fonte de texto de desenho amigável e uma de título com personalidade.
 */
-export const fonteCorpo = Geist({
+export const fonteCorpo = Plus_Jakarta_Sans({
   subsets: ["latin-ext"],
   display: "swap",
   variable: "--fonte-corpo",
 });
 
 /*
-  Mesma família, para o dado cartorial: CRM, RQE, telefone, CNPJ.
+  Títulos, Bricolage Grotesque. Opção C de três mostradas lado a lado no
+  desenho. O peso e o espaçamento entre letras ficam em `app/globals.css`
+  (h1 a h3: peso 500, -0,035em).
+
+  `axes: ["opsz"]` carrega o eixo de tamanho óptico, o mesmo que o desenho
+  aprovado pedia ao Google (`opsz,wght@12..96`): com ele a letra se desenha
+  mais fina e apertada em título grande e mais aberta em corpo pequeno, e
+  `font-optical-sizing: auto`, padrão do navegador, o aciona sozinho. Sem o
+  eixo o título sairia com o desenho de corpo pequeno em qualquer tamanho.
+*/
+export const fonteTitulo = Bricolage_Grotesque({
+  subsets: ["latin-ext"],
+  axes: ["opsz"],
+  display: "swap",
+  variable: "--fonte-titulo",
+});
+
+/*
+  Monoespaçada para o número de registro do médico: CRM e RQE.
 
   A razão de existir uma monoespaçada aqui está inalterada e continua valendo:
   um diretório médico é um registro público, e o número de inscrição é o que
@@ -28,21 +40,23 @@ export const fonteCorpo = Geist({
   lê como assento de registro e as colunas alinham entre linhas; em texto
   corrido lê como texto de marketing que por acaso tem dígitos.
 
-  O que mudou foi a escolha da família: Geist Mono é a irmã da Geist, mesma
-  altura de x e mesmo desenho de base, então o número deixa de destoar do
-  texto ao redor como destoava a Source Code Pro ao lado da Source Sans.
+  Geist Mono não tem mais irmã de texto: a Plus Jakarta Sans não é da mesma
+  família. A spec da reforma (seção 4) a deixa só no número de registro, onde
+  o contraste com o texto ao redor é justamente o que faz o CRM ler como
+  assento de registro. O rodapé já segue isso: CNPJ e telefones estão na fonte
+  do texto, com algarismos tabulares. As páginas internas que a reforma ainda
+  não alcançou continuam usando a classe `registro` (app/globals.css) também
+  em telefones, datas, contagens e no CNPJ de /associacao e /contato.
+
+  `preload: false`: a home e o rodapé de toda página não a usam mais, e com o
+  pré-carregamento toda página baixaria a fonte antes de precisar dela. Ela
+  baixa quando uma página a usa (`display: swap` mostra o número na fonte
+  reserva até ela chegar).
 */
 export const fonteRegistro = Geist_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   display: "swap",
+  preload: false,
   variable: "--fonte-registro",
 });
-
-/*
-  `fonteTitulo` continua existindo e aponta para a mesma Geist. Manter o nome
-  evita reescrever toda classe `font-titulo` espalhada pelos componentes, e o
-  ponto de extensão fica pronto para o dia em que uma display de verdade for
-  contratada.
-*/
-export const fonteTitulo = fonteCorpo;

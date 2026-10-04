@@ -1,11 +1,13 @@
-import type { Banner } from "@/lib/sanity/tipos";
+import type { Banner, EmpresaParceira } from "@/lib/sanity/tipos";
 
 /*
   As molduras provisórias da home, e a trava que as segura.
 
   O cliente ainda não tem as artes e pediu, em 03/10/2026, para ver a home
-  com a estrutura inteira: carrossel, quatro serviços, notícias e parceiros,
-  com moldura "a entrar" no lugar do que falta. Isso reverte uma decisão da
+  com a estrutura inteira, com moldura "a entrar" no lugar do que falta.
+  Hoje falta: as artes do carrossel, as fotos de "Sua AMI" e de "Seja
+  associado", o texto dos cartões de "Quem é a AMI?", as notícias e os
+  parceiros. Isso reverte uma decisão da
   spec (docs/superpowers/specs/2026-08-23-home-nova-decisoes.md: sem banner,
   a seção não existe) — mas SÓ em modo demonstração.
 
@@ -18,18 +20,28 @@ import type { Banner } from "@/lib/sanity/tipos";
   "demonstração" quando a variável nem está configurada.
 
   Com a chave falsa, nenhuma moldura sai, haja ou não conteúdo real: sem
-  banner o carrossel some, sem notícia o bloco some, e "Sua AMI" e a faixa de
-  parceiros, que não têm conteúdo real nenhum, somem sempre. É o
-  comportamento de antes, da spec.
+  banner o carrossel some, sem notícia o bloco some, e sem empresa parceira
+  cadastrada a faixa de parceiros some e o quarto número também. É o
+  comportamento de antes, da spec. "Sua AMI" e "Seja associado" recebem a
+  chave direto da home e decidem sozinhos (components/home/SuaAmi.tsx e
+  SejaAssociado.tsx).
 
   Arte real e provisória nunca se misturam: havendo um banner real, os três
-  provisórios saem todos; havendo uma notícia real, as provisórias também.
+  provisórios saem todos; havendo uma notícia real, as provisórias também;
+  havendo uma empresa parceira real, os seis espaços "Logotipo a entrar"
+  também.
+
+  Um banner real também pode trazer moldura: o slide de foto com texto
+  ("composto") cadastrado sem foto, cuja área de foto o carrossel desenha
+  como "a entrar". Na demonstração ele fica; fora dela, sai do carrossel.
 */
 
-/* Um banner que ainda não tem arte. `provisorio` é o que o carrossel usa para
-   saber que desenha moldura, e não `<img>`. */
+/* Um banner que ainda não tem arte. `tipo: "provisorio"` é o que o carrossel
+   usa para saber que desenha moldura, e não `<img>`: um terceiro valor ao
+   lado de "arte" e "composto" (lib/sanity/tipos.ts), que nunca é gravado no
+   Sanity. */
 export type BannerProvisorio = {
-  provisorio: true;
+  tipo: "provisorio";
   id: string;
   /** O que a arte vai anunciar. Sai na tarja: "Arte a entrar: <rotulo>". */
   rotulo: string;
@@ -41,49 +53,73 @@ export type ItemDoCarrossel = Banner | BannerProvisorio;
 /* Os três que o cliente aprovou, nesta ordem e com estes destinos. */
 export const BANNERS_PROVISORIOS: BannerProvisorio[] = [
   {
-    provisorio: true,
+    tipo: "provisorio",
     id: "provisorio-seja-associado",
     rotulo: "Seja associado",
     destino: "/associacao/seja-associado",
   },
   {
-    provisorio: true,
+    tipo: "provisorio",
     id: "provisorio-encontre-um-medico",
     rotulo: "Encontre um médico",
     destino: "/busca",
   },
   {
-    provisorio: true,
+    tipo: "provisorio",
     id: "provisorio-sua-ami",
     rotulo: "Sua AMI",
     destino: "/contato",
   },
 ];
 
+/* Quantos espaços "Logotipo a entrar" a faixa de parceiros mostra quando
+   ainda não há empresa cadastrada, e por isso o número de parceiras que a
+   home mostra nesse caso: o número conta os espaços que estão na tela. */
+export const ESPACOS_DE_PARCEIRAS = 6;
+
 export type MoldurasDaHome = {
   /** O que o carrossel recebe: os reais, os três provisórios, ou nada. */
   banners: ItemDoCarrossel[];
-  /** O quarto cartão de "Serviços da AMI". */
-  suaAmi: boolean;
-  /** Os três cartões "Notícia a entrar" no lugar das últimas notícias. */
+  /** As quatro peças "Notícia a entrar" (destaque e lista) no lugar das últimas notícias. */
   noticiasProvisorias: boolean;
-  /** A faixa "Empresas parceiras da AMI". */
-  parceiros: boolean;
+  /** As empresas parceiras cadastradas, que a faixa desenha nos dois modos. */
+  parceiras: EmpresaParceira[];
+  /** Os seis espaços "Logotipo a entrar": só sem nenhuma real, e só na demonstração. */
+  parceirasProvisorias: boolean;
+  /**
+   * O quarto número da home: as cadastradas; sem nenhuma, os seis espaços na
+   * demonstração; fora dela, `null`, e a home fica com três números.
+   */
+  numeroDeParceiras: number | null;
 };
 
 export function moldurasDaHome(
   demonstracao: boolean,
-  real: { banners: Banner[]; temNoticia: boolean },
+  real: { banners: Banner[]; temNoticia: boolean; parceiras: EmpresaParceira[] },
 ): MoldurasDaHome {
+  /* Fora da demonstração, o composto sem foto sai: a área da foto dele seria
+     moldura "a entrar". O carrossel usa o mesmo teste (`item.foto ?`). */
+  const reais = demonstracao
+    ? real.banners
+    : real.banners.filter((b) => b.tipo !== "composto" || Boolean(b.foto));
+
   let banners: ItemDoCarrossel[] = [];
-  if (real.banners.length > 0) banners = real.banners;
+  if (reais.length > 0) banners = reais;
   else if (demonstracao) banners = BANNERS_PROVISORIOS;
+
+  /* O número e a faixa andam juntos: o botão "Ver parceiras" do número leva
+     a `/#parceiros`, e a faixa existe exatamente quando há número. */
+  const temParceira = real.parceiras.length > 0;
+  let numeroDeParceiras: number | null = null;
+  if (temParceira) numeroDeParceiras = real.parceiras.length;
+  else if (demonstracao) numeroDeParceiras = ESPACOS_DE_PARCEIRAS;
 
   return {
     banners,
-    suaAmi: demonstracao,
     noticiasProvisorias: demonstracao && !real.temNoticia,
-    parceiros: demonstracao,
+    parceiras: real.parceiras,
+    parceirasProvisorias: demonstracao && !temParceira,
+    numeroDeParceiras,
   };
 }
 
@@ -92,8 +128,8 @@ export function moldurasDaHome(
 
   Foto com material real sai sempre. Foto ainda provisória sai como moldura
   "Fotografia a entrar" só no modo demonstração; fora dele não sai nada, e
-  quem a usa decide o que fazer com o vão (ver o bloco institucional em
-  app/(site)/page.tsx). Antes de 03/10/2026 a moldura de foto saía em
+  quem a usa decide o que fazer com o vão (ver "Seja associado", em
+  components/home/SejaAssociado.tsx). Antes de 03/10/2026 a moldura de foto saía em
   qualquer modo, e era a única "a entrar" que chegava ao público com a chave
   desligada.
 */
@@ -106,3 +142,56 @@ export function desenhoDaFotografia(
   if (!provisoria) return "foto";
   return demonstracao ? "moldura" : "nada";
 }
+
+/*
+  Missão, visão e valores, os cartões de "Quem é a AMI?" na home e de
+  "Princípios" em A Associação (`PrincipiosDaAmi`).
+
+  A AMI ainda não entregou nenhum dos três textos, e não há onde guardá-los:
+  quem desenha os cartões recebe `TEXTO_INSTITUCIONAL`, no fim deste arquivo,
+  com os três `null`. A mesma trava das outras molduras decide o que sai.
+  Texto real sai sempre. O que falta sai como "Texto da AMI
+  a entrar." só no modo demonstração; fora dele o cartão não existe. A ordem
+  é sempre missão, visão, valores, e texto em branco conta como nenhum.
+*/
+export type TextoInstitucional = {
+  missao: string | null;
+  visao: string | null;
+  valores: string | null;
+};
+
+export type CartaoInstitucional = {
+  titulo: "Missão" | "Visão" | "Valores";
+  texto: string;
+  /** Verdadeiro quando o texto é o "a entrar", e não o da AMI. */
+  provisorio: boolean;
+};
+
+export const TEXTO_A_ENTRAR = "Texto da AMI a entrar.";
+
+export function quemEhAmi(
+  demonstracao: boolean,
+  texto: TextoInstitucional,
+): { cartoes: CartaoInstitucional[] } {
+  const ordem: Array<[CartaoInstitucional["titulo"], string | null]> = [
+    ["Missão", texto.missao],
+    ["Visão", texto.visao],
+    ["Valores", texto.valores],
+  ];
+  const cartoes: CartaoInstitucional[] = [];
+  for (const [titulo, bruto] of ordem) {
+    const real = bruto?.trim() ?? "";
+    if (real) cartoes.push({ titulo, texto: real, provisorio: false });
+    else if (demonstracao) cartoes.push({ titulo, texto: TEXTO_A_ENTRAR, provisorio: true });
+  }
+  return { cartoes };
+}
+
+/*
+  O texto de Missão, visão e valores. A AMI ainda não entregou os três, e
+  não há campo no Studio para eles: com `null`, os cartões saem como "Texto
+  da AMI a entrar." na demonstração e não saem fora dela (`quemEhAmi`,
+  acima). A home ("Quem é a AMI?") e A Associação ("Princípios") leem
+  daqui; quando a AMI entregar, o texto entra aqui.
+*/
+export const TEXTO_INSTITUCIONAL: TextoInstitucional = { missao: null, visao: null, valores: null };

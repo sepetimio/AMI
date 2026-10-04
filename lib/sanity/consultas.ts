@@ -1,10 +1,16 @@
+import type { PortableTextBlock } from "@portabletext/react";
 import { defineQuery } from "next-sanity";
+import { mesDeAno } from "@/lib/especialidades";
+import { imagemComSrcset } from "@/lib/sanity/banners";
 import { obterCliente } from "@/lib/sanity/cliente";
 import { CAMINHO_DAS_PAGINAS } from "@/lib/sanity/paginas";
 import type {
+  EmpresaParceira,
+  ImagemSanity,
   Noticia,
   PaginaInstitucional,
   ResumoNoticia,
+  TextoDeEspecialidade,
 } from "@/lib/sanity/tipos";
 
 /*
@@ -25,13 +31,17 @@ import type {
    etiqueta. Um slug absurdamente longo não é caso realista, mas etiqueta
    recusada faria a invalidação falhar em silêncio. */
 export const ETIQUETA_NOTICIAS = "noticias";
+export const ETIQUETA_PARCEIRAS = "parceiras";
+export const ETIQUETA_TEXTOS_DE_ESPECIALIDADE = "textos-de-especialidade";
 export const etiquetaDeNoticia = (slug: string) =>
   `noticia:${slug.slice(0, 200)}`;
 export const etiquetaDePagina = (slug: string) =>
   `pagina:${slug.slice(0, 200)}`;
 
 const PROJECAO_AUTOR = `autor->{nome, crm, crmUf, slugDoPerfil}`;
-const PROJECAO_CAPA = `capa{asset, alt}`;
+/* `hotspot` e `crop`: a capa da notícia aberta sai em 16:9, recortada pelo
+   ponto de interesse que a AMI marcou (`urlRecortada`, lib/sanity/imagem.ts). */
+const PROJECAO_CAPA = `capa{asset, alt, hotspot, crop}`;
 
 /*
   A fatia é interpolada no texto, e não passada como parâmetro.
@@ -133,8 +143,8 @@ export async function noticiaPorSlug(slug: string): Promise<Noticia | null> {
     GROQ_NOTICIA,
     { slug },
     /* Duas etiquetas: a específica, para quando esta matéria é editada, e a
-       coletiva, para quando uma matéria nova entra e muda a navegação de
-       "anterior/próxima" que a página desenha. */
+       coletiva, para quando uma matéria nova entra e muda "Outras notícias",
+       que a página desenha. */
     { next: { tags: [etiquetaDeNoticia(slug), ETIQUETA_NOTICIAS] } },
   );
 }
@@ -183,4 +193,198 @@ export async function caminhosDePaginasPublicadas(): Promise<string[]> {
     { next: { tags: slugsConhecidos.map(etiquetaDePagina) } },
   );
   return publicados.map((slug) => CAMINHO_DAS_PAGINAS[slug]);
+}
+
+/* --- empresas parceiras --- */
+
+/*
+  As empresas parceiras da faixa "Quem caminha com a AMI" e do quarto número
+  da home. Sem nome ou sem logotipo, a empresa nem sai do banco: não há o
+  que desenhar, e ela não pode contar no número sem aparecer na faixa.
+
+  A ordem não é decidida aqui, e sim em `paraEmpresasParceiras`: o GROQ
+  compara texto letra a letra pelo código, e um nome com acento no começo
+  ("Óptica") iria para depois do "Z".
+*/
+export const GROQ_EMPRESAS_PARCEIRAS = defineQuery(`
+  *[_type == "empresaParceira" && defined(nome) && defined(logotipo.asset)]{
+    "id": _id,
+    nome,
+    logotipo{asset},
+    site,
+    ordem
+  }
+`);
+
+/* As larguras pedidas ao CDN. A caixa do logotipo tem até 266px de largura
+   útil (no tablet, a 980px de tela); 640 cobre essa caixa numa tela de
+   densidade 2. Quem diz ao navegador a largura de cada caixa é o `sizes` de
+   components/home/EmpresasParceiras.tsx. */
+export const LARGURAS_DO_LOGOTIPO = [160, 320, 480, 640] as const;
+
+export type EmpresaParceiraCrua = {
+  id: string;
+  nome: string | null;
+  logotipo: { asset: ImagemSanity["asset"] } | null;
+  site: string | null;
+  ordem: number | null;
+};
+
+/* Só endereço http ou https vira link. O campo `site` do Studio já recusa
+   outro esquema, mas é o site que põe o endereço num `href`: um
+   `javascript:` que passasse por fora do Studio seria código rodando no
+   clique. */
+export function siteSeguro(site: string | null | undefined): string | null {
+  if (!site) return null;
+  try {
+    const u = new URL(site);
+    return u.protocol === "http:" || u.protocol === "https:" ? u.href : null;
+  } catch {
+    return null;
+  }
+}
+
+/*
+  Pura, como `paraBanner`, para testar sem rede. Monta as parceiras a partir
+  do que o GROQ devolveu, nesta ordem: primeiro as que têm `ordem`, da menor
+  para a maior; depois as sem ordem. Em cada grupo, e no empate, pelo nome,
+  em ordem alfabética do português.
+
+  Nome em branco e logotipo cujo endereço o CDN não monta (o `_ref`
+  quebrado de `paraBanner`) tiram a empresa da lista.
+*/
+export function paraEmpresasParceiras(cruas: EmpresaParceiraCrua[]): EmpresaParceira[] {
+  const montadas: { parceira: EmpresaParceira; ordem: number | null }[] = [];
+  for (const c of cruas) {
+    const nome = c.nome?.trim() ?? "";
+    const logotipo = imagemComSrcset(c.logotipo, LARGURAS_DO_LOGOTIPO);
+    if (!nome || !logotipo) continue;
+    montadas.push({
+      parceira: {
+        id: c.id,
+        nome,
+        logotipo: logotipo.url,
+        logotipoSrcset: logotipo.srcset,
+        site: siteSeguro(c.site),
+      },
+      ordem: typeof c.ordem === "number" && Number.isFinite(c.ordem) ? c.ordem : null,
+    });
+  }
+
+  montadas.sort((a, b) => {
+    if (a.ordem !== b.ordem) {
+      if (a.ordem === null) return 1;
+      if (b.ordem === null) return -1;
+      return a.ordem - b.ordem;
+    }
+    return a.parceira.nome.localeCompare(b.parceira.nome, "pt-BR");
+  });
+
+  return montadas.map((m) => m.parceira);
+}
+
+export async function listarEmpresasParceiras(): Promise<EmpresaParceira[]> {
+  const cliente = await obterCliente();
+  const cruas: EmpresaParceiraCrua[] = await cliente.fetch(
+    GROQ_EMPRESAS_PARCEIRAS,
+    {},
+    { next: { tags: [ETIQUETA_PARCEIRAS] } },
+  );
+  return paraEmpresasParceiras(cruas ?? []);
+}
+
+/* --- textos de especialidade --- */
+
+/*
+  O "Sobre a {especialidade}" de uma especialidade, pelo slug. Com dois
+  documentos da mesma especialidade, o que o Studio recusa mas pode chegar
+  por fora dele, vale o atualizado por último.
+*/
+export const GROQ_TEXTO_DE_ESPECIALIDADE = defineQuery(`
+  *[_type == "textoDeEspecialidade" && especialidade.current == $especialidade]
+  | order(_updatedAt desc)[0]{
+    oQueFaz,
+    quandoProcurar,
+    revisorNome,
+    revisorCrm,
+    revisadoEm
+  }
+`);
+
+export type TextoDeEspecialidadeCru = {
+  oQueFaz: PortableTextBlock[] | null;
+  quandoProcurar: PortableTextBlock[] | null;
+  revisorNome: string | null;
+  revisorCrm: string | null;
+  revisadoEm: string | null;
+};
+
+/* Um bloco tem texto quando é um bloco de texto e algum trecho dele não está
+   em branco. */
+function blocoTemTexto(b: PortableTextBlock): boolean {
+  const { _type, children } = b as { _type?: unknown; children?: unknown };
+  return (
+    _type === "block" &&
+    Array.isArray(children) &&
+    children.some((t) => {
+      const texto = (t as { text?: unknown } | null)?.text;
+      return typeof texto === "string" && texto.trim() !== "";
+    })
+  );
+}
+
+/* Um texto rico tem texto quando algum bloco dele tem. */
+function temTexto(blocos: PortableTextBlock[] | null): blocos is PortableTextBlock[] {
+  return Array.isArray(blocos) && blocos.some(blocoTemTexto);
+}
+
+/*
+  Pura, como `paraEmpresasParceiras`, para testar sem rede. Monta o texto a
+  partir do que o GROQ devolveu, só se estiver completo:
+  - os dois textos com alguma letra;
+  - o nome e o CRM do revisor preenchidos;
+  - a data no formato do Studio.
+
+  Faltando qualquer um, devolve null, e a página trata como especialidade
+  sem texto (`sobreDaEspecialidade`, lib/especialidades.ts).
+
+  Dos dois textos saem os blocos em branco (um Enter a mais no Studio, no
+  começo, no meio ou no fim): cada um viraria um parágrafo vazio, e o espaço
+  entre os dois parágrafos em volta dele dobraria.
+*/
+export function paraTextoDeEspecialidade(
+  cru: TextoDeEspecialidadeCru | null,
+): TextoDeEspecialidade | null {
+  if (!cru) return null;
+  const revisorNome = cru.revisorNome?.trim() ?? "";
+  const revisorCrm = cru.revisorCrm?.trim() ?? "";
+  const mesDaRevisao = mesDeAno(cru.revisadoEm);
+  if (
+    !temTexto(cru.oQueFaz) ||
+    !temTexto(cru.quandoProcurar) ||
+    !revisorNome ||
+    !revisorCrm ||
+    !mesDaRevisao
+  ) {
+    return null;
+  }
+  return {
+    oQueFaz: cru.oQueFaz.filter(blocoTemTexto),
+    quandoProcurar: cru.quandoProcurar.filter(blocoTemTexto),
+    revisorNome,
+    revisorCrm,
+    mesDaRevisao,
+  };
+}
+
+export async function textoDaEspecialidade(
+  especialidade: string,
+): Promise<TextoDeEspecialidade | null> {
+  const cliente = await obterCliente();
+  const cru: TextoDeEspecialidadeCru | null = await cliente.fetch(
+    GROQ_TEXTO_DE_ESPECIALIDADE,
+    { especialidade },
+    { next: { tags: [ETIQUETA_TEXTOS_DE_ESPECIALIDADE] } },
+  );
+  return paraTextoDeEspecialidade(cru ?? null);
 }

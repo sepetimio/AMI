@@ -34,7 +34,15 @@ import { AMI, enderecoEmLinha } from "@/lib/ami";
 
 export type SecaoLegal = {
   titulo: string;
+  /**
+   * Um parágrafo que começa com "[PROVISÓRIO] " é o que ainda falta. No
+   * documento do advogado ele sai com a marca; na tela, sem ela, como
+   * moldura "a entrar" (`paragrafoDoRascunho`, lib/paginaDeTexto.ts): nos
+   * três textos legais, sempre; em Seja associado, só no modo demonstração.
+   */
   paragrafos: string[];
+  /** Um subtítulo antes da lista, quando ela precisa de nome ("Dados da entidade"). */
+  tituloDaLista?: string;
   lista?: string[];
 };
 
@@ -48,7 +56,7 @@ export type RascunhoLegal = {
   resumo: string;
   /** Data da redação do rascunho. Vira a data de revisão quando for revisado. */
   atualizadoEm: string;
-  /** O aviso que `RascunhoLegalNaTela` põe antes do texto. */
+  /** O aviso que a página de texto põe no quadro antes do texto (`PaginaDeTexto`). */
   aviso: AvisoDoRascunho;
   secoes: SecaoLegal[];
 };
@@ -64,7 +72,7 @@ export type AvisoDoRascunho = {
 };
 
 /* O dos três textos legais: ainda não revisados por advogado. Ver o porquê
-   no comentário de components/editorial/RascunhoLegalNaTela.tsx. */
+   no comentário de components/editorial/PaginaDeTexto.tsx. */
 export const AVISO_DE_TEXTO_LEGAL: AvisoDoRascunho = {
   titulo: "Este texto é um rascunho e ainda não foi revisado por advogado",
   texto:
@@ -201,7 +209,7 @@ export const TERMOS: RascunhoLegal = {
       titulo: "Sem classificação e sem destaque pago",
       paragrafos: [
         "O site não atribui nota, não faz ranking e não compara profissionais entre si. Não existe posição paga nem promoção de associado.",
-        "A ordem dos resultados é definida de forma verificável: correspondência do termo buscado no nome e na especialidade, com desempate alfabético. Sem termo digitado, a ordem é alfabética.",
+        "Os resultados aparecem em ordem alfabética; nenhuma ordenação depende de pagamento, avaliação ou destaque.",
         "Essa vedação atende à Resolução CFM 2.336/2023 e é decisão permanente de projeto, não configuração.",
       ],
     },
@@ -294,7 +302,7 @@ const DATA_SEJA_ASSOCIADO = "2026-08-23";
   Não é texto legal — é a página de filiação, provisória enquanto a AMI não
   escreve a definitiva. Mora aqui porque reaproveita o mesmo mecanismo e o
   mesmo tipo `RascunhoLegal` que os três textos acima, pelo motivo que
-  `components/editorial/RascunhoLegalNaTela.tsx` explica no próprio
+  `components/editorial/PaginaDeTexto.tsx` explica no próprio
   comentário: a alternativa a um rascunho assinalado era o cartão "Seja
   associado" da home levar a 404 até a AMI escrever o texto dela. O aviso
   na tela é outro (`AVISO_DE_PAGINA_PROVISORIA`, acima): o dos textos legais
@@ -310,7 +318,11 @@ const DATA_SEJA_ASSOCIADO = "2026-08-23";
   sem requisito além do que a AMI já confirmou (inscrição no conselho). O que
   seria mais — quanto custa, o que o associado ganha — é justamente o que
   esta página ainda não traz, e está marcado [PROVISÓRIO] em vez de
-  estimado, sem afirmar se a AMI já decidiu ou não.
+  estimado, sem afirmar se a AMI já decidiu ou não. Na tela, a marca vira
+  a moldura "a entrar", só no modo demonstração.
+
+  A identificação da entidade sai em lista ("Dados da entidade"), com os
+  mesmos dados de lib/ami.ts que a frase corrida trazia.
 */
 export const SEJA_ASSOCIADO: RascunhoLegal = {
   slug: "seja-associado",
@@ -323,13 +335,19 @@ export const SEJA_ASSOCIADO: RascunhoLegal = {
   secoes: [
     {
       titulo: "O que é a AMI",
-      paragrafos: [`A ${identificacao}, está em atividade desde ${AMI.fundadaEm}.`],
+      paragrafos: [`A ${AMI.razaoSocial} está em atividade desde ${AMI.fundadaEm}.`],
+      tituloDaLista: "Dados da entidade",
+      lista: [
+        `${AMI.naturezaJuridica}.`,
+        `Inscrita no CNPJ sob o número ${AMI.cnpj}.`,
+        `Sede na ${enderecoEmLinha()}, CEP ${AMI.endereco.cep}.`,
+      ],
     },
     {
       titulo: "Quem pode se associar",
       paragrafos: [
         "A associação é aberta a médicos com inscrição regular no Conselho Regional de Medicina.",
-        "[PROVISÓRIO] Valor de anuidade, benefícios do quadro associativo e demais critérios de admissão ainda não foram publicados nesta página.",
+        "[PROVISÓRIO] Valor de anuidade, benefícios do quadro associativo e demais critérios de admissão: texto da AMI a entrar.",
       ],
     },
     {

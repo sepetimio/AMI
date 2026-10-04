@@ -1,0 +1,245 @@
+/*
+  "Encontre um médico", transcrito do desenho aprovado
+  (docs/desenho-aprovado/home-aprovada.html: `.encontre`, `.encontre.secao`,
+  `.campo`, `.chips`, `.chip`, `.rodape-busca`, e os @media de 1180, 980 e
+  700px). A matéria verde (degradê, grão, luz) é a classe global
+  `.textura-verde`, posta no próprio `<section>`; aqui só o layout e o texto.
+
+  Faixa de ponta a ponta: o bloco não tem canto nem sombra, e a margem
+  lateral é `--borda-faixa` (app/globals.css), a mesma do rodapé. O `100%`
+  da fórmula vale a largura do bloco que contém a faixa, que é a página.
+
+  Duas cores ficam em código, sem token: #cfd8c9 (o texto de apoio e a frase
+  de baixo) e #eef3e8 (o texto das pílulas), os brancos esverdeados do
+  desenho para texto sobre o verde. Só existem aqui, sobre a `.textura-verde`
+  desta faixa (o rodapé usa branco translúcido), e um token na paleta global
+  convidaria a usá-las sobre fundo claro, onde reprovam. O contraste de cada
+  uma no ponto mais claro do fundo é refeito em
+  testes/numeros-e-busca.test.ts, que as lê deste arquivo.
+*/
+
+.encontre {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: var(--m);
+  align-items: center;
+  padding: 96px var(--borda-faixa);
+}
+
+.encontre > div {
+  min-width: 0;
+}
+
+.sobre {
+  color: var(--color-ami-lima-400);
+}
+
+.titulo {
+  color: var(--color-white);
+  max-width: 19ch;
+  margin-top: 14px;
+}
+
+.texto {
+  color: #cfd8c9;
+  max-width: 26em;
+  margin-top: 16px;
+}
+
+/* O campo: pílula branca com a lupa, o texto e o botão. */
+.campo {
+  display: flex;
+  align-items: center;
+  background: var(--color-surface);
+  border-radius: 999px;
+  padding: 6px 6px 6px 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* O anel de foco vai no campo inteiro, e não só no texto, que é um pedaço
+   da pílula. É contorno, como o resto do site, e lima, como tudo sobre o
+   verde. As duas regras andam juntas e só valem onde há `:has`: sem ele, o
+   campo fica com o contorno do próprio texto (regra global de foco), e
+   nunca sem nenhum. */
+@supports selector(:has(*)) {
+  .campo:has(input:focus-visible) {
+    outline: 2px solid var(--color-ami-lima-400);
+    outline-offset: 3px;
+  }
+
+  .campo input:focus-visible {
+    outline: none;
+  }
+}
+
+/* Só a lupa é cinza. A seta do botão herda o branco do `.botao`: uma regra
+   para todo ícone do campo a pintaria de cinza. */
+.lupa {
+  flex: none;
+  color: var(--color-ink-400);
+}
+
+.campo input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  appearance: none;
+  font: 400 16px var(--font-corpo);
+  padding: 12px;
+  color: var(--color-ink-900);
+}
+
+.campo input::placeholder {
+  color: var(--color-ink-400);
+  opacity: 1;
+}
+
+.buscar {
+  flex: none;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+  list-style: none;
+  padding: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #eef3e8;
+  font: 600 13px/1 var(--font-corpo);
+  white-space: nowrap;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.2s;
+}
+
+/* Ao passar o mouse a borda e o fundo clareiam em branco, e a pílula sobe
+   1px; não fica verde. */
+.chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.34);
+  transform: translateY(-1px);
+}
+
+/* Branco a 75%, e não os 55% do desenho: a luz que passeia passa por baixo
+   das pílulas. Sobre o fundo mais claro que ela deixa atrás de uma pílula
+   (medido no navegador, com o grão médio), 55% dá 3,49:1 e 75% dá 5,00:1 —
+   a conta que testes/numeros-e-busca.test.ts refaz. */
+.num {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  font-variant-numeric: tabular-nums;
+}
+
+.rodapeBusca {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #cfd8c9;
+}
+
+.rodapeBusca a {
+  color: var(--color-ami-lima-400);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Abaixo de 1180px: o texto em cima, o campo na largura toda embaixo. */
+@media (max-width: 1180px) {
+  .encontre {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .texto {
+    max-width: 40em;
+  }
+}
+
+@media (max-width: 980px) {
+  .encontre {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+}
+
+/* Celular: as especialidades numa fileira que desliza de lado, da borda à
+   borda da tela, começando e parando na margem das faixas; o botão fica só
+   com a seta. */
+@media (max-width: 700px) {
+  .encontre {
+    padding: 44px var(--borda-faixa);
+  }
+
+  /* No celular a luz que passeia cobre o canto do rótulo. Sobre o fundo
+     mais claro atrás dele (medido no navegador a 320px, com o grão médio), o
+     lima puro dá 4,01:1; clareado com 30% de branco, 4,73:1, e continua lendo
+     como lima. A conta é a que testes/numeros-e-busca.test.ts refaz. */
+  .sobre {
+    color: color-mix(in srgb, var(--color-ami-lima-400) 70%, white);
+  }
+
+  .texto {
+    font-size: 14.5px;
+  }
+
+  .campo {
+    padding-left: 14px;
+  }
+
+  /* 16px, e não os 15px do desenho: abaixo de 16px o Safari do iPhone
+     aproxima a página ao tocar no campo. */
+  .campo input {
+    padding: 12px 8px;
+  }
+
+  /* A palavra "Buscar" continua no botão, com corpo zero: some da tela e
+     fica como nome do botão para quem lê a tela. */
+  .buscar {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    font-size: 0;
+    gap: 0;
+  }
+
+  .buscar svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 16px calc(-1 * var(--borda-faixa)) 0;
+    padding: 2px var(--borda-faixa);
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--borda-faixa);
+    /* As pontas da fileira esmaecem, para mostrar que há mais de lado. */
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, black 18px, black calc(100% - 36px), transparent);
+    mask-image: linear-gradient(90deg, transparent 0, black 18px, black calc(100% - 36px), transparent);
+  }
+
+  .chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chips > li {
+    flex: none;
+    scroll-snap-align: start;
+  }
+}

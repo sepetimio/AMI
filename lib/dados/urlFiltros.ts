@@ -1,23 +1,20 @@
-import type { Filtros, Ordem, RecursoAcessibilidade } from "@/lib/dados/tipos";
+import type { Filtros } from "@/lib/dados/tipos";
 
 /*
   Tradução entre a URL e os filtros.
 
-  Regra da camada de SEO: o que é indexável vive no CAMINHO da URL —
-  especialidade e o cruzamento especialidade + bairro. Todo o resto vive em
-  QUERYSTRING e a página sai como `noindex, follow`. Filtros combinados geram
-  milhares de endereços quase iguais, e indexar isso derruba o site inteiro.
+  Regra da camada de SEO: o que é indexável vive no CAMINHO da URL — a
+  especialidade. Todo o resto vive em QUERYSTRING e a página sai como
+  `noindex, follow`. Filtros combinados geram milhares de endereços quase
+  iguais, e indexar isso derruba o site inteiro. Em `/busca` a especialidade
+  também vai na querystring (a busca inteira é `noindex`); a página
+  indexável de cada especialidade continua sendo o caminho
+  `/medicos/<slug>`.
+
+  Os parâmetros de antes (`bairro`, `telemedicina`, `acessibilidade`,
+  `associados`, `ordem`) não são lidos: um endereço antigo abre a busca sem
+  eles.
 */
-
-const RECURSOS: RecursoAcessibilidade[] = [
-  "acesso_cadeirante",
-  "banheiro_adaptado",
-  "elevador",
-  "piso_tatil",
-  "interprete_libras",
-];
-
-const ORDENS: Ordem[] = ["relevancia", "nome"];
 
 type Query = Record<string, string | string[] | undefined>;
 
@@ -30,51 +27,28 @@ export function filtrosDaQuery(sp: Query): Filtros {
   const termo = texto(sp.termo)?.trim();
   if (termo) f.termo = termo;
 
-  const bairro = texto(sp.bairro)?.trim();
-  if (bairro) f.bairro = bairro;
-
-  if (texto(sp.telemedicina) === "1") f.telemedicina = true;
-  if (texto(sp.associados) === "1") f.somenteAssociados = true;
-
-  const bruto = sp.acessibilidade;
-  const recursos = (Array.isArray(bruto) ? bruto : bruto ? [bruto] : []).filter(
-    (r): r is RecursoAcessibilidade =>
-      RECURSOS.includes(r as RecursoAcessibilidade),
-  );
-  if (recursos.length) f.acessibilidade = recursos;
-
-  /* A entrada vem da URL e pode ser qualquer coisa: só passa o que está na
-     lista conhecida. */
-  const ordem = texto(sp.ordem);
-  if (ordem && ORDENS.includes(ordem as Ordem)) f.ordem = ordem as Ordem;
+  const especialidade = texto(sp.especialidade)?.trim();
+  if (especialidade) f.especialidade = especialidade;
 
   return f;
 }
 
 /**
- * Serializa os filtros numa querystring.
- *
- * A ordem das chaves é fixa e a lista de acessibilidade é reordenada pela
- * ordem canônica de `RECURSOS`. Sem isso, marcar e desmarcar caixas produz
- * URLs diferentes para o mesmo conjunto de filtros — e o mesmo resultado com
- * dois endereços é conteúdo duplicado, exatamente o que o controle de facetas
- * existe para evitar.
- *
- * Toda construção de URL do painel passa por aqui, para que a garantia valha
- * na tela e não só no teste.
+ * Serializa os filtros numa querystring, em ordem fixa (termo, depois
+ * especialidade): o mesmo filtro com dois endereços é conteúdo duplicado.
+ * Toda URL da busca passa por aqui (`enderecoDaBusca`).
  */
 export function queryDosFiltros(f: Filtros): string {
   const p = new URLSearchParams();
 
   if (f.termo) p.set("termo", f.termo);
-  if (f.bairro) p.set("bairro", f.bairro);
-  if (f.telemedicina) p.set("telemedicina", "1");
-  for (const r of RECURSOS) {
-    if (f.acessibilidade?.includes(r)) p.append("acessibilidade", r);
-  }
-  if (f.somenteAssociados) p.set("associados", "1");
-  if (f.ordem) p.set("ordem", f.ordem);
+  if (f.especialidade) p.set("especialidade", f.especialidade);
 
   const s = p.toString();
   return s ? `?${s}` : "";
+}
+
+/** O endereço da busca com estes filtros: `/busca` e a querystring de `queryDosFiltros`. */
+export function enderecoDaBusca(f: Filtros): string {
+  return `/busca${queryDosFiltros(f)}`;
 }

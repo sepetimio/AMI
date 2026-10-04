@@ -39,7 +39,7 @@ const linhas: string[] = [
   "| Nenhuma página pública grava cookie | Nenhum cabeçalho `Set-Cookie` em `/`, `/medicos` e `/noticias` |",
   "| Não há ferramenta de análise nem rastreamento | Nenhuma dependência de análise, pixel ou telemetria no projeto |",
   "| Não há script de terceiro | Nenhum `script` externo no HTML servido |",
-  "| Não há formulário que colete dado pessoal | A busca é `GET` e envia só termo e bairro |",
+  "| Não há formulário que colete dado pessoal | A busca é `GET` e envia só termo e especialidade |",
   "| Nenhuma tela pergunta sintoma ou diagnóstico | Decisão de projeto, registrada na especificação |",
   "| O único endereço externo é o link do Instagram | É link, não carregamento: nada é requisitado antes do clique |",
   "",
@@ -70,6 +70,7 @@ for (const r of RASCUNHOS_LEGAIS) {
   for (const s of r.secoes) {
     linhas.push(`### ${s.titulo}`, "");
     for (const p of s.paragrafos) linhas.push(p, "");
+    if (s.tituloDaLista) linhas.push(`#### ${s.tituloDaLista}`, "");
     if (s.lista) {
       for (const i of s.lista) linhas.push(`- ${i}`);
       linhas.push("");

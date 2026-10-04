@@ -1,0 +1,149 @@
+/*
+  "Quem somos" de A Associação, transcrito do desenho aprovado
+  (docs/desenho-aprovado/associacao/associacao.html: `.inst-sede .corpo`,
+  `.inst-sede .corpo > .falta`, `.sede` e o que vem dentro dele, as regras
+  `.inst-sede .duplo:not(:has(.foto))`, e o @media de 700px).
+
+  A faixa branca, o texto ao lado da foto e os cartões de Missão, visão e
+  valores são os de "Seja associado" da home
+  (components/home/SejaAssociado.module.css: `.faixa`, `.duplo`,
+  `.comFoto`, `.corpo`, `.titulo`, `.foto`, `.fotografia`, `.quem`).
+
+  Sem a foto (fora da demonstração, enquanto a AMI não manda), o bloco
+  vira duas colunas de texto: o título à esquerda e a sede à direita. O
+  desenho decide isso com `:has`; aqui, quem decide é o componente, com a
+  classe `.semFoto`. Como no desenho, o corpo perde aí o recuo de 24px à
+  direita que tem ao lado da foto, e a sede chega à borda do texto.
+
+  Uma regra não está no desenho, que mostra a apresentação só como "a
+  entrar": o espaço entre dois parágrafos do texto da AMI, 16px, o mesmo da
+  leitura do perfil.
+*/
+
+.corpo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.apresentacao {
+  margin-top: 16px;
+  max-width: 30em;
+  color: var(--color-ink-600);
+  /* Como o `p` do desenho; herdado pelos parágrafos do texto da AMI. */
+  text-wrap: pretty;
+}
+
+.apresentacao p + p {
+  margin-top: 16px;
+}
+
+.falta {
+  color: var(--color-ink-400);
+  font-style: italic;
+}
+
+.sede {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  column-gap: 16px;
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 1px solid var(--color-line);
+}
+
+.sedeTitulo {
+  margin-top: 1px;
+  font-family: var(--font-corpo);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.3;
+  color: var(--color-ami-green-800);
+}
+
+.endereco {
+  margin-top: 4px;
+  font-style: normal;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--color-ink-600);
+}
+
+.acoes {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.corpo.semFoto {
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  column-gap: var(--m);
+  align-items: end;
+}
+
+.semFoto > :not(.sede) {
+  grid-column: 1;
+}
+
+.semFoto .sede {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+@media (max-width: 700px) {
+  .sede {
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 14px;
+    margin-top: 24px;
+    padding-top: 22px;
+  }
+
+  .sede :global(.ladrilho-icone) {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .sede :global(.ladrilho-icone) svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .endereco {
+    font-size: 15px;
+  }
+
+  .acoes {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 18px;
+  }
+
+  .acoes > a {
+    width: 100%;
+    height: 46px;
+    padding: 0 12px;
+    font-size: 14px;
+    gap: 8px;
+  }
+
+  .corpo.semFoto {
+    display: block;
+  }
+
+  .semFoto .sede {
+    margin-top: 24px;
+    padding-top: 22px;
+    border-top: 1px solid var(--color-line);
+  }
+}

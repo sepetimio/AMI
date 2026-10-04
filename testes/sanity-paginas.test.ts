@@ -25,6 +25,12 @@ import { PAGINAS } from "@/app/(site)/associacao/[pagina]/page";
   consumidor contra o módulo, e entre si.
 */
 
+describe("o rótulo que a AMI lê no Studio", () => {
+  it("o texto de associacao é a apresentação da página A Associação", () => {
+    expect(PAGINAS_CONHECIDAS.associacao.rotulo).toBe("A Associação (texto da apresentação)");
+  });
+});
+
 describe("PAGINAS_CONHECIDAS deriva corretamente para CAMINHO_DAS_PAGINAS", () => {
   it("toda entrada de PAGINAS_CONHECIDAS está em CAMINHO_DAS_PAGINAS, exceto associacao", () => {
     const esperado = Object.keys(PAGINAS_CONHECIDAS).filter(
@@ -34,10 +40,11 @@ describe("PAGINAS_CONHECIDAS deriva corretamente para CAMINHO_DAS_PAGINAS", () =
   });
 
   it("associacao não entra em CAMINHO_DAS_PAGINAS", () => {
-    /* "associacao" é o único slug que não é rota dinâmica: alimenta o texto
-       opcional do índice, que já é entrada fixa do sitemap por conta própria
-       (app/sitemap.ts). Se ele vazasse para CAMINHO_DAS_PAGINAS, o sitemap
-       listaria /associacao duas vezes com prioridades diferentes. */
+    /* "associacao" é o único slug que não é rota dinâmica: alimenta a
+       apresentação da página A Associação, que já é entrada fixa do sitemap
+       por conta própria (app/sitemap.ts). Se ele vazasse para
+       CAMINHO_DAS_PAGINAS, o sitemap listaria /associacao duas vezes com
+       prioridades diferentes. */
     expect(CAMINHO_DAS_PAGINAS.associacao).toBeUndefined();
   });
 

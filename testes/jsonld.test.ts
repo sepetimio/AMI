@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AMI } from "@/lib/ami";
 import {
-  breadcrumbList,
+  LARGURA_DA_IMAGEM,
   comoItensDeLista,
   faqPage,
   itemList,
@@ -9,6 +9,7 @@ import {
   organizationAmi,
   physician,
 } from "@/lib/seo/jsonld";
+import { LARGURAS_DA_CAPA, capaDaNoticia } from "@/lib/noticias";
 import type { Medico } from "@/lib/dados/tipos";
 
 const SITE = "https://ami.org.br";
@@ -60,12 +61,29 @@ describe("physician", () => {
     expect(e.streetAddress).toContain("Rua Projetada 100");
   });
 
+  it("leva o telefone do consultório; em branco, sem telephone", () => {
+    expect(p.telephone).toBe("9933334444");
+    for (const telefone of ["", "   ", " - "]) {
+      const semTelefone = physician(
+        { ...medico, locais: [{ ...medico.locais[0], telefone }] },
+        SITE,
+      ) as Record<string, unknown>;
+      expect("telephone" in semTelefone, JSON.stringify(telefone)).toBe(false);
+    }
+  });
+
   it("aponta a AMI como organização de origem", () => {
     expect(JSON.stringify(p.memberOf)).toContain("Associação Médica");
   });
 
   it("nunca traz nota agregada — não existem avaliações neste site", () => {
     expect(p.aggregateRating).toBeUndefined();
+  });
+
+  it("não diz telemedicina: o perfil não mostra isso na tela", () => {
+    expect(medico.telemedicina).toBe(true);
+    expect(p.availableService).toBeUndefined();
+    expect(JSON.stringify(p).toLowerCase()).not.toContain("telemedicina");
   });
 });
 
@@ -164,20 +182,6 @@ describe("itemList", () => {
   });
 });
 
-describe("breadcrumbList", () => {
-  it("numera as posições a partir de 1", () => {
-    const b = breadcrumbList(
-      [
-        { nome: "Início", caminho: "/" },
-        { nome: "Médicos", caminho: "/medicos" },
-      ],
-      SITE,
-    ) as { itemListElement: { position: number; item: string }[] };
-    expect(b.itemListElement[0].position).toBe(1);
-    expect(b.itemListElement[1].item).toBe(`${SITE}/medicos`);
-  });
-});
-
 const NOTICIA = {
   titulo: "AMI abre inscrições para o congresso de 2026",
   slug: "congresso-2026",
@@ -224,30 +228,47 @@ describe("newsArticle", () => {
     vi.unstubAllEnvs();
   });
 
-  it("inclui a capa como image, com as dimensões reais do arquivo", () => {
+  it("inclui a capa como image, no tamanho servido: a de 1200px do srcset da capa, 1200 × 675", () => {
     /* image é o que o Google exige para elegibilidade em Top Stories e
        Discover; omitir a capa aqui devolveria o dado ao alcance sem usá-lo.
+       O tamanho declarado é o da imagem que o endereço serve (a capa
+       recortada em 16:9), e não o do arquivo original no Sanity.
 
-       O projeto entra por `stubEnv` porque `newsArticle` chama
-       `urlDaImagem` sem configuração, e desde a revisão final faltar
-       `projectId` é erro alto em vez de URL vazia. É o mesmo estado que a
-       renderização real tem: a página só monta este JSON-LD depois de ter
-       buscado a matéria no Sanity. */
+       O projeto entra por `stubEnv` porque `newsArticle` monta o endereço
+       sem configuração, e desde a revisão final faltar `projectId` é erro
+       alto em vez de URL vazia. É o mesmo estado que a renderização real
+       tem: a página só monta este JSON-LD depois de ter buscado a matéria
+       no Sanity. */
     vi.stubEnv("NEXT_PUBLIC_SANITY_PROJECT_ID", "abcd1234");
+    vi.stubEnv("NEXT_PUBLIC_SANITY_DATASET", "production");
     const capa = {
-      asset: { _ref: "image-abc123def-1600x900-jpg" },
+      asset: { _ref: "image-abc123def-2000x1333-jpg" },
       alt: "Mesa de inscrição do congresso da AMI",
+      hotspot: { x: 0.5, y: 0.9, width: 0.2, height: 0.2 },
     };
     const j = newsArticle({ ...NOTICIA, capa }, "https://ami.org.br") as Record<
       string,
       unknown
     >;
     const imagem = j.image as Record<string, unknown>;
-    expect(imagem["@type"]).toBe("ImageObject");
-    expect(typeof imagem.url).toBe("string");
-    expect(imagem.url).not.toBe("");
-    expect(imagem.width).toBe(1600);
-    expect(imagem.height).toBe(900);
+    expect(LARGURA_DA_IMAGEM).toBe(1200);
+    expect(LARGURAS_DA_CAPA).toContain(LARGURA_DA_IMAGEM);
+    const daPagina = capaDaNoticia(capa)!.srcSet.split(", ").find((e) => e.endsWith(" 1200w"))!;
+    expect(imagem).toEqual({
+      "@type": "ImageObject",
+      url: daPagina.slice(0, -" 1200w".length),
+      width: 1200,
+      height: 675,
+    });
+    expect(imagem.url).toContain("w=1200&h=675");
+  });
+
+  it("omite image quando a capa tem a referência quebrada, como a página", () => {
+    vi.stubEnv("NEXT_PUBLIC_SANITY_PROJECT_ID", "abcd1234");
+    vi.stubEnv("NEXT_PUBLIC_SANITY_DATASET", "production");
+    const capa = { asset: { _ref: "quebrada" }, alt: "Foto" };
+    expect(capaDaNoticia(capa)).toBeNull();
+    expect(newsArticle({ ...NOTICIA, capa }, "https://ami.org.br")).not.toHaveProperty("image");
   });
 
   it("omite image quando a notícia não tem capa", () => {

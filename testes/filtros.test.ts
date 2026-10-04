@@ -1,6 +1,31 @@
-import { describe, expect, it } from "vitest";
-import { aplicarFiltros, ordenar } from "@/lib/dados/filtros";
+import { describe, expect, it, vi } from "vitest";
+import { aplicarFiltros, emOrdemAlfabetica } from "@/lib/dados/filtros";
+import { buscarMedicos } from "@/lib/dados/medicos";
 import type { Medico } from "@/lib/dados/tipos";
+
+/* O banco devolve fora de ordem de propósito: quem põe em ordem é o
+   `buscarMedicos`. */
+const LINHAS = ["José Andrade", "Ana Bezerra", "Ângela Prado"].map((nome, i) => ({
+  id: i + 1,
+  slug: nome,
+  nome,
+  crm: String(i + 1),
+  crm_uf: "MA",
+  foto: null,
+  bio: null,
+  telemedicina: false,
+  associado_ami: true,
+  profissional_especialidade: [],
+  atendimento: [],
+}));
+
+vi.mock("@/lib/dados/cliente", () => {
+  const consulta: Record<string, unknown> = {};
+  consulta.select = () => consulta;
+  consulta.eq = () => consulta;
+  consulta.order = () => Promise.resolve({ data: LINHAS, error: null });
+  return { clienteServidor: () => ({ from: () => consulta }) };
+});
 
 function medico(over: Partial<Medico> & { nome: string }): Medico {
   return {
@@ -66,61 +91,6 @@ describe("aplicarFiltros", () => {
     expect(r.map((m) => m.nome)).toEqual(["Ana Bezerra"]);
   });
 
-  it("filtra por bairro", () => {
-    const r = aplicarFiltros(todos, { bairro: "centro" });
-    expect(r.map((m) => m.nome)).toEqual(["José Andrade"]);
-  });
-
-  it("filtra por telemedicina", () => {
-    expect(aplicarFiltros(todos, { telemedicina: true })).toHaveLength(1);
-  });
-
-  it("filtra por acessibilidade", () => {
-    const r = aplicarFiltros(todos, { acessibilidade: ["acesso_cadeirante"] });
-    expect(r.map((m) => m.nome)).toEqual(["Ana Bezerra"]);
-  });
-
-  it("não retorna médico com acessibilidades em locais diferentes", () => {
-    const marcus = medico({
-      nome: "Marcus Silva",
-      slug: "marcus-silva",
-      especialidades: [
-        { nome: "Ortopedia", slug: "ortopedia", rqe: "1", principal: true },
-      ],
-      locais: [
-        local("centro", { acessibilidade: ["elevador"] }),
-        local("bacuri", { acessibilidade: ["acesso_cadeirante"] }),
-      ],
-    });
-    const r = aplicarFiltros([marcus], {
-      acessibilidade: ["elevador", "acesso_cadeirante"],
-    });
-    expect(r).toHaveLength(0);
-  });
-
-  it("retorna médico com múltiplas acessibilidades no mesmo local", () => {
-    const lucia = medico({
-      nome: "Lucia Costa",
-      slug: "lucia-costa",
-      especialidades: [
-        { nome: "Neurologia", slug: "neurologia", rqe: "1", principal: true },
-      ],
-      locais: [
-        local("praia-grande", {
-          acessibilidade: ["elevador", "acesso_cadeirante"],
-        }),
-      ],
-    });
-    const r = aplicarFiltros([lucia], {
-      acessibilidade: ["elevador", "acesso_cadeirante"],
-    });
-    expect(r.map((m) => m.nome)).toEqual(["Lucia Costa"]);
-  });
-
-  it("filtra somente associados", () => {
-    expect(aplicarFiltros(todos, { somenteAssociados: true })).toHaveLength(1);
-  });
-
   it("acha por nome ignorando acento e caixa", () => {
     expect(aplicarFiltros(todos, { termo: "jose" })).toHaveLength(1);
     expect(aplicarFiltros(todos, { termo: "JOSÉ" })).toHaveLength(1);
@@ -162,34 +132,42 @@ describe("aplicarFiltros", () => {
     expect(r.map((m) => m.nome)).toEqual(["Uriel Osório"]);
   });
 
-  it("combina filtros com E, não com OU", () => {
-    const r = aplicarFiltros(todos, {
-      especialidade: "pediatria",
-      bairro: "centro",
-    });
+  it("combina termo e especialidade com E, não com OU", () => {
+    const r = aplicarFiltros(todos, { termo: "jose", especialidade: "pediatria" });
     expect(r).toHaveLength(0);
+  });
+
+  it("os campos de antes, se chegarem, não filtram nada", () => {
+    const antigos = { bairro: "centro", telemedicina: true, somenteAssociados: true } as never;
+    expect(aplicarFiltros(todos, antigos)).toHaveLength(2);
   });
 });
 
-describe("ordenar", () => {
-  it("por nome, em ordem alfabética que respeita acento", () => {
-    const r = ordenar(todos, "nome");
-    expect(r.map((m) => m.nome)).toEqual(["Ana Bezerra", "José Andrade"]);
-  });
-
-  it("sem termo, relevância é ordem alfabética", () => {
-    const r = ordenar(todos, "relevancia");
-    expect(r.map((m) => m.nome)).toEqual(["Ana Bezerra", "José Andrade"]);
-  });
-
-  it("com termo, quem casa no nome vem antes de quem casa na especialidade", () => {
-    const r = ordenar(todos, "relevancia", "pediatria");
-    expect(r[0].nome).toBe("Ana Bezerra");
+describe("emOrdemAlfabetica", () => {
+  it("em ordem alfabética que respeita acento", () => {
+    const angela = medico({ nome: "Ângela Prado", slug: "angela-prado" });
+    const r = emOrdemAlfabetica([josé, angela, ana]);
+    expect(r.map((m) => m.nome)).toEqual(["Ana Bezerra", "Ângela Prado", "José Andrade"]);
   });
 
   it("não altera a lista recebida", () => {
-    const copia = [...todos];
-    ordenar(todos, "nome");
-    expect(todos).toEqual(copia);
+    const lista = [josé, ana];
+    emOrdemAlfabetica(lista);
+    expect(lista.map((m) => m.nome)).toEqual(["José Andrade", "Ana Bezerra"]);
+  });
+});
+
+describe("buscarMedicos", () => {
+  it("devolve sempre em ordem alfabética, com ou sem filtro", async () => {
+    expect((await buscarMedicos()).map((m) => m.nome)).toEqual([
+      "Ana Bezerra",
+      "Ângela Prado",
+      "José Andrade",
+    ]);
+    expect((await buscarMedicos({ termo: "an" })).map((m) => m.nome)).toEqual([
+      "Ana Bezerra",
+      "Ângela Prado",
+      "José Andrade",
+    ]);
   });
 });
