@@ -323,4 +323,9 @@ describe("o CSS dos blocos de baixo", () => {
   it("a etiqueta herda a entrelinha do título, como no desenho: a pílula não alonga o cartão", () => {
     expect(regra(base(css), ".etiqueta")).toMatch(/line-height: inherit;/);
   });
+
+  it("a margem da etiqueta desconta o espaço antes dela: a pílula fica onde o desenho a põe", () => {
+    expect(regra(base(css), ".etiqueta")).toMatch(/margin-left: calc\(8px - 4\.78px\);/);
+    expect(regra(cel(), ".etiqueta")).toMatch(/margin-left: calc\(6px - 3\.73px\);/);
+  });
 });

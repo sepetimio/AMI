@@ -10,9 +10,11 @@ export const revalidate = 3600;
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 /*
-  Gerado do banco. Só entram as URLs que são de fato indexáveis — o mesmo
-  corte que a página aplica no seu robots. Sitemap e meta em desacordo é
-  sinal contraditório: o sitemap convida, a página recusa.
+  Gerado do banco. Só entram URLs indexáveis: nenhuma página que se recusa
+  no seu robots entra aqui, porque sitemap e meta em desacordo é sinal
+  contraditório (o sitemap convida, a página recusa). O contrário não vale:
+  as páginas que respondem pelo rascunho em código ficam fora do sitemap
+  sem levar `noindex` (ver as páginas de prosa, abaixo).
 */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   /*

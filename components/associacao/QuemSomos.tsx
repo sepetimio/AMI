@@ -101,7 +101,7 @@ export function QuemSomos({
               <a className="botao" href={linkDoMapaDaAmi()} aria-label="Como chegar à sede da AMI (abre o mapa)">
                 Como chegar <Icone nome="setaDiagonal" />
               </a>
-              <a className="botao-contorno" href={hrefTelefone(fixo)} aria-label={`Ligar para a AMI, ${fixo}`}>
+              <a className="botao-contorno" href={hrefTelefone(fixo)} aria-label={`Ligar ${fixo} para a AMI`}>
                 <Icone nome="telefone" /> {fixo}
               </a>
             </div>

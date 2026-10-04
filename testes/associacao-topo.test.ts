@@ -120,8 +120,18 @@ describe("Quem somos, na demonstração e sem o texto da AMI", () => {
     );
     expect(html).toContain(
       `<div class="${estilosQuem.acoes}"><a class="botao" href="https://www.google.com/maps/search/?api=1&amp;query=Rua%20Coriolano%20Milhomem%2C%2039%2C%20Centro%2C%20Imperatriz%20-%20MA%2C%2065900-330" aria-label="Como chegar à sede da AMI (abre o mapa)">Como chegar ${desenho(ArrowUpRight, 20, "regular")}</a>` +
-        `<a class="botao-contorno" href="tel:+559935243716" aria-label="Ligar para a AMI, (99) 3524-3716">${desenho(Phone, 20, "regular")} <!-- -->(99) 3524-3716</a></div>`,
+        `<a class="botao-contorno" href="tel:+559935243716" aria-label="Ligar (99) 3524-3716 para a AMI">${desenho(Phone, 20, "regular")} <!-- -->(99) 3524-3716</a></div>`,
     );
+  });
+
+  it("o nome acessível de cada botão da sede contém o texto visível, em sequência", () => {
+    const acoes = new RegExp(`<div class="${estilosQuem.acoes}">[\\s\\S]*?</div>`).exec(html)![0];
+    const botoes = [...acoes.matchAll(/aria-label="([^"]+)">([\s\S]*?)<\/a>/g)].map((m) => [m[1], tela(m[2])]);
+    expect(botoes).toEqual([
+      ["Como chegar à sede da AMI (abre o mapa)", "Como chegar"],
+      ["Ligar (99) 3524-3716 para a AMI", "(99) 3524-3716"],
+    ]);
+    for (const [nome, visivel] of botoes) expect(nome).toContain(visivel);
   });
 
   it("à direita, a foto da sede, com a largura desenhada", () => {
