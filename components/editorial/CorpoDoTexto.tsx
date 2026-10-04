@@ -5,11 +5,14 @@ import {
   type PortableTextComponents,
 } from "@portabletext/react";
 import styles from "@/components/editorial/PaginaDeTexto.module.css";
+import { imagemDoTexto, SIZES_DA_IMAGEM_DO_TEXTO } from "@/lib/noticias";
 import { ehLinkInterno } from "@/lib/sanity/link";
+import type { ImagemSanity } from "@/lib/sanity/tipos";
 
 /*
-  O texto de uma página de texto, do Studio ou do rascunho em código (que
-  chega no mesmo formato: `blocosDoRascunho`, lib/paginaDeTexto.ts).
+  O texto rico de uma página de texto, do Studio ou do rascunho em código
+  (que chega no mesmo formato: `blocosDoRascunho`, lib/paginaDeTexto.ts), e
+  o de uma notícia.
 
   Cada nó sai como tag simples, e o CSS da coluna desenha
   (PaginaDeTexto.module.css). As exceções:
@@ -24,13 +27,20 @@ import { ehLinkInterno } from "@/lib/sanity/link";
   - a lista numerada leva a classe `numerada`: o índice recolhido "Nesta
     página" também é um `ol` dentro da coluna, e a regra da lista do texto
     não pode alcançá-lo;
-  - o link é o do texto rico das notícias: interno pelo roteador do Next,
-    externo na mesma aba (a regra de qual é qual está em lib/sanity/link.ts).
+  - a imagem (só a notícia tem): na proporção do arquivo que a AMI enviou,
+    sem recorte e sem moldura, com a legenda embaixo quando há
+    (`imagemDoTexto`, lib/noticias.ts). Sem endereço (`_ref` malformado), o
+    bloco some: a notícia perde a foto, não o texto. Ela só baixa ao rolar
+    (`loading="lazy"`): nunca é a primeira coisa da tela;
+  - o link: interno pelo roteador do Next, externo na mesma aba (a regra de
+    qual é qual está em lib/sanity/link.ts). Abrir em aba nova sem avisar
+    tira do leitor o botão voltar.
 
-  O schema da página institucional (sanity/schemas/paginaInstitucional.ts)
-  só aceita parágrafo, h2, h3, as duas listas, negrito, itálico e link.
-  `onMissingComponent={false}`: o que vier fora disso sai sem aviso no
-  console.
+  O schema da notícia (sanity/schemas/noticia.ts) aceita parágrafo, h2, h3,
+  citação, as duas listas, negrito, itálico, link e imagem; o da página
+  institucional (sanity/schemas/paginaInstitucional.ts), o mesmo sem a
+  citação e sem a imagem. `onMissingComponent={false}`: o que vier fora
+  disso sai sem aviso no console.
 */
 function componentes(ancoras: Record<string, string>): PortableTextComponents {
   return {
@@ -40,6 +50,7 @@ function componentes(ancoras: Record<string, string>): PortableTextComponents {
         <h2 id={value._key ? ancoras[value._key] : undefined}>{children}</h2>
       ),
       h3: ({ children }) => <h3>{children}</h3>,
+      blockquote: ({ children }) => <blockquote>{children}</blockquote>,
       aEntrar: ({ children }) => (
         <p className={styles.falta} data-a-entrar="">
           {children}
@@ -68,6 +79,29 @@ function componentes(ancoras: Record<string, string>): PortableTextComponents {
           <a href={href} className={styles.link}>
             {children}
           </a>
+        );
+      },
+    },
+    types: {
+      image: ({ value }: { value: ImagemSanity }) => {
+        const imagem = imagemDoTexto(value);
+        if (!imagem) return null;
+        return (
+          <figure>
+            {/* eslint-disable-next-line @next/next/no-img-element --
+                o CDN do Sanity já redimensiona; ver lib/sanity/imagem.ts. */}
+            <img
+              src={imagem.src}
+              srcSet={imagem.srcSet}
+              sizes={SIZES_DA_IMAGEM_DO_TEXTO}
+              alt={imagem.alt}
+              width={imagem.largura}
+              height={imagem.altura}
+              loading="lazy"
+              decoding="async"
+            />
+            {value.legenda ? <figcaption>{value.legenda}</figcaption> : null}
+          </figure>
         );
       },
     },

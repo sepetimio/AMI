@@ -375,9 +375,9 @@ describe("o CSS da página de texto", () => {
     expect(regra(base(css), ".coluna ul > li::before")).toMatch(/background: var\(--color-ami-green-600\);/);
   });
 
-  it("a lista numerada do Studio com o número, que a camada base do Tailwind tira", () => {
-    expect(regra(base(css), ".coluna .numerada")).toMatch(/list-style: decimal;/);
-    expect(regra(base(css), ".coluna .numerada > li + li")).toMatch(/margin-top: 8px;/);
+  it("a lista numerada do Studio com o número, que a camada base do Tailwind tira: o do desenho da notícia, num círculo", () => {
+    expect(regra(base(css), ".coluna .numerada > li::before")).toMatch(/content: counter\(passo\);/);
+    expect(regra(base(css), ".coluna .numerada > li + li")).toMatch(/margin-top: 10px;/);
   });
 
   it("nenhuma regra alcança um ol pela tag: o índice recolhido é um ol dentro da coluna", () => {
