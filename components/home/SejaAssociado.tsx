@@ -1,22 +1,12 @@
-import type { CSSProperties } from "react";
 import Link from "next/link";
 import { Fotografia } from "@/components/base/Fotografia";
-import { Icone, LadrilhoIcone, type NomeIcone } from "@/components/base/IconeServidor";
+import { Icone } from "@/components/base/IconeServidor";
+import { PrincipiosDaAmi } from "@/components/home/PrincipiosDaAmi";
 import styles from "@/components/home/SejaAssociado.module.css";
 import { AMI } from "@/lib/ami";
+import { CONVITE_PARA_ASSOCIAR } from "@/lib/associacao";
 import { ESPACOS } from "@/lib/imagens";
-import {
-  desenhoDaFotografia,
-  quemEhAmi,
-  type CartaoInstitucional,
-  type TextoInstitucional,
-} from "@/lib/molduras";
-
-const ICONES: Record<CartaoInstitucional["titulo"], NomeIcone> = {
-  Missão: "bandeira",
-  Visão: "olho",
-  Valores: "maoCoracao",
-};
+import { desenhoDaFotografia, quemEhAmi, type TextoInstitucional } from "@/lib/molduras";
 
 /*
   "Seja associado" e "Quem é a AMI?": a faixa branca de ponta a ponta da
@@ -37,11 +27,13 @@ const ICONES: Record<CartaoInstitucional["titulo"], NomeIcone> = {
   antes da casca, porque `Fotografia` devolvendo `null` deixaria a casca
   vazia.
 
-  Os cartões de missão, visão e valores vêm de `quemEhAmi` (lib/molduras.ts).
-  Sem cartão nenhum (fora da demonstração e sem texto da AMI), a introdução
-  "Quem é a AMI?" fica sozinha, na largura toda: o texto dela é verdadeiro.
-  A grade tem uma coluna por cartão (`--cartoes`), e por isso dois cartões
-  não deixam uma coluna vazia à direita.
+  O título e o texto do convite são os de `CONVITE_PARA_ASSOCIAR`
+  (lib/associacao.ts), que o fecho de A Associação repete.
+
+  Os cartões de missão, visão e valores vêm de `quemEhAmi` (lib/molduras.ts)
+  e são desenhados por `PrincipiosDaAmi`. Sem cartão nenhum (fora da
+  demonstração e sem texto da AMI), a introdução "Quem é a AMI?" fica
+  sozinha, na largura toda: o texto dela é verdadeiro.
 
   O ano da frase de apresentação vem de `AMI.fundadaEm`, o mesmo de que
   `anosDeAmi` calcula o número da home.
@@ -69,12 +61,9 @@ export function SejaAssociado({
             Seja associado
           </span>
           <h2 id="associe-titulo" className={styles.titulo}>
-            Associe-se à AMI e fortaleça a medicina em Imperatriz
+            {CONVITE_PARA_ASSOCIAR.titulo}
           </h2>
-          <p className={styles.texto}>
-            Médico com inscrição no CRM pode se associar. Fale com a AMI para
-            saber como.
-          </p>
+          <p className={styles.texto}>{CONVITE_PARA_ASSOCIAR.texto}</p>
           <Link className={`botao ${styles.acao}`} href="/associacao/seja-associado">
             Quero me associar <Icone nome="seta" />
           </Link>
@@ -92,31 +81,12 @@ export function SejaAssociado({
         ) : null}
       </div>
 
-      <div
-        className={`${styles.quem}${cartoes.length === 0 ? ` ${styles.soIntro}` : ""}`}
-        style={cartoes.length > 0 ? ({ "--cartoes": cartoes.length } as CSSProperties) : undefined}
-      >
-        <div className={styles.intro}>
-          <span className="rotulo-secao">Quem somos</span>
-          <h3 className={styles.introTitulo}>Quem é a AMI?</h3>
-          <p className={styles.introTexto}>
-            {`A Associação Médica de Imperatriz reúne os profissionais que atendem em Imperatriz e na região sul do Maranhão, em atividade desde ${AMI.fundadaEm}.`}
-          </p>
-        </div>
-
-        {cartoes.map((c, i) => (
-          <div key={c.titulo} className={styles.cartao}>
-            <span className={styles.ordem} aria-hidden="true">
-              {String(i + 1).padStart(2, "0")}
-            </span>
-            <LadrilhoIcone nome={ICONES[c.titulo]} pequeno />
-            <h4 className={styles.cartaoTitulo}>{c.titulo}</h4>
-            <p className={c.provisorio ? `${styles.cartaoTexto} ${styles.falta}` : styles.cartaoTexto}>
-              {c.texto}
-            </p>
-          </div>
-        ))}
-      </div>
+      <PrincipiosDaAmi
+        cartoes={cartoes}
+        rotulo="Quem somos"
+        titulo="Quem é a AMI?"
+        texto={`A Associação Médica de Imperatriz reúne os profissionais que atendem em Imperatriz e na região sul do Maranhão, em atividade desde ${AMI.fundadaEm}.`}
+      />
     </section>
   );
 }

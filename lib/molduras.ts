@@ -144,11 +144,13 @@ export function desenhoDaFotografia(
 }
 
 /*
-  Missão, visão e valores, os cartões de "Quem é a AMI?" na home.
+  Missão, visão e valores, os cartões de "Quem é a AMI?" na home e de
+  "Princípios" em A Associação (`PrincipiosDaAmi`).
 
   A AMI ainda não entregou nenhum dos três textos, e não há onde guardá-los:
-  a home (app/(site)/page.tsx) passa os três como `null`. A mesma trava das
-  outras molduras decide o que sai. Texto real sai sempre. O que falta sai como "Texto da AMI
+  quem desenha os cartões recebe `TEXTO_INSTITUCIONAL`, no fim deste arquivo,
+  com os três `null`. A mesma trava das outras molduras decide o que sai.
+  Texto real sai sempre. O que falta sai como "Texto da AMI
   a entrar." só no modo demonstração; fora dele o cartão não existe. A ordem
   é sempre missão, visão, valores, e texto em branco conta como nenhum.
 */
@@ -184,3 +186,12 @@ export function quemEhAmi(
   }
   return { cartoes };
 }
+
+/*
+  O texto de Missão, visão e valores. A AMI ainda não entregou os três, e
+  não há campo no Studio para eles: com `null`, os cartões saem como "Texto
+  da AMI a entrar." na demonstração e não saem fora dela (`quemEhAmi`,
+  acima). A home ("Quem é a AMI?") e A Associação ("Princípios") leem
+  daqui; quando a AMI entregar, o texto entra aqui.
+*/
+export const TEXTO_INSTITUCIONAL: TextoInstitucional = { missao: null, visao: null, valores: null };

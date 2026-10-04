@@ -13,19 +13,13 @@ import { organizationAmi } from "@/lib/seo/jsonld";
 import { especialidadesComContagem } from "@/lib/dados/especialidades";
 import { buscarMedicos } from "@/lib/dados/medicos";
 import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
-import { moldurasDaHome, type TextoInstitucional } from "@/lib/molduras";
+import { moldurasDaHome, TEXTO_INSTITUCIONAL } from "@/lib/molduras";
 import { bannersAtivos } from "@/lib/sanity/banners";
 import { listarEmpresasParceiras, listarNoticias } from "@/lib/sanity/consultas";
 
 export const revalidate = 3600;
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-
-/* Missão, visão e valores: a AMI ainda não entregou os textos, e não há
-   onde guardá-los. Com `null`, "Quem é a AMI?" mostra "Texto da AMI a
-   entrar." na demonstração e nenhum cartão fora dela (`quemEhAmi`, em
-   lib/molduras.ts). */
-const TEXTO_DA_AMI: TextoInstitucional = { missao: null, visao: null, valores: null };
 
 export async function generateMetadata(): Promise<Metadata> {
   /* Não soma as contagens por especialidade: quem tem duas especialidades
@@ -105,7 +99,7 @@ export default async function Home() {
 
       <SuaAmi demonstracao={DADOS_DEMONSTRACAO} />
 
-      <SejaAssociado demonstracao={DADOS_DEMONSTRACAO} texto={TEXTO_DA_AMI} />
+      <SejaAssociado demonstracao={DADOS_DEMONSTRACAO} texto={TEXTO_INSTITUCIONAL} />
 
       <UltimasNoticias provisorias={molduras.noticiasProvisorias} />
 

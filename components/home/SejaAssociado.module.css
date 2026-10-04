@@ -104,6 +104,12 @@ img.fotografia {
   line-height: 1.05;
 }
 
+/* Sem parágrafo depois (os Princípios de A Associação), o título não deixa
+   espaço embaixo. */
+.introTitulo:last-child {
+  margin-bottom: 0;
+}
+
 .introTexto {
   max-width: 26em;
   font-size: 15px;
