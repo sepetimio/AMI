@@ -659,9 +659,8 @@ mais a página temporária com as notícias de exemplo, com as duas chaves.
 6. **E-mail e horário da sede**: entram quando a AMI os informar
 7. **`author.url` e `publisher.logo` no dado estruturado da notícia**: ficam para uma fatia
    própria
-8. **O título do destaque da lista no celular**: o site usa 22px, a regra que o desenho escreve
-   para ele; na foto do desenho ele sai com 20px, porque uma regra da home passa por cima.
-   Ainda sem decisão
+8. **O título do destaque da lista no celular**: 20px, como ele sai na foto do desenho (a regra
+   escrita no desenho dizia 22px, mas uma regra da home passava por cima)
 9. **O perfil do Instagram de 981 a cerca de 1100px**: quebra em "@associacaomedicadeimp" /
    "eratriz"; o desenho o quebrava num ponto fixo. Ainda sem decisão
 
@@ -673,7 +672,7 @@ Todas as páginas públicas estão no desenho novo, no ramo `paginas-encontre`. 
 | Página | Estado |
 |---|---|
 | `/` (home) | Fatia A. Carrossel, números, busca, Sua AMI, Seja associado, notícias e parceiras; o que a AMI ainda não deu aparece como moldura só no modo demonstração |
-| `/busca` e `/medico/{slug}` | Grupo 1. A biografia dos 24 médicos fictícios ainda diz "[PROVISÓRIO] Biografia de …": vem do banco de demonstração e some com o cadastro real |
+| `/busca` e `/medico/{slug}` | Grupo 1. A biografia dos 24 médicos fictícios vem marcada "[PROVISÓRIO]" do banco de demonstração; a marca nunca aparece: no modo demonstração, o "Sobre" mostra a moldura "Apresentação do médico a entrar"; fora dele, o "Sobre" não aparece |
 | `/medicos` e `/medicos/{especialidade}` | Grupo 2. Falta o texto "Sobre a especialidade" das 14 especialidades, no Sanity |
 | `/associacao`, `/associacao/diretoria` e Seja associado | Grupo 3. Faltam a apresentação, a foto da sede, Missão, visão e valores, o período da gestão e o texto da anuidade |
 | Privacidade, termos e cookies | Grupo 3. Rascunhos com aviso visível; falta a revisão do advogado e o encarregado de dados |
@@ -694,8 +693,10 @@ achou:
   com cliques de verdade). Sem notícia, a página tem 1185px, só 105px mais que a janela: o
   navegador para no fim dela, e o Next só volta ao topo quando o começo da página nova está fora
   da tela, o que aqui não acontece. Nas outras larguras medidas (1024 a 1536px) a página é mais
-  alta que a janela com folga, e o problema não aparece. **A corrigir**: precisa de uma decisão
-  sobre como voltar ao topo sem estragar o botão voltar do navegador
+  alta que a janela com folga, e o problema não aparece. **Corrigido** na correção final: toda
+  troca de página por link volta ao topo; o voltar e o avançar do navegador devolvem a posição
+  de antes, e um link com `#` cai no trecho certo. Medido: os três casos em 0 e os 32 cliques do
+  menu em 0
 - **Molduras**: com a chave desligada, nenhuma moldura "a entrar" em página nenhuma, tirando os
   dois parágrafos da política de privacidade (o encarregado de dados e o prazo de guarda), de
   propósito; nenhum texto "a entrar" fora de uma moldura, com as duas chaves
@@ -764,14 +765,15 @@ Não dependem do cliente:
 4. **O horário, o e-mail e o WhatsApp no contato**, quando a AMI responder os passos 9 a 11
    acima: não há campo para eles no Studio. O dado entra em `lib/ami.ts`, e o canal, em
    `lib/paginaDeContato.ts`.
-5. **A página curta que abre rolada.** `/noticias` sem notícia, numa tela de 1920 × 1080px,
-   abre 105px rolada quando se chega a ela do meio de outra página (ver "A auditoria do site
-   inteiro"). A correção mexe na volta ao topo de todas as páginas e precisa preservar o botão
-   voltar do navegador.
-6. **A correção final deste grupo**: as listas no meio do texto com o mesmo espaço que há entre
-   dois parágrafos (ver o item 7 de "Decisões que valem para várias páginas", em
-   [`docs/decisoes-sem-o-cliente.md`](decisoes-sem-o-cliente.md)) e os acertos menores anotados
-   na revisão de cada tarefa.
+5. **O painel e a biografia provisória.** O painel do médico conta como preenchida uma
+   biografia marcada "[PROVISÓRIO]" (`lib/painel/medico.ts`, `temBio`), enquanto o site a
+   trata como texto que falta. Só afeta os perfis de demonstração; vale acertar antes de
+   carregar os médicos de verdade.
+6. **Links do Studio, dois acertos pequenos.** Um link escrito como `/site.com` passa como
+   link interno e o navegador o leva a outro site (`lib/sanity/link.ts`); só quem edita no
+   Studio consegue escrever um assim. E o Studio aceita um endereço como `diretoria`, sem
+   barra, que o site mostra como texto sem link, sem avisar quem edita: o campo deveria exigir
+   `/`, `#` ou `https://`.
 
 ---
 

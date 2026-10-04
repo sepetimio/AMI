@@ -64,6 +64,9 @@ Detalhes em `docs/superpowers/specs/2026-10-03-noticias-contato-design.md`. Dese
 15. **A cabeceira cinza e a trilha ("Início / …") saíram do site inteiro:** a lista de notícias, a notícia e o contato eram as últimas páginas que as tinham.
 16. **Teclado nos cartões de notícia:** o contorno do foco aparece em volta do cartão inteiro, e não só do título.
 17. **"MÉDICO · CRM" no fim da notícia:** no cinza do texto, como o desenho o mostra, e não no cinza mais claro do CRM do perfil.
+18. **Título do destaque no celular:** 20px, como na foto do desenho.
+19. **Biografia de teste no perfil do médico:** as biografias do banco de demonstração vêm marcadas "[PROVISÓRIO]". A marca nunca aparece no site: no modo demonstração, o "Sobre" mostra o quadro "Apresentação do médico a entrar"; fora dele, o "Sobre" some até haver o texto de verdade.
+20. **Links no texto das notícias:** só funcionam links comuns (endereços da web, e-mail, telefone e páginas do próprio site). Qualquer outro tipo aparece como texto simples, sem link, por segurança.
 
 ## Decisões que valem para várias páginas
 
@@ -73,4 +76,5 @@ Detalhes em `docs/superpowers/specs/2026-10-03-noticias-contato-design.md`. Dese
 4. **Dois consultórios do mesmo médico no mesmo bairro:** os títulos ganham "(1)" e "(2)", e os botões dizem o endereço, para quem usa leitor de tela.
 5. **Velocidade:** os ícones que aparecem só em algumas páginas passam a ser carregados só nelas. O código comum a todas as páginas caiu de 28 KB para 10 KB.
 6. **Nenhum link abre em nova aba:** o Instagram, "Como chegar" e os links para fora do site no meio de um texto abrem na mesma aba, e o botão voltar do navegador traz a pessoa de volta. A única exceção é o logotipo de uma empresa parceira, na home, que abre o site da empresa em outra aba e avisa quem usa leitor de tela; ele só aparece quando houver uma empresa cadastrada.
-7. **Listas no meio de um texto** (com marcador ou numeradas, nas notícias e nas páginas de texto): ficam com o mesmo espaço que há entre dois parágrafos, e não coladas ao parágrafo de cima, como estavam no desenho. **Ainda não está no site:** entra na correção final deste grupo.
+7. **Listas no meio de um texto** (com marcador ou numeradas, nas notícias e nas páginas de texto): ficam com o mesmo espaço que há entre dois parágrafos, e não coladas ao parágrafo de cima, como estavam no desenho.
+8. **Toda página abre no topo:** ao clicar num link, a página nova começa sempre do alto. O botão voltar e o avançar do navegador devolvem a pessoa ao ponto onde estava, e um link para um trecho (com `#`) cai nesse trecho. Antes, numa tela grande, a lista de notícias sem notícia abria um pouco descida.
