@@ -1,0 +1,296 @@
+/*
+  O contato, transcrito do desenho aprovado
+  (docs/desenho-aprovado/noticias-contato/contato.html: `.grade-canais`,
+  `.canal` e o que vem dentro dele, `.contato-sede` e as regras dela,
+  `.sede .cnpj`, `.sede + .sede`, `.sede-horario .falta`, `.separa`,
+  `.nota-associar` e o que vem dentro dele, e os @media de 980, 701 a 980
+  e 700px).
+
+  Os canais: três cartões brancos, com o ladrilho global (52px), o rótulo
+  verde, o dado em letra grande e o botão no pé (`margin-top: auto`), na
+  mesma linha nos três. No tablet, cada canal vira uma linha com o botão à
+  direita: em três colunas o número do celular não cabia, e em duas o
+  Instagram ficava sozinho. No celular, uma linha com o botão na largura
+  toda embaixo, sem a frase de apoio.
+
+  Uma diferença do desenho, de propósito: o desenho quebra o perfil do
+  Instagram num ponto fixo (`<wbr>`); aqui o perfil vem do endereço
+  (lib/paginaDeContato.ts), e a quebra, quando a largura pede, é a do
+  navegador (`overflow-wrap: anywhere`).
+
+  A sede é o "Quem somos" de A Associação (SejaAssociado.module.css e
+  QuemSomos.module.css); daqui são só a frase, o CNPJ, o horário, o título
+  preso no alto quando não há foto, o fio e o fecho. As regras que valem
+  sobre as de lá levam a classe da faixa na frente (`.sedeDoContato …`), e
+  a do corpo sem foto, também o atributo (`[data-sem-foto]`): pesam mais
+  qualquer que seja a ordem em que as folhas chegam ao navegador.
+*/
+
+.canais {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+.canal {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 28px;
+  border-radius: 18px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-erguido);
+}
+
+.rotulo {
+  margin-top: 28px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ami-green-600);
+}
+
+.dado {
+  margin-top: 10px;
+  font-family: var(--font-titulo);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  font-size: 32px;
+  line-height: 1.1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ami-green-800);
+}
+
+.dado.longo {
+  font-size: 20px;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.nota {
+  margin-top: 8px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--color-ink-600);
+}
+
+.acao {
+  margin-top: auto;
+  padding-top: 28px;
+}
+
+.sedeDoContato .texto {
+  max-width: 30em;
+  margin-top: 16px;
+  color: var(--color-ink-600);
+}
+
+.sedeDoContato .corpo[data-sem-foto] {
+  grid-template-rows: auto auto 1fr;
+  align-items: start;
+}
+
+.cnpj {
+  margin-top: 6px;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-400);
+}
+
+.sedeDoContato .horario {
+  margin-top: 28px;
+}
+
+.falta {
+  margin-top: 4px;
+  font-size: 15.5px;
+  line-height: 1.6;
+  font-style: italic;
+  color: var(--color-ink-400);
+}
+
+.separa {
+  height: 1px;
+  margin: 72px 0;
+  background: var(--color-line);
+}
+
+.fecho {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  column-gap: 16px;
+  align-items: center;
+}
+
+.fecho p {
+  max-width: 44em;
+  color: var(--color-ink-600);
+}
+
+.fecho strong {
+  display: block;
+  font-weight: 700;
+  color: var(--color-ami-green-800);
+}
+
+@media (max-width: 980px) {
+  .separa {
+    margin: 48px 0;
+  }
+}
+
+@media (min-width: 701px) and (max-width: 980px) {
+  .canais {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .canal {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    column-gap: 20px;
+    align-items: center;
+    padding: 20px 24px;
+  }
+
+  .canal :global(.ladrilho-icone) {
+    grid-row: 1 / 4;
+  }
+
+  .rotulo {
+    grid-column: 2;
+    margin: 0;
+  }
+
+  .dado {
+    grid-column: 2;
+    margin-top: 4px;
+    font-size: 26px;
+  }
+
+  .nota {
+    grid-column: 2;
+    margin-top: 2px;
+  }
+
+  .acao {
+    grid-column: 3;
+    grid-row: 1 / 4;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .canais {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .canal {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 14px;
+    align-items: center;
+    padding: 16px 16px 16px var(--m);
+    border-radius: 16px;
+  }
+
+  .canal :global(.ladrilho-icone) {
+    grid-row: 1 / 3;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .canal :global(.ladrilho-icone) svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .rotulo {
+    grid-column: 2;
+    margin: 0;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+  }
+
+  .dado {
+    grid-column: 2;
+    margin-top: 2px;
+    font-size: 22px;
+  }
+
+  .dado.longo {
+    font-family: var(--font-corpo);
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  .nota {
+    display: none;
+  }
+
+  .acao {
+    grid-column: 1 / -1;
+    padding-top: 14px;
+  }
+
+  .acao > a {
+    width: 100%;
+    height: 46px;
+    font-size: 14px;
+  }
+
+  .sedeDoContato .texto {
+    margin-top: 12px;
+  }
+
+  .sedeDoContato .acoes {
+    grid-template-columns: 1fr;
+  }
+
+  .sedeDoContato .horario {
+    margin-top: 22px;
+  }
+
+  .fecho {
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 14px;
+    align-items: start;
+  }
+
+  .fecho :global(.ladrilho-icone) {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .fecho :global(.ladrilho-icone) svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .fecho p {
+    font-size: 15px;
+  }
+
+  .fecho > a {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 46px;
+    margin-top: 16px;
+    font-size: 14px;
+  }
+}

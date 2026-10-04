@@ -1,19 +1,14 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Cabeceira } from "@/components/layout/Cabeceira";
-import { JsonLd } from "@/components/seo/JsonLd";
-import { breadcrumbList } from "@/lib/seo/jsonld";
+import paginas from "@/app/(site)/encontre.module.css";
+import { CanaisDeContato } from "@/components/contato/CanaisDeContato";
+import { SedeDaAmi } from "@/components/contato/SedeDaAmi";
+import { FaixaCurta } from "@/components/layout/FaixaCurta";
+import { AMI } from "@/lib/ami";
+import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
+import { canaisDeContato } from "@/lib/paginaDeContato";
 import { tituloDePagina } from "@/lib/seo/metadados";
-import { AMI, enderecoEmLinha, hrefTelefone } from "@/lib/ami";
 
 export const revalidate = 3600;
-
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-
-const TRILHA = [
-  { nome: "Início", caminho: "/" },
-  { nome: "Fale com a AMI", caminho: "/contato" },
-];
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -24,75 +19,41 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-/* A classe dos links desta página: verde de marca, sublinhado, mais
-   escuro no hover. */
-const CLASSE_LINK =
-  "font-semibold text-ami-green-600 underline underline-offset-2 hover:text-ami-green-700";
-
 /*
-  Página sem Sanity e sem rascunho: sai inteira hoje porque todo dado já
-  existe em `lib/ami.ts`, recebido do cliente em 21/08/2026 — a mesma fonte
-  única que o rodapé (components/layout/Rodape.tsx) e o JSON-LD da home leem,
-  para que nome, endereço e telefone fiquem idênticos em todo lugar do site
-  (o critério de negócio local do Google exige isso; ver o comentário em
-  lib/ami.ts).
+  O contato (item "Contato" do menu), como no desenho aprovado
+  (docs/desenho-aprovado/noticias-contato/contato.html):
+  - a faixa verde curta, com "CONTATO", "Fale com a AMI", a frase e a
+    conversa no ladrilho;
+  - os três canais: o telefone da sede, o celular e o Instagram;
+  - a sede, numa faixa branca, com o endereço, o CNPJ, "Como chegar", a
+    foto da sede e o horário (os dois como moldura, só na demonstração), e
+    o fecho para quem quer se associar.
 
-  A única frase que não vem do arquivo é a última: aponta quem quer se
-  associar para o telefone, porque a página de filiação
-  (/associacao/seja-associado) ainda não tem o texto definitivo da AMI.
+  Sem Sanity e sem rascunho: todo dado vem de lib/ami.ts, a mesma fonte do
+  rodapé e do dado estruturado da home, para nome, endereço e telefone
+  ficarem idênticos em todo lugar (o critério de negócio local do Google
+  exige; ver o comentário de lib/ami.ts). Sem e-mail, sem WhatsApp e sem
+  formulário: a AMI não tem os dois primeiros confirmados, e o terceiro
+  pediria um serviço novo.
+
+  Sem trilha e sem BreadcrumbList: dado estruturado sem o equivalente
+  visível é marcação enganosa (lib/seo/jsonld.ts). Os blocos são filhos
+  diretos de `.pagina` (app/(site)/encontre.module.css), a --ritmo um do
+  outro; a sede é faixa, e o rodapé emenda nela.
 */
 export default function PaginaContato() {
+  const e = AMI.endereco;
+
   return (
-    <>
-      <JsonLd dados={breadcrumbList(TRILHA, SITE)} />
-
-      <Cabeceira trilha={TRILHA} titulo="Fale com a AMI">
-        Endereço, telefone e Instagram da Associação Médica de Imperatriz.
-      </Cabeceira>
-
-      <div className="mx-auto max-w-[1200px] px-4 pb-20 md:px-6">
-        <address className="coluna-leitura mt-2 text-[18px] not-italic leading-relaxed text-ink-600">
-          <p>{AMI.razaoSocial}</p>
-
-          <p className="mt-4">{enderecoEmLinha()}</p>
-
-          {/* Telefone clicável: no celular, que é a maioria do acesso,
-              ligar é a ação mais provável de quem chegou até aqui. */}
-          <ul className="mt-4 space-y-2">
-            {AMI.telefones.map((t) => (
-              <li key={t}>
-                <a
-                  href={hrefTelefone(t)}
-                  className={`registro pressiona inline-flex min-h-11 items-center ${CLASSE_LINK}`}
-                >
-                  {t}
-                </a>
-              </li>
-            ))}
-          </ul>
-
-          <p className="mt-4">
-            <a
-              href={AMI.redes.instagram}
-              className={`pressiona inline-flex min-h-11 items-center ${CLASSE_LINK}`}
-            >
-              Instagram
-            </a>
-          </p>
-
-          <p className="registro mt-6 text-[15px] text-ink-400">
-            CNPJ {AMI.cnpj}
-          </p>
-        </address>
-
-        <p className="coluna-leitura mt-10 border-t border-line pt-8 text-[16px] text-ink-600">
-          Médico interessado em se associar: a página{" "}
-          <Link href="/associacao/seja-associado" className={CLASSE_LINK}>
-            Seja associado
-          </Link>{" "}
-          diz quem pode se associar e como fazer isso.
-        </p>
-      </div>
-    </>
+    <div className={paginas.pagina}>
+      <FaixaCurta
+        rotulo="Contato"
+        titulo="Fale com a AMI"
+        texto={`Pelo telefone, pelo Instagram ou na sede, no ${e.bairro} de ${e.cidade}.`}
+        icone="conversa"
+      />
+      <CanaisDeContato canais={canaisDeContato()} />
+      <SedeDaAmi demonstracao={DADOS_DEMONSTRACAO} />
+    </div>
   );
 }
