@@ -170,8 +170,8 @@ describe("o quadro Fale com a AMI", () => {
   it("Ligar para o fixo, o celular e Como chegar, nessa ordem", () => {
     const links = [...html.matchAll(/<a class="([^"]+)" href="([^"]+)" aria-label="([^"]+)">([\s\S]*?)<\/a>/g)];
     expect(links.map((m) => [m[1], m[2], m[3], tela(m[4])])).toEqual([
-      ["botao", "tel:+559935243716", "Ligar para a AMI, (99) 3524-3716", "Ligar (99) 3524-3716"],
-      ["botao-contorno", "tel:+5599988020205", "Ligar para a AMI, (99) 98802-0205", "(99) 98802-0205"],
+      ["botao", "tel:+559935243716", "Ligar (99) 3524-3716 para a AMI", "Ligar (99) 3524-3716"],
+      ["botao-contorno", "tel:+5599988020205", "Ligar (99) 98802-0205 para a AMI", "(99) 98802-0205"],
       [
         "botao-contorno",
         "https://www.google.com/maps/search/?api=1&amp;query=Rua%20Coriolano%20Milhomem%2C%2039%2C%20Centro%2C%20Imperatriz%20-%20MA%2C%2065900-330",
@@ -179,6 +179,9 @@ describe("o quadro Fale com a AMI", () => {
         "Como chegar",
       ],
     ]);
+    /* O nome acessível contém o texto visível, em sequência (o rótulo no
+       nome): quem usa comando de voz diz o que vê. */
+    for (const m of links) expect(m[3], m[3]).toContain(tela(m[4]));
     expect(links[0][4].startsWith(desenho(Phone, 20, "regular"))).toBe(true);
     expect(links[1][4].startsWith(desenho(DeviceMobile, 20, "regular"))).toBe(true);
     expect(links[2][4].startsWith(desenho(MapPin, 20, "regular"))).toBe(true);

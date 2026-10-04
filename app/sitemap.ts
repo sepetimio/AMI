@@ -27,20 +27,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const todos = await buscarMedicos();
 
   /*
-    Seis entradas fixas, e não onze como o brief original desta tarefa
-    mandava. O brief acrescentava direto as seis páginas de prosa
-    (`/associacao/beneficios`, `/associacao/estatuto`,
-    `/associacao/politica-editorial`, as três legais) como fixas, mas todas
-    dão 404 hoje: o Sanity ainda não tem o texto, e cada uma chama
-    `notFound()` nesse caso. Sitemap apontando para 404 é defeito de SEO, e
-    num site de saúde avaliado sob critério YMYL isso pesa mais do que
-    simplesmente deixar de listar. As seis fixas abaixo renderizam sempre:
-    `/associacao` é a página institucional, que se monta mesmo sem a
-    apresentação no Studio, `/associacao/diretoria` vem do Supabase,
-    `/contato` é texto que mora em `lib/ami.ts`, e as outras três são as
-    raízes de navegação do site. As páginas de prosa (hoje sete, Seja
-    associado incluída) entram mais abaixo, derivadas do que de fato está
-    publicado.
+    Seis entradas fixas, que renderizam sempre: `/associacao` é a página
+    institucional, que se monta mesmo sem a apresentação no Studio,
+    `/associacao/diretoria` vem do Supabase, `/contato` é texto que mora em
+    `lib/ami.ts`, e as outras três são as raízes de navegação do site.
+
+    As sete páginas de prosa não são fixas. Hoje, sem texto no Sanity:
+    - Estatuto, Política editorial e Benefícios dão 404: sem documento nem
+      rascunho, a rota chama `notFound()`. Sitemap apontando para 404 é
+      defeito de SEO, e num site de saúde avaliado sob critério YMYL isso
+      pesa mais do que deixar de listar;
+    - as três legais e Seja associado respondem 200, pelo rascunho em
+      código (lib/rascunhosLegais.ts), com o aviso visível de que é
+      rascunho. Elas ficam fora do sitemap até haver texto publicado, para
+      o site não convidar o buscador a um texto provisório. O rascunho não
+      leva `noindex`: quem chegar por um link acha a página, e o buscador
+      pode indexá-la mesmo fora do sitemap.
+    As sete entram mais abaixo, derivadas do que de fato está publicado.
 
     `/contato` fica em 0.7, o mesmo de `/associacao`: os dois são item do
     menu principal (ver lib/menu.ts), abaixo da home
@@ -87,9 +90,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
   /* As sete páginas de prosa (institucionais, legais e Seja associado), só
-     as que já têm texto publicado no Sanity. `caminhosDePaginasPublicadas` já devolve o endereço
-     completo, não o slug: a tradução de um para o outro mora só lá, ver o
-     comentário em lib/sanity/consultas.ts. */
+     as que já têm texto publicado no Sanity: a página que responde pelo
+     rascunho em código fica de fora (ver acima). `caminhosDePaginasPublicadas`
+     já devolve o endereço completo, não o slug: a tradução de um para o
+     outro mora só lá, ver o comentário em lib/sanity/consultas.ts. */
   const paginas: MetadataRoute.Sitemap = (await caminhosDePaginasPublicadas())
     .sort()
     .map((caminho) => ({

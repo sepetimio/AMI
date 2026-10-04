@@ -131,10 +131,16 @@ describe("Saiba mais", () => {
   it("a página que ainda não existe: sem link, com a etiqueta texto a entrar", () => {
     expect(cartoes[1]).toMatch(/^<li [^>]*data-atalho="" data-a-entrar="">/);
     expect(cartoes[1]).toContain(desenho(Scroll, 28, "duotone"));
-    expect(cartoes[1]).toContain(`data-nome="">Estatuto<span class="${estilos.etiqueta}">texto a entrar</span></h3>`);
+    expect(cartoes[1]).toContain(`data-nome="">Estatuto<!-- --> <span class="${estilos.etiqueta}">texto a entrar</span></h3>`);
     expect(cartoes[1]).not.toContain("<a ");
     expect(cartoes[2]).toContain(desenho(Article, 28, "duotone"));
-    expect(cartoes[2]).toContain(">Política editorial<span");
+    expect(cartoes[2]).toContain(">Política editorial<!-- --> <span");
+  });
+
+  it("o texto do título, como o leitor de tela lê: o nome e a etiqueta separados por espaço", () => {
+    const texto = (h3: string) => h3.replace(/<!-- -->/g, "").replace(/<[^>]+>/g, "");
+    const titulos = cartoes.map((c) => texto(/<h3 [\s\S]*?<\/h3>/.exec(c)![0]));
+    expect(titulos).toEqual(["Seja associado", "Estatuto texto a entrar", "Política editorial texto a entrar"]);
   });
 });
 

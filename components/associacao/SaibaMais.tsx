@@ -13,7 +13,8 @@ import type { Atalho } from "@/lib/associacao";
   O atalho de uma página que existe leva a ela pelo cartão inteiro (o link
   do título, esticado em CSS). O de uma página que ainda não existe, que só
   sai na demonstração, não é link, e leva a etiqueta "texto a entrar"
-  (`data-a-entrar`).
+  (`data-a-entrar`), com um espaço antes dela: sem ele, o leitor de tela lê
+  "Estatutotexto a entrar".
 
   Marcas para a auditoria visual: `data-atalho`, `data-nome` e `data-seta`.
 */
@@ -42,7 +43,12 @@ export function SaibaMais({ atalhos }: { atalhos: Atalho[] }) {
             <LadrilhoIcone nome={a.icone} />
             <h3 className={`${grade.nome} ${styles.nome}`} data-nome="">
               {a.aEntrar ? a.titulo : <Link href={a.caminho}>{a.titulo}</Link>}
-              {a.aEntrar ? <span className={styles.etiqueta}>texto a entrar</span> : null}
+              {a.aEntrar ? (
+                <>
+                  {" "}
+                  <span className={styles.etiqueta}>texto a entrar</span>
+                </>
+              ) : null}
             </h3>
             <p className={`${grade.pe} ${styles.pe}`}>
               <span className={`${grade.conta} ${styles.frase}`}>{a.frase}</span>

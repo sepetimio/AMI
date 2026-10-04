@@ -95,7 +95,7 @@ describe("o índice Nesta página", () => {
   it("à direita: o título e um link por seção, para a âncora dela", () => {
     expect(lateral).toMatch(
       new RegExp(
-        `^<aside class="${estilosIndice.lateral}" aria-labelledby="nesta-pagina-titulo" data-nesta-pagina="">` +
+        `^<nav class="${estilosIndice.lateral}" aria-labelledby="nesta-pagina-titulo" data-nesta-pagina="">` +
           `<p id="nesta-pagina-titulo" class="${estilosIndice.titulo}">Nesta página</p>` +
           `<ol class="${estilosIndice.lista}">`,
       ),
@@ -114,7 +114,10 @@ describe("o índice Nesta página", () => {
 
   it("no celular: recolhido, com a seta para baixo, e os mesmos links", () => {
     expect(recolhido).toMatch(
-      new RegExp(`^<details class="${estilosIndice.recolhido}"><summary>Nesta página <svg`),
+      new RegExp(
+        `^<nav class="${estilosIndice.recolhido}" aria-labelledby="nesta-pagina-recolhido">` +
+          `<details><summary id="nesta-pagina-recolhido">Nesta página <svg`,
+      ),
     );
     expect(recolhido).toContain(`${desenho(CaretDown, 20, "regular")}</summary>`);
     expect([...recolhido.matchAll(/<a href="#([^"]+)"/g)].map((m) => m[1])).toEqual(itens.map((i) => i.id));
@@ -126,6 +129,29 @@ describe("o índice Nesta página", () => {
     expect(codigo).toContain('window.addEventListener("scroll", marcar, { passive: true });');
     expect(codigo).toContain("secaoAtual(topos, LINHA_DE_LEITURA, noFim)");
     expect(codigo).toContain('window.removeEventListener("scroll", marcar);');
+  });
+
+  it("a ligação com o navegador: o fim da página só vale se ela rolar de fato", () => {
+    const codigo = semComentarios(fonte("../components/editorial/IndiceNestaPagina.tsx")).replace(/\s+/g, " ");
+    expect(codigo).toContain("const altura = document.documentElement.scrollHeight;");
+    expect(codigo).toContain(
+      "const noFim = altura > window.innerHeight + 4 && window.innerHeight + window.scrollY >= altura - 4;",
+    );
+  });
+
+  it("a ligação com o navegador: o item da seção lida leva aria-current e a classe atual", () => {
+    const codigo = semComentarios(fonte("../components/editorial/IndiceNestaPagina.tsx")).replace(/\s+/g, " ");
+    expect(codigo).toContain(
+      'className={i === atual ? styles.atual : undefined} aria-current={i === atual ? "location" : undefined}',
+    );
+    expect(codigo).toContain("setAtual(secaoAtual(topos, LINHA_DE_LEITURA, noFim));");
+  });
+
+  it("a ligação com o navegador: tocar num item do recolhido fecha o details", () => {
+    const codigo = semComentarios(fonte("../components/editorial/IndiceNestaPagina.tsx")).replace(/\s+/g, " ");
+    expect(codigo).toContain("const detalhes = useRef<HTMLDetailsElement>(null);");
+    expect(codigo).toContain("<details ref={detalhes}>");
+    expect(codigo).toContain("onClick={() => { if (detalhes.current) detalhes.current.open = false; }}");
   });
 });
 
@@ -153,6 +179,6 @@ describe("o CSS do índice", () => {
     expect(r).toMatch(/display: block;/);
     expect(r).toMatch(/border: 1px solid var\(--color-line\);/);
     expect(r).toMatch(/background: var\(--color-surface\);/);
-    expect(regra(tablet(), ".recolhido[open] summary svg")).toMatch(/rotate\(180deg\)/);
+    expect(regra(tablet(), ".recolhido details[open] summary svg")).toMatch(/rotate\(180deg\)/);
   });
 });

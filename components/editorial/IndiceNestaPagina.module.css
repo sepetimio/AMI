@@ -6,7 +6,8 @@
   de 980 e 700px).
 
   No computador, preso à direita ao rolar, marcando a seção que está sendo
-  lida. Do tablet para baixo, recolhido num `<details>` no alto da coluna.
+  lida. Do tablet para baixo, recolhido num `<details>` no alto da coluna;
+  a borda e o fundo ficam no `<nav>` que o envolve (`.recolhido`).
 
   Uma diferença do desenho, de propósito: o desenho mostra o recolhido a
   partir de 980px, mas só o desenha (borda, fundo, a seta) abaixo de 700px;
@@ -102,7 +103,7 @@
     transition: transform 0.25s;
   }
 
-  .recolhido[open] summary svg {
+  .recolhido details[open] summary svg {
     transform: rotate(180deg);
   }
 

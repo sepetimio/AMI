@@ -135,7 +135,7 @@ describe("o modelo, renderizado", () => {
     });
     expect(comLista).toContain(`<ol class="${estilos.numerada}"><li>Um.</li><li>Dois.</li></ol>`);
     expect(comLista.split(estilos.numerada)).toHaveLength(2);
-    const recolhido = /<details [^>]*>[\s\S]*?<\/details>/.exec(comLista)![0];
+    const recolhido = /<details>[\s\S]*?<\/details>/.exec(comLista)![0];
     expect(recolhido).toMatch(/<\/summary><ol>/);
     expect(recolhido).not.toContain(estilos.numerada);
   });
@@ -146,8 +146,8 @@ describe("o modelo, renderizado", () => {
 
   it("com dois títulos de seção ou mais: o índice à direita e o recolhido no alto da coluna", () => {
     expect(html).toContain('data-nesta-pagina=""');
-    expect(html).toMatch(/<\/time><\/p><details /);
-    expect(html).toMatch(/<\/article><aside [^>]*data-nesta-pagina=""/);
+    expect(html).toMatch(/<\/time><\/p><nav [^>]*aria-labelledby="nesta-pagina-recolhido"><details>/);
+    expect(html).toMatch(/<\/article><nav [^>]*data-nesta-pagina=""/);
     expect([...html.matchAll(/<a href="#(secao-[^"]+)"/g)].map((m) => m[1])).toEqual([
       "secao-capitulo-um",
       "secao-capitulo-dois",
@@ -172,7 +172,9 @@ describe("o modelo, renderizado", () => {
     expect(semData).not.toContain("Atualizado em");
     expect(semData).not.toContain("<time");
     expect(semData).not.toContain(`class="${estilos.atualizado}"`);
-    expect(semData).toMatch(new RegExp(`<article class="${estilos.coluna}" data-coluna=""><details `));
+    expect(semData).toMatch(
+      new RegExp(`<article class="${estilos.coluna}" data-coluna=""><nav [^>]*aria-labelledby="nesta-pagina-recolhido"><details>`),
+    );
   });
 
   it("com aviso: o quadro cinza, com o ícone, o título e o texto, antes do texto", () => {

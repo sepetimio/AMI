@@ -17,6 +17,10 @@ import { AMI, hrefTelefone, linkDoMapaDaAmi } from "@/lib/ami";
   `.chamada`), porque o quadro vive dentro da coluna de leitura e as regras
   dele precisam valer sobre as da coluna.
 
+  O nome de cada botão para o leitor de tela contém, em sequência, o que
+  está escrito nele ("Ligar (99) 3524-3716 para a AMI"): quem usa comando
+  de voz diz o que vê.
+
   Os dois números levam `.numero` (algarismos tabulares), como no desenho:
   é o que faz os três botões caberem numa linha só na coluna de 680px.
 
@@ -34,10 +38,10 @@ export function FaleComAmi() {
         <p>{`Pelo telefone ou na sede, no ${AMI.endereco.bairro} de ${AMI.endereco.cidade}.`}</p>
       </div>
       <div className={styles.acoes}>
-        <a className="botao" href={hrefTelefone(fixo)} aria-label={`Ligar para a AMI, ${fixo}`}>
+        <a className="botao" href={hrefTelefone(fixo)} aria-label={`Ligar ${fixo} para a AMI`}>
           <Icone nome="telefone" /> Ligar <span className={styles.numero}>{fixo}</span>
         </a>
-        <a className="botao-contorno" href={hrefTelefone(celular)} aria-label={`Ligar para a AMI, ${celular}`}>
+        <a className="botao-contorno" href={hrefTelefone(celular)} aria-label={`Ligar ${celular} para a AMI`}>
           <Icone nome="celular" /> <span className={styles.numero}>{celular}</span>
         </a>
         <a className="botao-contorno" href={linkDoMapaDaAmi()} aria-label="Como chegar à sede da AMI (abre o mapa)">
