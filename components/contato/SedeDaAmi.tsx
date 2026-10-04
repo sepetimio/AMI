@@ -66,7 +66,7 @@ export function SedeDaAmi({ demonstracao }: { demonstracao: boolean }) {
                 <br />
                 {`${e.bairro}, ${e.cidade} – ${e.uf}`}
                 <br />
-                {`CEP ${e.cep}`}
+                CEP <span className="numero-tabular">{e.cep}</span>
               </address>
               <p className={styles.cnpj}>{`CNPJ ${AMI.cnpj}`}</p>
             </div>

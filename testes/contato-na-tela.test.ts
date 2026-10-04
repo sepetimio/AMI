@@ -150,7 +150,7 @@ describe("a sede, na demonstração", () => {
     expect(html).toContain(
       `<div class="${estilosQuem.sede}">${LADRILHO_PEQUENO}${desenho(MapPin, 23, "duotone")}</span>` +
         `<div><h3 class="${estilosQuem.sedeTitulo}">Associação Médica de Imperatriz</h3>` +
-        `<address class="${estilosQuem.endereco}">Rua Coriolano Milhomem, 39<br/>Centro, Imperatriz – MA<br/>CEP 65900-330</address>` +
+        `<address class="${estilosQuem.endereco}">Rua Coriolano Milhomem, 39<br/>Centro, Imperatriz – MA<br/>CEP <span class="numero-tabular">65900-330</span></address>` +
         `<p class="${estilos.cnpj}">CNPJ 06.651.376/0001-42</p></div>`,
     );
   });

@@ -116,7 +116,7 @@ describe("Quem somos, na demonstração e sem o texto da AMI", () => {
     expect(html).toContain(
       `<div class="${estilosQuem.sede}"><span class="ladrilho-icone ladrilho-icone--pequeno" aria-hidden="true">${desenho(MapPin, 23, "duotone")}</span>` +
         `<div><h3 class="${estilosQuem.sedeTitulo}">Sede da AMI</h3>` +
-        `<address class="${estilosQuem.endereco}">Rua Coriolano Milhomem, 39<br/>Centro, Imperatriz – MA<br/>CEP 65900-330</address></div>`,
+        `<address class="${estilosQuem.endereco}">Rua Coriolano Milhomem, 39<br/>Centro, Imperatriz – MA<br/>CEP <span class="numero-tabular">65900-330</span></address></div>`,
     );
     expect(html).toContain(
       `<div class="${estilosQuem.acoes}"><a class="botao" href="https://www.google.com/maps/search/?api=1&amp;query=Rua%20Coriolano%20Milhomem%2C%2039%2C%20Centro%2C%20Imperatriz%20-%20MA%2C%2065900-330" aria-label="Como chegar à sede da AMI (abre o mapa)">Como chegar ${desenho(ArrowUpRight, 20, "regular")}</a>` +
