@@ -1,7 +1,8 @@
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { RascunhoLegalNaTela } from "@/components/editorial/RascunhoLegalNaTela";
+import { PaginaDeTexto } from "@/components/editorial/PaginaDeTexto";
+import { conteudoDoRascunho, VOLTA_INICIO } from "@/lib/paginaDeTexto";
 import {
   COOKIES,
   PRIVACIDADE,
@@ -11,10 +12,10 @@ import {
 } from "@/lib/rascunhosLegais";
 
 /*
-  O aviso no alto de `RascunhoLegalNaTela` é trocável por rascunho. As três
-  páginas legais mantêm, palavra por palavra, o aviso de "não revisado por
-  advogado"; Seja associado, que não é peça jurídica e não vai a advogado
-  nenhum, não pode dizer ao público que espera um.
+  O aviso no alto da página de texto vem do rascunho e é trocável por
+  rascunho. As três páginas legais mantêm, palavra por palavra, o aviso de
+  "não revisado por advogado"; Seja associado, que não é peça jurídica e não
+  vai a advogado nenhum, não pode dizer ao público que espera um.
 
   Renderiza com `renderToString` e lê o texto do HTML, sem clicar nem medir
   pixel (ver vitest.config.ts): a pergunta é o que a pessoa lê na tela, e
@@ -23,12 +24,16 @@ import {
 
 function textoNaTela(rascunho: RascunhoLegal) {
   const html = renderToString(
-    createElement(RascunhoLegalNaTela, {
-      rascunho,
-      trilha: [{ nome: "Início", caminho: "/" }],
+    createElement(PaginaDeTexto, {
+      conteudo: conteudoDoRascunho(rascunho, true),
+      volta: VOLTA_INICIO,
+      icone: "documento",
     }),
   );
-  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+  return html
+    .replace(/<!-- -->/g, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ");
 }
 
 describe("aviso do rascunho na tela", () => {

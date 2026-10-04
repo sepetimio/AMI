@@ -46,8 +46,8 @@ export function FormularioEntrar() {
         Sem `role="alert"`: ele implica região assertiva, e emparelhado com
         `polite` a prioridade fica inconsistente entre leitores de tela. Erro
         de senha logo depois de apertar Entrar é feedback esperado, não
-        emergência — mesma razão que levou `RascunhoLegalNaTela` a preferir
-        `note` a `alert`.
+        emergência — mesma razão que levou o quadro de aviso de `PaginaDeTexto`
+        a preferir `note` a `alert`.
       */}
       <p aria-live="polite" className="min-h-6 text-[15px] text-warn">
         {estado.erro}

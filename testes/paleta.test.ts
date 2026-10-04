@@ -262,10 +262,6 @@ const FUNDOS_FORA_DO_TESTE: Record<string, string> = {
     "de legenda da moldura provisória (components/base/MolduraProvisoria.tsx), com " +
     "text-ami-lima-400 ou text-white — o par real já é medido no describe " +
     "texto sobre fundo escuro, junto com canvas/surface sobre ami-green-900",
-  warn:
-    "só aparece como bg-warn/5 (components/editorial/RascunhoLegalNaTela.tsx), " +
-    "5% de opacidade — a cor renderizada nunca é o tom cheio do token, então " +
-    "medir --color-warn opaco testaria uma cor que a tela nunca mostra",
 };
 
 /*

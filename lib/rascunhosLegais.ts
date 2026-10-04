@@ -34,6 +34,12 @@ import { AMI, enderecoEmLinha } from "@/lib/ami";
 
 export type SecaoLegal = {
   titulo: string;
+  /**
+   * Um parágrafo que começa com "[PROVISÓRIO] " é o que ainda falta. No
+   * documento do advogado ele sai com a marca; na tela, sem ela, como
+   * moldura "a entrar" (`paragrafoDoRascunho`, lib/paginaDeTexto.ts): nos
+   * três textos legais, sempre; em Seja associado, só no modo demonstração.
+   */
   paragrafos: string[];
   /** Um subtítulo antes da lista, quando ela precisa de nome ("Dados da entidade"). */
   tituloDaLista?: string;
@@ -50,7 +56,7 @@ export type RascunhoLegal = {
   resumo: string;
   /** Data da redação do rascunho. Vira a data de revisão quando for revisado. */
   atualizadoEm: string;
-  /** O aviso que `RascunhoLegalNaTela` põe antes do texto. */
+  /** O aviso que a página de texto põe no quadro antes do texto (`PaginaDeTexto`). */
   aviso: AvisoDoRascunho;
   secoes: SecaoLegal[];
 };
@@ -66,7 +72,7 @@ export type AvisoDoRascunho = {
 };
 
 /* O dos três textos legais: ainda não revisados por advogado. Ver o porquê
-   no comentário de components/editorial/RascunhoLegalNaTela.tsx. */
+   no comentário de components/editorial/PaginaDeTexto.tsx. */
 export const AVISO_DE_TEXTO_LEGAL: AvisoDoRascunho = {
   titulo: "Este texto é um rascunho e ainda não foi revisado por advogado",
   texto:
@@ -296,7 +302,7 @@ const DATA_SEJA_ASSOCIADO = "2026-08-23";
   Não é texto legal — é a página de filiação, provisória enquanto a AMI não
   escreve a definitiva. Mora aqui porque reaproveita o mesmo mecanismo e o
   mesmo tipo `RascunhoLegal` que os três textos acima, pelo motivo que
-  `components/editorial/RascunhoLegalNaTela.tsx` explica no próprio
+  `components/editorial/PaginaDeTexto.tsx` explica no próprio
   comentário: a alternativa a um rascunho assinalado era o cartão "Seja
   associado" da home levar a 404 até a AMI escrever o texto dela. O aviso
   na tela é outro (`AVISO_DE_PAGINA_PROVISORIA`, acima): o dos textos legais

@@ -1,0 +1,262 @@
+/*
+  O modelo de página de texto, transcrito do desenho aprovado
+  (docs/desenho-aprovado/associacao/seja-associado.html: `.faixa-branca`,
+  `.leitura-grade`, `.coluna`, `.coluna > * + *`, `.coluna .atualizado`,
+  `.atualizado i`, `.coluna h2`, `.coluna h3`, `.coluna h2 + *`,
+  `.coluna p`, `.coluna ul` e o ponto da lista, `.coluna .falta`,
+  `.quadro`, `.quadro > i`, `.coluna .quadro p`,
+  `.coluna .quadro .quadro-titulo`, `.quadro-titulo + p`, e os @media de
+  1180, 980 e 700px). O índice é de IndiceNestaPagina.module.css.
+
+  O corpo numa faixa branca de ponta a ponta, sem canto nem sombra, com a
+  margem lateral das faixas (`--borda-faixa`, app/globals.css) e sem
+  margem embaixo: o rodapé emenda nele (components/layout/Rodape.module.css).
+  A coluna de leitura tem 680px e começa na linha do texto de todos os
+  blocos; o texto corre em 17,5px com entrelinha de 1,7, como a leitura do
+  perfil (components/perfil/Perfil.module.css).
+
+  O quadro do aviso é cinza neutro (`surface-fundo`), e não o âmbar de
+  antes: nenhum tom quente no site.
+
+  Fora do desenho, porque o texto do Studio pode ter e o desenho não mostra:
+  a lista numerada (`ol`), o negrito (`strong`) e o link (`.link`, no verde
+  de ação e sublinhado, como o texto rico das notícias).
+
+  O relógio da data é `inline-block`: a camada base do Tailwind faz todo
+  `svg` virar bloco, e ele cairia numa linha acima do texto; no desenho,
+  ele é um `<i>`, que já fica na linha.
+
+  Os seletores começam por `.coluna`, como no desenho: assim o que vale
+  para um parágrafo comum (`.coluna p`) não passa por cima da data, do
+  quadro nem do texto a entrar, que têm o próprio tamanho.
+*/
+
+.faixa {
+  padding: 96px var(--borda-faixa);
+  background: var(--color-surface);
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: minmax(0, 680px) 248px;
+  justify-content: space-between;
+  align-items: start;
+  column-gap: var(--m);
+}
+
+.coluna {
+  min-width: 0;
+}
+
+.coluna > * + * {
+  margin-top: 20px;
+}
+
+.coluna .atualizado {
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--color-line);
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-ink-400);
+}
+
+.atualizado svg {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  vertical-align: -2px;
+  margin-right: 6px;
+}
+
+.coluna h2 {
+  font-size: clamp(28px, 2.6vw, 34px);
+  line-height: 1.1;
+  margin-top: 56px;
+}
+
+.coluna h3 {
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  margin-top: 32px;
+}
+
+.coluna h2 + *,
+.coluna h3 + * {
+  margin-top: 14px;
+}
+
+.coluna p,
+.coluna li {
+  font-size: 17.5px;
+  line-height: 1.7;
+  color: var(--color-ink-600);
+}
+
+.coluna ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.coluna ul > li {
+  position: relative;
+  padding-left: 22px;
+}
+
+.coluna ul > li::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 0.74em;
+  width: 6px;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--color-ami-green-600);
+}
+
+.coluna ul > li + li {
+  margin-top: 8px;
+}
+
+.coluna ol {
+  margin: 0;
+  padding-left: 22px;
+}
+
+.coluna ol > li + li {
+  margin-top: 8px;
+}
+
+.coluna strong {
+  font-weight: 600;
+  color: var(--color-ink-900);
+}
+
+.coluna .falta {
+  font-size: 16.5px;
+  color: var(--color-ink-400);
+  font-style: italic;
+}
+
+.link {
+  font-weight: 600;
+  color: var(--color-ami-green-600);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.link:hover {
+  color: var(--color-ami-green-700);
+}
+
+.quadro {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  column-gap: 14px;
+  padding: 20px 24px 22px;
+  border-radius: 16px;
+  background: var(--color-surface-fundo);
+  border: 1px solid var(--color-line);
+}
+
+.quadro > svg {
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  color: var(--color-ami-green-600);
+}
+
+.coluna .quadro p {
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+
+.coluna .quadro .quadroTitulo {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-ami-green-800);
+}
+
+.quadroTitulo + p {
+  margin-top: 4px;
+}
+
+@media (max-width: 1180px) {
+  .grade {
+    grid-template-columns: minmax(0, 1fr) 220px;
+  }
+}
+
+@media (max-width: 980px) {
+  .faixa {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  .grade {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .faixa {
+    padding: 44px var(--borda-faixa);
+  }
+
+  .coluna > * + * {
+    margin-top: 16px;
+  }
+
+  .coluna .atualizado {
+    padding-bottom: 16px;
+    font-size: 13px;
+  }
+
+  .coluna h2 {
+    font-size: 25px;
+    margin-top: 40px;
+  }
+
+  .coluna h3 {
+    font-size: 19px;
+    margin-top: 24px;
+  }
+
+  .coluna h2 + *,
+  .coluna h3 + * {
+    margin-top: 10px;
+  }
+
+  .coluna p,
+  .coluna li {
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  .coluna .falta {
+    font-size: 15px;
+  }
+
+  .quadro {
+    grid-template-columns: 20px minmax(0, 1fr);
+    column-gap: 12px;
+    padding: 16px 16px 18px;
+  }
+
+  .quadro > svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .coluna .quadro p {
+    font-size: 14.5px;
+  }
+
+  .coluna .quadro .quadroTitulo {
+    font-size: 15px;
+  }
+}

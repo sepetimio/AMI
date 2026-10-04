@@ -21,7 +21,7 @@ const CAMPO =
   `aria-live="polite"` e não `role="alert"`: alerta é região assertiva e
   interrompe quem usa leitor de tela. Erro de campo num formulário é feedback
   esperado, não emergência — mesmo raciocínio de
-  `components/editorial/RascunhoLegalNaTela.tsx`.
+  `components/editorial/PaginaDeTexto.tsx` (o quadro de aviso).
 */
 function Erro({ texto }: { texto?: string }) {
   return (
