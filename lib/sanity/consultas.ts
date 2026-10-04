@@ -317,21 +317,23 @@ export type TextoDeEspecialidadeCru = {
   revisadoEm: string | null;
 };
 
-/* Um texto rico tem texto quando algum trecho de algum bloco dele não está
+/* Um bloco tem texto quando é um bloco de texto e algum trecho dele não está
    em branco. */
+function blocoTemTexto(b: PortableTextBlock): boolean {
+  const { _type, children } = b as { _type?: unknown; children?: unknown };
+  return (
+    _type === "block" &&
+    Array.isArray(children) &&
+    children.some((t) => {
+      const texto = (t as { text?: unknown } | null)?.text;
+      return typeof texto === "string" && texto.trim() !== "";
+    })
+  );
+}
+
+/* Um texto rico tem texto quando algum bloco dele tem. */
 function temTexto(blocos: PortableTextBlock[] | null): blocos is PortableTextBlock[] {
-  if (!Array.isArray(blocos)) return false;
-  return blocos.some((b) => {
-    const { _type, children } = b as { _type?: unknown; children?: unknown };
-    return (
-      _type === "block" &&
-      Array.isArray(children) &&
-      children.some((t) => {
-        const texto = (t as { text?: unknown } | null)?.text;
-        return typeof texto === "string" && texto.trim() !== "";
-      })
-    );
-  });
+  return Array.isArray(blocos) && blocos.some(blocoTemTexto);
 }
 
 /*
@@ -343,6 +345,10 @@ function temTexto(blocos: PortableTextBlock[] | null): blocos is PortableTextBlo
 
   Faltando qualquer um, devolve null, e a página trata como especialidade
   sem texto (`sobreDaEspecialidade`, lib/especialidades.ts).
+
+  Dos dois textos saem os blocos em branco (um Enter a mais no Studio, no
+  começo, no meio ou no fim): cada um viraria um parágrafo vazio, e o espaço
+  entre os dois parágrafos em volta dele dobraria.
 */
 export function paraTextoDeEspecialidade(
   cru: TextoDeEspecialidadeCru | null,
@@ -361,8 +367,8 @@ export function paraTextoDeEspecialidade(
     return null;
   }
   return {
-    oQueFaz: cru.oQueFaz,
-    quandoProcurar: cru.quandoProcurar,
+    oQueFaz: cru.oQueFaz.filter(blocoTemTexto),
+    quandoProcurar: cru.quandoProcurar.filter(blocoTemTexto),
     revisorNome,
     revisorCrm,
     mesDaRevisao,

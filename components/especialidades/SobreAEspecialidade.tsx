@@ -1,15 +1,38 @@
-import { PortableText, type PortableTextComponents } from "@portabletext/react";
+import type { ReactNode } from "react";
+import {
+  defaultComponents,
+  PortableText,
+  type PortableTextComponents,
+} from "@portabletext/react";
 import styles from "@/components/especialidades/SobreAEspecialidade.module.css";
 import { tituloDoSobre, type SobreNaTela } from "@/lib/especialidades";
 import { TEXTO_A_ENTRAR } from "@/lib/molduras";
 
-/* O texto do Studio só tem parágrafo e lista com marcadores
-   (sanity/schemas/textoDeEspecialidade.ts). Cada um sai como tag simples, e
-   o CSS do bloco desenha. */
+type ComFilhos = { children?: ReactNode };
+
+/* Só o texto, sem marca em volta. */
+const SoOTexto = ({ children }: ComFilhos) => <>{children}</>;
+
+/*
+  O texto do Studio só tem parágrafo e lista com marcadores, sem negrito,
+  itálico nem link (sanity/schemas/textoDeEspecialidade.ts). Cada um sai como
+  tag simples, e o CSS do bloco desenha.
+
+  Um texto que chegue por fora do Studio pode trazer o que o schema não
+  permite. Ele sai como o que o schema permite:
+  - qualquer estilo de bloco (título, citação) sai como `p`;
+  - qualquer lista (a numerada também) sai como `ul` e `li`;
+  - qualquer marca, as que a biblioteca desenharia (`defaultComponents.marks`)
+    e as desconhecidas, sai só como o texto;
+  - um bloco que não é de texto (uma imagem) não sai.
+*/
 const COMPONENTES: PortableTextComponents = {
-  block: { normal: ({ children }) => <p>{children}</p> },
-  list: { bullet: ({ children }) => <ul>{children}</ul> },
-  listItem: { bullet: ({ children }) => <li>{children}</li> },
+  block: ({ children }: ComFilhos) => <p>{children}</p>,
+  list: ({ children }: ComFilhos) => <ul>{children}</ul>,
+  listItem: ({ children }: ComFilhos) => <li>{children}</li>,
+  marks: Object.fromEntries(Object.keys(defaultComponents.marks).map((marca) => [marca, SoOTexto])),
+  unknownMark: SoOTexto,
+  unknownType: () => null,
 };
 
 /*
@@ -19,8 +42,10 @@ const COMPONENTES: PortableTextComponents = {
   - Embaixo, quem revisou, o CRM e o mês da revisão, e o aviso de que o
     conteúdo é informativo.
 
-  Conteúdo de saúde é avaliado sob o critério YMYL do Google: sem autoria
-  creditada e data de revisão, não ranqueia.
+  Conteúdo de saúde é do tipo que o Google chama de YMYL, em que as
+  diretrizes de avaliação dele dão peso a quem responde pelo conteúdo.
+  Mostrar quem revisou, e quando, vai nessa direção; não garante posição na
+  busca.
 
   O que sai é decidido por `sobreDaEspecialidade` (lib/especialidades.ts):
   - com o texto da AMI no Sanity, ele sai;

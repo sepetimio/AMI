@@ -2,14 +2,17 @@ import Link from "next/link";
 import { Icone } from "@/components/base/IconeServidor";
 import busca from "@/components/busca/FaixaDaBusca.module.css";
 import styles from "@/components/especialidades/FaixaDaEspecialidade.module.css";
-import { iconeDaEspecialidade } from "@/lib/especialidades";
+import { iconeDaEspecialidade, nomeComQuebras } from "@/lib/especialidades";
 
 /*
   A faixa verde de ponta a ponta que abre a página de cada especialidade.
   - No lugar do rótulo, o link de volta ao índice ("← ESPECIALIDADES", como
     o "← ENCONTRE UM MÉDICO" do perfil).
   - O título e o parágrafo de abertura, gerado dos dados
-    (`paragrafoDeAbertura`, lib/dados/facetas.ts).
+    (`paragrafoDeAbertura`, lib/dados/facetas.ts). O título leva o hífen
+    opcional dos nomes longos (`nomeComQuebras`), como o cartão do índice:
+    sem ele, a 320px, "Otorrinolaringologia" quebra deixando uma letra só
+    na linha de baixo.
   - À direita, o ícone da especialidade, que some no celular.
 
   Sem campo de busca, sem `Cabeceira` e sem trilha.
@@ -43,7 +46,7 @@ export function FaixaDaEspecialidade({
           <Icone nome="voltar" /> Especialidades
         </Link>
         <h1 id="especialidade-titulo" className={busca.titulo}>
-          {`${nome} em Imperatriz`}
+          {`${nomeComQuebras(nome)} em Imperatriz`}
         </h1>
         <p className={busca.texto}>{paragrafo}</p>
       </div>

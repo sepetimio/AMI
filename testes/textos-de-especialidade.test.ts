@@ -157,4 +157,17 @@ describe("paraTextoDeEspecialidade", () => {
   it("data fora do formato do Studio vale como faltando", () => {
     expect(paraTextoDeEspecialidade(cru({ revisadoEm: "2026-13-01" }))).toBeNull();
   });
+
+  it("os blocos em branco saem dos dois textos, no começo, no meio e no fim", () => {
+    const branco = bloco("  \n ");
+    const itemEmBranco = item(" ");
+    const texto = paraTextoDeEspecialidade(
+      cru({
+        oQueFaz: [branco, bloco("Primeiro."), branco, bloco("Segundo."), branco],
+        quandoProcurar: [item("Falta de ar."), itemEmBranco, item("Pressão alta."), branco],
+      } as unknown as Partial<TextoDeEspecialidadeCru>),
+    );
+    expect(texto?.oQueFaz).toEqual([bloco("Primeiro."), bloco("Segundo.")]);
+    expect(texto?.quandoProcurar).toEqual([item("Falta de ar."), item("Pressão alta.")]);
+  });
 });

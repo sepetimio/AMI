@@ -95,10 +95,11 @@ export function linhaDeApoioDoIndice(medicos: number): string {
  * "Sobre a cardiologia": o nome em minúsculas, como no desenho. O artigo "a"
  * só serve a nome feminino, e as especialidades de hoje terminam todas em
  * "a"; um nome que termine em outra letra (uma nova que a AMI cadastre) fica
- * com "Sobre a especialidade", que não erra o gênero.
+ * com "Sobre a especialidade", que não erra o gênero. Espaço nas pontas do
+ * nome não conta.
  */
 export function tituloDoSobre(especialidade: string): string {
-  const nome = especialidade.toLocaleLowerCase("pt-BR");
+  const nome = especialidade.trim().toLocaleLowerCase("pt-BR");
   return nome.endsWith("a") ? `Sobre a ${nome}` : "Sobre a especialidade";
 }
 
@@ -117,17 +118,27 @@ const MESES = [
   "dezembro",
 ];
 
+/* Os dias do mês (1 a 12), com o fevereiro do ano bissexto. */
+function diasDoMes(ano: number, mes: number): number {
+  if (mes === 2) return ano % 4 === 0 && (ano % 100 !== 0 || ano % 400 === 0) ? 29 : 28;
+  return [4, 6, 9, 11].includes(mes) ? 30 : 31;
+}
+
 /**
  * "2026-09-15", a data do campo de data do Studio, vira "setembro de 2026".
  * Lê o texto, sem `Date`: data sem hora lida como instante muda de dia
  * conforme o fuso de quem roda, e aqui só interessam o mês e o ano. Fora do
- * formato do Studio, null.
+ * formato do Studio, ou com um dia que o mês não tem ("2026-02-30",
+ * "2026-09-00"), null.
  */
 export function mesDeAno(data: string | null | undefined): string | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(data ?? "");
   if (!m) return null;
   const mes = Number(m[2]);
   if (mes < 1 || mes > 12) return null;
+  const ano = Number(m[1]);
+  const dia = Number(m[3]);
+  if (dia < 1 || dia > diasDoMes(ano, mes)) return null;
   return `${MESES[mes - 1]} de ${m[1]}`;
 }
 

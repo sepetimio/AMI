@@ -152,6 +152,11 @@ describe("as frases geradas dos dados", () => {
     expect(tituloDoSobre("Pneumo")).toBe("Sobre a especialidade");
     expect(tituloDoSobre("")).toBe("Sobre a especialidade");
   });
+
+  it("espaço nas pontas do nome não conta", () => {
+    expect(tituloDoSobre("  Cardiologia \n")).toBe("Sobre a cardiologia");
+    expect(tituloDoSobre(" Clínica Médica ")).toBe("Sobre a clínica médica");
+  });
 });
 
 describe("o mês da revisão", () => {
@@ -166,6 +171,18 @@ describe("o mês da revisão", () => {
     for (const ruim of [null, undefined, "", "2026-13-01", "2026-00-10", "15/09/2026", "2026-9-1", "2026-09-15T10:00:00Z"]) {
       expect(mesDeAno(ruim), String(ruim)).toBeNull();
     }
+  });
+
+  it("dia que o mês não tem, nada; o último dia de cada mês, sim", () => {
+    for (const ruim of ["2026-09-00", "2026-09-31", "2026-02-29", "2026-02-30", "2026-01-32", "2026-04-31", "2100-02-29"]) {
+      expect(mesDeAno(ruim), ruim).toBeNull();
+    }
+    expect(mesDeAno("2026-01-31")).toBe("janeiro de 2026");
+    expect(mesDeAno("2026-02-28")).toBe("fevereiro de 2026");
+    expect(mesDeAno("2028-02-29")).toBe("fevereiro de 2028");
+    expect(mesDeAno("2000-02-29")).toBe("fevereiro de 2000");
+    expect(mesDeAno("2026-04-30")).toBe("abril de 2026");
+    expect(mesDeAno("2026-12-31")).toBe("dezembro de 2026");
   });
 });
 

@@ -74,6 +74,15 @@ describe("a faixa da especialidade", () => {
     expect(html).toContain(`<p class="${estilosBusca.texto}">Parágrafo de abertura.</p>`);
   });
 
+  it("o nome longo no título leva o hífen opcional, como no cartão do índice", () => {
+    const otorrino = renderToString(
+      createElement(FaixaDaEspecialidade, { nome: "Otorrinolaringologia", slug: "otorrinolaringologia", paragrafo: "x" }),
+    );
+    expect(otorrino).toContain(
+      `<h1 id="especialidade-titulo" class="${estilosBusca.titulo}">Otorrino­laringologia em Imperatriz</h1>`,
+    );
+  });
+
   it("à direita, o ícone da especialidade no ladrilho de vidro, fora do leitor de tela", () => {
     expect(html).toContain(`<div class="${estilosFaixa.selo}" aria-hidden="true">${desenho(Bone, 84, "duotone")}</div>`);
     const nova = renderToString(
@@ -201,6 +210,47 @@ describe("o Sobre a especialidade", () => {
 
   it("nenhum texto provisório", () => {
     for (const html of [comTexto, aEntrar]) expect(html).not.toContain("PROVISÓRIO");
+  });
+
+  it("o que o schema não permite sai como o que ele permite: p, ul e li, só o texto", () => {
+    const span = (_key: string, text: string, marks: string[]) => ({ _type: "span", _key, text, marks });
+    const fora: TextoDeEspecialidade = {
+      ...TEXTO,
+      oQueFaz: [
+        ...["h1", "h2", "h3", "h4", "h5", "h6", "blockquote"].map((style) =>
+          bloco_(`Estilo ${style}.`, { _key: style, style }),
+        ),
+        bloco_("", {
+          _key: "marcas",
+          markDefs: [{ _key: "l", _type: "link", href: "https://exemplo.org" }],
+          children: [
+            span("a", "Forte,", ["strong"]),
+            span("b", " itálico,", ["em"]),
+            span("c", " link", ["l"]),
+            span("d", " e marca nova.", ["destaque"]),
+          ],
+        }),
+        { _type: "image", _key: "imagem", asset: { _ref: "image-x" } } as unknown as PortableTextBlock,
+      ],
+      quandoProcurar: [
+        bloco_("Um.", { _key: "n1", listItem: "number", level: 1 }),
+        bloco_("Dois.", { _key: "n2", listItem: "number", level: 1 }),
+      ],
+    };
+    const html = renderToString(
+      createElement(SobreAEspecialidade, { nome: "Ortopedia e Traumatologia", sobre: { tipo: "texto", texto: fora } }),
+    ).replace(/<!-- -->/g, "");
+    const ini = html.indexOf(`<div class="${estilosSobre.colunas}">`);
+    const colunas = html.slice(ini, html.indexOf(`<div class="${estilosSobre.revisao}">`));
+    expect(colunas).toBe(
+      `<div class="${estilosSobre.colunas}">` +
+        "<div><h3>O que faz</h3>" +
+        "<p>Estilo h1.</p><p>Estilo h2.</p><p>Estilo h3.</p><p>Estilo h4.</p><p>Estilo h5.</p><p>Estilo h6.</p>" +
+        "<p>Estilo blockquote.</p>" +
+        "<p>Forte, itálico, link e marca nova.</p></div>" +
+        "<div><h3>Quando procurar</h3><ul><li>Um.</li><li>Dois.</li></ul></div>" +
+        "</div>",
+    );
   });
 });
 
