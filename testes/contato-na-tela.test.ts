@@ -328,6 +328,11 @@ describe("o CSS do contato", () => {
     expect(r).toMatch(/align-items: start;/);
   });
 
+  it("os parágrafos quebram com o text-wrap: pretty do desenho, sem palavra sozinha no fim", () => {
+    for (const seletor of [".nota", ".sedeDoContato .texto", ".falta", ".fecho p"])
+      expect(regra(base(css), seletor), seletor).toMatch(/text-wrap: pretty;/);
+  });
+
   it("o horário a entrar: cinza e em itálico", () => {
     const r = regra(base(css), ".falta");
     expect(r).toMatch(/color: var\(--color-ink-400\);/);

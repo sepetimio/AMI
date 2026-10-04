@@ -24,6 +24,10 @@
   sobre as de lá levam a classe da faixa na frente (`.sedeDoContato …`), e
   a do corpo sem foto, também o atributo (`[data-sem-foto]`): pesam mais
   qualquer que seja a ordem em que as folhas chegam ao navegador.
+
+  Os parágrafos quebram com o `text-wrap: pretty` que o desenho põe em todo
+  `p`: sem ele, a última palavra da frase da sede, do horário e do fecho
+  ficava sozinha na linha.
 */
 
 .canais {
@@ -81,6 +85,7 @@
   font-size: 14.5px;
   line-height: 1.55;
   color: var(--color-ink-600);
+  text-wrap: pretty;
 }
 
 .acao {
@@ -92,6 +97,7 @@
   max-width: 30em;
   margin-top: 16px;
   color: var(--color-ink-600);
+  text-wrap: pretty;
 }
 
 .sedeDoContato .corpo[data-sem-foto] {
@@ -116,6 +122,7 @@
   line-height: 1.6;
   font-style: italic;
   color: var(--color-ink-400);
+  text-wrap: pretty;
 }
 
 .separa {
@@ -134,6 +141,7 @@
 .fecho p {
   max-width: 44em;
   color: var(--color-ink-600);
+  text-wrap: pretty;
 }
 
 .fecho strong {
