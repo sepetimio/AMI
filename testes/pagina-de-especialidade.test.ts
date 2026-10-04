@@ -119,7 +119,7 @@ describe("a página de uma especialidade", () => {
     const html = await pagina("true");
     expect(html).toMatch(new RegExp(`<div class="${estilosPagina.pagina}"><section data-bloco="topo"`));
     expect(html.match(/<h1\b/g)).toHaveLength(1);
-    expect(html).toMatch(/<h1 id="especialidade-titulo"[^>]*>Ortopedia e Traumatologia em Imperatriz<\/h1>/);
+    expect(html).toMatch(/<h1 id="pagina-titulo"[^>]*>Ortopedia e Traumatologia em Imperatriz<\/h1>/);
     expect(html).not.toContain("Trilha de navegação");
     expect(html).not.toContain("-mt-32");
     expect(html).not.toContain("BreadcrumbList");

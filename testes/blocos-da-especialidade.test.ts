@@ -8,7 +8,7 @@ import estilosBusca from "@/components/busca/FaixaDaBusca.module.css";
 import estilosResultados from "@/components/busca/ResultadosDaBusca.module.css";
 import estilosGrade from "@/components/diretorio/GradeMedicos.module.css";
 import { FaixaDaEspecialidade } from "@/components/especialidades/FaixaDaEspecialidade";
-import estilosFaixa from "@/components/especialidades/FaixaDaEspecialidade.module.css";
+import estilosFaixa from "@/components/layout/FaixaCurta.module.css";
 import { MedicosDaEspecialidade } from "@/components/especialidades/MedicosDaEspecialidade";
 import { SobreAEspecialidade } from "@/components/especialidades/SobreAEspecialidade";
 import estilosSobre from "@/components/especialidades/SobreAEspecialidade.module.css";
@@ -47,7 +47,7 @@ describe("a faixa da especialidade", () => {
   it("faixa verde de ponta a ponta que abre a página", () => {
     expect(html).toMatch(
       new RegExp(
-        `^<section data-bloco="topo" data-faixa="" data-abertura="" aria-labelledby="especialidade-titulo" class="textura-verde ${estilosBusca.faixa} ${estilosFaixa.especialidade}">`,
+        `^<section data-bloco="topo" data-faixa="" data-abertura="" aria-labelledby="pagina-titulo" class="textura-verde ${estilosBusca.faixa} ${estilosFaixa.especialidade}">`,
       ),
     );
     expect(html).toContain('<div class="brilho" aria-hidden="true"></div>');
@@ -69,7 +69,7 @@ describe("a faixa da especialidade", () => {
 
   it("o título com o nome e Imperatriz, e o parágrafo de abertura", () => {
     expect(html).toContain(
-      `<h1 id="especialidade-titulo" class="${estilosBusca.titulo}">Ortopedia e Traumatologia em Imperatriz</h1>`,
+      `<h1 id="pagina-titulo" class="${estilosBusca.titulo}">Ortopedia e Traumatologia em Imperatriz</h1>`,
     );
     expect(html).toContain(`<p class="${estilosBusca.texto}">Parágrafo de abertura.</p>`);
   });
@@ -79,7 +79,7 @@ describe("a faixa da especialidade", () => {
       createElement(FaixaDaEspecialidade, { nome: "Otorrinolaringologia", slug: "otorrinolaringologia", paragrafo: "x" }),
     );
     expect(otorrino).toContain(
-      `<h1 id="especialidade-titulo" class="${estilosBusca.titulo}">Otorrino­laringologia em Imperatriz</h1>`,
+      `<h1 id="pagina-titulo" class="${estilosBusca.titulo}">Otorrino­laringologia em Imperatriz</h1>`,
     );
   });
 
@@ -259,7 +259,7 @@ describe("o Sobre a especialidade", () => {
 });
 
 describe("o CSS da faixa da especialidade", () => {
-  const css = semNotas(fonte("../components/especialidades/FaixaDaEspecialidade.module.css"));
+  const css = semNotas(fonte("../components/layout/FaixaCurta.module.css"));
 
   it("texto à esquerda e o ícone à direita até o celular, valendo sobre a regra da busca", () => {
     /* `.especialidade[data-faixa]` pesa mais que `.faixa`
@@ -301,7 +301,7 @@ describe("o CSS da faixa da especialidade", () => {
     /* Depois do `.rotulo-secao`, na mesma camada: o `inline-flex` vale sobre o `block` dele. */
     expect(componentes.indexOf(".link-de-volta {")).toBeGreaterThan(componentes.indexOf(".rotulo-secao {"));
     /* Uma cópia só: nenhuma folha de módulo repete a regra. */
-    for (const folha of ["../components/especialidades/FaixaDaEspecialidade.module.css", "../components/perfil/Perfil.module.css"]) {
+    for (const folha of ["../components/layout/FaixaCurta.module.css", "../components/perfil/Perfil.module.css"]) {
       expect(semNotas(fonte(folha)), folha).not.toMatch(/\.volta\b/);
     }
   });

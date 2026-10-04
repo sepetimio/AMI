@@ -362,6 +362,12 @@ describe("o CSS de Seja associado", () => {
     }
   });
 
+  it("o título do cartão não tem entrelinha própria: herda o 1,65 do corpo, como no desenho", () => {
+    expect(regra(base(CSS_ASSOCIE), ".cartaoTitulo")).not.toMatch(/line-height/);
+    expect(regra(media(CSS_ASSOCIE, "@media (max-width: 700px)"), ".cartaoTitulo")).not.toMatch(/line-height/);
+    expect(regra(media(CSS_GLOBAL, "@layer base"), "body")).toMatch(/line-height: 1\.65;/);
+  });
+
   it("o ordinal e o texto a entrar ficam em ink-400, que passa em AA no branco", () => {
     expect(regra(base(CSS_ASSOCIE), ".ordem")).toMatch(/color: var\(--color-ink-400\)/);
     expect(regra(base(CSS_ASSOCIE), ".falta")).toMatch(/color: var\(--color-ink-400\)/);

@@ -6,7 +6,7 @@ import { ArrowLeft, CaretDown, UsersThree } from "@phosphor-icons/react/dist/ssr
 import estilosBusca from "@/components/busca/FaixaDaBusca.module.css";
 import { IndiceNestaPagina, IndiceRecolhido } from "@/components/editorial/IndiceNestaPagina";
 import estilosIndice from "@/components/editorial/IndiceNestaPagina.module.css";
-import estilosFaixa from "@/components/especialidades/FaixaDaEspecialidade.module.css";
+import estilosFaixa from "@/components/layout/FaixaCurta.module.css";
 import { FaixaCurta } from "@/components/layout/FaixaCurta";
 import { ancorasUnicas } from "@/lib/nestaPagina";
 import { VOLTA_ASSOCIACAO, VOLTA_INICIO } from "@/lib/paginaDeTexto";

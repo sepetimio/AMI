@@ -1,17 +1,20 @@
 /*
-  A faixa verde da página de cada especialidade, transcrita do desenho
-  aprovado (docs/desenho-aprovado/especialidades/especialidade.html:
-  `.esp-topo`, `.esp-topo h1`, `.esp-topo .texto`, `.esp-topo .volta`,
-  `.esp-selo`, `.esp-selo i`, e os @media de 980 e 700px). O link de volta
-  é o `.link-de-volta` global (app/globals.css), o mesmo do perfil.
+  A faixa verde curta (components/layout/FaixaCurta.tsx), que abre a página
+  de cada especialidade, a diretoria e as páginas de texto. Transcrita do
+  desenho aprovado da especialidade
+  (docs/desenho-aprovado/especialidades/especialidade.html: `.esp-topo`,
+  `.esp-topo h1`, `.esp-topo .texto`, `.esp-selo`, `.esp-selo i`, e os
+  @media de 980 e 700px), que A Associação repete (`.busca-topo.esp-topo`).
+  O link de volta é o `.link-de-volta` global (app/globals.css), o mesmo do
+  perfil.
 
   O resto da faixa é o da busca (components/busca/FaixaDaBusca.module.css:
   `.faixa`, `.sobre`, `.titulo`, `.texto`). O link de volta tem a cor do
   rótulo dela (`.sobre`).
 
-  Sem campo de busca. À direita, o ícone da especialidade num ladrilho de
-  vidro, alinhado à borda direita do texto. As duas colunas ficam até o
-  celular, onde o ícone sai e a faixa fica curta.
+  Sem campo de busca. À direita, o ícone da página num ladrilho de vidro,
+  alinhado à borda direita do texto. As duas colunas ficam até o celular,
+  onde o ícone sai e a faixa fica curta.
 
   O parágrafo quebra com o `text-wrap: pretty` do `.texto` da busca.
 
