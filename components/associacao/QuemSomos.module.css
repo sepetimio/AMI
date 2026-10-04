@@ -30,6 +30,8 @@
   margin-top: 16px;
   max-width: 30em;
   color: var(--color-ink-600);
+  /* Como o `p` do desenho; herdado pelos parágrafos do texto da AMI. */
+  text-wrap: pretty;
 }
 
 .apresentacao p + p {

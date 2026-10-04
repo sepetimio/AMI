@@ -301,6 +301,11 @@ describe("o CSS dos blocos de baixo", () => {
     expect(regra(bloco(css, "@media (max-width: 980px)"), ".fecho")).toMatch(/grid-template-columns: 1fr;/);
   });
 
+  it("a frase da diretoria e o texto do fecho quebram com text-wrap: pretty, como o p do desenho", () => {
+    expect(regra(base(css), ".texto")).toMatch(/text-wrap: pretty;/);
+    expect(regra(base(css), ".fechoTexto")).toMatch(/text-wrap: pretty;/);
+  });
+
   it("a etiqueta: cinza neutro, sem tom quente", () => {
     expect(regra(base(css), ".etiqueta")).toMatch(/background: var\(--color-surface-fundo\);/);
   });

@@ -324,6 +324,11 @@ describe("o CSS da página de texto", () => {
     expect(regra(cel(), ".coluna p,\n  .coluna li")).toMatch(/font-size: 16px;/);
   });
 
+  it("os parágrafos quebram com text-wrap: pretty, como o p do desenho; os itens de lista, não", () => {
+    expect(regra(base(css), ".coluna p")).toMatch(/text-wrap: pretty;/);
+    expect(regra(base(css), ".coluna p,\n.coluna li")).not.toMatch(/text-wrap/);
+  });
+
   it("o relógio da data fica na linha do texto, e não num bloco acima dele", () => {
     expect(regra(base(css), ".atualizado svg")).toMatch(/display: inline-block;/);
   });

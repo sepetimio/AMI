@@ -44,6 +44,8 @@
   max-width: 34em;
   margin-top: 16px;
   color: var(--color-ink-600);
+  /* Como o `p` do desenho: sem uma palavra sozinha na última linha. */
+  text-wrap: pretty;
 }
 
 .atalhos[data-atalhos] {
@@ -112,6 +114,7 @@
 .fechoTexto {
   max-width: 28em;
   color: var(--color-ink-600);
+  text-wrap: pretty;
 }
 
 .fechoAcao {

@@ -255,6 +255,10 @@ describe("o CSS de Quem somos", () => {
     expect(r).toMatch(/border: 0;/);
   });
 
+  it("a apresentação quebra com text-wrap: pretty, como o p do desenho", () => {
+    expect(regra(base(css), ".apresentacao")).toMatch(/text-wrap: pretty;/);
+  });
+
   it("no celular, os dois botões lado a lado, na largura toda", () => {
     expect(regra(cel(), ".acoes")).toMatch(/grid-template-columns: 1fr 1fr;/);
     expect(regra(cel(), ".acoes > a")).toMatch(/width: 100%;/);
