@@ -251,10 +251,6 @@ const FUNDOS_FORA_DO_TESTE: Record<string, string> = {
   "ami-green-700":
     "só aparece via hover: nos mesmos botões de ami-green-600 — mesmo texto " +
     "branco, e o estado de repouso já fica de fora pelo motivo acima",
-  "ami-green-800":
-    "fundo da plaqueta de iniciais (components/diretorio/Placa.tsx), com " +
-    "text-ami-lima-400 — o par real já é medido no describe texto sobre fundo " +
-    "escuro, junto com canvas/surface sobre ami-green-800",
   "ami-green-900":
     "ponta do degradê da `.textura-verde` (app/globals.css: o rodapé e a " +
     "busca verde da home), fundo do destaque das notícias e da notícia sem capa " +
@@ -420,8 +416,8 @@ describe("texto sobre fundo escuro", () => {
     `white` entrou depois — rodada de correção da tarefa 4. Não é token do
     @theme (ver o comentário de CORES_PADRAO_TAILWIND, no topo do arquivo),
     mas já é usado como texto sobre `ami-green-900` (a busca verde da home
-    e o rodapé; sobre `ami-green-800`, que só pinta a plaqueta de iniciais
-    com letra lima, não há branco hoje), e a rede contra classe morta
+    e o rodapé, cujo degradê `.textura-verde`, em app/globals.css, passa
+    por `ami-green-800` no meio), e a rede contra classe morta
     ganhou uma isenção para não
     reclamar dele — o que só é seguro porque este describe mede o par de
     verdade, e o describe abaixo prova que ele não serve sobre fundo claro.

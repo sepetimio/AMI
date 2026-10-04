@@ -51,7 +51,13 @@ describe("nenhum tom quente nem creme no site", () => {
     expect(cores.length, "a varredura não achou cor nenhuma").toBeGreaterThan(40);
     const arquivosComCor = new Set(cores.map((c) => c.arquivo));
     expect(arquivosComCor).toContain("app/globals.css");
-    expect(arquivosComCor).toContain("components/diretorio/Placa.tsx");
+    /* E os valores arbitrários dos `.tsx`: nenhum componente do site precisa
+       ter um, então a prova de que a varredura os lê é um escrito aqui, com
+       um tom creme que a regra tem de achar. */
+    expect(arquivosDoSite(".tsx").length).toBeGreaterThan(50);
+    const doTsx = coresNoTexto(arbitrarios('className="shadow-[0_1px_0_rgba(168,212,112,0.22)] bg-[#FAF0E6]"'));
+    expect(doTsx).toHaveLength(2);
+    expect(doTsx.filter((c) => ehQuente(c.rgb)).map((c) => c.rgb)).toEqual([[250, 240, 230]]);
   });
 
   it("nenhuma cor quente fora das permitidas", () => {

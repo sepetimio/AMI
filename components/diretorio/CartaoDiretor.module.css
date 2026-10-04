@@ -1,0 +1,69 @@
+/*
+  O cartão de diretor, transcrito do desenho aprovado
+  (docs/desenho-aprovado/associacao/diretoria.html: `.diretor-cargo`,
+  `.diretor .medico-nome`, `.diretor .medico-crm`, `.diretor .botao-ligar`,
+  `.diretor:hover .botao-ligar`, `.botao-ligar.reserva`,
+  `.diretor:not(:has(a))`, e o @media de 700px).
+
+  O resto é o cartão da busca (CartaoMedico.module.css), que o cartão de
+  diretor usa junto: o nome e o CRM do desenho têm os mesmos valores de lá,
+  e por isso não se repetem aqui.
+
+  "Ver perfil" é o botão verde do "Ligar", mas só desenha: o cartão inteiro
+  é o link, pelo nome esticado. Ele escurece quando o mouse está em
+  qualquer ponto do cartão, como o botão escurece sozinho; o degradê é o
+  de `.botao:hover` (app/globals.css).
+
+  O cartão sem perfil não sobe nem amplia a foto. As duas regras levam
+  atributos a mais (`[data-sem-perfil]`, `[data-diretor]`) para pesarem
+  mais que as do cartão da busca (`.medico:hover` e
+  `.medico:hover .foto img`), qualquer que seja a ordem das folhas.
+*/
+
+.cargo {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ami-green-600);
+}
+
+.verPerfil {
+  pointer-events: none;
+}
+
+.diretor:hover .verPerfil {
+  background: linear-gradient(180deg, #22751F 0%, #1A5E18 100%);
+}
+
+.diretor:hover .verPerfil svg {
+  transform: translateX(4px);
+}
+
+.diretor[data-sem-perfil] {
+  cursor: default;
+}
+
+.diretor[data-sem-perfil]:hover {
+  transform: none;
+  box-shadow: var(--shadow-erguido);
+}
+
+.diretor[data-sem-perfil][data-diretor]:hover img {
+  transform: none;
+}
+
+@media (max-width: 700px) {
+  .cargo {
+    margin-bottom: 5px;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+  }
+
+  .diretor .foto {
+    min-height: 150px;
+  }
+}

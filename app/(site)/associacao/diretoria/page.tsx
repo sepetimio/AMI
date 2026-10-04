@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
-import { Cabeceira } from "@/components/layout/Cabeceira";
-import { CartaoDiretor } from "@/components/diretorio/CartaoDiretor";
+import paginas from "@/app/(site)/encontre.module.css";
+import { FaixaDaDiretoria } from "@/components/associacao/FaixaDaDiretoria";
 import { EstadoVazio } from "@/components/base/EstadoVazio";
-import { JsonLd } from "@/components/seo/JsonLd";
-import { breadcrumbList } from "@/lib/seo/jsonld";
-import { tituloDePagina } from "@/lib/seo/metadados";
+import { GradeDeDiretores } from "@/components/diretorio/GradeDeDiretores";
 import { listarDiretoria } from "@/lib/dados/diretoria";
+import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
+import { tituloDePagina } from "@/lib/seo/metadados";
 
 export const revalidate = 3600;
-
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   title: tituloDePagina("Diretoria da Associação Médica de Imperatriz"),
@@ -19,40 +17,44 @@ export const metadata: Metadata = {
   alternates: { canonical: "/associacao/diretoria" },
 };
 
+/* Os cartões da primeira fileira do computador: baixam a foto logo. */
+const IMEDIATOS = 4;
+
+/*
+  A diretoria da AMI:
+  - a faixa verde curta, com a volta para A Associação e, só no modo
+    demonstração, a pílula do mandato;
+  - os cartões de diretor na grade da busca, na ordem da AMI.
+
+  Os nomes, cargos e CRMs vêm da tabela `diretoria` do banco
+  (`listarDiretoria`, lib/dados/diretoria.ts). Sem diretor publicado, o
+  aviso de vazio fica no lugar da grade.
+
+  Sem `Cabeceira`, sem trilha e sem BreadcrumbList: dado estruturado sem o
+  equivalente visível é marcação enganosa (lib/seo/jsonld.ts). Os blocos
+  são filhos diretos de `.pagina` (app/(site)/encontre.module.css), a
+  --ritmo um do outro; a grade fecha a página, a --ritmo do rodapé.
+*/
 export default async function PaginaDiretoria() {
   const diretoria = await listarDiretoria();
 
-  const trilha = [
-    { nome: "Início", caminho: "/" },
-    { nome: "A Associação", caminho: "/associacao" },
-    { nome: "Diretoria", caminho: "/associacao/diretoria" },
-  ];
-
   return (
-    <>
-      <JsonLd dados={breadcrumbList(trilha, SITE)} />
+    <div className={paginas.pagina}>
+      <FaixaDaDiretoria demonstracao={DADOS_DEMONSTRACAO} />
 
-      <Cabeceira trilha={trilha} titulo="Diretoria da AMI">
-        Quem responde pela associação. Cada nome traz o número de inscrição no
-        CRM, e leva ao perfil no diretório quando há um publicado.
-      </Cabeceira>
-
-      <div className="mx-auto max-w-[1200px] px-4 py-12 md:px-6">
+      <section data-bloco="diretoria" aria-labelledby="membros-titulo">
+        <h2 id="membros-titulo" className="sr-only">
+          Membros da diretoria
+        </h2>
         {diretoria.length === 0 ? (
           <EstadoVazio
             titulo="Diretoria ainda não cadastrada"
             descricao="A composição da diretoria aparece aqui assim que a AMI a registrar."
           />
         ) : (
-          <ul className="grid gap-4 sm:grid-cols-2">
-            {diretoria.map((d) => (
-              <li key={d.id}>
-                <CartaoDiretor diretor={d} />
-              </li>
-            ))}
-          </ul>
+          <GradeDeDiretores diretores={diretoria} imediatos={IMEDIATOS} />
         )}
-      </div>
-    </>
+      </section>
+    </div>
   );
 }

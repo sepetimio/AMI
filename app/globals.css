@@ -102,8 +102,6 @@
        (mais abaixo), do "Ligar" da barra do pé (BarraDoPe.module.css) e do
        item atual da gaveta do menu (Cabecalho.module.css);
      - o sublinhado do item do menu (Cabecalho.module.css, `.menu a::after`);
-     - a placa de iniciais do médico, de 76 a 108px
-       (components/diretorio/Placa.tsx);
      - o meio do degradê da `.textura-verde` (mais abaixo) e o da notícia sem
        capa (components/editorial/UltimasNoticias.module.css, `.semCapa`);
      - a ponta escura dos quatro degradês mascarados pela marca
