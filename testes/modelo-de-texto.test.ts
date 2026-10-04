@@ -124,6 +124,22 @@ describe("o modelo, renderizado", () => {
     expect(html).toContain("<strong>presidente</strong>");
   });
 
+  it("a lista numerada do texto leva a classe dela; o ol do índice recolhido, não", () => {
+    const comLista = componente({
+      ...CONTEUDO,
+      corpo: [
+        ...CONTEUDO.corpo,
+        b("g", "normal", "Um.", { listItem: "number", level: 1 }),
+        b("h", "normal", "Dois.", { listItem: "number", level: 1 }),
+      ],
+    });
+    expect(comLista).toContain(`<ol class="${estilos.numerada}"><li>Um.</li><li>Dois.</li></ol>`);
+    expect(comLista.split(estilos.numerada)).toHaveLength(2);
+    const recolhido = /<details [^>]*>[\s\S]*?<\/details>/.exec(comLista)![0];
+    expect(recolhido).toMatch(/<\/summary><ol>/);
+    expect(recolhido).not.toContain(estilos.numerada);
+  });
+
   it("o que vem junto entra no fim da coluna, depois do texto", () => {
     expect(html).toContain('<p class="fim">Fim da coluna</p></article>');
   });
@@ -358,6 +374,17 @@ describe("o CSS da página de texto", () => {
   });
 
   it("a lista numerada do Studio com o número, que a camada base do Tailwind tira", () => {
-    expect(regra(base(css), ".coluna ol")).toMatch(/list-style: decimal;/);
+    expect(regra(base(css), ".coluna .numerada")).toMatch(/list-style: decimal;/);
+    expect(regra(base(css), ".coluna .numerada > li + li")).toMatch(/margin-top: 8px;/);
+  });
+
+  it("nenhuma regra alcança um ol pela tag: o índice recolhido é um ol dentro da coluna", () => {
+    const seletores = [...css.matchAll(/([^{};]+)\{/g)]
+      .map((m) => m[1].trim())
+      .filter((s) => !s.startsWith("@"))
+      .flatMap((s) => s.split(",").map((p) => p.trim()));
+    expect(seletores.length).toBeGreaterThan(40);
+    expect(seletores).toContain(".coluna .numerada");
+    expect(seletores.filter((s) => /(^|[\s>+~(])ol\b/.test(s))).toEqual([]);
   });
 });

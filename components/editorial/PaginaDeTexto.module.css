@@ -20,9 +20,10 @@
   antes: nenhum tom quente no site.
 
   Fora do desenho, porque o texto do Studio pode ter e o desenho não mostra:
-  a lista numerada (`ol`, com `list-style: decimal`, porque a camada base
-  do Tailwind tira o número de toda lista), o negrito (`strong`) e o link
-  (`.link`, no verde de ação e sublinhado, como o texto rico das notícias).
+  a lista numerada (`.numerada`, com `list-style: decimal`, porque a camada
+  base do Tailwind tira o número de toda lista), o negrito (`strong`) e o
+  link (`.link`, no verde de ação e sublinhado, como o texto rico das
+  notícias).
 
   O relógio da data é `inline-block`: a camada base do Tailwind faz todo
   `svg` virar bloco, e ele cairia numa linha acima do texto; no desenho,
@@ -137,13 +138,16 @@
   margin-top: 8px;
 }
 
-.coluna ol {
+/* A lista numerada do texto pela classe dela (components/editorial/
+   CorpoDoTexto.tsx), e não por `ol`: o índice recolhido é outro `ol` dentro
+   da coluna, com os itens colados, como no desenho. */
+.coluna .numerada {
   margin: 0;
   padding-left: 22px;
   list-style: decimal;
 }
 
-.coluna ol > li + li {
+.coluna .numerada > li + li {
   margin-top: 8px;
 }
 

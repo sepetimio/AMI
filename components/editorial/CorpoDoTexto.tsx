@@ -21,6 +21,9 @@ import { ehLinkInterno } from "@/lib/sanity/link";
     só na demonstração; nos três textos legais, sempre;
   - a marca "numero", que só o rascunho põe (`trechosDoTexto`,
     lib/paginaDeTexto.ts), sai num `span` que não quebra no meio;
+  - a lista numerada leva a classe `numerada`: o índice recolhido "Nesta
+    página" também é um `ol` dentro da coluna, e a regra da lista do texto
+    não pode alcançá-lo;
   - o link é o do texto rico das notícias: interno pelo roteador do Next,
     externo na mesma aba (a regra de qual é qual está em lib/sanity/link.ts).
 
@@ -45,7 +48,7 @@ function componentes(ancoras: Record<string, string>): PortableTextComponents {
     },
     list: {
       bullet: ({ children }) => <ul>{children}</ul>,
-      number: ({ children }) => <ol>{children}</ol>,
+      number: ({ children }) => <ol className={styles.numerada}>{children}</ol>,
     },
     listItem: {
       bullet: ({ children }) => <li>{children}</li>,
