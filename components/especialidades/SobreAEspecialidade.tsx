@@ -50,7 +50,8 @@ const COMPONENTES: PortableTextComponents = {
   O que sai é decidido por `sobreDaEspecialidade` (lib/especialidades.ts):
   - com o texto da AMI no Sanity, ele sai;
   - na demonstração sem texto, sai "Texto da AMI a entrar." no lugar dos
-    dois textos, e sem a linha do revisor, que não existe;
+    dois textos, com a marca `data-a-entrar`, e sem a linha do revisor, que
+    não existe;
   - fora dela, a página nem monta este bloco.
 
   Leva `data-faixa`: o rodapé emenda nele quando ele fecha a página
@@ -76,7 +77,9 @@ export function SobreAEspecialidade({ nome, sobre }: { nome: string; sobre: Sobr
           {texto ? (
             <PortableText value={texto.oQueFaz} components={COMPONENTES} onMissingComponent={false} />
           ) : (
-            <p className={styles.falta}>{TEXTO_A_ENTRAR}</p>
+            <p className={styles.falta} data-a-entrar="">
+              {TEXTO_A_ENTRAR}
+            </p>
           )}
         </div>
         <div>
@@ -84,7 +87,9 @@ export function SobreAEspecialidade({ nome, sobre }: { nome: string; sobre: Sobr
           {texto ? (
             <PortableText value={texto.quandoProcurar} components={COMPONENTES} onMissingComponent={false} />
           ) : (
-            <p className={styles.falta}>{TEXTO_A_ENTRAR}</p>
+            <p className={styles.falta} data-a-entrar="">
+              {TEXTO_A_ENTRAR}
+            </p>
           )}
         </div>
       </div>

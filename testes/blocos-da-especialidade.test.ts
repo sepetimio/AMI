@@ -201,9 +201,13 @@ describe("o Sobre a especialidade", () => {
   });
 
   it("a entrar: a frase no lugar dos dois textos, sem a linha do revisor", () => {
-    expect(aEntrar.match(new RegExp(`<p class="${estilosSobre.falta}">Texto da AMI a entrar\\.</p>`, "g"))).toHaveLength(2);
-    expect(aEntrar).toContain(`<h3>O que faz</h3><p class="${estilosSobre.falta}">`);
-    expect(aEntrar).toContain(`<h3>Quando procurar</h3><p class="${estilosSobre.falta}">`);
+    /* Cada frase leva `data-a-entrar`, a marca de toda moldura "a entrar". */
+    const falta = `<p class="${estilosSobre.falta}" data-a-entrar="">`;
+    expect(aEntrar.match(new RegExp(`${falta}Texto da AMI a entrar\\.</p>`, "g"))).toHaveLength(2);
+    expect(aEntrar).toContain(`<h3>O que faz</h3>${falta}`);
+    expect(aEntrar).toContain(`<h3>Quando procurar</h3>${falta}`);
+    expect(aEntrar.match(/ data-a-entrar="/g)).toHaveLength(2);
+    expect(comTexto).not.toContain("data-a-entrar");
     expect(aEntrar).not.toContain("Revisado por");
     expect(aEntrar).toContain("Conteúdo informativo; não substitui a consulta médica.");
   });
