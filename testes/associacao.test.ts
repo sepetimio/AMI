@@ -90,7 +90,9 @@ describe("a diretoria em destaque", () => {
       ),
     );
     expect(link(html, "/associacao/diretoria")).toContain('class="botao-linha"');
-    expect(html).toContain(`Ver a diretoria ${desenho(ArrowRight, 20, "regular")}</a></div>`);
+    /* A seta de 13px, a do desenho (o ícone na letra de 13px do botão), como
+       o "Ver todos de…" do perfil. */
+    expect(html).toContain(`Ver a diretoria ${desenho(ArrowRight, 13, "regular")}</a></div>`);
   });
 
   it("os cartões de diretor, na grade da busca", () => {

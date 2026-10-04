@@ -25,7 +25,7 @@ export function DiretoriaEmDestaque({ diretores }: { diretores: Diretor[] }) {
           <p className={styles.texto}>Cada nome traz o número de inscrição no CRM.</p>
         </div>
         <Link className="botao-linha" href="/associacao/diretoria">
-          Ver a diretoria <Icone nome="seta" />
+          Ver a diretoria <Icone nome="seta" tamanho={13} />
         </Link>
       </div>
       <GradeDeDiretores diretores={diretores} />
