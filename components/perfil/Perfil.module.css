@@ -160,6 +160,14 @@
   margin-top: 16px;
 }
 
+/* "Apresentação do médico a entrar.", só na demonstração: o cinza e o
+   itálico das outras molduras de texto (components/especialidades/
+   SobreAEspecialidade.module.css, `.falta`). */
+.leitura .falta {
+  color: var(--color-ink-400);
+  font-style: italic;
+}
+
 .notaFinal {
   margin: 0 var(--m);
   padding-top: 24px;

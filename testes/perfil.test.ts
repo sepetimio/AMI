@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import estilosDaFoto from "@/components/diretorio/FotoDoMedico.module.css";
 import estilos from "@/components/perfil/Perfil.module.css";
 import { SIZES_DO_PERFIL } from "@/components/perfil/TopoDoPerfil";
@@ -83,6 +83,23 @@ async function perfil(medico: Medico = ALINE, outros: Medico[] = [CRISTINA, BRUN
   dados.todos = [medico, ...outros];
   return htmlDe(await PaginaPerfil({ params: Promise.resolve({ slug: medico.slug }) }));
 }
+
+/* O perfil com a chave de demonstração dada: a página lê a chave quando o
+   módulo carrega (lib/demonstracao.ts), por isso ela é importada de novo. */
+async function perfilNaChave(chave: string, medico: Medico) {
+  vi.stubEnv("NEXT_PUBLIC_DADOS_DEMONSTRACAO", chave);
+  vi.resetModules();
+  const { default: Pagina } = await import("@/app/(site)/medico/[slug]/page");
+  dados.todos = [medico, CRISTINA, BRUNO];
+  return htmlDe(await Pagina({ params: Promise.resolve({ slug: medico.slug }) }));
+}
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
+/* A biografia do banco de demonstração (supabase/seed/seed.sql). */
+const BIO_PROVISORIA = "[PROVISÓRIO] Biografia de Aline Peixoto, a ser substituída por texto enviado pelo profissional.";
 
 /* O texto da tela, sem o JSON-LD e sem as tags; todo espaço (o sem quebra
    também) vira um espaço só. */
@@ -287,6 +304,45 @@ describe("sobre, outros médicos e a nota", () => {
     expect(await perfil({ ...ALINE, bio: "\n\n \n" })).not.toContain('data-bloco="sobre"');
   });
 
+  it("biografia com [PROVISÓRIO], na demonstração: Sobre com a moldura Apresentação do médico a entrar", async () => {
+    const html = await perfilNaChave("true", { ...ALINE, bio: BIO_PROVISORIA });
+    const secao = trecho(html, 'data-bloco="sobre"');
+    expect(secao.slice(0, secao.indexOf("</section>") + 10)).toBe(
+      `data-bloco="sobre" aria-labelledby="sobre-titulo" class="revelar"><div class="${estilos.leitura}">` +
+        `<h2 id="sobre-titulo" class="${estilos.titulo}" data-coluna="">Sobre</h2>` +
+        `<p class="${estilos.falta}" data-a-entrar="">Apresentação do médico a entrar.</p></div></section>`,
+    );
+    expect(html).not.toContain("Biografia de Aline");
+  });
+
+  it("biografia com [PROVISÓRIO], fora da demonstração: sem Sobre", async () => {
+    const html = await perfilNaChave("false", { ...ALINE, bio: BIO_PROVISORIA });
+    expect(html).not.toContain('data-bloco="sobre"');
+    expect(html).not.toContain("data-a-entrar");
+    expect(html).not.toContain("Biografia de Aline");
+    const blocos = [...html.matchAll(/data-bloco="([^"]+)"/g)].map((m) => m[1]);
+    expect(blocos).toEqual(["perfil", "onde-atende", "outros", "nota"]);
+  });
+
+  it("biografia sem a marca: os parágrafos, iguais nas duas chaves", async () => {
+    for (const chave of ["true", "false"]) {
+      const secao = trecho(await perfilNaChave(chave, ALINE), 'data-bloco="sobre"');
+      const sobre = secao.slice(0, secao.indexOf("</section>"));
+      expect(sobre, chave).toContain("<p>Aline Peixoto é médica, com registro de especialista em Neurologia.</p><p>As consultas são marcadas por telefone.</p>");
+      expect(sobre, chave).not.toContain("data-a-entrar");
+    }
+  });
+
+  it("nenhum PROVISÓRIO na tela, nos dois modos, nem com a marca no meio da biografia", async () => {
+    for (const chave of ["true", "false"]) {
+      for (const bio of [BIO_PROVISORIA, `Primeiro parágrafo.\n\n${BIO_PROVISORIA}`]) {
+        const html = await perfilNaChave(chave, { ...ALINE, bio });
+        expect(html, `${chave} ${bio}`).not.toContain("PROVISÓRIO");
+        expect(html, `${chave} ${bio}`).not.toContain("a ser substituída");
+      }
+    }
+  });
+
   it("outros médicos da mesma especialidade principal, com o link para todos", async () => {
     const html = await perfil();
     const secao = trecho(html, 'data-bloco="outros"');
@@ -358,6 +414,12 @@ describe("o CSS do perfil", () => {
   const css = semNotas(fonte("../components/perfil/Perfil.module.css"));
   const global = semNotas(fonte("../app/globals.css"));
   const daFoto = semNotas(fonte("../components/diretorio/FotoDoMedico.module.css"));
+
+  it("a moldura da apresentação a entrar: cinza e itálico, como as outras molduras de texto", () => {
+    const r = regra(base(css), ".leitura .falta");
+    expect(r).toMatch(/color: var\(--color-ink-400\);/);
+    expect(r).toMatch(/font-style: italic;/);
+  });
 
   it("foto de 460px ao lado do texto; .85fr no tablet; em cima, na largura toda, no celular", () => {
     expect(regra(base(css), ".topo")).toMatch(/grid-template-columns: minmax\(0, 460px\) minmax\(0, 1fr\)/);

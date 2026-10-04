@@ -2,6 +2,7 @@ import { buscaNoMapa, numeroPreenchido } from "@/lib/contato";
 import { porNome } from "@/lib/dados/filtros";
 import { contagem } from "@/lib/formato";
 import { especialidadesComMedico } from "@/lib/especialidades";
+import { MARCA_PROVISORIA } from "@/lib/paginaDeTexto";
 import type {
   EspecialidadeComContagem,
   EspecialidadeDoMedico,
@@ -162,4 +163,26 @@ export function paragrafosDaBio(bio: string): string[] {
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter(Boolean);
+}
+
+/** O "Sobre" do perfil: os parágrafos da biografia, ou a moldura "a entrar". */
+export type BioNaTela = { estilo: "texto"; paragrafos: string[] } | { estilo: "aEntrar" };
+
+/**
+ * A biografia como ela sai no "Sobre" do perfil, ou null quando o bloco não
+ * sai.
+ *
+ * Uma biografia com a marca de texto provisório (`MARCA_PROVISORIA`, a dos
+ * rascunhos, em lib/paginaDeTexto.ts) é texto que falta, e não texto: o
+ * banco de demonstração traz "[PROVISÓRIO] Biografia de …" em todo perfil.
+ * Na demonstração, ela vira a moldura "Apresentação do médico a entrar.";
+ * fora dela, o "Sobre" não sai. A marca nunca aparece, nem no meio do
+ * texto. Sem a marca, um parágrafo por bloco (`paragrafosDaBio`); vazia, o
+ * bloco não sai.
+ */
+export function bioNaTela(bio: string | null | undefined, demonstracao: boolean): BioNaTela | null {
+  const texto = bio ?? "";
+  if (texto.includes(MARCA_PROVISORIA.trim())) return demonstracao ? { estilo: "aEntrar" } : null;
+  const paragrafos = paragrafosDaBio(texto);
+  return paragrafos.length > 0 ? { estilo: "texto", paragrafos } : null;
 }

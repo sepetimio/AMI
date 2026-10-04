@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   LIMITE_DE_OUTROS,
+  bioNaTela,
   consultorioPrincipal,
   enderecoDoLocal,
   especialidadeDoCartao,
@@ -18,6 +19,7 @@ import {
   titulosDosConsultorios,
 } from "@/lib/encontre";
 import * as contato from "@/lib/contato";
+import { MARCA_PROVISORIA } from "@/lib/paginaDeTexto";
 import type { LocalAtendimento, Medico } from "@/lib/dados/tipos";
 
 function local(id: number, bairro: string, extra: Partial<LocalAtendimento> = {}): LocalAtendimento {
@@ -259,6 +261,42 @@ describe("a contagem e a biografia", () => {
     expect(paragrafosDaBio("Um.\n\nDois.\n  \nTrês.")).toEqual(["Um.", "Dois.", "Três."]);
     expect(paragrafosDaBio("Linha\núnica")).toEqual(["Linha\núnica"]);
     expect(paragrafosDaBio("   ")).toEqual([]);
+  });
+
+  describe("bioNaTela", () => {
+    const MARCADA = "[PROVISÓRIO] Biografia de Rafael Coelho, a ser substituída por texto enviado pelo profissional.";
+
+    it("com a marca, na demonstração: a moldura a entrar", () => {
+      expect(bioNaTela(MARCADA, true)).toEqual({ estilo: "aEntrar" });
+    });
+
+    it("com a marca, fora da demonstração: o Sobre não sai", () => {
+      expect(bioNaTela(MARCADA, false)).toBeNull();
+    });
+
+    it("a marca em qualquer parágrafo conta, e a marca da lib/paginaDeTexto é a mesma", () => {
+      expect(bioNaTela(`Primeiro.\n\n${MARCADA}`, true)).toEqual({ estilo: "aEntrar" });
+      expect(bioNaTela(`Primeiro.\n\n${MARCADA}`, false)).toBeNull();
+      expect(bioNaTela(`${MARCA_PROVISORIA}texto`, false)).toBeNull();
+    });
+
+    it("sem a marca: os parágrafos, nas duas chaves", () => {
+      for (const demonstracao of [true, false]) {
+        expect(bioNaTela("Um.\n\nDois.", demonstracao)).toEqual({ estilo: "texto", paragrafos: ["Um.", "Dois."] });
+        expect(bioNaTela("Provisório só como palavra.", demonstracao)).toEqual({
+          estilo: "texto",
+          paragrafos: ["Provisório só como palavra."],
+        });
+      }
+    });
+
+    it("vazia: o Sobre não sai, nas duas chaves", () => {
+      for (const demonstracao of [true, false]) {
+        expect(bioNaTela(null, demonstracao)).toBeNull();
+        expect(bioNaTela(undefined, demonstracao)).toBeNull();
+        expect(bioNaTela("  \n\n ", demonstracao)).toBeNull();
+      }
+    });
   });
 });
 

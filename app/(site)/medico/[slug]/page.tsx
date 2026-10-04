@@ -10,7 +10,8 @@ import styles from "@/components/perfil/Perfil.module.css";
 import { TopoDoPerfil } from "@/components/perfil/TopoDoPerfil";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buscarMedicos, medicoPorSlug, slugsDeMedicos } from "@/lib/dados/medicos";
-import { consultorioPrincipal, especialidadePrincipal, numeroPreenchido, outrosMedicos, paragrafosDaBio } from "@/lib/encontre";
+import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
+import { bioNaTela, consultorioPrincipal, especialidadePrincipal, numeroPreenchido, outrosMedicos } from "@/lib/encontre";
 import { physician } from "@/lib/seo/jsonld";
 import { descricaoMedico, tituloMedico } from "@/lib/seo/metadados";
 
@@ -46,7 +47,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   {especialidade}" e a nota final. Sem a cabeceira cinza das páginas
   antigas e sem breadcrumb visível, como no desenho aprovado.
 
-  "Sobre" só sai com biografia; "Outros médicos", só com algum (até quatro,
+  "Sobre" só sai com biografia (`bioNaTela`, lib/encontre.ts). A biografia
+  com a marca "[PROVISÓRIO]" do banco de demonstração é texto que falta: na
+  demonstração, a moldura "Apresentação do médico a entrar."; fora dela, o
+  bloco não sai. "Outros médicos", só com algum (até quatro,
   da mesma especialidade principal, em ordem alfabética: `outrosMedicos`,
   lib/encontre.ts).
 
@@ -61,7 +65,7 @@ export default async function PaginaPerfil({ params }: Props) {
 
   const principal = especialidadePrincipal(m);
   const outros = outrosMedicos(m, await buscarMedicos());
-  const bio = paragrafosDaBio(m.bio ?? "");
+  const bio = bioNaTela(m.bio, DADOS_DEMONSTRACAO);
   const consultorio = consultorioPrincipal(m);
   const telefone = numeroPreenchido(consultorio?.telefone);
 
@@ -73,15 +77,19 @@ export default async function PaginaPerfil({ params }: Props) {
 
       {m.locais.length > 0 ? <OndeAtende locais={m.locais} /> : null}
 
-      {bio.length > 0 ? (
+      {bio ? (
         <section data-bloco="sobre" aria-labelledby="sobre-titulo" className="revelar">
           <div className={styles.leitura}>
             <h2 id="sobre-titulo" className={styles.titulo} data-coluna="">
               Sobre
             </h2>
-            {bio.map((paragrafo, i) => (
-              <p key={i}>{paragrafo}</p>
-            ))}
+            {bio.estilo === "aEntrar" ? (
+              <p className={styles.falta} data-a-entrar="">
+                Apresentação do médico a entrar.
+              </p>
+            ) : (
+              bio.paragrafos.map((paragrafo, i) => <p key={i}>{paragrafo}</p>)
+            )}
           </div>
         </section>
       ) : null}
