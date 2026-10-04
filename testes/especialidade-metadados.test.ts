@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Medico } from "@/lib/dados/tipos";
-import { fonte, semComentarios } from "@/testes/apoio";
 
 /*
   Os metadados de /medicos/[especialidade], chamados como o Next os chama,
@@ -53,11 +52,7 @@ describe("os metadados de uma especialidade", () => {
     expect(await metadados("cardiologia")).toEqual({});
   });
 
-  it("a página não lê searchParams, nem nos metadados: ler faria o Next montá-la a cada visita", () => {
-    /* Ligação com o Next: é a leitura de `searchParams` que tira a página
-       do pré-render. */
-    expect(semComentarios(fonte("../app/(site)/medicos/[especialidade]/page.tsx"))).not.toContain("searchParams");
-    expect(pagina.revalidate).toBe(3600);
-    expect(typeof pagina.generateStaticParams).toBe("function");
-  });
+  /* Que a página, metadados inclusive, não lê `searchParams` e segue com
+     `generateStaticParams` e `revalidate` está em
+     testes/pagina-de-especialidade.test.ts. */
 });
