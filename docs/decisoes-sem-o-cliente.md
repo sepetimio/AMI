@@ -28,3 +28,14 @@ Detalhes em `docs/superpowers/specs/2026-10-03-associacao-design.md`. Desenho e 
 6. **Seja associado:** o botão de WhatsApp fica de fora até a AMI confirmar o número. Os dados da entidade passam a aparecer em lista, e não mais em frase corrida.
 7. **Números 01/02/03 de Missão, visão e valores:** ficaram mais escuros, também na home, para ficarem legíveis.
 8. **Aviso de "página provisória":** passou de âmbar para cinza neutro.
+
+## Grupos 4 e 5: Notícias e Contato
+
+Detalhes em `docs/superpowers/specs/2026-10-03-noticias-contato-design.md`. Desenho e fotos em `docs/desenho-aprovado/noticias-contato/`.
+
+1. **Lista de notícias:** a mais recente aparece em destaque, larga, e as outras em cartões, 3 por linha. A última fileira incompleta fica alinhada à esquerda.
+2. **Sem paginação:** a lista mostra até 20 notícias, como já era. "Mais antigas" entra quando a AMI passar de 20.
+3. **Capa da notícia:** formato 16:9, recortado pelo ponto de interesse marcado no Studio. Antes, a foto saía na proporção original.
+4. **Assinatura do autor:** aparece na faixa do topo e no fim do texto, com o botão "Ver perfil".
+5. **Contato:** três cartões (telefone da sede, celular e Instagram), sem e-mail, sem WhatsApp, sem formulário e sem mapa embutido. O horário de atendimento aparece como moldura até a AMI informar.
+6. **Frases de apoio novas:** "Comunicados, eventos e notas da associação…" e "Pelo telefone, pelo Instagram ou na sede…".
