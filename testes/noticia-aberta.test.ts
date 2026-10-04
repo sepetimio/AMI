@@ -400,6 +400,12 @@ describe("o CSS do fim da notícia", () => {
     expect(r).toMatch(/margin-top: 56px;/);
   });
 
+  it("a linha MÉDICO · CRM no cinza do texto da coluna, como o desenho a mostra; 0,08em entre as letras no celular", () => {
+    expect(regra(base(css), ".coluna .autorFim .autorCrm")).toMatch(/color: var\(--color-ink-600\);/);
+    expect(regra(base(css), ".coluna .autorFim .autorCrm")).toMatch(/letter-spacing: 0\.1em;/);
+    expect(regra(cel(), ".coluna .autorFim .autorCrm")).toMatch(/letter-spacing: 0\.08em;/);
+  });
+
   it("o aviso de saúde, cinza e menor", () => {
     const r = regra(base(css), ".coluna .avisoSaude");
     expect(r).toMatch(/font-size: 14px;/);

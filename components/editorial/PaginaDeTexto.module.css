@@ -36,6 +36,11 @@
   Os seletores começam por `.coluna`, como no desenho: assim o que vale
   para um parágrafo comum (`.coluna p`) não passa por cima da data, do
   quadro nem do texto a entrar, que têm o próprio tamanho.
+
+  A linha "MÉDICO · CRM" do fim da notícia sai no cinza do texto da
+  coluna (`ink-600`), e não no cinza claro do CRM do perfil: no desenho, a
+  regra `.coluna p` pesa mais que a `.medico-crm` e dá a ela o `--tinta-2`.
+  No celular, o espaço entre as letras é o do `.medico-crm` de lá (0,08em).
 */
 
 .faixa {
@@ -350,7 +355,7 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
-  color: var(--color-ink-400);
+  color: var(--color-ink-600);
 }
 
 .coluna .avisoSaude {
@@ -523,6 +528,10 @@
   .autorFim .autorAcoes {
     grid-column: 1 / -1;
     margin-top: 16px;
+  }
+
+  .coluna .autorFim .autorCrm {
+    letter-spacing: 0.08em;
   }
 
   .autorFim .autorAcoes > a {
