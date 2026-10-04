@@ -219,12 +219,13 @@ describe("a barra do pe", () => {
     expect(LAYOUT.indexOf("<BarraDoPe")).toBeGreaterThan(LAYOUT.indexOf("<Rodape"));
   });
 
-  it("leva à busca da própria página na home e em /busca, e a /busca fora delas", () => {
+  it("leva à busca da própria página na home, em /busca e no índice de especialidades, e a /busca fora deles", () => {
     expect(BARRA).toContain('href="#encontre"');
     expect(BARRA).toContain('href="/busca"');
     expect(BARRA).toContain('destino === "#encontre"');
     expect(destinoDaBusca("/")).toBe("#encontre");
-    expect(destinoDaBusca("/medicos")).toBe("/busca");
+    expect(destinoDaBusca("/medicos")).toBe("#encontre");
+    expect(destinoDaBusca("/medicos/cardiologia")).toBe("/busca");
     expect(destinoDaBusca("/busca")).toBe("#encontre");
     expect(destinoDaBusca("/noticias/uma-materia")).toBe("/busca");
   });

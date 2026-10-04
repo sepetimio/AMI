@@ -1,11 +1,14 @@
 /*
   A coluna e o ritmo das páginas de "Encontre um médico" (a busca e o
-  perfil), com a mesma regra da home (app/(site)/inicio.module.css): os
-  blocos são filhos diretos de `.pagina`, a --ritmo um do outro e do
-  cabeçalho; os que não são faixa de ponta a ponta (`data-faixa`) ficam na
-  caixa de 1240px do desenho, com 24px de folga de cada lado (12px no
-  celular). O rodapé fica a --ritmo do último bloco, porque nenhuma das duas
-  páginas termina numa faixa (components/layout/Rodape.module.css).
+  perfil) e do índice de especialidades (/medicos), com a mesma regra da
+  home (app/(site)/inicio.module.css):
+  - os blocos são filhos diretos de `.pagina`, a --ritmo um do outro e do
+    cabeçalho;
+  - os que não são faixa de ponta a ponta (`data-faixa`) ficam na caixa de
+    1240px do desenho, com 24px de folga de cada lado (12px no celular).
+
+  O rodapé fica a --ritmo do último bloco, porque nenhuma das três páginas
+  termina numa faixa (components/layout/Rodape.module.css).
 */
 
 .pagina > [data-bloco] {

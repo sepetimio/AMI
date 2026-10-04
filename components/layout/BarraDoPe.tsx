@@ -19,14 +19,15 @@ import styles from "@/components/layout/BarraDoPe.module.css";
   Dois atalhos: "Encontrar médico" e "Ligar". Quando ela aparece está em
   `lib/barra-do-pe.ts`. Este componente mede o que a decisão pede: onde está o
   fundo do bloco de abertura (o carrossel, `[data-bloco="carrossel"]`, ou a
-  faixa da busca, `[data-abertura]`), quanto a página rolou e se o bloco de
+  faixa verde do topo, `[data-abertura]`), quanto a página rolou e se o bloco de
   busca (`#encontre`) está na tela. Nenhum dos dois blocos existe em toda
   página, e a ausência de qualquer um é aceita: sem bloco de abertura vale a
   rolagem, sem bloco de busca a barra nunca some por causa dele.
 
-  Na home e na busca o botão leva ao bloco de busca da própria página e, passado o
-  tempo do pulo, põe o cursor no campo para a pessoa já poder digitar. Fora
-  da home e da busca leva a `/busca`, e a página nova cuida do próprio foco.
+  Na home, na busca e no índice de especialidades o botão leva ao campo de
+  busca da própria página e, passado o tempo do pulo, põe o cursor nele
+  para a pessoa já poder digitar. Fora delas leva a `/busca`, e a página
+  nova cuida do próprio foco.
 */
 const ESPERA_DO_PULO_MS = 600;
 
@@ -35,8 +36,8 @@ export function BarraDoPe() {
   const [visivel, setVisivel] = useState(false);
 
   useEffect(() => {
-    /* O bloco que abre a página: o carrossel da home ou a faixa verde da
-       busca (`data-abertura`). */
+    /* O bloco que abre a página: o carrossel da home ou a faixa verde do
+       topo (`data-abertura`). */
     const abertura = document.querySelector('[data-bloco="carrossel"], [data-abertura]');
     const blocoDeBusca = document.getElementById("encontre");
     let buscaNaTela = false;

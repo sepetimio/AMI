@@ -1,17 +1,13 @@
 import type { Metadata } from "next";
-import { Cabeceira } from "@/components/layout/Cabeceira";
-import { IndiceEspecialidades } from "@/components/diretorio/IndiceEspecialidades";
-import { JsonLd } from "@/components/seo/JsonLd";
-import { breadcrumbList } from "@/lib/seo/jsonld";
+import paginas from "@/app/(site)/encontre.module.css";
+import { FaixaDoIndice } from "@/components/especialidades/FaixaDoIndice";
+import { GradeDeEspecialidades } from "@/components/especialidades/GradeDeEspecialidades";
 import { especialidadesComContagem } from "@/lib/dados/especialidades";
 import { buscarMedicos } from "@/lib/dados/medicos";
-import { contagem } from "@/lib/formato";
 
 /* Revalidação a cada hora: o cadastro muda algumas vezes por semana, e servir
    HTML pronto é o que segura o LCP abaixo de 2,5s em 4G. */
 export const revalidate = 3600;
-
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export async function generateMetadata(): Promise<Metadata> {
   /* Contagem de profissionais, não soma por especialidade: quem tem duas
@@ -31,6 +27,19 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+/*
+  O índice de especialidades (item "Especialidades" do menu):
+  - a faixa verde com o campo de busca;
+  - a contagem e um cartão por especialidade com médico, em ordem
+    alfabética.
+
+  Sem a `Cabeceira` das páginas internas antigas e sem trilha. Sem o
+  BreadcrumbList também: dado estruturado sem o equivalente visível é
+  marcação enganosa (lib/seo/jsonld.ts).
+
+  Os blocos são filhos diretos de `.pagina` (app/(site)/encontre.module.css),
+  a --ritmo um do outro.
+*/
 export default async function PaginaMedicos() {
   /* Mesmo raciocínio do `generateMetadata`: total = profissionais
      publicados, não a soma das contagens por especialidade. */
@@ -39,43 +48,10 @@ export default async function PaginaMedicos() {
     buscarMedicos().then((m) => m.length),
   ]);
 
-  const trilha = [
-    { nome: "Início", caminho: "/" },
-    { nome: "Médicos", caminho: "/medicos" },
-  ];
-
   return (
-    <>
-      <JsonLd dados={breadcrumbList(trilha, SITE)} />
-
-      {/* Mesma cabeceira das páginas de especialidade: fundo branco, símbolo
-          em máscara à direita, contagem grande em monoespaçada. É o que faz
-          /medicos e /medicos/cardiologia lerem como o mesmo sistema em vez de
-          duas páginas feitas em dias diferentes. */}
-      <Cabeceira
-        trilha={trilha}
-        titulo="Médicos em Imperatriz"
-        contagem={total}
-        rotuloContagem={
-          total === 1 ? "profissional publicado" : "profissionais publicados"
-        }
-      >
-        Em {contagem(especialidades.length, "especialidade", "especialidades")},
-        com endereço e telefone de cada médico. Todos os registros trazem o
-        CRM, conforme exige a Resolução CFM 2.336/2023.
-      </Cabeceira>
-
-      <div className="mx-auto max-w-[1200px] px-4 md:px-6">
-        <section
-          aria-labelledby="por-especialidade"
-          className="revelar pb-20 pt-12"
-        >
-          <h2 id="por-especialidade" className="pb-1">
-            Por especialidade
-          </h2>
-          <IndiceEspecialidades itens={especialidades} />
-        </section>
-      </div>
-    </>
+    <div className={paginas.pagina}>
+      <FaixaDoIndice medicos={total} />
+      <GradeDeEspecialidades especialidades={especialidades} />
+    </div>
   );
 }

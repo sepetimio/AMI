@@ -1,0 +1,202 @@
+/*
+  A grade do índice de especialidades, transcrita do desenho aprovado
+  (docs/desenho-aprovado/especialidades/especialidades.html: `.grade-esp`,
+  `.esp`, `.esp:hover`, `.esp-nome`, `.esp-nome a::after`,
+  `.esp-nome a:focus-visible`, `.esp:has(.esp-nome a:focus-visible)`,
+  `.esp-pe`, `.esp-conta`, `.esp-seta`, `.esp:hover .esp-seta`,
+  `.ordem-curta`, `.esp .icone`, e os @media de 1180, 980 e 700px).
+
+  Vêm de outros arquivos:
+  - a contagem e a frase da ordem: da busca
+    (components/busca/ResultadosDaBusca.module.css: `.cab`, `.contagem`,
+    `.ordem`);
+  - o ladrilho do ícone: o global `.ladrilho-icone` (app/globals.css), que
+    o celular encolhe.
+
+  Todos os cartões têm a altura do mais alto (`grid-auto-rows: 1fr`), e a
+  contagem e a seta ficam presas ao pé (`margin-top: auto`). Assim o nome
+  começa na mesma altura e a contagem cai na mesma linha em toda a fileira.
+
+  Ao passar o mouse: borda mais escura, sombra neutra e 1px de subida; nada
+  fica verde. As bordas escuras do desenho (#C9CED6 no cartão, #C4C9D1 na
+  seta) são o `line-strong`, como no `.botao-linha` (app/globals.css).
+*/
+
+.grade {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  gap: var(--gap);
+}
+
+.cartao {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface);
+  border-radius: 18px;
+  box-shadow: var(--shadow-erguido);
+  padding: 24px 24px 22px;
+  transition:
+    transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 0.3s,
+    border-color 0.3s;
+}
+
+.cartao:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-line-strong);
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.05),
+    0 16px 34px rgba(16, 24, 40, 0.09);
+}
+
+.ordemCurta {
+  display: none;
+}
+
+.nome {
+  margin-top: 28px;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+/* O cartão inteiro leva à especialidade: o link do nome se estica por ele. */
+.nome a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+/* O anel de foco vai no cartão inteiro, e não só no nome. */
+.nome a:focus-visible {
+  outline: none;
+}
+
+.cartao:has(.nome a:focus-visible) {
+  outline: 2px solid var(--color-ami-green-600);
+  outline-offset: 3px;
+}
+
+.pe {
+  margin-top: auto;
+  padding-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.conta {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-ink-400);
+  font-variant-numeric: tabular-nums;
+}
+
+.seta {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--color-line);
+  color: var(--color-ami-green-800);
+  transition: border-color 0.3s;
+}
+
+.seta svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.cartao:hover .seta {
+  border-color: var(--color-line-strong);
+}
+
+.cartao:hover .seta svg {
+  transform: translateX(2px);
+}
+
+@media (max-width: 1180px) {
+  .grade {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Celular: duas por linha, cartões compactos. "14 especialidades" e "Em
+   ordem alfabética" não cabem numa linha a 375px: a frase fica "De A a Z". */
+@media (max-width: 700px) {
+  .ordemLonga {
+    display: none;
+  }
+
+  .ordemCurta {
+    display: inline;
+  }
+
+  .grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .cartao {
+    padding: 16px 16px 14px;
+    border-radius: 16px;
+  }
+
+  .cartao:hover {
+    transform: none;
+  }
+
+  .cartao :global(.ladrilho-icone) {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .cartao :global(.ladrilho-icone) svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .nome {
+    margin-top: 16px;
+    font-size: 17px;
+    line-height: 1.2;
+  }
+
+  .pe {
+    padding-top: 10px;
+    gap: 8px;
+  }
+
+  .conta {
+    font-size: 13px;
+  }
+
+  .seta {
+    width: 28px;
+    height: 28px;
+  }
+
+  .seta svg {
+    width: 13px;
+    height: 13px;
+  }
+}

@@ -2,8 +2,9 @@ import { Breadcrumb, type ItemTrilha } from "@/components/layout/Breadcrumb";
 
 /*
   Cabeceira das páginas internas que ainda não ganharam o desenho novo, como
-  /medicos e cada especialidade. A busca e o perfil do médico não a usam: o
-  cliente a recusou, e as duas abrem com o desenho delas.
+  cada especialidade, A Associação, o contato e as notícias. A busca, o
+  perfil do médico e o índice de especialidades não a usam: o cliente a
+  recusou, e os três abrem com o desenho deles.
 
   Sangra de borda a borda, como as faixas de ponta a ponta da home (a busca
   verde, "Seja associado", os parceiros). O fundo é a superfície

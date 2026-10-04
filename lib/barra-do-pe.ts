@@ -10,7 +10,7 @@
   a pessoa para onde ela já está.
 
   "Passou do topo" tem dois critérios, conforme a página tenha um bloco de
-  abertura (o carrossel da home, a faixa verde da busca, `data-abertura`):
+  abertura (o carrossel da home, ou a faixa verde do topo, `data-abertura`):
   - com ele: o fundo dele saiu da tela, isto é, passou acima do topo da
     janela (`fundoDaAbertura < 0`);
   - sem ele (as outras páginas): a rolagem passou de `ROLAGEM_SEM_CARROSSEL`
@@ -28,9 +28,16 @@ export function deveMostrarBarra(passou: boolean, buscaNaTela: boolean): boolean
   return passou && !buscaNaTela;
 }
 
-/** Para onde "Encontrar médico" leva: à busca da própria página, na home e em /busca; senão à página de busca. */
+/* As páginas que têm o campo de busca (`#encontre`) na própria faixa. */
+const COM_CAMPO_DE_BUSCA = new Set(["/", "/busca", "/medicos"]);
+
+/**
+ * Para onde "Encontrar médico" leva: ao campo de busca da própria página,
+ * na home, em /busca e no índice de especialidades; senão, à página de
+ * busca.
+ */
 export function destinoDaBusca(caminho: string): "#encontre" | "/busca" {
-  return caminho === "/" || caminho === "/busca" ? "#encontre" : "/busca";
+  return COM_CAMPO_DE_BUSCA.has(caminho) ? "#encontre" : "/busca";
 }
 
 /**
