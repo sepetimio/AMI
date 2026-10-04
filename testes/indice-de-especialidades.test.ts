@@ -156,6 +156,13 @@ describe("o CSS da faixa do índice", () => {
     expect(regra(base(css), ".indice h1 + p")).toMatch(/max-width: 24em;/);
   });
 
+  it("a linha de apoio quebra como no desenho, sem palavra sozinha na última linha", () => {
+    /* O desenho põe `text-wrap: pretty` em todo `p`; a folha da busca não
+       põe. Sem ele, a 1440, 1024 e 768px a linha de apoio terminava em
+       "atende." sozinho. */
+    expect(regra(base(css), ".indice h1 + p")).toMatch(/text-wrap: pretty;/);
+  });
+
   it("o campo na largura da coluna, até 760px abaixo de 1180px", () => {
     expect(regra(base(css), ".campo")).toMatch(/width: 100%;/);
     expect(regra(bloco(css, "@media (max-width: 1180px)"), ".campo")).toMatch(/max-width: 760px;/);
