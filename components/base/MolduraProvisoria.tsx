@@ -42,7 +42,7 @@ export function MolduraProvisoria({
       aria-label={rotulo}
       data-a-entrar=""
     >
-      {/* Mesmo recurso de Cabeceira.tsx e EstadoVazio.tsx: o símbolo como
+      {/* Mesmo recurso de EstadoVazio.tsx: o símbolo como
           máscara sobre um degradê, para a moldura ter matéria em vez de ser
           um retângulo chapado. */}
       <div

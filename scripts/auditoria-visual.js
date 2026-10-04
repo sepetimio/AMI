@@ -94,7 +94,8 @@
   const presos = [];
   /* Os blocos da home, os que usam `.revelar` e qualquer um com animação
      presa à rolagem. Um enfeite com opacidade baixa de propósito (a marca
-     d'água da Cabeceira) não entra: ele não está no meio de uma animação. */
+     d'água do aviso de vazio, components/base/EstadoVazio.tsx) não entra:
+     ele não está no meio de uma animação. */
   const candidatos = new Set([
     ...document.querySelectorAll(".revelar, [data-revelar], [data-bloco]"),
     ...document
@@ -170,7 +171,7 @@
      estão na vez), não conta; dentro de uma fileira que desliza (overflow-x
      auto/scroll), também não. Enfeite que passa da borda de propósito não
      conta: a luz que passeia (`.brilho`, como no desenho) e a marca d'água
-     da Cabeceira (`aria-hidden`, sem clique, opacidade 0,05). */
+     em máscara, como a do aviso de vazio (`aria-hidden`, sem clique). */
   if (raiz.scrollWidth > W)
     problemas.push(`página vaza para o lado: ${raiz.scrollWidth} > ${W}`);
   const fora = [];

@@ -86,11 +86,11 @@
      que veste a busca verde da home (components/home/EncontreUmMedico.tsx)
      e o rodapé (components/layout/Rodape.tsx); o bloco e a tarja de legenda
      da moldura provisória (components/base/MolduraProvisoria.tsx, usada por
-     Fotografia.tsx, Carrossel.tsx e UltimasNoticias.tsx); o fundo do
-     destaque das notícias e o da notícia sem capa
-     (components/editorial/UltimasNoticias.module.css). O cabeçalho NÃO:
-     Cabecalho.module.css pinta o bloco com `--color-surface`, e
-     Cabeceira.tsx é `bg-surface`.
+     Fotografia.tsx, Carrossel.tsx, UltimasNoticias.tsx, ListaDeNoticias.tsx
+     e CartaoNoticia.tsx); o fundo do destaque das notícias da home e o da
+     notícia sem capa (components/editorial/UltimasNoticias.module.css), e o
+     do destaque da lista de notícias (Noticias.module.css). O cabeçalho
+     NÃO: Cabecalho.module.css pinta o bloco com `--color-surface`.
      Os pares com ele estão medidos em `testes/paleta.test.ts`. */
   --color-ami-green-900: #071A07;
 
@@ -104,9 +104,9 @@
      - o sublinhado do item do menu (Cabecalho.module.css, `.menu a::after`);
      - o meio do degradê da `.textura-verde` (mais abaixo) e o da notícia sem
        capa (components/editorial/UltimasNoticias.module.css, `.semCapa`);
-     - a ponta escura dos quatro degradês mascarados pela marca
-       (components/base/EstadoVazio.tsx, components/base/MolduraProvisoria.tsx,
-       components/layout/Cabeceira.tsx e `.semCapa::after`).
+     - a ponta escura dos três degradês mascarados pela marca
+       (components/base/EstadoVazio.tsx, components/base/MolduraProvisoria.tsx
+       e `.semCapa::after`).
      Os pares com ele estão medidos em `testes/paleta.test.ts`. */
   --color-ami-green-800: #0D2E0C;
   --color-ami-green-700: #124211; /* borda e estado escuro */

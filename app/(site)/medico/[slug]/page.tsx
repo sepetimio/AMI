@@ -43,8 +43,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 /*
   O perfil do médico: o topo (retrato, nome, CRM, especialidade e os botões
   do consultório principal), "Onde atende", "Sobre", "Outros médicos de
-  {especialidade}" e a nota final. Sem a `Cabeceira` das outras páginas
-  internas e sem breadcrumb visível, como no desenho aprovado.
+  {especialidade}" e a nota final. Sem a cabeceira cinza das páginas
+  antigas e sem breadcrumb visível, como no desenho aprovado.
 
   "Sobre" só sai com biografia; "Outros médicos", só com algum (até quatro,
   da mesma especialidade principal, em ordem alfabética: `outrosMedicos`,
@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   O JSON-LD é só o do médico (`physician`). Sem o BreadcrumbList, porque a
   trilha não aparece na tela: dado estruturado sem o equivalente visível é
-  marcação enganosa (components/layout/Breadcrumb.tsx).
+  marcação enganosa (lib/seo/jsonld.ts).
 */
 export default async function PaginaPerfil({ params }: Props) {
   const { slug } = await params;

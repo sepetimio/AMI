@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AMI } from "@/lib/ami";
 import {
-  breadcrumbList,
   comoItensDeLista,
   faqPage,
   itemList,
@@ -178,20 +177,6 @@ describe("itemList", () => {
       itemListElement: { url: string }[];
     };
     expect(l.itemListElement[0].url.startsWith("https://")).toBe(true);
-  });
-});
-
-describe("breadcrumbList", () => {
-  it("numera as posições a partir de 1", () => {
-    const b = breadcrumbList(
-      [
-        { nome: "Início", caminho: "/" },
-        { nome: "Médicos", caminho: "/medicos" },
-      ],
-      SITE,
-    ) as { itemListElement: { position: number; item: string }[] };
-    expect(b.itemListElement[0].position).toBe(1);
-    expect(b.itemListElement[1].item).toBe(`${SITE}/medicos`);
   });
 });
 

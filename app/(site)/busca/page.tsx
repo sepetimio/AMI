@@ -23,8 +23,8 @@ export const metadata: Metadata = {
 
 /*
   A busca: a faixa verde com o campo e a lista de especialidades, e a
-  contagem e a grade, em ordem alfabética. Sem a `Cabeceira` das outras
-  páginas internas: a busca abre com a faixa verde.
+  contagem e a grade, em ordem alfabética. Sem a cabeceira cinza das
+  páginas antigas: a busca abre com a faixa verde.
 
   Da URL valem só `termo` e `especialidade`. Os outros filtros de antes
   (bairro, telemedicina, acessibilidade, associados, ordem) não chegam ao
