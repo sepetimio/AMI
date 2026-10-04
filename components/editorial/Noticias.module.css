@@ -33,6 +33,10 @@
   UltimasNoticias.module.css e components/base/MolduraProvisoria.tsx).
   #DDE2E0, o cinza atrás da foto enquanto ela carrega, é o do retrato do
   médico (components/diretorio/FotoDoMedico.module.css).
+
+  O resumo do destaque, o dos cartões e a frase de lista vazia quebram com o
+  `text-wrap: pretty` que o desenho põe em todo `p`: sem ele, a última
+  palavra do resumo do destaque ficava sozinha na linha, no celular.
 */
 
 .lista > .grade {
@@ -109,6 +113,7 @@
   font-size: 16.5px;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.82);
+  text-wrap: pretty;
 }
 
 .grade {
@@ -177,6 +182,7 @@
   font-size: 14.5px;
   line-height: 1.55;
   color: var(--color-ink-600);
+  text-wrap: pretty;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -205,6 +211,7 @@
   font-size: 28px;
   line-height: 1.2;
   color: var(--color-ami-green-800);
+  text-wrap: pretty;
 }
 
 .acao {

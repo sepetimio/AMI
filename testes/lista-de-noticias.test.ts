@@ -412,6 +412,11 @@ describe("o CSS da lista", () => {
     expect(regra(cel(), ".resumo")).toMatch(/display: none;/);
   });
 
+  it("o resumo do destaque, o dos cartões e a frase sem notícia quebram com o text-wrap: pretty do desenho", () => {
+    for (const seletor of [".destaqueResumo", ".resumo", ".nenhuma p"])
+      expect(regra(base(css), seletor), seletor).toMatch(/text-wrap: pretty;/);
+  });
+
   it("sem notícia: a frase na letra dos títulos, em verde escuro", () => {
     const r = regra(base(css), ".nenhuma p");
     expect(r).toMatch(/font-family: var\(--font-titulo\);/);
