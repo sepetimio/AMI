@@ -3,7 +3,7 @@ import { Icone } from "@/components/base/Icone";
 import { FotoDoMedico } from "@/components/diretorio/FotoDoMedico";
 import styles from "@/components/diretorio/CartaoMedico.module.css";
 import { hrefTelefone } from "@/lib/ami";
-import { especialidadePrincipal, telefoneDoCartao } from "@/lib/encontre";
+import { especialidadeDoCartao, telefoneDoCartao } from "@/lib/encontre";
 import { formatarTelefone, identificacaoMedica } from "@/lib/formato";
 import type { Medico } from "@/lib/dados/tipos";
 
@@ -22,8 +22,12 @@ export const SIZES_DO_CARTAO =
 
 /*
   O cartão do médico, na busca, em "Outros médicos" do perfil e na página de
-  especialidade. Só foto, nome, "MÉDICO · CRM/UF", a especialidade principal
-  com RQE e o "Ligar": nada de bairro, selo, telemedicina ou acessibilidade.
+  especialidade. Só foto, nome, "MÉDICO · CRM/UF", uma especialidade com RQE
+  e o "Ligar": nada de bairro, selo, telemedicina ou acessibilidade.
+
+  A especialidade é a principal; na página de uma especialidade
+  (`especialidade`, o slug dela), é a da página, com o RQE dela, quando o
+  médico a tem (`especialidadeDoCartao`, lib/encontre.ts).
 
   A palavra MÉDICO ao lado do CRM é exigência da Resolução CFM 2.336/2023,
   Art. 4º, I (`identificacaoMedica`, lib/formato.ts).
@@ -34,8 +38,16 @@ export const SIZES_DO_CARTAO =
   botões da fileira continuarem alinhados. `data-ligar` marca os dois para a
   auditoria visual.
 */
-export function CartaoMedico({ medico, imediata = false }: { medico: Medico; imediata?: boolean }) {
-  const principal = especialidadePrincipal(medico);
+export function CartaoMedico({
+  medico,
+  imediata = false,
+  especialidade = null,
+}: {
+  medico: Medico;
+  imediata?: boolean;
+  especialidade?: string | null;
+}) {
+  const mostrada = especialidadeDoCartao(medico, especialidade);
   const telefone = telefoneDoCartao(medico);
 
   return (
@@ -54,15 +66,15 @@ export function CartaoMedico({ medico, imediata = false }: { medico: Medico; ime
             <Link href={`/medico/${medico.slug}`}>{medico.nome}</Link>
           </h3>
           <p className={styles.crm}>{identificacaoMedica(medico.crm, medico.crmUf)}</p>
-          {principal ? (
+          {mostrada ? (
             <p className={styles.esp}>
-              {principal.nome}
-              {principal.rqe ? (
+              {mostrada.nome}
+              {mostrada.rqe ? (
                 <>
                   {" "}
                   {/* Num texto só, com o espaço que não quebra: "RQE" não
                       fica numa linha e o número na outra. */}
-                  <span className={styles.rqe}>{`RQE\u00a0${principal.rqe}`}</span>
+                  <span className={styles.rqe}>{`RQE\u00a0${mostrada.rqe}`}</span>
                 </>
               ) : null}
             </p>

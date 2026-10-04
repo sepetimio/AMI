@@ -245,3 +245,46 @@ describe("o CSS do cartão e da grade", () => {
     expect(regra(base(CSS_CARTAO), ".medico:hover")).not.toMatch(/lima|green/);
   });
 });
+
+describe("a especialidade que o cartão mostra", () => {
+  /* Aline, principal Neurologia, com Ortopedia como secundária: o exemplo da
+     spec de Especialidades, seção 2.3. */
+  const ALINE_DUAS: Medico = {
+    ...ALINE,
+    especialidades: [
+      { nome: "Neurologia", slug: "neurologia", rqe: "12222", principal: true },
+      { nome: "Ortopedia e Traumatologia", slug: "ortopedia-e-traumatologia", rqe: "30111", principal: false },
+    ],
+  };
+
+  it("sem especialidade pedida (a busca e o perfil): a principal, com o RQE dela", () => {
+    const html = renderToString(createElement(CartaoMedico, { medico: ALINE_DUAS }));
+    expect(visivel(html)).toEqual(["AP", "Aline Peixoto", "MÉDICO · CRM/MA 11918", "Neurologia", "RQE 12222", "Ligar"]);
+    expect(html).not.toContain("Ortopedia");
+  });
+
+  it("na página de uma especialidade que o médico tem: a dela, com o RQE dela", () => {
+    const html = renderToString(
+      createElement(CartaoMedico, { medico: ALINE_DUAS, especialidade: "ortopedia-e-traumatologia" }),
+    );
+    expect(visivel(html)).toEqual([
+      "AP",
+      "Aline Peixoto",
+      "MÉDICO · CRM/MA 11918",
+      "Ortopedia e Traumatologia",
+      "RQE 30111",
+      "Ligar",
+    ]);
+  });
+
+  it("a grade passa a especialidade da página a todos os cartões", () => {
+    const html = renderToString(
+      createElement(GradeMedicos, {
+        medicos: [ALINE_DUAS, { ...ALINE_DUAS, id: 2, slug: "outra-aline" }],
+        especialidade: "ortopedia-e-traumatologia",
+      }),
+    );
+    expect(html.match(/>Ortopedia e Traumatologia</g)).toHaveLength(2);
+    expect(html).not.toContain("Neurologia");
+  });
+});
