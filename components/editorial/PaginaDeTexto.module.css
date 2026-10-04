@@ -103,6 +103,14 @@
   text-wrap: pretty;
 }
 
+/* O telefone, o CNPJ e o CEP no meio do texto (a marca "numero" do
+   rascunho, components/editorial/CorpoDoTexto.tsx): inteiros na linha e
+   com algarismos tabulares, como o `.num` do desenho. */
+.coluna .inteiro {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
 .coluna ul {
   margin: 0;
   padding: 0;

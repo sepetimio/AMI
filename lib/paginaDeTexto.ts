@@ -68,23 +68,55 @@ export function paragrafoDoRascunho(texto: string, comMoldura: boolean): Paragra
   return comMoldura ? { estilo: "aEntrar", texto: texto.slice(MARCA_PROVISORIA.length) } : null;
 }
 
+/*
+  Os números que não podem quebrar no meio da linha: telefone com DDD,
+  CNPJ e CEP. O navegador quebra depois do hífen, e "65900-" numa linha com
+  "330" na seguinte é o que o desenho evita (`.coluna .num`, sem quebra).
+*/
+const NUMERO_INTEIRO = /\(\d{2}\) \d{4,5}-\d{4}|\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}|\d{5}-\d{3}/g;
+
+/** O texto em trechos, com os números de `NUMERO_INTEIRO` em trechos próprios. */
+export function trechosDoTexto(texto: string): { texto: string; numero: boolean }[] {
+  const trechos: { texto: string; numero: boolean }[] = [];
+  let desde = 0;
+  for (const m of texto.matchAll(NUMERO_INTEIRO)) {
+    if (m.index > desde) trechos.push({ texto: texto.slice(desde, m.index), numero: false });
+    trechos.push({ texto: m[0], numero: true });
+    desde = m.index + m[0].length;
+  }
+  if (desde < texto.length) trechos.push({ texto: texto.slice(desde), numero: false });
+  return trechos;
+}
+
 /**
  * O rascunho em texto rico, no formato do Studio: cada seção vira um h2,
  * cada parágrafo um bloco (o marcado, no estilo "aEntrar", e só com
  * `comMoldura`: ver `paragrafoDoRascunho`), o subtítulo da lista um h3 e
  * cada item da lista um bloco com marcador. As chaves
- * ("r0", "r1"…) são únicas na página: o índice acha os h2 por elas.
+ * ("r0", "r1"…) são únicas na página: o índice acha os h2 por elas. O
+ * telefone, o CNPJ e o CEP no meio do texto vão num trecho com a marca
+ * "numero" (`trechosDoTexto`), que o corpo desenha sem quebra.
  */
 export function blocosDoRascunho(rascunho: RascunhoLegal, comMoldura: boolean): PortableTextBlock[] {
   const blocos: PortableTextBlock[] = [];
   const bloco = (estilo: string, texto: string, lista = false) => {
     const chave = `r${blocos.length}`;
+    const trechos = trechosDoTexto(texto);
+    const children =
+      trechos.some((t) => t.numero)
+        ? trechos.map((t, i) => ({
+            _type: "span",
+            _key: `${chave}s${i}`,
+            text: t.texto,
+            marks: t.numero ? ["numero"] : [],
+          }))
+        : [{ _type: "span", _key: `${chave}s`, text: texto, marks: [] }];
     blocos.push({
       _type: "block",
       _key: chave,
       style: estilo,
       markDefs: [],
-      children: [{ _type: "span", _key: `${chave}s`, text: texto, marks: [] }],
+      children,
       ...(lista ? { listItem: "bullet", level: 1 } : {}),
     });
   };

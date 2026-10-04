@@ -19,6 +19,8 @@ import { ehLinkInterno } from "@/lib/sanity/link";
     cinza e itálico. Quem decide se ela existe é a rota, ao montar o texto
     (`conteudoDaPagina`, lib/paginaDeTexto.ts): nas páginas da associação,
     só na demonstração; nos três textos legais, sempre;
+  - a marca "numero", que só o rascunho põe (`trechosDoTexto`,
+    lib/paginaDeTexto.ts), sai num `span` que não quebra no meio;
   - o link é o do texto rico das notícias: interno pelo roteador do Next,
     externo na mesma aba (a regra de qual é qual está em lib/sanity/link.ts).
 
@@ -52,6 +54,7 @@ function componentes(ancoras: Record<string, string>): PortableTextComponents {
     marks: {
       strong: ({ children }) => <strong>{children}</strong>,
       em: ({ children }) => <em>{children}</em>,
+      numero: ({ children }) => <span className={styles.inteiro}>{children}</span>,
       link: ({ value, children }) => {
         const href: string = value?.href ?? "#";
         return ehLinkInterno(href) ? (

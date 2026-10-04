@@ -105,8 +105,16 @@ describe("a página, renderizada", () => {
         "<p>A Associação Médica de Imperatriz está em atividade desde 1975.</p>" +
         "<h3>Dados da entidade</h3>" +
         "<ul><li>Associação privada.</li>" +
-        "<li>Inscrita no CNPJ sob o número 06.651.376/0001-42.</li>" +
-        "<li>Sede na Rua Coriolano Milhomem, 39, Centro, Imperatriz - MA, CEP 65900-330.</li></ul>",
+        `<li>Inscrita no CNPJ sob o número <span class="${estilos.inteiro}">06.651.376/0001-42</span>.</li>` +
+        `<li>Sede na Rua Coriolano Milhomem, 39, Centro, Imperatriz - MA, CEP <span class="${estilos.inteiro}">65900-330</span>.</li></ul>`,
+    );
+  });
+
+  it("os telefones de Como se associar não quebram no meio, como no desenho", async () => {
+    const html = await pagina("seja-associado", "false");
+    expect(html).toContain(
+      `<p>Pelo telefone <span class="${estilos.inteiro}">(99) 3524-3716</span> ou ` +
+        `<span class="${estilos.inteiro}">(99) 98802-0205</span>, ou presencialmente na sede`,
     );
   });
 

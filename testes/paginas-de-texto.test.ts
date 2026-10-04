@@ -12,6 +12,7 @@ import {
   VOLTA_INICIO,
   ancorasDoCorpo,
   blocosDoRascunho,
+  trechosDoTexto,
   conteudoDaPagina,
   conteudoDoRascunho,
   conteudoDoSanity,
@@ -144,6 +145,23 @@ describe("o rascunho em texto rico", () => {
     ]);
   });
 
+  it("o número no meio do texto (telefone, CEP, CNPJ) vira um trecho com a marca numero", () => {
+    const corpo = blocosDoRascunho(
+      { ...RASCUNHO, secoes: [{ titulo: "Contato", paragrafos: ["Ligue (99) 3524-3716, CEP 65900-330."] }] },
+      false,
+    );
+    expect(corpo[1]).toEqual({
+      ...b("r1", "normal", ""),
+      children: [
+        { _type: "span", _key: "r1s0", text: "Ligue ", marks: [] },
+        { _type: "span", _key: "r1s1", text: "(99) 3524-3716", marks: ["numero"] },
+        { _type: "span", _key: "r1s2", text: ", CEP ", marks: [] },
+        { _type: "span", _key: "r1s3", text: "65900-330", marks: ["numero"] },
+        { _type: "span", _key: "r1s4", text: ".", marks: [] },
+      ],
+    });
+  });
+
   it("o conteúdo do rascunho: título, resumo, data, aviso e os blocos", () => {
     expect(conteudoDoRascunho(RASCUNHO, false)).toEqual({
       titulo: "Título",
@@ -244,5 +262,31 @@ describe("nenhum PROVISÓRIO na tela, vindo dos rascunhos", () => {
     const aEntrar = (demo: boolean) => blocosDoRascunho(PRIVACIDADE, demo).filter((x) => x.style === "aEntrar");
     expect(aEntrar(true)).toHaveLength(2);
     expect(aEntrar(false)).toHaveLength(0);
+  });
+});
+
+describe("os números que não quebram no meio", () => {
+  it("telefone fixo e celular, CEP e CNPJ; o resto do texto em volta", () => {
+    expect(trechosDoTexto("Pelo telefone (99) 3524-3716 ou (99) 98802-0205.")).toEqual([
+      { texto: "Pelo telefone ", numero: false },
+      { texto: "(99) 3524-3716", numero: true },
+      { texto: " ou ", numero: false },
+      { texto: "(99) 98802-0205", numero: true },
+      { texto: ".", numero: false },
+    ]);
+    expect(trechosDoTexto("CNPJ 06.651.376/0001-42, CEP 65900-330")).toEqual([
+      { texto: "CNPJ ", numero: false },
+      { texto: "06.651.376/0001-42", numero: true },
+      { texto: ", CEP ", numero: false },
+      { texto: "65900-330", numero: true },
+    ]);
+  });
+
+  it("sem número, um trecho só; número solto, como um ano ou a lei, não conta", () => {
+    expect(trechosDoTexto("A AMI está em atividade desde 1975.")).toEqual([
+      { texto: "A AMI está em atividade desde 1975.", numero: false },
+    ]);
+    expect(trechosDoTexto("Lei 13.709/2018")).toEqual([{ texto: "Lei 13.709/2018", numero: false }]);
+    expect(trechosDoTexto("")).toEqual([]);
   });
 });

@@ -324,6 +324,12 @@ describe("o CSS da página de texto", () => {
     expect(regra(cel(), ".coluna p,\n  .coluna li")).toMatch(/font-size: 16px;/);
   });
 
+  it("o número no meio do texto não quebra, e leva algarismos tabulares, como o .num do desenho", () => {
+    const r = regra(base(css), ".coluna .inteiro");
+    expect(r).toMatch(/white-space: nowrap;/);
+    expect(r).toMatch(/font-variant-numeric: tabular-nums;/);
+  });
+
   it("os parágrafos quebram com text-wrap: pretty, como o p do desenho; os itens de lista, não", () => {
     expect(regra(base(css), ".coluna p")).toMatch(/text-wrap: pretty;/);
     expect(regra(base(css), ".coluna p,\n.coluna li")).not.toMatch(/text-wrap/);
