@@ -70,6 +70,7 @@ for (const r of RASCUNHOS_LEGAIS) {
   for (const s of r.secoes) {
     linhas.push(`### ${s.titulo}`, "");
     for (const p of s.paragrafos) linhas.push(p, "");
+    if (s.tituloDaLista) linhas.push(`#### ${s.tituloDaLista}`, "");
     if (s.lista) {
       for (const i of s.lista) linhas.push(`- ${i}`);
       linhas.push("");

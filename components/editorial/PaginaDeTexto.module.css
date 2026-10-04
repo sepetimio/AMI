@@ -5,8 +5,9 @@
   `.atualizado i`, `.coluna h2`, `.coluna h3`, `.coluna h2 + *`,
   `.coluna p`, `.coluna ul` e o ponto da lista, `.coluna .falta`,
   `.quadro`, `.quadro > i`, `.coluna .quadro p`,
-  `.coluna .quadro .quadro-titulo`, `.quadro-titulo + p`, e os @media de
-  1180, 980 e 700px). O índice é de IndiceNestaPagina.module.css.
+  `.coluna .quadro .quadro-titulo`, `.quadro-titulo + p`, `.chamada` e o
+  que vem dentro dele, e os @media de 1180, 980 e 700px). O índice é de
+  IndiceNestaPagina.module.css.
 
   O corpo numa faixa branca de ponta a ponta, sem canto nem sombra, com a
   margem lateral das faixas (`--borda-faixa`, app/globals.css) e sem
@@ -187,6 +188,51 @@
   margin-top: 4px;
 }
 
+/* O quadro de chamada "Fale com a AMI", no fim da coluna de Seja
+   associado (components/associacao/FaleComAmi.tsx). O ladrilho é o global
+   (`.ladrilho-icone--pequeno`, 44px), branco sobre o fundo da página. */
+.coluna .chamada {
+  margin-top: 40px;
+  padding: 28px;
+  border-radius: 18px;
+  background: var(--color-canvas);
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  column-gap: 16px;
+}
+
+.chamada :global(.ladrilho-icone) {
+  background: var(--color-surface);
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.05),
+    inset 0 0 0 1px rgba(16, 24, 40, 0.06);
+}
+
+.coluna .chamada h3 {
+  margin: 0;
+  font-family: var(--font-titulo);
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.coluna .chamada p {
+  margin-top: 6px;
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+
+.chamada .acoes {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.numero {
+  font-variant-numeric: tabular-nums;
+}
+
 @media (max-width: 1180px) {
   .grade {
     grid-template-columns: minmax(0, 1fr) 220px;
@@ -260,5 +306,39 @@
 
   .coluna .quadro .quadroTitulo {
     font-size: 15px;
+  }
+
+  .coluna .chamada {
+    margin-top: 32px;
+    padding: 20px;
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 14px;
+  }
+
+  .chamada :global(.ladrilho-icone) {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .coluna .chamada h3 {
+    font-size: 21px;
+  }
+
+  .coluna .chamada p {
+    font-size: 14.5px;
+  }
+
+  .chamada .acoes {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 18px;
+  }
+
+  .chamada .acoes > a {
+    width: 100%;
+    height: 46px;
+    font-size: 14px;
   }
 }

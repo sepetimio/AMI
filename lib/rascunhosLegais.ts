@@ -318,7 +318,11 @@ const DATA_SEJA_ASSOCIADO = "2026-08-23";
   sem requisito além do que a AMI já confirmou (inscrição no conselho). O que
   seria mais — quanto custa, o que o associado ganha — é justamente o que
   esta página ainda não traz, e está marcado [PROVISÓRIO] em vez de
-  estimado, sem afirmar se a AMI já decidiu ou não.
+  estimado, sem afirmar se a AMI já decidiu ou não. Na tela, a marca vira
+  a moldura "a entrar", só no modo demonstração.
+
+  A identificação da entidade sai em lista ("Dados da entidade"), com os
+  mesmos dados de lib/ami.ts que a frase corrida trazia.
 */
 export const SEJA_ASSOCIADO: RascunhoLegal = {
   slug: "seja-associado",
@@ -331,13 +335,19 @@ export const SEJA_ASSOCIADO: RascunhoLegal = {
   secoes: [
     {
       titulo: "O que é a AMI",
-      paragrafos: [`A ${identificacao}, está em atividade desde ${AMI.fundadaEm}.`],
+      paragrafos: [`A ${AMI.razaoSocial} está em atividade desde ${AMI.fundadaEm}.`],
+      tituloDaLista: "Dados da entidade",
+      lista: [
+        `${AMI.naturezaJuridica}.`,
+        `Inscrita no CNPJ sob o número ${AMI.cnpj}.`,
+        `Sede na ${enderecoEmLinha()}, CEP ${AMI.endereco.cep}.`,
+      ],
     },
     {
       titulo: "Quem pode se associar",
       paragrafos: [
         "A associação é aberta a médicos com inscrição regular no Conselho Regional de Medicina.",
-        "[PROVISÓRIO] Valor de anuidade, benefícios do quadro associativo e demais critérios de admissão ainda não foram publicados nesta página.",
+        "[PROVISÓRIO] Valor de anuidade, benefícios do quadro associativo e demais critérios de admissão: texto da AMI a entrar.",
       ],
     },
     {

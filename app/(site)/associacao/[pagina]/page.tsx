@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { FaleComAmi } from "@/components/associacao/FaleComAmi";
 import { PaginaDeTexto } from "@/components/editorial/PaginaDeTexto";
 import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
 import { conteudoDaPagina, iconeDaPagina, VOLTA_ASSOCIACAO } from "@/lib/paginaDeTexto";
@@ -64,7 +65,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   O desenho é o modelo de página de texto
   (components/editorial/PaginaDeTexto.tsx), com o link de volta para A
-  Associação.
+  Associação. Seja associado fecha a coluna com o quadro "Fale com a AMI"
+  (components/associacao/FaleComAmi.tsx), venha o texto do Studio ou do
+  rascunho.
 */
 export default async function SubpaginaDaAssociacao({ params }: Props) {
   const { pagina } = await params;
@@ -77,5 +80,9 @@ export default async function SubpaginaDaAssociacao({ params }: Props) {
   );
   if (!conteudo) notFound();
 
-  return <PaginaDeTexto conteudo={conteudo} volta={VOLTA_ASSOCIACAO} icone={iconeDaPagina(pagina)} />;
+  return (
+    <PaginaDeTexto conteudo={conteudo} volta={VOLTA_ASSOCIACAO} icone={iconeDaPagina(pagina)}>
+      {pagina === "seja-associado" ? <FaleComAmi /> : null}
+    </PaginaDeTexto>
+  );
 }
