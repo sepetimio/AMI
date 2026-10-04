@@ -151,6 +151,14 @@ describe("o modelo, renderizado", () => {
     expect(html).not.toContain('role="note"');
   });
 
+  it("sem data, sem a linha de atualização: a coluna começa pelo índice", () => {
+    const semData = componente({ ...CONTEUDO, atualizadoEm: "" });
+    expect(semData).not.toContain("Atualizado em");
+    expect(semData).not.toContain("<time");
+    expect(semData).not.toContain(`class="${estilos.atualizado}"`);
+    expect(semData).toMatch(new RegExp(`<article class="${estilos.coluna}" data-coluna=""><details `));
+  });
+
   it("com aviso: o quadro cinza, com o ícone, o título e o texto, antes do texto", () => {
     const comAviso = componente({ ...CONTEUDO, aviso: { titulo: "Esta página é provisória", texto: "Texto do aviso." } });
     expect(comAviso).toMatch(
@@ -336,5 +344,9 @@ describe("o CSS da página de texto", () => {
   it("a lista com o ponto verde do desenho", () => {
     expect(regra(base(css), ".coluna ul")).toMatch(/list-style: none;/);
     expect(regra(base(css), ".coluna ul > li::before")).toMatch(/background: var\(--color-ami-green-600\);/);
+  });
+
+  it("a lista numerada do Studio com o número, que a camada base do Tailwind tira", () => {
+    expect(regra(base(css), ".coluna ol")).toMatch(/list-style: decimal;/);
   });
 });

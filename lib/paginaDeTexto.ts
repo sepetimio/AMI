@@ -57,21 +57,25 @@ export type ParagrafoNaTela = { estilo: "normal" | "aEntrar"; texto: string };
 
 /**
  * Um parágrafo do rascunho na tela. O comum sai como está. O marcado sai
- * sem a marca, desenhado como moldura "a entrar", só na demonstração; fora
- * dela, não existe (null).
+ * sem a marca, desenhado como moldura "a entrar", quando `comMoldura`;
+ * senão, não existe (null). Quem decide é a rota: nas páginas da
+ * associação, é a chave de demonstração; nos três textos legais, é sempre
+ * `true`, porque um texto legal não pode perder calado um item
+ * obrigatório.
  */
-export function paragrafoDoRascunho(texto: string, demonstracao: boolean): ParagrafoNaTela | null {
+export function paragrafoDoRascunho(texto: string, comMoldura: boolean): ParagrafoNaTela | null {
   if (!texto.startsWith(MARCA_PROVISORIA)) return { estilo: "normal", texto };
-  return demonstracao ? { estilo: "aEntrar", texto: texto.slice(MARCA_PROVISORIA.length) } : null;
+  return comMoldura ? { estilo: "aEntrar", texto: texto.slice(MARCA_PROVISORIA.length) } : null;
 }
 
 /**
  * O rascunho em texto rico, no formato do Studio: cada seção vira um h2,
- * cada parágrafo um bloco (o marcado, no estilo "aEntrar"), o subtítulo da
- * lista um h3 e cada item da lista um bloco com marcador. As chaves
+ * cada parágrafo um bloco (o marcado, no estilo "aEntrar", e só com
+ * `comMoldura`: ver `paragrafoDoRascunho`), o subtítulo da lista um h3 e
+ * cada item da lista um bloco com marcador. As chaves
  * ("r0", "r1"…) são únicas na página: o índice acha os h2 por elas.
  */
-export function blocosDoRascunho(rascunho: RascunhoLegal, demonstracao: boolean): PortableTextBlock[] {
+export function blocosDoRascunho(rascunho: RascunhoLegal, comMoldura: boolean): PortableTextBlock[] {
   const blocos: PortableTextBlock[] = [];
   const bloco = (estilo: string, texto: string, lista = false) => {
     const chave = `r${blocos.length}`;
@@ -88,7 +92,7 @@ export function blocosDoRascunho(rascunho: RascunhoLegal, demonstracao: boolean)
   for (const secao of rascunho.secoes) {
     bloco("h2", secao.titulo);
     for (const paragrafo of secao.paragrafos) {
-      const naTela = paragrafoDoRascunho(paragrafo, demonstracao);
+      const naTela = paragrafoDoRascunho(paragrafo, comMoldura);
       if (naTela) bloco(naTela.estilo, naTela.texto);
     }
     if (secao.tituloDaLista) bloco("h3", secao.tituloDaLista);
@@ -108,13 +112,13 @@ export type ConteudoDaPagina = {
   corpo: PortableTextBlock[];
 };
 
-export function conteudoDoRascunho(rascunho: RascunhoLegal, demonstracao: boolean): ConteudoDaPagina {
+export function conteudoDoRascunho(rascunho: RascunhoLegal, comMoldura: boolean): ConteudoDaPagina {
   return {
     titulo: rascunho.titulo,
     resumo: rascunho.resumo,
     atualizadoEm: rascunho.atualizadoEm,
     aviso: rascunho.aviso,
-    corpo: blocosDoRascunho(rascunho, demonstracao),
+    corpo: blocosDoRascunho(rascunho, comMoldura),
   };
 }
 
@@ -135,10 +139,10 @@ export function conteudoDoSanity(pagina: PaginaInstitucional): ConteudoDaPagina 
 export function conteudoDaPagina(
   revisado: PaginaInstitucional | null,
   rascunho: RascunhoLegal | null | undefined,
-  demonstracao: boolean,
+  comMoldura: boolean,
 ): ConteudoDaPagina | null {
   if (revisado) return conteudoDoSanity(revisado);
-  if (rascunho) return conteudoDoRascunho(rascunho, demonstracao);
+  if (rascunho) return conteudoDoRascunho(rascunho, comMoldura);
   return null;
 }
 
