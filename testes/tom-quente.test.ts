@@ -27,15 +27,23 @@ function arbitrarios(tsx: string): string {
   return [...valores, ...propriedades].map((v) => v.replaceAll("_", " ")).join("\n");
 }
 
-/* Cada cor do site, com o arquivo de onde veio. */
-function coresDoSite(): (CorAchada & { arquivo: string })[] {
+type Arquivo = { arquivo: string; texto: string };
+
+/* Cada cor dos arquivos, com o arquivo de onde veio: dos `.css`, todas; dos
+   `.tsx`, as dos valores arbitrários. Recebe a lista, para o teste provar
+   os dois ramos com arquivos escritos aqui. */
+function coresDoSite(
+  arquivos: Arquivo[] = [...arquivosDoSite(".css"), ...arquivosDoSite(".tsx")],
+): (CorAchada & { arquivo: string })[] {
   return [
-    ...arquivosDoSite(".css").flatMap(({ arquivo, texto }) =>
-      coresNoTexto(semComentarios(texto)).map((c) => ({ ...c, arquivo })),
-    ),
-    ...arquivosDoSite(".tsx").flatMap(({ arquivo, texto }) =>
-      coresNoTexto(arbitrarios(semComentarios(texto))).map((c) => ({ ...c, arquivo })),
-    ),
+    ...arquivos
+      .filter(({ arquivo }) => arquivo.endsWith(".css"))
+      .flatMap(({ arquivo, texto }) => coresNoTexto(semComentarios(texto)).map((c) => ({ ...c, arquivo }))),
+    ...arquivos
+      .filter(({ arquivo }) => arquivo.endsWith(".tsx"))
+      .flatMap(({ arquivo, texto }) =>
+        coresNoTexto(arbitrarios(semComentarios(texto))).map((c) => ({ ...c, arquivo })),
+      ),
   ];
 }
 
@@ -66,6 +74,17 @@ describe("nenhum tom quente nem creme no site", () => {
       .filter((c) => !(c.texto.toUpperCase() in PERMITIDAS))
       .map((c) => `${c.arquivo}: ${c.texto} (rgb ${c.rgb.join(", ")})`);
     expect(quentes).toEqual([]);
+  });
+
+  it("a varredura lê os dois ramos: um .css e um .tsx falsos, cada um com um tom creme", () => {
+    const falsos = coresDoSite([
+      { arquivo: "components/Falso.module.css", texto: ".a { background: #FDF6E3; color: #0c0e12; }" },
+      { arquivo: "components/Falso.tsx", texto: '<div className="p-4 bg-[#FAF0E6]" />' },
+    ]);
+    expect(falsos.filter((c) => ehQuente(c.rgb)).map((c) => `${c.arquivo}: ${c.texto}`)).toEqual([
+      "components/Falso.module.css: #FDF6E3",
+      "components/Falso.tsx: #FAF0E6",
+    ]);
   });
 
   it("toda cor permitida ainda existe: a lista não guarda exceção morta", () => {
