@@ -380,7 +380,10 @@ describe("o CSS da notícia aberta", () => {
   const cel = () => bloco(css, "@media (max-width: 700px)");
 
   it("a coluna é a da faixa curta, e a assinatura não tem coluna de ícone", () => {
-    expect(css).not.toContain("grid-template-columns");
+    /* Nenhuma regra na própria faixa: a grade é a da FaixaCurta. */
+    expect(css).not.toMatch(/^\s*\.materia\[data-faixa\](?:\[[^\]]*\])*\s*\{/m);
+    expect(regra(base(css), ".assinatura")).not.toContain("grid-template-columns");
+    expect(regra(cel(), ".assinatura")).not.toContain("grid-template-columns");
     expect(css).not.toContain(".vidro");
     expect(css).not.toContain("svg");
   });

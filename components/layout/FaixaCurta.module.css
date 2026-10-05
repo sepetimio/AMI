@@ -14,9 +14,12 @@
   Sem campo de busca. O texto fica numa coluna só, em toda largura.
 
   No tablet, o parágrafo não passa da faixa menos 156px, a largura que ele
-  tem desde o desenho aprovado: sem esse limite, entre 701 e 803px ele
-  alargaria até os 34em. No celular, volta aos 34em, e quem limita é a
-  largura da tela.
+  tem desde o desenho aprovado. Os 156px são o lugar que o quadro de 128px
+  com o ícone da página ocupava à direita no tablet, mais os 28px do `gap`
+  da `.faixa` da busca (FaixaDaBusca.module.css, @media max-width 1180px).
+  O ícone saiu, e o limite ficou para o texto manter a largura de antes:
+  sem ele, entre 701 e 803px o parágrafo alargaria até os 34em. No celular,
+  volta aos 34em, e quem limita é a largura da tela.
 
   O parágrafo quebra com o `text-wrap: pretty` do `.texto` da busca.
 
@@ -41,6 +44,7 @@
 
 @media (max-width: 980px) {
   .especialidade h1 + p {
+    /* 156px = os 128px do antigo quadro do ícone + o `gap` de 28px da busca */
     max-width: min(34em, 100% - 156px);
   }
 }

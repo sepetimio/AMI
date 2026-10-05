@@ -6,61 +6,29 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { fonte, semComentarios } from "@/testes/apoio";
 import { Icone as IconeDoCliente, mapaDoCliente, type NomeIconeDoCliente } from "@/components/base/Icone";
-import { Icone, LadrilhoIcone, type NomeIcone } from "@/components/base/IconeServidor";
+import { Icone, type NomeIcone } from "@/components/base/IconeServidor";
 import type { Icon } from "@phosphor-icons/react";
 import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
-  Article,
-  Baby,
-  Bone,
-  Brain,
-  Buildings,
-  CalendarBlank,
   CaretDown,
   CaretLeft,
   CaretRight,
-  ChatsCircle,
-  Clock,
-  ClockCounterClockwise,
-  Cookie,
   DeviceMobile,
-  Drop,
-  DropHalf,
-  Ear,
-  Eye,
-  FileText,
-  FlagBanner,
-  ForkKnife,
-  GenderFemale,
-  Hand,
-  HandHeart,
-  HandPalm,
-  Handshake,
-  Heartbeat,
-  Info,
-  InstagramLogo,
   List,
   MagnifyingGlass,
   MapPin,
-  Newspaper,
   Pause,
   Phone,
-  PhoneCall,
   Play,
-  Scroll,
-  SealCheck,
-  ShieldCheck,
-  Stethoscope,
-  UsersThree,
   WhatsappLogo,
   X,
 } from "@phosphor-icons/react/dist/ssr";
 
 describe("os icones", () => {
   it("saem como SVG no servidor, sem fonte de icones", () => {
-    const html = renderToString(createElement(Icone, { nome: "estetoscopio" }));
+    const html = renderToString(createElement(Icone, { nome: "celular" }));
     expect(html).toMatch(/^<svg/);
   });
 
@@ -70,13 +38,8 @@ describe("os icones", () => {
   });
 
   it("aria-hidden no SVG do Icone", () => {
-    const html = renderToString(createElement(Icone, { nome: "selo" }));
+    const html = renderToString(createElement(Icone, { nome: "voltar" }));
     expect(html).toContain('aria-hidden="true"');
-  });
-
-  it("o ladrilho tem aria-hidden no span externo", () => {
-    const html = renderToString(createElement(LadrilhoIcone, { nome: "selo" }));
-    expect(html).toContain('<span class="ladrilho-icone" aria-hidden="true">');
   });
 
   it("cada nome desenha o icone Phosphor dele: trocar dois de lugar fica vermelho", () => {
@@ -85,14 +48,6 @@ describe("os icones", () => {
        "pausar" e "retomar" trocados entre si. Contar SVGs diferentes não
        pegava: dois trocados continuam diferentes. */
     const esperado: Record<NomeIcone, Icon> = {
-      selo: SealCheck,
-      estetoscopio: Stethoscope,
-      batimento: Heartbeat,
-      parceria: Handshake,
-      bandeira: FlagBanner,
-      olho: Eye,
-      maoCoracao: HandHeart,
-      predio: Buildings,
       lupa: MagnifyingGlass,
       seta: ArrowRight,
       setaDiagonal: ArrowUpRight,
@@ -107,75 +62,28 @@ describe("os icones", () => {
       comoChegar: MapPin,
       voltar: ArrowLeft,
       abaixo: CaretDown,
-      palma: HandPalm,
-      meiaGota: DropHalf,
-      garfoEFaca: ForkKnife,
-      feminino: GenderFemale,
-      cerebro: Brain,
-      osso: Bone,
-      orelha: Ear,
-      bebe: Baby,
-      conversa: ChatsCircle,
-      mao: Hand,
-      gota: Drop,
-      pergaminho: Scroll,
-      artigo: Article,
-      escudo: ShieldCheck,
-      biscoito: Cookie,
-      documento: FileText,
-      pessoas: UsersThree,
-      calendario: CalendarBlank,
-      informacao: Info,
-      relogio: ClockCounterClockwise,
-      chamada: PhoneCall,
       celular: DeviceMobile,
-      jornal: Newspaper,
-      instagram: InstagramLogo,
-      horario: Clock,
     };
     for (const [nome, Componente] of Object.entries(esperado) as [NomeIcone, Icon][]) {
-      for (const duotone of [false, true]) {
-        const nosso = renderToString(createElement(Icone, { nome, duotone }));
-        const dele = renderToString(
-          createElement(Componente, {
-            size: 20,
-            weight: duotone ? "duotone" : "regular",
-            className: "",
-            "aria-hidden": "true",
-          }),
-        );
-        expect(nosso, `${nome}${duotone ? " duotone" : ""}`).toBe(dele);
-        /* O `Icone` do cliente desenha igual os nomes que tem. */
-        if (nome in mapaDoCliente) {
-          const doCliente = renderToString(
-            createElement(IconeDoCliente, { nome: nome as NomeIconeDoCliente, duotone }),
-          );
-          expect(doCliente, `${nome} no cliente`).toBe(dele);
-        }
+      const nosso = renderToString(createElement(Icone, { nome }));
+      const dele = renderToString(
+        createElement(Componente, {
+          size: 20,
+          weight: "regular",
+          className: "",
+          "aria-hidden": "true",
+        }),
+      );
+      expect(nosso, nome).toBe(dele);
+      /* O `Icone` do cliente desenha igual os nomes que tem. */
+      if (nome in mapaDoCliente) {
+        const doCliente = renderToString(createElement(IconeDoCliente, { nome: nome as NomeIconeDoCliente }));
+        expect(doCliente, `${nome} no cliente`).toBe(dele);
       }
     }
-    /* E os 47 são diferentes entre si: nenhum par repetido na tabela. */
+    /* E os 15 são diferentes entre si: nenhum par repetido na tabela. */
     const htmls = Object.keys(esperado).map((nome) => renderToString(createElement(Icone, { nome: nome as NomeIcone })));
-    expect(new Set(htmls).size).toBe(47);
-  });
-
-  it("duotone inclui opacity 0.2, regular nao", () => {
-    const htmlDuotone = renderToString(createElement(Icone, { nome: "selo", duotone: true }));
-    const htmlRegular = renderToString(createElement(Icone, { nome: "selo", duotone: false }));
-    expect(htmlDuotone).toContain('opacity="0.2"');
-    expect(htmlRegular).not.toContain('opacity="0.2"');
-  });
-
-  it("tamanho pequeno do ladrilho sai com width 23 e classe --pequeno", () => {
-    const html = renderToString(createElement(LadrilhoIcone, { nome: "selo", pequeno: true }));
-    expect(html).toContain('width="23"');
-    expect(html).toContain('class="ladrilho-icone ladrilho-icone--pequeno"');
-  });
-
-  it("tamanho normal do ladrilho sai com width 28 e sem classe --pequeno", () => {
-    const html = renderToString(createElement(LadrilhoIcone, { nome: "selo", pequeno: false }));
-    expect(html).toContain('width="28"');
-    expect(html).toContain('class="ladrilho-icone" aria-hidden="true">');
+    expect(new Set(htmls).size).toBe(15);
   });
 
   it("importa so os icones usados, pelo caminho de servidor", () => {
@@ -204,9 +112,9 @@ describe("os icones", () => {
 */
 const RAIZ = fileURLToPath(new URL("..", import.meta.url));
 
-function arquivosDe(pasta: string): string[] {
+function arquivosDe(pasta: string, extensao: RegExp = /\.tsx?$/): string[] {
   return readdirSync(join(RAIZ, pasta), { recursive: true, encoding: "utf8" })
-    .filter((nome) => /\.tsx?$/.test(nome))
+    .filter((nome) => extensao.test(nome))
     .map((nome) => join(RAIZ, pasta, nome));
 }
 
@@ -286,5 +194,52 @@ describe("os dois mapas de icones", () => {
     }
     const semUso = Object.keys(mapaDoCliente).filter((nome) => !desenhados.has(nome));
     expect(semUso, "nomes do mapa do cliente que nenhum <Icone> de cliente desenha").toEqual([]);
+  });
+});
+
+/*
+  A regra do cliente: ícone só aparece dentro de botão ou link, ao lado do
+  texto, ou num controle da tela (menu, lupa, carrossel, lista que abre,
+  limpar o filtro). Nenhum ícone de enfeite, nem ladrilho, nem duotone.
+
+  As listas abaixo são as únicas permitidas. Um nome novo num dos mapas
+  fica vermelho aqui: antes de pô-lo, confira que ele vai num botão, num
+  link ou num controle, e ponha-o na lista.
+*/
+const PERMITIDOS_NO_CLIENTE = ["lupa", "seta", "anterior", "proximo", "pausar", "retomar", "menu", "fechar", "telefone", "whatsapp", "abaixo"];
+const PERMITIDOS_SO_NO_SERVIDOR = ["setaDiagonal", "comoChegar", "voltar", "celular"];
+
+/** Os nomes de `mapaDeTodos`, lidos do código: o mapa não é exportado. */
+function nomesDoMapaDeServidor(): string[] {
+  const codigo = semComentarios(readFileSync(join(RAIZ, "components", "base", "IconeServidor.tsx"), "utf8"));
+  const corpo = codigo.match(/const mapaDeTodos = \{([\s\S]*?)\}\s*satisfies/)?.[1];
+  if (corpo === undefined) throw new Error("mapaDeTodos não achado em IconeServidor.tsx");
+  return corpo
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .flatMap((item) => (item === "...mapaDoCliente" ? Object.keys(mapaDoCliente) : [item.split(":")[0].trim()]));
+}
+
+describe("a regra: icone so em botao, link ou controle", () => {
+  it("o mapa do cliente tem so os nomes permitidos", () => {
+    expect(Object.keys(mapaDoCliente).sort()).toEqual([...PERMITIDOS_NO_CLIENTE].sort());
+  });
+
+  it("o mapa de servidor tem so os permitidos", () => {
+    expect(nomesDoMapaDeServidor().sort()).toEqual([...PERMITIDOS_NO_CLIENTE, ...PERMITIDOS_SO_NO_SERVIDOR].sort());
+  });
+
+  it("nenhum arquivo de app/ ou components/ usa LadrilhoIcone, ladrilho-icone ou duotone", () => {
+    const arquivos = [...arquivosDe("app", /\.(tsx?|css)$/), ...arquivosDe("components", /\.(tsx?|css)$/)];
+    /* Sem isto, uma varredura que não achasse nada passaria sempre. */
+    expect(arquivos).toContain(join(RAIZ, "app", "globals.css"));
+    expect(arquivos).toContain(join(RAIZ, "components", "base", "IconeServidor.tsx"));
+    const achados = arquivos.flatMap((arquivo) =>
+      (semComentarios(readFileSync(arquivo, "utf8")).match(/LadrilhoIcone|ladrilho-icone|duotone/g) ?? []).map(
+        (achado) => `${relative(RAIZ, arquivo)}: ${achado}`,
+      ),
+    );
+    expect(achados).toEqual([]);
   });
 });
