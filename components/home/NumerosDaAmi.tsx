@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { LadrilhoIcone, type NomeIcone } from "@/components/base/IconeServidor";
 import { Contador } from "@/components/home/Contador";
 import styles from "@/components/home/NumerosDaAmi.module.css";
 import { AMI } from "@/lib/ami";
@@ -7,7 +6,7 @@ import { AMI } from "@/lib/ami";
 /*
   Os números da AMI, logo abaixo do carrossel: sem caixa, direto no fundo da
   página, em colunas separadas por fio. No celular, cartõezinhos brancos só
-  com ícone, número e rótulo.
+  com o número e o rótulo.
 
   São quatro, como no desenho aprovado: anos, médicos, especialidades e
   empresas parceiras (o quarto era bairros atendidos, que saiu do site com
@@ -31,7 +30,6 @@ import { AMI } from "@/lib/ami";
   abre abaixo da tela anima (components/layout/Revelar.tsx).
 */
 type Item = {
-  icone: NomeIcone;
   valor: number;
   rotulo: string;
   apoio: string;
@@ -52,7 +50,6 @@ export function NumerosDaAmi({
 }) {
   const itens: Item[] = [
     {
-      icone: "selo",
       valor: anos,
       rotulo: "anos de AMI",
       apoio: `Em atividade desde ${AMI.fundadaEm}, reunindo os médicos de Imperatriz e da região.`,
@@ -60,7 +57,6 @@ export function NumerosDaAmi({
       destino: "/associacao",
     },
     {
-      icone: "estetoscopio",
       valor: medicos,
       rotulo: medicos === 1 ? "médico no diretório" : "médicos no diretório",
       apoio: "Cada perfil com nome, CRM e endereço de atendimento.",
@@ -68,7 +64,6 @@ export function NumerosDaAmi({
       destino: "/busca",
     },
     {
-      icone: "batimento",
       valor: especialidades,
       rotulo: especialidades === 1 ? "especialidade" : "especialidades",
       apoio: "As especialidades com mais médicos no diretório da AMI.",
@@ -80,7 +75,6 @@ export function NumerosDaAmi({
   /* Zero conta como falta: "0 empresas parceiras" não é número para mostrar. */
   if (parceiras !== null && parceiras > 0) {
     itens.push({
-      icone: "parceria",
       valor: parceiras,
       rotulo: parceiras === 1 ? "empresa parceira" : "empresas parceiras",
       apoio: "Empresas que caminham com a AMI.",
@@ -97,8 +91,7 @@ export function NumerosDaAmi({
       className={`revelar ${styles.numeros}`}
     >
       {itens.map((item) => (
-        <div key={item.icone} className={styles.numero}>
-          <LadrilhoIcone nome={item.icone} />
+        <div key={item.destino} className={styles.numero}>
           <div className={styles.grande}>
             <Contador valor={item.valor} />
           </div>

@@ -1,17 +1,10 @@
 import type { CSSProperties } from "react";
-import { LadrilhoIcone, type NomeIcone } from "@/components/base/IconeServidor";
 import styles from "@/components/home/SejaAssociado.module.css";
 import type { CartaoInstitucional } from "@/lib/molduras";
 
-const ICONES: Record<CartaoInstitucional["titulo"], NomeIcone> = {
-  Missão: "bandeira",
-  Visão: "olho",
-  Valores: "maoCoracao",
-};
-
 /*
   Missão, visão e valores: a introdução numa coluna mais larga e um cartão
-  por texto, com o ordinal, o ícone, o título e o texto. Na home, debaixo
+  por texto, com o ordinal, o título e o texto. Na home, debaixo
   de "Seja associado", com a introdução "Quem é a AMI?" e um parágrafo; em
   A Associação, debaixo da sede, com "Princípios" e sem parágrafo (a
   apresentação está logo acima).
@@ -54,7 +47,6 @@ export function PrincipiosDaAmi({
           <span className={styles.ordem} aria-hidden="true">
             {String(i + 1).padStart(2, "0")}
           </span>
-          <LadrilhoIcone nome={ICONES[c.titulo]} pequeno />
           <h4 className={styles.cartaoTitulo}>{c.titulo}</h4>
           <p className={c.provisorio ? `${styles.cartaoTexto} ${styles.falta}` : styles.cartaoTexto}>
             {c.texto}

@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Icon } from "@phosphor-icons/react";
-import { DeviceMobile, MapPin, Phone, PhoneCall } from "@phosphor-icons/react/dist/ssr";
+import { DeviceMobile, MapPin, Phone } from "@phosphor-icons/react/dist/ssr";
 import { FaleComAmi } from "@/components/associacao/FaleComAmi";
 import estilos from "@/components/editorial/PaginaDeTexto.module.css";
 import { SEJA_ASSOCIADO } from "@/lib/rascunhosLegais";
@@ -156,15 +156,21 @@ describe("a página, renderizada", () => {
 describe("o quadro Fale com a AMI", () => {
   const html = renderToString(createElement(FaleComAmi));
 
-  it("o ícone num ladrilho branco, o título e a frase", () => {
+  it("sem ladrilho: o título e a frase abrem o quadro", () => {
     expect(html).toMatch(
       new RegExp(
         `^<div class="${estilos.chamada}" data-fale-com-ami="">` +
-          `<span class="ladrilho-icone ladrilho-icone--pequeno" aria-hidden="true">`,
+          "<div><h3>Fale com a AMI</h3><p>Pelo telefone ou na sede, no Centro de Imperatriz.</p></div>" +
+          `<div class="${estilos.acoes}">`,
       ),
     );
-    expect(html).toContain(desenho(PhoneCall, 23, "duotone"));
-    expect(html).toContain("<div><h3>Fale com a AMI</h3><p>Pelo telefone ou na sede, no Centro de Imperatriz.</p></div>");
+    expect(html).not.toContain("ladrilho-icone");
+  });
+
+  it("os únicos ícones são os dos três botões, um em cada", () => {
+    expect(html.match(/<svg/g)).toHaveLength(3);
+    const links = [...html.matchAll(/<a [^>]*>[\s\S]*?<\/a>/g)].map((m) => m[0]);
+    expect(links.map((a) => (a.match(/<svg/g) ?? []).length)).toEqual([1, 1, 1]);
   });
 
   it("Ligar para o fixo, o celular e Como chegar, nessa ordem", () => {
@@ -198,13 +204,14 @@ describe("o CSS do quadro", () => {
   const css = semNotas(fonte("../components/editorial/PaginaDeTexto.module.css"));
   const cel = () => bloco(css, "@media (max-width: 700px)");
 
-  it("no fundo da página, a 40px do texto, com o ícone à esquerda e os botões embaixo", () => {
+  it("no fundo da página, a 40px do texto, com os botões embaixo, sem coluna de ícone", () => {
     const r = regra(base(css), ".coluna .chamada");
     expect(r).toMatch(/margin-top: 40px;/);
     expect(r).toMatch(/background: var\(--color-canvas\);/);
-    expect(r).toMatch(/grid-template-columns: 44px minmax\(0, 1fr\);/);
-    expect(regra(base(css), ".chamada :global(.ladrilho-icone)")).toMatch(/background: var\(--color-surface\);/);
-    expect(regra(base(css), ".chamada .acoes")).toMatch(/grid-column: 1 \/ -1;/);
+    expect(r).not.toMatch(/grid/);
+    expect(regra(cel(), ".coluna .chamada")).not.toMatch(/grid/);
+    expect(regra(base(css), ".chamada .acoes")).not.toMatch(/grid-column/);
+    expect(css).not.toMatch(/\.chamada :global\(\.ladrilho-icone\)/);
   });
 
   it("no celular, um botão por linha, na largura toda", () => {

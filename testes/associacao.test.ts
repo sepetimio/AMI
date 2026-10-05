@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Icon } from "@phosphor-icons/react";
-import { ArrowRight, Article, Handshake, Scroll } from "@phosphor-icons/react/dist/ssr";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import estilosPagina from "@/app/(site)/encontre.module.css";
 import { DiretoriaEmDestaque } from "@/components/associacao/DiretoriaEmDestaque";
 import { FechoAssocie } from "@/components/associacao/FechoAssocie";
@@ -118,10 +118,13 @@ describe("Saiba mais", () => {
     expect(cartoes).toHaveLength(3);
   });
 
-  it("o atalho da página que existe: ladrilho, título com o link, frase e seta", () => {
-    expect(cartoes[0]).toMatch(new RegExp(`^<li class="${estilosEsp.cartao} ${estilos.atalho}" data-atalho="">`));
-    expect(cartoes[0]).toContain(`<span class="ladrilho-icone" aria-hidden="true">${desenho(Handshake, 28, "duotone")}</span>`);
-    expect(cartoes[0]).toContain(`<h3 class="${estilosEsp.nome} ${estilos.nome}" data-nome=""><a href="/associacao/seja-associado">Seja associado</a></h3>`);
+  it("o atalho da página que existe: o título com o link abre o cartão, depois a frase e a seta", () => {
+    expect(cartoes[0]).toMatch(
+      new RegExp(
+        `^<li class="${estilosEsp.cartao} ${estilos.atalho}" data-atalho="">` +
+          `<h3 class="${estilosEsp.nome} ${estilos.nome}" data-nome=""><a href="/associacao/seja-associado">Seja associado</a></h3>`,
+      ),
+    );
     expect(cartoes[0]).toContain(
       `<p class="${estilosEsp.pe} ${estilos.pe}"><span class="${estilosEsp.conta} ${estilos.frase}">Quem pode se associar à AMI e como fazer isso.</span>` +
         `<span class="${estilosEsp.seta} ${estilos.seta}" aria-hidden="true" data-seta="">${desenho(ArrowRight, 20, "regular")}</span></p>`,
@@ -129,12 +132,24 @@ describe("Saiba mais", () => {
   });
 
   it("a página que ainda não existe: sem link, com a etiqueta texto a entrar", () => {
-    expect(cartoes[1]).toMatch(/^<li [^>]*data-atalho="" data-a-entrar="">/);
-    expect(cartoes[1]).toContain(desenho(Scroll, 28, "duotone"));
+    expect(cartoes[1]).toMatch(/^<li [^>]*data-atalho="" data-a-entrar=""><h3 /);
     expect(cartoes[1]).toContain(`data-nome="">Estatuto<!-- --> <span class="${estilos.etiqueta}">texto a entrar</span></h3>`);
     expect(cartoes[1]).not.toContain("<a ");
-    expect(cartoes[2]).toContain(desenho(Article, 28, "duotone"));
+    expect(cartoes[2]).toMatch(/^<li [^>]*data-atalho="" data-a-entrar=""><h3 /);
     expect(cartoes[2]).toContain(">Política editorial<!-- --> <span");
+  });
+
+  it("o único ícone é a seta do atalho que leva a uma página: o atalho a entrar, sem link, sai sem svg", () => {
+    expect(cartoes[0].match(/<svg/g)).toHaveLength(1);
+    expect(cartoes[0]).toContain(
+      `<span class="${estilosEsp.seta} ${estilos.seta}" aria-hidden="true" data-seta="">${desenho(ArrowRight, 20, "regular")}</span>`,
+    );
+    for (const c of cartoes.slice(1)) {
+      expect(c).toContain("data-a-entrar");
+      expect(c).not.toContain("<svg");
+      expect(c).not.toContain("data-seta");
+    }
+    expect(html.match(/<svg/g)).toHaveLength(1);
   });
 
   it("o texto do título, como o leitor de tela lê: o nome e a etiqueta separados por espaço", () => {
@@ -211,6 +226,19 @@ describe("a página A Associação", () => {
     expect(html.match(/texto a entrar</g)).toHaveLength(2);
     /* Cada moldura leva a marca: a apresentação, a foto, os três cartões e os dois atalhos. */
     expect(html.match(/ data-a-entrar="/g)).toHaveLength(7);
+  });
+
+  it("os únicos svg da página são os de botão e link: dentro de um link, na seta de um atalho com link ou no Ver perfil do cartão", async () => {
+    const esperado = { true: 9, false: 8 };
+    for (const chave of ["true", "false"] as const) {
+      const { html } = await pagina(chave);
+      const total = html.match(/<svg/g)?.length ?? 0;
+      const emLink = [...html.matchAll(/<a [^>]*>[\s\S]*?<\/a>/g)].reduce((n, m) => n + (m[0].match(/<svg/g)?.length ?? 0), 0);
+      const setaDeAtalho = html.match(/data-seta=""><svg/g)?.length ?? 0;
+      const verPerfil = html.match(/<span class="botao [^"]*" aria-hidden="true" data-ligar="">Ver perfil[^<]*(?:<!-- -->)? ?<svg/g)?.length ?? 0;
+      expect(total, chave).toBe(esperado[chave]);
+      expect(emLink + setaDeAtalho + verPerfil, chave).toBe(total);
+    }
   });
 
   it("fora da demonstração, sem o Studio: nenhuma moldura, sem Princípios e sem Saiba mais (sobraria só Seja associado)", async () => {
@@ -297,9 +325,21 @@ describe("o CSS dos blocos de baixo", () => {
     expect(regra(base(css), ".atalhos .atalho[data-a-entrar]:hover")).toMatch(/transform: none;/);
   });
 
-  it("no celular, cada atalho numa linha: ícone, título com a frase embaixo, e a seta", () => {
-    expect(regra(cel(), ".atalhos .atalho")).toMatch(/grid-template-columns: 40px minmax\(0, 1fr\) 28px;/);
+  it("no celular, cada atalho numa linha: o título com a frase embaixo, e a seta", () => {
+    expect(regra(cel(), ".atalhos .atalho")).toMatch(/grid-template-columns: minmax\(0, 1fr\) 28px;/);
     expect(regra(cel(), ".atalho .pe")).toMatch(/display: contents;/);
+    expect(regra(cel(), ".atalho .nome")).toMatch(/grid-column: 1;/);
+    expect(regra(cel(), ".atalho .frase")).toMatch(/grid-column: 1;/);
+    expect(regra(cel(), ".atalho .seta")).toMatch(/grid-column: 2;/);
+  });
+
+  it("sem ladrilho: nenhuma regra dele, e o título abre o cartão, sem espaço em cima", () => {
+    expect(css).not.toContain("ladrilho");
+    /* O título do atalho é o `.nome` da grade do índice, que já abre o
+       cartão sem espaço em cima: aqui, nenhuma regra para desfazer isso. */
+    const grade = semNotas(fonte("../components/especialidades/GradeDeEspecialidades.module.css"));
+    expect(regra(base(grade), ".nome")).not.toMatch(/margin/);
+    expect(base(css)).not.toContain(".atalho .nome {");
   });
 
   it("o fecho em duas colunas, uma do tablet para baixo", () => {

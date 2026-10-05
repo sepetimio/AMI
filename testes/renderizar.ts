@@ -54,3 +54,18 @@ export function htmlDe(arvore: ReactNode): Promise<string> {
     });
   });
 }
+
+/*
+  A faixa do topo (`<section data-bloco="topo">`) sem o link de volta: o
+  que sobra para conferir que a faixa não tem ícone. A seta do "← VOLTAR"
+  fica, porque é ícone ao lado do texto de um link.
+
+  Sem a faixa do topo no HTML, erro: o teste não pode passar por não achar
+  o que confere.
+*/
+export function topoSemAVolta(html: string): string {
+  const ini = html.indexOf('<section data-bloco="topo"');
+  const fim = html.indexOf("</section>", ini);
+  if (ini < 0 || fim < 0) throw new Error("O HTML não tem a faixa do topo.");
+  return html.slice(ini, fim).replace(/<a [^>]*class="[^"]*\blink-de-volta\b[^"]*"[^>]*>[\s\S]*?<\/a>/g, "");
+}

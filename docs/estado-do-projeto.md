@@ -664,6 +664,21 @@ mais a página temporária com as notícias de exemplo, com as duas chaves.
 9. **O perfil do Instagram de 981 a cerca de 1100px**: quebra em "@associacaomedicadeimp" /
    "eratriz"; o desenho o quebrava num ponto fixo. Ainda sem decisão
 
+### Sem ícones decorativos (05/10/2026, pedido do cliente)
+
+O cliente pediu que nenhum ícone criado para o site apareça como enfeite: "remete a uma estrutura de IA". Isso agora é regra permanente.
+
+- **Ícone só aparece em dois lugares:**
+  - ao lado do texto de um botão ou link: telefone, WhatsApp, "Como chegar", celular e as setas;
+  - nos controles da tela: menu, lupa, carrossel, a setinha de abrir lista e o × do filtro.
+- **Saíram:**
+  - os ladrilhos dos números, de missão, visão e valores, das 14 especialidades, do contato, da sede, de "Saiba mais", de "Fale com a AMI" e do autor da notícia;
+  - o ícone de vidro das faixas verdes do topo;
+  - o relógio de "Atualizado em", o "i" do aviso e o calendário da gestão.
+- **Nada entrou no lugar.** O espaço se fechou: algumas faixas do topo e alguns cartões ficaram mais baixos.
+- **A trava:** `testes/icones.test.ts` só aceita os nomes de ícone permitidos e falha se `LadrilhoIcone`, `ladrilho-icone` ou `duotone` voltarem. A regra completa está em [`docs/superpowers/specs/2026-10-05-sem-icones-decorativos-design.md`](superpowers/specs/2026-10-05-sem-icones-decorativos-design.md).
+- **Os desenhos aprovados** em `docs/desenho-aprovado/` ainda mostram os ícones. São o registro histórico; a spec acima manda sobre eles.
+
 ### Onde cada página está (04/10/2026, fim da reforma visual)
 
 Todas as páginas públicas estão no desenho novo, juntadas à `main` em 04/10/2026 (`ba2c5aa`) e

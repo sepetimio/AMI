@@ -537,8 +537,6 @@
        e os dois do hover (#22751F → #1A5E18; o segundo é o valor de
        `--color-ami-green-600`, escrito em código porque o teste de paleta
        lê os quatro do CSS e mede o branco sobre cada um);
-     - os dois cinzas do degradê do `.ladrilho-icone` (#F3F4F6 → #FAFAFB),
-       neutros, um pouco abaixo e um pouco acima de `--color-surface-fundo`;
      - a ponta clara do degradê da `.textura-verde` (#123F11), quase igual a
        `--color-ami-green-700` (#124211) mas não ele: é o valor do desenho.
 
@@ -694,36 +692,6 @@
 
   .link-de-volta:hover svg {
     transform: translateX(-3px);
-  }
-
-  /* Ladrilho cinza-claro com o ícone em verde. O ícone é um `svg` que herda
-     a cor do ladrilho. */
-  .ladrilho-icone {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
-    background: linear-gradient(150deg, #F3F4F6 0%, #FAFAFB 100%);
-    box-shadow: inset 0 0 0 1px rgba(16, 24, 40, 0.07);
-    color: var(--color-ami-green-600);
-  }
-
-  .ladrilho-icone svg {
-    width: 28px;
-    height: 28px;
-  }
-
-  .ladrilho-icone--pequeno {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-  }
-
-  .ladrilho-icone--pequeno svg {
-    width: 23px;
-    height: 23px;
   }
 
   /* Fundo verde com degradê, dois brilhos e grão: o bloco de busca e o

@@ -3,7 +3,6 @@ import { renderToString } from "react-dom/server";
 import { createElement } from "react";
 import { AMI, anosDeAmi } from "@/lib/ami";
 import { DURACAO_DO_CONTADOR, easeOutCubic, iniciarContagem, valorNoInstante } from "@/lib/contador";
-import { LadrilhoIcone } from "@/components/base/IconeServidor";
 import { NumerosDaAmi } from "@/components/home/NumerosDaAmi";
 import { EncontreUmMedico } from "@/components/home/EncontreUmMedico";
 import estilosNum from "@/components/home/NumerosDaAmi.module.css";
@@ -269,12 +268,11 @@ describe("os numeros", () => {
     ]);
   });
 
-  it("os icones selo, estetoscopio e batimento, nesta ordem", () => {
-    const posicoes = (["selo", "estetoscopio", "batimento"] as const).map((nome) =>
-      html.indexOf(renderToString(createElement(LadrilhoIcone, { nome }))),
-    );
-    for (const p of posicoes) expect(p).toBeGreaterThan(-1);
-    expect([...posicoes].sort((a, b) => a - b)).toEqual(posicoes);
+  it("nenhum ladrilho nem icone: cada coluna abre com o numero", () => {
+    expect(html).not.toContain("ladrilho-icone");
+    expect(html).not.toContain("<svg");
+    const abertura = new RegExp(`<div class="${estilosNum.numero}"><div class="${estilosNum.grande}">`, "g");
+    expect(html.match(abertura)).toHaveLength(3);
   });
 
   it("o ano de fundacao vem de lib/ami.ts, e nenhum bairro aparece", () => {
@@ -357,11 +355,11 @@ describe("os numeros com as empresas parceiras", () => {
     expect(botoes).toHaveLength(4);
   });
 
-  it("o icone do quarto e o aperto de mao, depois do batimento", () => {
-    const batimento = html.indexOf(renderToString(createElement(LadrilhoIcone, { nome: "batimento" })));
-    const parceria = html.indexOf(renderToString(createElement(LadrilhoIcone, { nome: "parceria" })));
-    expect(batimento).toBeGreaterThan(-1);
-    expect(parceria).toBeGreaterThan(batimento);
+  it("o quarto tambem sem ladrilho nem icone: abre com o numero", () => {
+    expect(html).not.toContain("ladrilho-icone");
+    expect(html).not.toContain("<svg");
+    const abertura = new RegExp(`<div class="${estilosNum.numero}"><div class="${estilosNum.grande}">`, "g");
+    expect(html.match(abertura)).toHaveLength(4);
   });
 
   it("no singular com uma", () => {
@@ -438,6 +436,14 @@ describe("o CSS dos numeros", () => {
        cartões ganhavam um fio em cima. */
     const cel = bloco(css, "@media (max-width: 700px)");
     expect(regra(cel, '.numeros[data-quantos="4"] .numero:nth-child(n + 3)')).toMatch(/border-top:\s*0/);
+  });
+
+  it("nenhuma regra de ladrilho nem de icone, e o numero abre a coluna sem espaco em cima", () => {
+    expect(css).not.toContain("ladrilho");
+    expect(css).not.toContain("svg");
+    expect(css).not.toContain(":hover");
+    expect(regra(base(css), ".grande")).toMatch(/margin: 0 0 8px;/);
+    expect(regra(bloco(css, "@media (max-width: 700px)"), ".grande")).toMatch(/margin: 0 0 4px;/);
   });
 
   it("quem decide entre tres e quatro e o atributo, nao a contagem de filhos", () => {

@@ -1,5 +1,5 @@
 import { Fotografia } from "@/components/base/Fotografia";
-import { Icone, LadrilhoIcone } from "@/components/base/IconeServidor";
+import { Icone } from "@/components/base/IconeServidor";
 import styles from "@/components/associacao/QuemSomos.module.css";
 import { CorpoDoTexto } from "@/components/editorial/CorpoDoTexto";
 import { PrincipiosDaAmi } from "@/components/home/PrincipiosDaAmi";
@@ -86,7 +86,6 @@ export function QuemSomos({
           ) : null}
 
           <div className={styles.sede}>
-            <LadrilhoIcone nome="comoChegar" pequeno />
             <div>
               <h3 className={styles.sedeTitulo}>Sede da AMI</h3>
               <address className={styles.endereco}>

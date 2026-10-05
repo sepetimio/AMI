@@ -1,13 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createElement } from "react";
-import { renderToString } from "react-dom/server";
-import { Bone } from "@phosphor-icons/react/dist/ssr";
 import type { PortableTextBlock } from "@portabletext/react";
 import estilosPagina from "@/app/(site)/encontre.module.css";
 import type { Medico } from "@/lib/dados/tipos";
 import type { TextoDeEspecialidade } from "@/lib/sanity/tipos";
 import { fonte, semComentarios } from "@/testes/apoio";
-import { htmlDe } from "@/testes/renderizar";
+import { htmlDe, topoSemAVolta } from "@/testes/renderizar";
 
 /*
   A página de uma especialidade de verdade, renderizada:
@@ -125,15 +122,15 @@ describe("a página de uma especialidade", () => {
     expect(html).not.toContain("BreadcrumbList");
   });
 
-  it("o parágrafo de abertura curto, gerado dos dados, e o ícone da especialidade", async () => {
+  it("o parágrafo de abertura curto, gerado dos dados, e nenhum ícone na faixa", async () => {
     const html = await pagina("true");
     expect(tela(html)).toContain(
       "A Associação Médica de Imperatriz reúne 2 ortopedistas em Imperatriz, no Maranhão. " +
         "Cada perfil traz o número de registro no Conselho Regional de Medicina.",
     );
-    expect(html).toContain(
-      renderToString(createElement(Bone, { size: 84, weight: "duotone", className: "", "aria-hidden": "true" })),
-    );
+    for (const chave of ["true", "false"]) {
+      expect(topoSemAVolta(await pagina(chave)), chave).not.toContain("<svg");
+    }
   });
 
   it("a contagem e a grade, com a especialidade da página no cartão de quem a tem como secundária", async () => {

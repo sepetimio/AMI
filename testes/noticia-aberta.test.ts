@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Icon } from "@phosphor-icons/react";
-import { ArrowRight, ArrowUpRight, Stethoscope } from "@phosphor-icons/react/dist/ssr";
+import { ArrowRight, ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import type { PortableTextBlock } from "@portabletext/react";
 import estilosPagina from "@/app/(site)/encontre.module.css";
 import PaginaNoticia, { generateMetadata, generateStaticParams, revalidate } from "@/app/(site)/noticias/[slug]/page";
@@ -14,14 +14,13 @@ import estilosLista from "@/components/editorial/Noticias.module.css";
 import { OutrasNoticias } from "@/components/editorial/OutrasNoticias";
 import estilosTexto from "@/components/editorial/PaginaDeTexto.module.css";
 import estilosHome from "@/components/editorial/UltimasNoticias.module.css";
-import estilosFaixa from "@/components/layout/FaixaCurta.module.css";
 import { tamanhoDosCartoes } from "@/lib/arranjo-das-noticias";
 import { SIZES_DA_CAPA, arranjoDasOutras, capaDaNoticia } from "@/lib/noticias";
 import type { Noticia, ResumoNoticia } from "@/lib/sanity/tipos";
 import { tituloDePagina } from "@/lib/seo/metadados";
 import { fonte } from "@/testes/apoio";
-import { base, bloco, regra, semNotas } from "@/testes/css";
-import { htmlDe } from "@/testes/renderizar";
+import { base, bloco, regra, regras, semNotas } from "@/testes/css";
+import { htmlDe, topoSemAVolta } from "@/testes/renderizar";
 
 /*
   A notícia aberta (/noticias/[slug]): a faixa com a assinatura, a capa, o
@@ -61,7 +60,7 @@ vi.mock("@/lib/sanity/consultas", () => ({
 
 const CONFIG = { projectId: "abcd1234", dataset: "production" };
 
-const desenho = (Componente: Icon, size: number, weight: "duotone" | "regular") =>
+const desenho = (Componente: Icon, size: number, weight: "regular") =>
   renderToString(createElement(Componente, { size, weight, className: "", "aria-hidden": "true" }));
 
 /** Sem o `<link rel="preload">` que o React 19 põe antes do HTML para a capa. */
@@ -150,11 +149,13 @@ afterEach(() => {
 describe("a faixa da notícia", () => {
   const html = () => renderToString(createElement(FaixaDaNoticia, { noticia: JORNADA }));
 
-  it("a faixa curta com a classe da notícia, sem o ladrilho à direita", () => {
+  it("a faixa curta com a classe da notícia, sem ícone fora do link de volta, nem na assinatura", () => {
     expect(html()).toMatch(
       new RegExp(`^<section data-bloco="topo" data-faixa="" data-abertura="" [^>]*class="textura-verde [^"]* ${estilos.materia}">`),
     );
-    expect(html()).not.toContain(estilosFaixa.selo);
+    expect(topoSemAVolta(html())).not.toContain("<svg");
+    const sem = renderToString(createElement(FaixaDaNoticia, { noticia: COMUNICADO }));
+    expect(topoSemAVolta(sem)).not.toContain("<svg");
   });
 
   it("← NOTÍCIAS, o título e o resumo", () => {
@@ -163,9 +164,9 @@ describe("a faixa da notícia", () => {
     expect(html()).toContain(`>${JORNADA.resumo}</p>`);
   });
 
-  it("embaixo do fio, a assinatura: o estetoscópio no vidro, Por e o link do perfil, MÉDICO · CRM e a data", () => {
+  it("embaixo do fio, a assinatura: Por e o link do perfil, MÉDICO · CRM e a data", () => {
     expect(html()).toContain(
-      `<div class="${estilos.assinatura}"><span class="${estilos.vidro}" aria-hidden="true">${desenho(Stethoscope, 20, "duotone")}</span>` +
+      `<div class="${estilos.assinatura}">` +
         `<div><p class="${estilos.nome}">Por <a href="/medico/rafael-coelho">Rafael Coelho</a></p>` +
         `<p class="${estilos.meta}">MÉDICO · CRM/MA 10137<span class="${estilos.ponto}"> · </span>` +
         `<time dateTime="2026-09-18T09:00:00-03:00">18 de setembro de 2026</time></p></div></div></div></section>`,
@@ -190,13 +191,23 @@ describe("a capa", () => {
 });
 
 describe("o fim da notícia", () => {
-  it("quem assina, com Ver perfil, e o aviso de saúde", () => {
+  it("quem assina, sem ladrilho, com Ver perfil, e o aviso de saúde", () => {
     expect(renderToString(createElement(AutorDaNoticia, { autor: AUTOR }))).toBe(
-      `<div class="${estilosTexto.autorFim}"><span class="ladrilho-icone ladrilho-icone--pequeno" aria-hidden="true">${desenho(Stethoscope, 23, "duotone")}</span>` +
+      `<div class="${estilosTexto.autorFim}">` +
         `<div><p class="${estilosTexto.autorNome}">Por Rafael Coelho</p><p class="${estilosTexto.autorCrm}">MÉDICO · CRM/MA 10137</p></div>` +
         `<div class="${estilosTexto.autorAcoes}"><a class="botao-contorno" href="/medico/rafael-coelho">Ver perfil ${desenho(ArrowRight, 20, "regular")}</a></div></div>` +
         `<p class="${estilosTexto.avisoSaude}">Conteúdo informativo publicado pela Associação Médica de Imperatriz. Não substitui a consulta médica.</p>`,
     );
+  });
+
+  it("o único ícone do fim da notícia é a seta de Ver perfil; sem perfil, nenhum", () => {
+    const com = renderToString(createElement(AutorDaNoticia, { autor: AUTOR }));
+    expect(com).not.toContain("ladrilho-icone");
+    expect(com.match(/<svg/g)).toHaveLength(1);
+    expect(com).toContain(`Ver perfil ${desenho(ArrowRight, 20, "regular")}</a>`);
+    const sem = renderToString(createElement(AutorDaNoticia, { autor: COMUNICADO.autor }));
+    expect(sem).not.toContain("ladrilho-icone");
+    expect(sem).not.toContain("<svg");
   });
 
   it("sem perfil, sem o botão, e o nome sem link", () => {
@@ -368,8 +379,16 @@ describe("o CSS da notícia aberta", () => {
   const css = semNotas(fonte("../components/editorial/NoticiaAberta.module.css"));
   const cel = () => bloco(css, "@media (max-width: 700px)");
 
-  it("uma coluna só, sem a do ladrilho, valendo sobre a regra da faixa da especialidade", () => {
-    expect(regra(base(css), ".materia[data-faixa][data-abertura]")).toMatch(/grid-template-columns: minmax\(0, 1fr\);/);
+  it("a coluna é a da faixa curta, e a assinatura não tem coluna de ícone", () => {
+    /* Nenhuma regra na própria faixa: a grade é a da FaixaCurta. */
+    expect(css).not.toMatch(/^\s*\.materia\[data-faixa\](?:\[[^\]]*\])*\s*\{/m);
+    for (const [onde, trecho] of [["computador", base(css)], ["celular", cel()]] as const) {
+      const todas = regras(trecho, ".assinatura");
+      expect(todas.length, onde).toBeGreaterThan(0);
+      for (const r of todas) expect(r, onde).not.toContain("grid-template-columns");
+    }
+    expect(css).not.toContain(".vidro");
+    expect(css).not.toContain("svg");
   });
 
   it("o título menor que o das outras faixas: de 34 a 50px, até 24 caracteres; 30px no celular", () => {
@@ -397,10 +416,10 @@ describe("o CSS do fim da notícia", () => {
   const css = semNotas(fonte("../components/editorial/PaginaDeTexto.module.css"));
   const cel = () => bloco(css, "@media (max-width: 700px)");
 
-  it("quem assina: embaixo de um fio, o ladrilho, o nome e o botão à direita", () => {
+  it("quem assina: embaixo de um fio, o nome na borda esquerda e o botão à direita", () => {
     const r = regra(base(css), ".coluna .autorFim");
     expect(r).toMatch(/border-top: 1px solid var\(--color-line\);/);
-    expect(r).toMatch(/grid-template-columns: 44px minmax\(0, 1fr\) auto;/);
+    expect(r).toMatch(/grid-template-columns: minmax\(0, 1fr\) auto;/);
     expect(r).toMatch(/margin-top: 56px;/);
   });
 
@@ -416,8 +435,14 @@ describe("o CSS do fim da notícia", () => {
     expect(r).toMatch(/color: var\(--color-ink-400\);/);
   });
 
-  it("no celular, Ver perfil na largura toda, embaixo", () => {
-    expect(regra(cel(), ".autorFim .autorAcoes")).toMatch(/grid-column: 1 \/ -1;/);
+  it("no celular, uma coluna só: o nome e, embaixo, Ver perfil na largura toda", () => {
+    expect(regra(cel(), ".coluna .autorFim")).toMatch(/grid-template-columns: minmax\(0, 1fr\);/);
     expect(regra(cel(), ".autorFim .autorAcoes > a")).toMatch(/width: 100%;/);
+  });
+
+  it("sem ladrilho: nenhuma regra dele, e nenhuma coluna para ele", () => {
+    expect(css).not.toContain("ladrilho");
+    expect(regra(base(css), ".coluna .autorFim")).not.toMatch(/grid-template-columns: \d+px/);
+    expect(regra(cel(), ".coluna .autorFim")).not.toMatch(/grid-template-columns: \d+px/);
   });
 });

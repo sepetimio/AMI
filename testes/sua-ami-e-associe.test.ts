@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToString } from "react-dom/server";
 import { createElement } from "react";
-import { LadrilhoIcone } from "@/components/base/IconeServidor";
 import { SuaAmi } from "@/components/home/SuaAmi";
 import { SejaAssociado } from "@/components/home/SejaAssociado";
 import estilosSua from "@/components/home/SuaAmi.module.css";
@@ -207,15 +206,17 @@ describe("Seja associado", () => {
     expect(demo.match(/aria-hidden="true">0\d</g)?.length).toBe(3);
   });
 
-  it("cada cartao com o seu icone, no ladrilho pequeno", () => {
-    const icones = (["bandeira", "olho", "maoCoracao"] as const).map((nome) =>
-      demo.indexOf(renderToString(createElement(LadrilhoIcone, { nome, pequeno: true }))),
+  it("nenhum cartao tem ladrilho nem icone: o ordinal escondido e logo o titulo", () => {
+    const blocos = [...demo.matchAll(new RegExp(`<div class="${estilosAssocie.cartao}"[^>]*>[\\s\\S]*?</div>`, "g"))].map(
+      (m) => m[0],
     );
-    const titulos = ["Missão", "Visão", "Valores"].map((t) => demo.indexOf(`>${t}</h4>`));
-    for (let i = 0; i < 3; i++) {
-      expect(icones[i], `ícone do cartão ${i + 1}`).toBeGreaterThan(-1);
-      expect(icones[i]).toBeLessThan(titulos[i]);
-      if (i > 0) expect(icones[i]).toBeGreaterThan(titulos[i - 1]);
+    expect(blocos).toHaveLength(3);
+    for (const [i, c] of blocos.entries()) {
+      expect(c, `cartão ${i + 1}`).not.toContain("ladrilho-icone");
+      expect(c, `cartão ${i + 1}`).not.toContain("<svg");
+      expect(c, `cartão ${i + 1}`).toMatch(
+        new RegExp(`</span><h4 class="${estilosAssocie.cartaoTitulo}">`),
+      );
     }
   });
 
@@ -347,7 +348,25 @@ describe("o CSS de Seja associado", () => {
     expect(regra(base(CSS_ASSOCIE), ".quem.soIntro")).toMatch(/grid-template-columns: 1fr;/);
     const cel = media(CSS_ASSOCIE, "@media (max-width: 700px)");
     expect(regra(cel, ".quem")).toMatch(/grid-template-columns: 1fr;/);
-    expect(regra(cel, ".cartao")).toMatch(/grid-template-columns: 44px 1fr/);
+    expect(regra(cel, ".cartao")).toMatch(/padding: 16px 18px;/);
+  });
+
+  it("no computador, a introducao ocupa duas linhas e os cartoes so a primeira: ficam da altura do mais alto, sem sobra no pe", () => {
+    const larga = media(CSS_ASSOCIE, "@media (min-width: 981px)");
+    expect(regra(larga, ".quem")).toMatch(/grid-template-rows: auto 1fr;/);
+    expect(regra(larga, ".quem")).toMatch(/row-gap: 0;/);
+    expect(regra(larga, ".quem > .intro")).toMatch(/grid-row: span 2;/);
+    /* Do tablet para baixo a introducao vira uma linha inteira: a regra nao
+       pode valer la. */
+    expect(media(CSS_ASSOCIE, "@media (max-width: 980px)")).not.toContain("grid-row");
+  });
+
+  it("sem coluna nem regra de ladrilho: o titulo abre o cartao, sem espaco em cima", () => {
+    expect(CSS_ASSOCIE).not.toContain("ladrilho");
+    const cel = media(CSS_ASSOCIE, "@media (max-width: 700px)");
+    expect(regra(cel, ".cartao")).not.toMatch(/grid/);
+    expect(cel).not.toMatch(/grid-column: 2/);
+    expect(regra(base(CSS_ASSOCIE), ".cartaoTitulo")).toMatch(/margin: 0 0 6px;/);
   });
 
   it("os cartoes ficam sobre fundo neutro: nenhum hex, só tokens neutros", () => {

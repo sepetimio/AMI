@@ -1,5 +1,5 @@
 import { FaixaCurta } from "@/components/layout/FaixaCurta";
-import { iconeDaEspecialidade, nomeComQuebras } from "@/lib/especialidades";
+import { nomeComQuebras } from "@/lib/especialidades";
 
 /*
   A faixa verde de ponta a ponta que abre a página de cada especialidade: a
@@ -12,18 +12,15 @@ import { iconeDaEspecialidade, nomeComQuebras } from "@/lib/especialidades";
     opcional dos nomes longos (`nomeComQuebras`), como o cartão do índice:
     sem ele, a 320px, "Otorrinolaringologia" quebra deixando uma letra só
     na linha de baixo.
-  - À direita, o ícone da especialidade, que some no celular.
 
   O "Encontrar médico" da barra do pé, que aparece quando esta faixa sai da
   tela, leva a `/busca`.
 */
 export function FaixaDaEspecialidade({
   nome,
-  slug,
   paragrafo,
 }: {
   nome: string;
-  slug: string;
   paragrafo: string;
 }) {
   return (
@@ -31,7 +28,6 @@ export function FaixaDaEspecialidade({
       volta={{ href: "/medicos", rotulo: "Especialidades" }}
       titulo={`${nomeComQuebras(nome)} em Imperatriz`}
       texto={paragrafo}
-      icone={iconeDaEspecialidade(slug)}
     />
   );
 }

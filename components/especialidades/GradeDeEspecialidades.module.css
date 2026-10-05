@@ -4,16 +4,14 @@
   `.esp`, `.esp:hover`, `.esp-nome`, `.esp-nome a::after`,
   `.esp-nome a:focus-visible`, `.esp:has(.esp-nome a:focus-visible)`,
   `.esp-pe`, `.esp-conta`, `.esp-seta`, `.esp:hover .esp-seta`,
-  `.ordem-curta`, `.esp .icone`, e os @media de 1180, 980 e 700px).
+  `.ordem-curta`, e os @media de 1180, 980 e 700px).
 
-  Vêm de outros arquivos:
-  - a contagem e a frase da ordem: da busca
-    (components/busca/ResultadosDaBusca.module.css: `.cab`, `.contagem`,
-    `.ordem`);
-  - o ladrilho do ícone: o global `.ladrilho-icone` (app/globals.css), que
-    o celular encolhe.
+  A contagem e a frase da ordem vêm da busca
+  (components/busca/ResultadosDaBusca.module.css: `.cab`, `.contagem`,
+  `.ordem`).
 
-  Todos os cartões têm a altura do mais alto (`grid-auto-rows: 1fr`), e a
+  O cartão não tem ícone: o nome abre o cartão, sem espaço em cima. Todos
+  os cartões têm a altura do mais alto (`grid-auto-rows: 1fr`), e a
   contagem e a seta ficam presas ao pé (`margin-top: auto`). Assim o nome
   começa na mesma altura e a contagem cai na mesma linha em toda a fileira.
 
@@ -60,7 +58,6 @@
 }
 
 .nome {
-  margin-top: 28px;
   font-size: 22px;
   line-height: 1.15;
   letter-spacing: -0.025em;
@@ -168,19 +165,7 @@
     transform: none;
   }
 
-  .cartao :global(.ladrilho-icone) {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-  }
-
-  .cartao :global(.ladrilho-icone) svg {
-    width: 22px;
-    height: 22px;
-  }
-
   .nome {
-    margin-top: 16px;
     font-size: 17px;
     line-height: 1.2;
   }

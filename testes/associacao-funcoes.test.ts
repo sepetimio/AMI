@@ -23,27 +23,24 @@ const ESTATUTO = "/associacao/estatuto";
 const EDITORIAL = "/associacao/politica-editorial";
 
 describe("os atalhos de Saiba mais", () => {
-  it("na demonstração, os três, na ordem; o que não existe vai como texto a entrar", () => {
+  it("na demonstração, os três, na ordem, sem ícone; o que não existe vai como texto a entrar", () => {
     expect(atalhosDoSaibaMais(true, [SEJA])).toEqual([
       {
         titulo: "Seja associado",
         frase: "Quem pode se associar à AMI e como fazer isso.",
         caminho: SEJA,
-        icone: "parceria",
         aEntrar: false,
       },
       {
         titulo: "Estatuto",
         frase: "As regras que organizam a associação.",
         caminho: ESTATUTO,
-        icone: "pergaminho",
         aEntrar: true,
       },
       {
         titulo: "Política editorial",
         frase: "Como o site escolhe, apura e revisa o que publica.",
         caminho: EDITORIAL,
-        icone: "artigo",
         aEntrar: true,
       },
     ]);
@@ -113,11 +110,11 @@ describe("a diretoria em destaque", () => {
 });
 
 describe("os números da faixa verde", () => {
-  it("anos, médicos e especialidades, com o ícone e o rótulo da home", () => {
+  it("anos, médicos e especialidades, com o rótulo da home", () => {
     expect(numerosDaAssociacao({ anos: 51, medicos: 24, especialidades: 14 })).toEqual([
-      { icone: "selo", valor: 51, rotulo: "anos de AMI" },
-      { icone: "estetoscopio", valor: 24, rotulo: "médicos no diretório" },
-      { icone: "batimento", valor: 14, rotulo: "especialidades" },
+      { valor: 51, rotulo: "anos de AMI" },
+      { valor: 24, rotulo: "médicos no diretório" },
+      { valor: 14, rotulo: "especialidades" },
     ]);
   });
 

@@ -1,4 +1,3 @@
-import type { NomeIcone } from "@/components/base/IconeServidor";
 import type { EspecialidadeComContagem } from "@/lib/dados/tipos";
 import type { TextoDeEspecialidade } from "@/lib/sanity/tipos";
 
@@ -6,7 +5,6 @@ import type { TextoDeEspecialidade } from "@/lib/sanity/tipos";
   O que o índice de especialidades (/medicos) e a página de cada
   especialidade decidem, em funções puras. Ficam fora dos componentes para
   serem testadas sem navegador (testes/especialidades.test.ts):
-  - o ícone;
   - a ordem;
   - os pontos de quebra do nome;
   - as frases geradas dos dados;
@@ -15,36 +13,6 @@ import type { TextoDeEspecialidade } from "@/lib/sanity/tipos";
 
   Não confundir com lib/dados/especialidades.ts, que lê o banco.
 */
-
-/** O ícone de especialidade sem ícone próprio, inclusive de uma nova que a AMI cadastrar. */
-export const ICONE_PADRAO: NomeIcone = "estetoscopio";
-
-/*
-  O ícone de cada especialidade, pelo slug, como a spec escolheu (Phosphor,
-  duotone). Clínica Médica usa o estetoscópio, que também é o padrão.
-  É um `Map`, e não um objeto: num objeto, "constructor" e "toString"
-  existiriam como chave e devolveriam uma função no lugar do ícone.
-*/
-const ICONES = new Map<string, NomeIcone>([
-  ["cardiologia", "batimento"],
-  ["clinica-medica", "estetoscopio"],
-  ["dermatologia", "palma"],
-  ["endocrinologia", "meiaGota"],
-  ["gastroenterologia", "garfoEFaca"],
-  ["ginecologia-e-obstetricia", "feminino"],
-  ["neurologia", "cerebro"],
-  ["oftalmologia", "olho"],
-  ["ortopedia-e-traumatologia", "osso"],
-  ["otorrinolaringologia", "orelha"],
-  ["pediatria", "bebe"],
-  ["psiquiatria", "conversa"],
-  ["reumatologia", "mao"],
-  ["urologia", "gota"],
-]);
-
-export function iconeDaEspecialidade(slug: string): NomeIcone {
-  return ICONES.get(slug) ?? ICONE_PADRAO;
-}
 
 /**
  * As especialidades que têm médico, em ordem alfabética do português: o

@@ -1,4 +1,3 @@
-import type { NomeIcone } from "@/components/base/IconeServidor";
 import { AMI, hrefTelefone } from "@/lib/ami";
 
 /*
@@ -14,7 +13,6 @@ import { AMI, hrefTelefone } from "@/lib/ami";
 
 export type Canal = {
   chave: "fixo" | "celular" | "instagram";
-  icone: NomeIcone;
   /** O rótulo pequeno, em caixa alta pelo CSS. */
   rotulo: string;
   /** O número, ou o perfil do Instagram. */
@@ -41,7 +39,6 @@ export function canaisDeContato(): Canal[] {
   return [
     {
       chave: "fixo",
-      icone: "telefone",
       rotulo: "Telefone da sede",
       dado: fixo,
       longo: false,
@@ -50,7 +47,6 @@ export function canaisDeContato(): Canal[] {
     },
     {
       chave: "celular",
-      icone: "celular",
       rotulo: "Celular",
       dado: celular,
       longo: false,
@@ -64,7 +60,6 @@ export function canaisDeContato(): Canal[] {
     },
     {
       chave: "instagram",
-      icone: "instagram",
       rotulo: "Instagram",
       dado: perfilDoInstagram(AMI.redes.instagram),
       longo: true,

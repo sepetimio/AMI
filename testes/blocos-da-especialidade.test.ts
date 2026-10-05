@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { Icon } from "@phosphor-icons/react";
-import { ArrowLeft, Bone, Stethoscope } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import type { PortableTextBlock } from "@portabletext/react";
 import estilosBusca from "@/components/busca/FaixaDaBusca.module.css";
 import estilosResultados from "@/components/busca/ResultadosDaBusca.module.css";
@@ -16,6 +16,7 @@ import type { Medico } from "@/lib/dados/tipos";
 import type { TextoDeEspecialidade } from "@/lib/sanity/tipos";
 import { fonte } from "@/testes/apoio";
 import { base, bloco, regra, semNotas } from "@/testes/css";
+import { topoSemAVolta } from "@/testes/renderizar";
 
 /*
   Os três blocos da página de cada especialidade, no HTML de servidor: a
@@ -39,7 +40,6 @@ describe("a faixa da especialidade", () => {
   const html = renderToString(
     createElement(FaixaDaEspecialidade, {
       nome: "Ortopedia e Traumatologia",
-      slug: "ortopedia-e-traumatologia",
       paragrafo: "Parágrafo de abertura.",
     }),
   );
@@ -76,19 +76,15 @@ describe("a faixa da especialidade", () => {
 
   it("o nome longo no título leva o hífen opcional, como no cartão do índice", () => {
     const otorrino = renderToString(
-      createElement(FaixaDaEspecialidade, { nome: "Otorrinolaringologia", slug: "otorrinolaringologia", paragrafo: "x" }),
+      createElement(FaixaDaEspecialidade, { nome: "Otorrinolaringologia", paragrafo: "x" }),
     );
     expect(otorrino).toContain(
       `<h1 id="pagina-titulo" class="${estilosBusca.titulo}">Otorrino­laringologia em Imperatriz</h1>`,
     );
   });
 
-  it("à direita, o ícone da especialidade no ladrilho de vidro, fora do leitor de tela", () => {
-    expect(html).toContain(`<div class="${estilosFaixa.selo}" aria-hidden="true">${desenho(Bone, 84, "duotone")}</div>`);
-    const nova = renderToString(
-      createElement(FaixaDaEspecialidade, { nome: "Angiologia", slug: "angiologia", paragrafo: "x" }),
-    );
-    expect(nova).toContain(desenho(Stethoscope, 84, "duotone"));
+  it("nenhum ícone fora do link de volta", () => {
+    expect(topoSemAVolta(html)).not.toContain("<svg");
   });
 });
 
@@ -261,13 +257,11 @@ describe("o Sobre a especialidade", () => {
 describe("o CSS da faixa da especialidade", () => {
   const css = semNotas(fonte("../components/layout/FaixaCurta.module.css"));
 
-  it("texto à esquerda e o ícone à direita até o celular, valendo sobre a regra da busca", () => {
+  it("uma coluna só, em toda largura, valendo sobre a regra da busca", () => {
     /* `.especialidade[data-faixa]` pesa mais que `.faixa`
-       (FaixaDaBusca.module.css), que abaixo de 1180px vira uma coluna só. */
-    expect(regra(base(css), ".especialidade[data-faixa]")).toMatch(/grid-template-columns: minmax\(0, 1fr\) auto;/);
-    expect(regra(bloco(css, "@media (max-width: 700px)"), ".especialidade[data-faixa]")).toMatch(
-      /grid-template-columns: 1fr;/,
-    );
+       (FaixaDaBusca.module.css), que acima de 1180px tem duas colunas. */
+    expect(regra(base(css), ".especialidade[data-faixa]")).toMatch(/grid-template-columns: minmax\(0, 1fr\);/);
+    expect(css.match(/grid-template-columns/g)).toHaveLength(1);
   });
 
   it("título até 14ch e parágrafo até 34em", () => {
@@ -275,22 +269,23 @@ describe("o CSS da faixa da especialidade", () => {
     expect(regra(base(css), ".especialidade h1 + p")).toMatch(/max-width: 34em;/);
   });
 
+  it("no tablet, o parágrafo não passa da faixa menos 156px; no celular, volta aos 34em", () => {
+    expect(regra(bloco(css, "@media (max-width: 980px)"), ".especialidade h1 + p")).toMatch(
+      /max-width: min\(34em, 100% - 156px\);/,
+    );
+    expect(regra(bloco(css, "@media (max-width: 700px)"), ".especialidade h1 + p")).toMatch(/max-width: 34em;/);
+  });
+
+  it("nenhuma regra de ladrilho nem de ícone", () => {
+    expect(css).not.toContain(".selo");
+    expect(css).not.toContain("svg");
+  });
+
   it("o parágrafo quebra como o `p` do desenho, sem palavra sozinha na última linha", () => {
     /* Pelo `.texto` da busca, que o parágrafo usa; não se repete aqui. */
     const busca = semNotas(fonte("../components/busca/FaixaDaBusca.module.css"));
     expect(regra(base(busca), ".texto")).toMatch(/text-wrap: pretty;/);
     expect(css).not.toContain("text-wrap");
-  });
-
-  it("o ladrilho de vidro: 168px, 128px no tablet, fora no celular", () => {
-    const selo = regra(base(css), ".selo");
-    expect(selo).toMatch(/width: 168px;/);
-    expect(selo).toMatch(/border-radius: 40px;/);
-    expect(selo).toMatch(/color: var\(--color-ami-lima-400\);/);
-    expect(regra(base(css), ".selo svg")).toMatch(/width: 84px;/);
-    expect(regra(bloco(css, "@media (max-width: 980px)"), ".selo")).toMatch(/width: 128px;/);
-    expect(regra(bloco(css, "@media (max-width: 980px)"), ".selo svg")).toMatch(/width: 64px;/);
-    expect(regra(bloco(css, "@media (max-width: 700px)"), ".selo")).toMatch(/display: none;/);
   });
 
   it("a seta do link de volta anda para a esquerda no mouse, pela classe global que o perfil também usa", () => {

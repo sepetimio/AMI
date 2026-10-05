@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Icon } from "@phosphor-icons/react";
-import { ArrowRight, CalendarBlank, UsersThree } from "@phosphor-icons/react/dist/ssr";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import estilosPagina from "@/app/(site)/encontre.module.css";
 import { FaixaDaDiretoria } from "@/components/associacao/FaixaDaDiretoria";
 import estilosFaixa from "@/components/associacao/FaixaDaDiretoria.module.css";
@@ -15,7 +15,7 @@ import estilosGrade from "@/components/diretorio/GradeMedicos.module.css";
 import type { Diretor } from "@/lib/dados/diretoria";
 import { fonte } from "@/testes/apoio";
 import { base, bloco, regra, semNotas } from "@/testes/css";
-import { htmlDe } from "@/testes/renderizar";
+import { htmlDe, topoSemAVolta } from "@/testes/renderizar";
 
 /*
   A diretoria: o cartão de diretor, a grade, a faixa com a pílula do
@@ -132,18 +132,18 @@ describe("a faixa da diretoria", () => {
   const demo = renderToString(createElement(FaixaDaDiretoria, { demonstracao: true }));
   const real = renderToString(createElement(FaixaDaDiretoria, { demonstracao: false }));
 
-  it("a faixa curta: volta à associação, o título, a frase e as pessoas no ladrilho", () => {
+  it("a faixa curta: volta à associação, o título e a frase, sem ícone fora do link de volta", () => {
     for (const html of [demo, real]) {
       expect(/<a [^>]*href="\/associacao"/.test(html)).toBe(true);
       expect(html).toContain(">Diretoria da AMI</h1>");
       expect(html).toContain(">Quem responde pela associação. Cada nome traz o número de inscrição no CRM.</p>");
-      expect(html).toContain(desenho(UsersThree, 84, "duotone"));
+      expect(topoSemAVolta(html)).not.toContain("<svg");
     }
   });
 
-  it("na demonstração, a pílula do mandato, como moldura, logo depois da frase", () => {
+  it("na demonstração, a pílula do mandato, como moldura, logo depois da frase, só com o texto", () => {
     expect(demo).toContain(
-      `<p class="${estilosFaixa.pilula}" data-a-entrar="mandato">${desenho(CalendarBlank, 20, "regular")} Gestão <em>(período a entrar)</em></p></div>`,
+      `<p class="${estilosFaixa.pilula}" data-a-entrar="mandato">Gestão <em>(período a entrar)</em></p></div>`,
     );
   });
 
@@ -261,5 +261,9 @@ describe("o CSS da pílula do mandato", () => {
     expect(r).toMatch(/border: 1px dashed rgba\(168, 212, 112, 0\.5\);/);
     expect(r).toMatch(/color: #DDE7D6;/);
     expect(regra(base(css), ".pilula em")).toMatch(/color: #B9C6B2;/);
+  });
+
+  it("nenhuma regra para ícone dentro da pílula", () => {
+    expect(css).not.toContain("svg");
   });
 });

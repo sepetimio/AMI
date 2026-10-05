@@ -1,11 +1,11 @@
-import { Icone, LadrilhoIcone } from "@/components/base/IconeServidor";
+import { Icone } from "@/components/base/IconeServidor";
 import styles from "@/components/contato/Contato.module.css";
 import type { Canal } from "@/lib/paginaDeContato";
 
 /*
-  Os canais de contato, em três cartões brancos: o ladrilho, o rótulo, o
-  dado em letra grande, uma linha de apoio e o botão no pé, alinhado entre
-  os três (Contato.module.css). Quem diz quais são os canais é
+  Os canais de contato, em três cartões brancos: o rótulo, o dado em letra
+  grande, uma linha de apoio e o botão no pé, alinhado entre os três
+  (Contato.module.css). Quem diz quais são os canais é
   `canaisDeContato` (lib/paginaDeContato.ts).
 
   "Ligar" é o botão verde, com o telefone; "Abrir o Instagram", o de
@@ -28,7 +28,6 @@ export function CanaisDeContato({ canais }: { canais: Canal[] }) {
       <ul className={styles.canais} role="list">
         {canais.map((c) => (
           <li key={c.chave} className={styles.canal} data-canal="">
-            <LadrilhoIcone nome={c.icone} />
             <p className={styles.rotulo} data-rotulo="">
               {c.rotulo}
             </p>

@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Icon } from "@phosphor-icons/react";
-import { ArrowLeft, Newspaper } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import type { PortableTextBlock } from "@portabletext/react";
 import estilosBusca from "@/components/busca/FaixaDaBusca.module.css";
 import { CorpoDoTexto } from "@/components/editorial/CorpoDoTexto";
@@ -13,13 +13,13 @@ import { FaixaCurta } from "@/components/layout/FaixaCurta";
 import { LARGURAS_DA_IMAGEM_DO_TEXTO, SIZES_DA_IMAGEM_DO_TEXTO, VOLTA_NOTICIAS } from "@/lib/noticias";
 import { fonte } from "@/testes/apoio";
 import { base, bloco, regra, semNotas } from "@/testes/css";
+import { topoSemAVolta } from "@/testes/renderizar";
 
 /*
   As peças do plano de A Associação, alargadas para as notícias e o
   contato, no HTML de servidor:
   - a faixa curta com um rótulo no lugar do link de volta (a lista de
-    notícias, o contato), e sem o ícone, com uma classe a mais (a notícia
-    aberta);
+    notícias, o contato), e com uma classe a mais (a notícia aberta);
   - o corpo em faixa branca, que saiu de PaginaDeTexto para a notícia
     aberta usar também;
   - o texto rico com a citação, a lista numerada e a imagem com legenda.
@@ -72,7 +72,6 @@ describe("a faixa curta com rótulo", () => {
       rotulo: "Notícias",
       titulo: "Notícias da AMI",
       texto: "Comunicados, eventos e notas da associação.",
-      icone: "jornal",
     }),
   );
 
@@ -94,14 +93,13 @@ describe("a faixa curta com rótulo", () => {
     expect(html).not.toContain("link-de-volta");
   });
 
-  it("à direita, o ícone da página no ladrilho de vidro", () => {
-    expect(html).toContain(
-      `<div class="${estilosFaixa.selo}" aria-hidden="true">${desenho(Newspaper, 84, "duotone")}</div></section>`,
-    );
+  it("nenhum ícone: a faixa termina na coluna do texto", () => {
+    expect(topoSemAVolta(html)).not.toContain("<svg");
+    expect(html).toMatch(/<\/p><\/div><\/section>$/);
   });
 });
 
-describe("a faixa curta sem ícone, com uma classe a mais", () => {
+describe("a faixa curta com uma classe a mais", () => {
   const html = renderToString(
     createElement(
       FaixaCurta,
@@ -126,8 +124,8 @@ describe("a faixa curta sem ícone, com uma classe a mais", () => {
     expect(tela(link)).toBe("Notícias");
   });
 
-  it("sem o ladrilho: a faixa termina no que vem junto, logo depois do texto", () => {
-    expect(html).not.toContain(estilosFaixa.selo);
+  it("sem ícone: a faixa termina no que vem junto, logo depois do texto", () => {
+    expect(topoSemAVolta(html)).not.toContain("<svg");
     expect(html).toMatch(
       new RegExp(
         `<p class="${estilosBusca.texto}">Resumo\\.</p><div class="assinatura">Por Rafael Coelho</div></div></section>$`,
@@ -154,14 +152,21 @@ describe("o corpo em faixa branca", () => {
     expect(html).not.toContain("Atualizado em");
   });
 
-  it("com ela, a data por extenso no alto da coluna", () => {
+  it("com ela, a data por extenso no alto da coluna, sem relógio", () => {
     const html = renderToString(
       createElement(FaixaDoTexto, { rotulo: "x", atualizadoEm: "2026-09-20T13:00:00Z", corpo: CORPO }),
     );
-    expect(html).toMatch(
-      new RegExp(
-        `<article class="${estilos.coluna}" data-coluna=""><p class="${estilos.atualizado}"><svg[^]*?</svg>Atualizado em <time dateTime="2026-09-20T13:00:00Z">20 de setembro de 2026</time></p>`,
-      ),
+    expect(html).toContain(
+      `<article class="${estilos.coluna}" data-coluna=""><p class="${estilos.atualizado}">Atualizado em <time dateTime="2026-09-20T13:00:00Z">20 de setembro de 2026</time></p>`,
+    );
+  });
+
+  it("com aviso, o quadro só com o título e o texto, sem ícone", () => {
+    const html = renderToString(
+      createElement(FaixaDoTexto, { rotulo: "x", aviso: { titulo: "Aviso", texto: "Texto do aviso." }, corpo: CORPO }),
+    );
+    expect(html).toContain(
+      `<div class="${estilos.quadro}" role="note"><p class="${estilos.quadroTitulo}">Aviso</p><p>Texto do aviso.</p></div>`,
     );
   });
 

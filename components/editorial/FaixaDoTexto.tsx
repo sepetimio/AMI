@@ -1,6 +1,5 @@
 import type { PortableTextBlock } from "@portabletext/react";
 import type { ReactNode } from "react";
-import { Icone } from "@/components/base/IconeServidor";
 import { CorpoDoTexto } from "@/components/editorial/CorpoDoTexto";
 import { IndiceNestaPagina, IndiceRecolhido } from "@/components/editorial/IndiceNestaPagina";
 import styles from "@/components/editorial/PaginaDeTexto.module.css";
@@ -14,7 +13,7 @@ import type { AvisoDoRascunho } from "@/lib/rascunhosLegais";
   e o da notícia aberta: uma faixa branca de ponta a ponta, sem canto nem
   sombra, com a coluna de leitura de 680px (o CSS é
   PaginaDeTexto.module.css). Na coluna, de cima para baixo:
-  - "Atualizado em", com o relógio, quando há data;
+  - "Atualizado em", quando há data;
   - o índice recolhido, no celular;
   - o quadro de aviso, quando há (só o rascunho das páginas de texto tem);
   - o texto (components/editorial/CorpoDoTexto.tsx);
@@ -52,7 +51,6 @@ export function FaixaDoTexto({
         <article className={styles.coluna} data-coluna="">
           {data ? (
             <p className={styles.atualizado}>
-              <Icone nome="relogio" />
               Atualizado em <time dateTime={atualizadoEm}>{data}</time>
             </p>
           ) : null}
@@ -61,11 +59,8 @@ export function FaixaDoTexto({
 
           {aviso ? (
             <div className={styles.quadro} role="note">
-              <Icone nome="informacao" duotone />
-              <div>
-                <p className={styles.quadroTitulo}>{aviso.titulo}</p>
-                <p>{aviso.texto}</p>
-              </div>
+              <p className={styles.quadroTitulo}>{aviso.titulo}</p>
+              <p>{aviso.texto}</p>
             </div>
           ) : null}
 

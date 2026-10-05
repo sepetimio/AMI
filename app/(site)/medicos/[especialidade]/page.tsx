@@ -60,8 +60,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 /*
   A página de uma especialidade:
-  - a faixa verde com o link de volta ao índice, o título, o parágrafo de
-    abertura e o ícone;
+  - a faixa verde com o link de volta ao índice, o título e o parágrafo de
+    abertura;
   - a contagem e a grade de cartões da busca, cada um com a especialidade
     da página;
   - "Sobre a {especialidade}", com o texto da AMI no Sanity.
@@ -100,7 +100,6 @@ export default async function PaginaEspecialidade({ params }: Props) {
       <div className={paginas.pagina}>
         <FaixaDaEspecialidade
           nome={esp.nome}
-          slug={esp.slug}
           paragrafo={paragrafoDeAbertura(esp.nome, medicos.length)}
         />
         <MedicosDaEspecialidade medicos={medicos} especialidade={esp.slug} />

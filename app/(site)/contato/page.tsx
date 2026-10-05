@@ -22,8 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 /*
   O contato (item "Contato" do menu), como no desenho aprovado
   (docs/desenho-aprovado/noticias-contato/contato.html):
-  - a faixa verde curta, com "CONTATO", "Fale com a AMI", a frase e a
-    conversa no ladrilho;
+  - a faixa verde curta, com "CONTATO", "Fale com a AMI" e a frase;
   - os três canais: o telefone da sede, o celular e o Instagram;
   - a sede, numa faixa branca, com o endereço, o CNPJ, "Como chegar", a
     foto da sede e o horário (os dois como moldura, só na demonstração), e
@@ -50,7 +49,6 @@ export default function PaginaContato() {
         rotulo="Contato"
         titulo="Fale com a AMI"
         texto={`Pelo telefone, pelo Instagram ou na sede, no ${e.bairro} de ${e.cidade}.`}
-        icone="conversa"
       />
       <CanaisDeContato canais={canaisDeContato()} />
       <SedeDaAmi demonstracao={DADOS_DEMONSTRACAO} />

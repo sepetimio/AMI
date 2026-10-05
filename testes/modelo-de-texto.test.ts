@@ -1,8 +1,6 @@
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { Icon } from "@phosphor-icons/react";
-import { Cookie, FileText, Handshake, Scroll, ShieldCheck } from "@phosphor-icons/react/dist/ssr";
 import type { PortableTextBlock } from "@portabletext/react";
 import estilosPagina from "@/app/(site)/encontre.module.css";
 import { PaginaDeTexto } from "@/components/editorial/PaginaDeTexto";
@@ -11,7 +9,7 @@ import { VOLTA_ASSOCIACAO, type ConteudoDaPagina } from "@/lib/paginaDeTexto";
 import type { PaginaInstitucional } from "@/lib/sanity/tipos";
 import { fonte } from "@/testes/apoio";
 import { base, bloco, regra, semNotas } from "@/testes/css";
-import { htmlDe } from "@/testes/renderizar";
+import { htmlDe, topoSemAVolta } from "@/testes/renderizar";
 
 /*
   O modelo de página de texto, de duas formas:
@@ -43,9 +41,6 @@ afterEach(() => {
   vi.unstubAllEnvs();
   dados.paginas = {};
 });
-
-const desenho = (Componente: Icon) =>
-  renderToString(createElement(Componente, { size: 84, weight: "duotone", className: "", "aria-hidden": "true" }));
 
 function b(chave: string, estilo: string, texto: string, extra: Record<string, unknown> = {}): PortableTextBlock {
   return {
@@ -87,7 +82,7 @@ const componente = (conteudo: ConteudoDaPagina, filho?: string) =>
   renderToString(
     createElement(
       PaginaDeTexto,
-      { conteudo, volta: VOLTA_ASSOCIACAO, icone: "pergaminho" },
+      { conteudo, volta: VOLTA_ASSOCIACAO },
       filho ? createElement("p", { className: "fim" }, filho) : undefined,
     ),
   );
@@ -99,18 +94,15 @@ describe("o modelo, renderizado", () => {
     expect(html).toMatch(new RegExp(`^<div class="${estilosPagina.pagina}"><section data-bloco="topo"`));
     expect(html).toContain('<h1 id="pagina-titulo"');
     expect(html).toContain(">Estatuto</h1>");
-    expect(html).toContain(desenho(Scroll));
+    expect(topoSemAVolta(html)).not.toContain("<svg");
     expect(html).toContain(
       `<section data-bloco="texto" data-faixa="" aria-label="Texto da página" class="${estilos.faixa}"><div class="${estilos.grade}"><article class="${estilos.coluna}" data-coluna="">`,
     );
   });
 
-  it("a data por extenso, com o relógio, no alto da coluna", () => {
-    expect(html).toMatch(
-      new RegExp(
-        `<article class="${estilos.coluna}" data-coluna=""><p class="${estilos.atualizado}"><svg[^]*?</svg>Atualizado em <time dateTime="2026-09-10T12:00:00Z">10 de setembro de 2026</time></p>`,
-        "i",
-      ),
+  it("a data por extenso, sem relógio, no alto da coluna", () => {
+    expect(html).toContain(
+      `<article class="${estilos.coluna}" data-coluna=""><p class="${estilos.atualizado}">Atualizado em <time dateTime="2026-09-10T12:00:00Z">10 de setembro de 2026</time></p>`,
     );
   });
 
@@ -177,12 +169,10 @@ describe("o modelo, renderizado", () => {
     );
   });
 
-  it("com aviso: o quadro cinza, com o ícone, o título e o texto, antes do texto", () => {
+  it("com aviso: o quadro cinza, só com o título e o texto, antes do texto", () => {
     const comAviso = componente({ ...CONTEUDO, aviso: { titulo: "Esta página é provisória", texto: "Texto do aviso." } });
-    expect(comAviso).toMatch(
-      new RegExp(
-        `<div class="${estilos.quadro}" role="note"><svg[^]*?</svg><div><p class="${estilos.quadroTitulo}">Esta página é provisória</p><p>Texto do aviso.</p></div></div><h2 id="secao-capitulo-um">`,
-      ),
+    expect(comAviso).toContain(
+      `<div class="${estilos.quadro}" role="note"><p class="${estilos.quadroTitulo}">Esta página é provisória</p><p>Texto do aviso.</p></div><h2 id="secao-capitulo-um">`,
     );
   });
 
@@ -222,16 +212,34 @@ async function daAssociacao(pagina: string, chave: string) {
 }
 
 describe("as páginas legais", () => {
-  it("com o rascunho: voltam ao início, com o ícone de cada uma, o aviso de advogado e a data", async () => {
+  it("com o rascunho: voltam ao início, com o aviso de advogado e a data", async () => {
     const html = await legal("privacidade", "true");
     expect(/<a [^>]*href="\/"[^>]*>/.exec(html)![0]).toContain('data-coluna=""');
     expect(html).toContain(">Política de privacidade</h1>");
-    expect(html).toContain(desenho(ShieldCheck));
     expect(html).toContain("Este texto é um rascunho e ainda não foi revisado por advogado");
     expect(html).toMatch(/<time dateTime="2026-08-21">21 de agosto de 2026<\/time>/i);
     expect(html).toContain('<h2 id="secao-quem-e-o-responsavel">Quem é o responsável</h2>');
-    expect(await legal("termos", "true")).toContain(desenho(FileText));
-    expect(await legal("cookies", "true")).toContain(desenho(Cookie));
+  });
+
+  it("nenhum ícone na faixa fora do link de volta, nas três e nos dois modos", async () => {
+    for (const qual of ["privacidade", "termos", "cookies"] as const) {
+      for (const chave of ["true", "false"]) {
+        expect(topoSemAVolta(await legal(qual, chave)), `${qual} ${chave}`).not.toContain("<svg");
+      }
+    }
+  });
+
+  it("a data e o quadro de aviso sem ícone, nas três e nos dois modos", async () => {
+    for (const qual of ["privacidade", "termos", "cookies"] as const) {
+      for (const chave of ["true", "false"]) {
+        const html = await legal(qual, chave);
+        const data = new RegExp(`<p class="${estilos.atualizado}">[\\s\\S]*?</p>`).exec(html)?.[0];
+        const aviso = /<div [^>]*role="note">[\s\S]*?<\/div>/.exec(html)?.[0];
+        expect(data, `${qual} ${chave}`).toMatch(/^<p [^>]*>Atualizado em <time /);
+        expect(aviso, `${qual} ${chave}`).toBeDefined();
+        expect(aviso, `${qual} ${chave}`).not.toContain("<svg");
+      }
+    }
   });
 
   /* Um texto legal não pode perder calado um item obrigatório: o que falta
@@ -279,11 +287,12 @@ describe("as páginas legais", () => {
 });
 
 describe("as páginas da associação", () => {
-  it("Seja associado, do rascunho: volta à associação, com o aperto de mãos", async () => {
+  it("Seja associado, do rascunho: volta à associação, sem ícone na faixa", async () => {
     const html = await daAssociacao("seja-associado", "true");
     expect(/<a [^>]*href="\/associacao"/.test(html)).toBe(true);
     expect(html).toContain(">Seja associado</h1>");
-    expect(html).toContain(desenho(Handshake));
+    expect(topoSemAVolta(html)).not.toContain("<svg");
+    expect(topoSemAVolta(await daAssociacao("seja-associado", "false"))).not.toContain("<svg");
     expect(html).toContain("Esta página é provisória");
     expect(html).not.toContain("PROVISÓRIO");
   });
@@ -307,11 +316,11 @@ describe("as páginas da associação", () => {
     await expect(daAssociacao("nao-existe", "true")).rejects.toThrow("NEXT_NOT_FOUND");
   });
 
-  it("Estatuto publicado no Studio: a página, com o pergaminho", async () => {
+  it("Estatuto publicado no Studio: a página, sem ícone na faixa", async () => {
     dados.paginas.estatuto = { ...PRIVACIDADE_REVISADA, titulo: "Estatuto", slug: "estatuto" };
     const html = await daAssociacao("estatuto", "false");
     expect(html).toContain(">Estatuto</h1>");
-    expect(html).toContain(desenho(Scroll));
+    expect(topoSemAVolta(html)).not.toContain("<svg");
   });
 });
 
@@ -353,8 +362,10 @@ describe("o CSS da página de texto", () => {
     expect(regra(base(css), ".coluna p,\n.coluna li")).not.toMatch(/text-wrap/);
   });
 
-  it("o relógio da data fica na linha do texto, e não num bloco acima dele", () => {
-    expect(regra(base(css), ".atualizado svg")).toMatch(/display: inline-block;/);
+  it("nenhuma regra de ícone na data nem no quadro: o texto começa na borda dele", () => {
+    expect(css).not.toMatch(/\.atualizado svg|\.quadro > svg/);
+    expect(regra(base(css), ".quadro")).not.toMatch(/grid/);
+    expect(regra(cel(), ".quadro")).not.toMatch(/grid/);
   });
 
   it("o quadro de aviso é cinza neutro, sem tom quente", () => {

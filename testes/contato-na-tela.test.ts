@@ -2,17 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Icon } from "@phosphor-icons/react";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  ChatsCircle,
-  Clock,
-  DeviceMobile,
-  Handshake,
-  InstagramLogo,
-  MapPin,
-  Phone,
-} from "@phosphor-icons/react/dist/ssr";
+import { ArrowRight, ArrowUpRight, Phone } from "@phosphor-icons/react/dist/ssr";
 import estilosPagina from "@/app/(site)/encontre.module.css";
 import { SIZES_DA_SEDE } from "@/components/associacao/QuemSomos";
 import estilosQuem from "@/components/associacao/QuemSomos.module.css";
@@ -25,6 +15,7 @@ import { canaisDeContato } from "@/lib/paginaDeContato";
 import { tituloDePagina } from "@/lib/seo/metadados";
 import { fonte } from "@/testes/apoio";
 import { base, bloco, regra, semNotas } from "@/testes/css";
+import { topoSemAVolta } from "@/testes/renderizar";
 
 /*
   O contato (/contato): os três canais, a sede com o fecho e a página de
@@ -54,8 +45,8 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-const desenho = (Componente: Icon, size: number, weight: "duotone" | "regular") =>
-  renderToString(createElement(Componente, { size, weight, className: "", "aria-hidden": "true" }));
+const desenho = (Componente: Icon, size: number) =>
+  renderToString(createElement(Componente, { size, weight: "regular", className: "", "aria-hidden": "true" }));
 
 /** O texto que aparece, sem tags, num espaço só. */
 const tela = (html: string) =>
@@ -67,8 +58,6 @@ const tela = (html: string) =>
 
 /** O `&` como o HTML o escreve dentro de um atributo. */
 const atributo = (texto: string) => texto.replaceAll("&", "&amp;");
-
-const LADRILHO_PEQUENO = '<span class="ladrilho-icone ladrilho-icone--pequeno" aria-hidden="true">';
 
 describe("os canais", () => {
   const html = renderToString(createElement(CanaisDeContato, { canais: canaisDeContato() }));
@@ -84,9 +73,9 @@ describe("os canais", () => {
     expect(canais).toHaveLength(3);
   });
 
-  it("o telefone da sede: o ladrilho, o rótulo, o número, a frase e Ligar", () => {
+  it("o telefone da sede: o rótulo abre o cartão, depois o número, a frase e Ligar", () => {
     expect(canais[0]).toContain(
-      `<li class="${estilos.canal}" data-canal=""><span class="ladrilho-icone" aria-hidden="true">${desenho(Phone, 28, "duotone")}</span>` +
+      `<li class="${estilos.canal}" data-canal="">` +
         `<p class="${estilos.rotulo}" data-rotulo="">Telefone da sede</p>` +
         `<p class="${estilos.dado}" data-dado="">(99) 3524-3716</p>` +
         `<p class="${estilos.nota}">Linha fixa, na sede da AMI.</p><div class="${estilos.acao}" data-acao="">`,
@@ -95,20 +84,25 @@ describe("os canais", () => {
     expect(a).toContain('class="botao"');
     expect(a).toContain('href="tel:+559935243716"');
     expect(a).toContain('aria-label="Ligar para a sede da AMI, (99) 3524-3716"');
-    expect(a).toContain(desenho(Phone, 20, "regular"));
+    expect(a).toContain(desenho(Phone, 20));
     expect(tela(a)).toBe("Ligar");
   });
 
-  it("o celular, com o celular no ladrilho", () => {
-    expect(canais[1]).toContain(desenho(DeviceMobile, 28, "duotone"));
-    expect(canais[1]).toContain(`<p class="${estilos.dado}" data-dado="">(99) 98802-0205</p>`);
+  it("o celular: o rótulo abre o cartão, e Ligar com o telefone", () => {
+    expect(canais[1].startsWith(
+      `<li class="${estilos.canal}" data-canal=""><p class="${estilos.rotulo}" data-rotulo="">Celular</p>` +
+        `<p class="${estilos.dado}" data-dado="">(99) 98802-0205</p>`,
+    )).toBe(true);
     const a = botao(canais[1]);
+    expect(a).toContain(desenho(Phone, 20));
     expect(a).toContain('href="tel:+5599988020205"');
     expect(a).toContain('aria-label="Ligar para o celular da AMI, (99) 98802-0205"');
   });
 
   it("o Instagram: o perfil em letra menor, e Abrir o Instagram na mesma aba", () => {
-    expect(canais[2]).toContain(desenho(InstagramLogo, 28, "duotone"));
+    expect(canais[2].startsWith(
+      `<li class="${estilos.canal}" data-canal=""><p class="${estilos.rotulo}" data-rotulo="">Instagram</p>`,
+    )).toBe(true);
     expect(canais[2]).toContain(
       `<p class="${estilos.dado} ${estilos.longo}" data-dado="">@associacaomedicadeimperatriz</p>`,
     );
@@ -116,9 +110,17 @@ describe("os canais", () => {
     expect(a).toContain('class="botao-contorno"');
     expect(a).toContain('href="https://www.instagram.com/associacaomedicadeimperatriz/"');
     expect(a).toContain('aria-label="Abrir o Instagram da AMI"');
-    expect(a).toContain(desenho(ArrowUpRight, 20, "regular"));
+    expect(a).toContain(desenho(ArrowUpRight, 20));
     expect(a).not.toContain("target=");
     expect(tela(a)).toBe("Abrir o Instagram");
+  });
+
+  it("nenhum ladrilho: o único ícone de cada canal é o do botão", () => {
+    expect(html).not.toContain("ladrilho-icone");
+    for (const [i, c] of canais.entries()) {
+      expect(c.match(/<svg/g), `canal ${i + 1}`).toHaveLength(1);
+      expect(botao(c), `canal ${i + 1}`).toContain("<svg");
+    }
   });
 
   it("sem e-mail, sem WhatsApp e sem formulário", () => {
@@ -146,9 +148,9 @@ describe("a sede, na demonstração", () => {
     );
   });
 
-  it("o quadro do endereço: o pino, o nome, o endereço em três linhas e o CNPJ", () => {
+  it("o quadro do endereço, sem ladrilho: o nome, o endereço em três linhas e o CNPJ", () => {
     expect(html).toContain(
-      `<div class="${estilosQuem.sede}">${LADRILHO_PEQUENO}${desenho(MapPin, 23, "duotone")}</span>` +
+      `<div class="${estilosQuem.sede}">` +
         `<div><h3 class="${estilosQuem.sedeTitulo}">Associação Médica de Imperatriz</h3>` +
         `<address class="${estilosQuem.endereco}">Rua Coriolano Milhomem, 39<br/>Centro, Imperatriz – MA<br/>CEP <span class="numero-tabular">65900-330</span></address>` +
         `<p class="${estilos.cnpj}">CNPJ 06.651.376/0001-42</p></div>`,
@@ -161,17 +163,16 @@ describe("a sede, na demonstração", () => {
     expect(a).toContain(`href="${atributo(linkDoMapaDaAmi())}"`);
     expect(a).not.toContain("target=");
     expect(a).toContain('aria-label="Como chegar à sede da AMI (abre o mapa)"');
-    expect(a).toContain(desenho(ArrowUpRight, 20, "regular"));
+    expect(a).toContain(desenho(ArrowUpRight, 20));
     expect(a).not.toContain("nova aba");
     expect(tela(a)).toBe("Como chegar");
   });
 
-  it("o horário como moldura: o relógio, o título e a frase a entrar", () => {
+  it("o horário como moldura, sem ladrilho: o título e a frase a entrar", () => {
     expect(html).toContain(
       `<div class="${estilosQuem.sede} ${estilos.horario}" data-a-entrar="horário de atendimento">` +
-        `${LADRILHO_PEQUENO}${desenho(Clock, 23, "duotone")}</span>` +
-        `<div><h3 class="${estilosQuem.sedeTitulo}">Horário de atendimento</h3>` +
-        `<p class="${estilos.falta}">Horário de atendimento da sede a entrar.</p></div></div>`,
+        `<h3 class="${estilosQuem.sedeTitulo}">Horário de atendimento</h3>` +
+        `<p class="${estilos.falta}">Horário de atendimento da sede a entrar.</p></div>`,
     );
   });
 
@@ -181,12 +182,18 @@ describe("a sede, na demonstração", () => {
     );
   });
 
-  it("depois do fio, o fecho: Médico interessado em se associar? e Seja associado", () => {
+  it("nenhum ladrilho: os únicos ícones são os de Como chegar e Seja associado", () => {
+    expect(html).not.toContain("ladrilho-icone");
+    expect(html.match(/<svg/g)).toHaveLength(2);
+    expect(html.match(/<a [^>]*>[^<]*<svg/g)).toHaveLength(2);
+  });
+
+  it("depois do fio, o fecho, sem ladrilho: Médico interessado em se associar? e Seja associado", () => {
     expect(html).toContain(
       `<div class="${estilos.separa}" aria-hidden="true"></div>` +
-        `<div class="${estilos.fecho}" data-coluna="">${LADRILHO_PEQUENO}${desenho(Handshake, 23, "duotone")}</span>` +
+        `<div class="${estilos.fecho}" data-coluna="">` +
         `<p><strong>Médico interessado em se associar?</strong> A página Seja associado diz quem pode se associar e como fazer isso.</p>` +
-        `<a class="botao-contorno" href="/associacao/seja-associado">Seja associado ${desenho(ArrowRight, 20, "regular")}</a></div></section>`,
+        `<a class="botao-contorno" href="/associacao/seja-associado">Seja associado ${desenho(ArrowRight, 20)}</a></div></section>`,
     );
   });
 });
@@ -205,6 +212,12 @@ describe("a sede, fora da demonstração", () => {
     expect(html).not.toContain("data-a-entrar");
     expect(html).not.toContain("a entrar");
     expect(html).not.toContain("Horário");
+  });
+
+  it("nenhum ladrilho: os únicos ícones são os de Como chegar e Seja associado", () => {
+    expect(html).not.toContain("ladrilho-icone");
+    expect(html.match(/<svg/g)).toHaveLength(2);
+    expect(html.match(/<a [^>]*>[^<]*<svg/g)).toHaveLength(2);
   });
 
   it("o endereço, o CNPJ, Como chegar e o fecho ficam", () => {
@@ -234,12 +247,23 @@ describe("a página /contato", () => {
     }
   });
 
-  it("a faixa: CONTATO, Fale com a AMI, a frase e a conversa no ladrilho", async () => {
+  it("a faixa: CONTATO, Fale com a AMI e a frase, sem ícone", async () => {
     const { html } = await pagina("true");
     expect(html).toContain('data-coluna="">Contato</span>');
     expect(html).toContain(">Fale com a AMI</h1>");
     expect(html).toContain(">Pelo telefone, pelo Instagram ou na sede, no Centro de Imperatriz.</p>");
-    expect(html).toContain(desenho(ChatsCircle, 84, "duotone"));
+    for (const chave of ["true", "false"]) {
+      expect(topoSemAVolta((await pagina(chave)).html), chave).not.toContain("<svg");
+    }
+  });
+
+  it("os únicos svg da página são os dos cinco botões e links: Ligar, Ligar, Abrir o Instagram, Como chegar e Seja associado", async () => {
+    for (const chave of ["true", "false"]) {
+      const { html } = await pagina(chave);
+      const emLink = [...html.matchAll(/<a [^>]*>[\s\S]*?<\/a>/g)].reduce((n, m) => n + (m[0].match(/<svg/g)?.length ?? 0), 0);
+      expect(html.match(/<svg/g), chave).toHaveLength(5);
+      expect(emLink, chave).toBe(5);
+    }
   });
 
   it("a sede fecha a página e é faixa: o rodapé emenda nela", async () => {
@@ -315,16 +339,25 @@ describe("o CSS do contato", () => {
     expect(longo).toMatch(/overflow-wrap: anywhere;/);
   });
 
-  it("no tablet, cada canal vira uma linha, com o botão à direita", () => {
+  it("no tablet, cada canal vira uma linha: o texto na borda esquerda e o botão à direita", () => {
     expect(regra(tablet(), ".canais")).toMatch(/grid-template-columns: 1fr;/);
-    expect(regra(tablet(), ".canal")).toMatch(/grid-template-columns: 52px minmax\(0, 1fr\) auto;/);
-    expect(regra(tablet(), ".acao")).toMatch(/grid-column: 3;/);
+    expect(regra(tablet(), ".canal")).toMatch(/grid-template-columns: minmax\(0, 1fr\) auto;/);
+    for (const seletor of [".rotulo", ".dado", ".nota"])
+      expect(regra(tablet(), seletor), seletor).toMatch(/grid-column: 1;/);
+    expect(regra(tablet(), ".acao")).toMatch(/grid-column: 2;/);
   });
 
-  it("no celular, o botão na largura toda embaixo, sem a frase de apoio", () => {
-    expect(regra(cel(), ".acao")).toMatch(/grid-column: 1 \/ -1;/);
+  it("no celular, uma coluna só: o texto e, embaixo, o botão na largura toda, sem a frase de apoio", () => {
+    expect(regra(cel(), ".canal")).toMatch(/grid-template-columns: minmax\(0, 1fr\);/);
+    expect(cel()).not.toContain("grid-column: 2");
     expect(regra(cel(), ".acao > a")).toMatch(/width: 100%;/);
     expect(regra(cel(), ".nota")).toMatch(/display: none;/);
+  });
+
+  it("sem ladrilho: nenhuma regra dele nem coluna para ele; o rótulo abre o cartão, sem espaço em cima", () => {
+    expect(css).not.toContain("ladrilho");
+    expect(css).not.toMatch(/52px|44px|40px minmax/);
+    expect(regra(base(css), ".rotulo")).not.toMatch(/margin/);
   });
 
   it("sem a foto, o título fica no alto, valendo sobre a regra de Quem somos", () => {
@@ -349,8 +382,9 @@ describe("o CSS do contato", () => {
     expect(regra(bloco(css, "@media (max-width: 980px)"), ".separa")).toMatch(/margin: 48px 0;/);
   });
 
-  it("no celular, o fecho: o botão na largura toda embaixo", () => {
-    expect(regra(cel(), ".fecho > a")).toMatch(/grid-column: 1 \/ -1;/);
+  it("o fecho: a frase na borda esquerda e o botão à direita; no celular, o botão na largura toda embaixo", () => {
+    expect(regra(base(css), ".fecho")).toMatch(/grid-template-columns: minmax\(0, 1fr\) auto;/);
+    expect(regra(cel(), ".fecho")).toMatch(/grid-template-columns: minmax\(0, 1fr\);/);
     expect(regra(cel(), ".fecho > a")).toMatch(/width: 100%;/);
   });
 });

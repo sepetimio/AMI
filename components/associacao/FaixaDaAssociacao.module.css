@@ -2,23 +2,22 @@
   A faixa verde de A Associação, transcrita do desenho aprovado
   (docs/desenho-aprovado/associacao/associacao.html: `.inst-topo`,
   `.inst-topo h1`, `.inst-topo .texto`, `.inst-numeros` e o que vem dentro
-  dele, `.ladrilho-vidro`, e os @media de 1180, 700 e 400px).
+  dele, e os @media de 1180, 700 e 400px).
 
   O resto da faixa é o da busca (components/busca/FaixaDaBusca.module.css:
   `.faixa`, `.sobre`, `.titulo`, `.texto`).
 
   À direita, os três números da home, presos ao pé do texto, com fio entre
-  eles. Abaixo de 1180px, embaixo do texto; no celular, uma fileira de
-  três colunas estreitas, sem o ícone.
+  eles: o número abre a coluna e o rótulo vem embaixo. Abaixo de 1180px,
+  embaixo do texto; no celular, uma fileira de três colunas estreitas.
 
   As regras daqui valem sobre as da busca qualquer que seja a ordem em que
   as duas folhas chegam ao navegador:
   - `.inst[data-faixa]` (classe e atributo) pesa mais que `.faixa`;
   - `.inst h1` e `.inst h1 + p` pesam mais que `.titulo` e `.texto`.
 
-  O vidro do ladrilho é branco translúcido, sem tom. O rótulo dos números
-  (#DDE7D6) não tem token; o relatório do desenho mediu 8,73:1 sobre o
-  verde.
+  O rótulo dos números (#DDE7D6) não tem token; o relatório do desenho
+  mediu 8,73:1 sobre o verde.
 */
 
 .inst[data-faixa] {
@@ -61,24 +60,8 @@
   padding-right: 0;
 }
 
-.vidro {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.03) 100%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
-  color: var(--color-ami-lima-400);
-}
-
-.vidro svg {
-  width: 23px;
-  height: 23px;
-}
-
 .grande {
-  margin: 22px 0 8px;
+  margin: 0 0 8px;
   font-family: var(--font-titulo);
   font-weight: 500;
   letter-spacing: -0.035em;
@@ -121,10 +104,6 @@
   .numeros li {
     min-width: 0;
     padding: 0 12px;
-  }
-
-  .vidro {
-    display: none;
   }
 
   .grande {

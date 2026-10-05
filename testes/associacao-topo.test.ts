@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { Icon } from "@phosphor-icons/react";
-import { ArrowUpRight, Heartbeat, MapPin, Phone, SealCheck, Stethoscope } from "@phosphor-icons/react/dist/ssr";
+import { ArrowUpRight, Phone } from "@phosphor-icons/react/dist/ssr";
 import type { PortableTextBlock } from "@portabletext/react";
 import { FaixaDaAssociacao } from "@/components/associacao/FaixaDaAssociacao";
 import estilosFaixa from "@/components/associacao/FaixaDaAssociacao.module.css";
@@ -14,6 +14,7 @@ import estilosAssocie from "@/components/home/SejaAssociado.module.css";
 import { TEXTO_INSTITUCIONAL, quemEhAmi } from "@/lib/molduras";
 import { fonte } from "@/testes/apoio";
 import { base, bloco, regra, semNotas } from "@/testes/css";
+import { topoSemAVolta } from "@/testes/renderizar";
 
 /*
   Os dois blocos de cima de A Associação, no HTML de servidor: a faixa verde
@@ -66,16 +67,17 @@ describe("a faixa verde de A Associação", () => {
     );
   });
 
-  it("à direita, os três números da home, cada um com o ícone num ladrilho de vidro", () => {
+  it("à direita, os três números da home, cada um só com o número e o rótulo", () => {
     expect(html).toContain(`<ul class="${estilosFaixa.numeros}" aria-label="A AMI em números">`);
     const numeros = [...html.matchAll(/<li>([\s\S]*?)<\/li>/g)].map((m) => m[1]);
     expect(numeros.map(tela)).toEqual(["51 anos de AMI", "24 médicos no diretório", "14 especialidades"]);
     expect(numeros[0]).toBe(
-      `<span class="${estilosFaixa.vidro}" aria-hidden="true">${desenho(SealCheck, 20, "duotone")}</span>` +
-        `<span class="${estilosFaixa.grande}">51</span><span class="${estilosFaixa.rotulo}">anos de AMI</span>`,
+      `<span class="${estilosFaixa.grande}">51</span><span class="${estilosFaixa.rotulo}">anos de AMI</span>`,
     );
-    expect(numeros[1]).toContain(desenho(Stethoscope, 20, "duotone"));
-    expect(numeros[2]).toContain(desenho(Heartbeat, 20, "duotone"));
+  });
+
+  it("nenhum ícone na faixa", () => {
+    expect(topoSemAVolta(html)).not.toContain("<svg");
   });
 });
 
@@ -112,16 +114,22 @@ describe("Quem somos, na demonstração e sem o texto da AMI", () => {
     );
   });
 
-  it("o quadro da sede: o pino, o endereço em três linhas, Como chegar e o telefone fixo", () => {
+  it("o quadro da sede, sem ladrilho: o título, o endereço em três linhas, Como chegar e o telefone fixo", () => {
     expect(html).toContain(
-      `<div class="${estilosQuem.sede}"><span class="ladrilho-icone ladrilho-icone--pequeno" aria-hidden="true">${desenho(MapPin, 23, "duotone")}</span>` +
-        `<div><h3 class="${estilosQuem.sedeTitulo}">Sede da AMI</h3>` +
+      `<div class="${estilosQuem.sede}"><div><h3 class="${estilosQuem.sedeTitulo}">Sede da AMI</h3>` +
         `<address class="${estilosQuem.endereco}">Rua Coriolano Milhomem, 39<br/>Centro, Imperatriz – MA<br/>CEP <span class="numero-tabular">65900-330</span></address></div>`,
     );
     expect(html).toContain(
       `<div class="${estilosQuem.acoes}"><a class="botao" href="https://www.google.com/maps/search/?api=1&amp;query=Rua%20Coriolano%20Milhomem%2C%2039%2C%20Centro%2C%20Imperatriz%20-%20MA%2C%2065900-330" aria-label="Como chegar à sede da AMI (abre o mapa)">Como chegar ${desenho(ArrowUpRight, 20, "regular")}</a>` +
         `<a class="botao-contorno" href="tel:+559935243716" aria-label="Ligar (99) 3524-3716 para a AMI">${desenho(Phone, 20, "regular")} <!-- -->(99) 3524-3716</a></div>`,
     );
+  });
+
+  it("nenhum ladrilho em Quem somos: os únicos ícones são os dos dois botões da sede", () => {
+    expect(html).not.toContain("ladrilho-icone");
+    expect(html.match(/<svg/g)).toHaveLength(2);
+    const acoes = new RegExp(`<div class="${estilosQuem.acoes}">[\\s\\S]*?</div>`).exec(html)![0];
+    expect(acoes.match(/<svg/g)).toHaveLength(2);
   });
 
   it("o nome acessível de cada botão da sede contém o texto visível, em sequência", () => {
@@ -212,6 +220,18 @@ describe("Missão, visão e valores, num componente só para a home e para A Ass
     ]);
   });
 
+  it("nenhum cartão tem ladrilho nem ícone", () => {
+    const html = renderToString(
+      createElement(PrincipiosDaAmi, {
+        cartoes: quemEhAmi(true, TEXTO_INSTITUCIONAL).cartoes,
+        rotulo: "Princípios",
+        titulo: "Missão, visão e valores",
+      }),
+    );
+    expect(html).not.toContain("ladrilho-icone");
+    expect(html).not.toContain("<svg");
+  });
+
   it("o texto da AMI é um só, nulo até ela entregar", () => {
     expect(TEXTO_INSTITUCIONAL).toEqual({ missao: null, visao: null, valores: null });
   });
@@ -234,14 +254,19 @@ describe("o CSS da faixa verde", () => {
     expect(regra(base(css), ".inst h1 + p")).toMatch(/max-width: 31em;/);
   });
 
-  it("três colunas com fio; no celular, uma fileira de três, sem ícone", () => {
+  it("três colunas com fio; no celular, uma fileira de três", () => {
     expect(regra(base(css), ".numeros")).toMatch(/grid-template-columns: repeat\(3, auto\);/);
     expect(regra(base(css), ".numeros li")).toMatch(/border-left: 1px solid rgba\(255, 255, 255, 0\.16\);/);
     expect(regra(base(css), ".grande")).toMatch(/font-size: 48px;/);
     expect(regra(base(css), ".rotulo")).toMatch(/color: #DDE7D6;/);
-    expect(regra(cel(), ".vidro")).toMatch(/display: none;/);
     expect(regra(cel(), ".grande")).toMatch(/font-size: 32px;/);
     expect(regra(cel(), ".numeros")).toMatch(/border-top: 1px solid rgba\(255, 255, 255, 0\.16\);/);
+  });
+
+  it("o número abre a coluna, sem espaço em cima, e nenhuma regra de ladrilho nem de ícone", () => {
+    expect(regra(base(css), ".grande")).toMatch(/margin: 0 0 8px;/);
+    expect(css).not.toContain(".vidro");
+    expect(css).not.toContain("svg");
   });
 });
 
@@ -249,11 +274,18 @@ describe("o CSS de Quem somos", () => {
   const css = semNotas(fonte("../components/associacao/QuemSomos.module.css"));
   const cel = () => bloco(css, "@media (max-width: 700px)");
 
-  it("o quadro da sede: fio em cima, o ícone à esquerda e os botões embaixo do endereço", () => {
+  it("o quadro da sede: fio em cima e os botões embaixo do endereço, sem coluna de ícone", () => {
     const r = regra(base(css), ".sede");
     expect(r).toMatch(/border-top: 1px solid var\(--color-line\);/);
-    expect(r).toMatch(/grid-template-columns: 44px minmax\(0, 1fr\);/);
-    expect(regra(base(css), ".acoes")).toMatch(/grid-column: 2;/);
+    expect(r).not.toMatch(/grid/);
+    expect(regra(base(css), ".acoes")).not.toMatch(/grid-column/);
+    expect(regra(cel(), ".sede")).not.toMatch(/grid/);
+    expect(regra(cel(), ".acoes")).not.toMatch(/grid-column/);
+  });
+
+  it("nenhuma regra de ladrilho, e o título da sede sem espaço em cima", () => {
+    expect(css).not.toContain("ladrilho");
+    expect(regra(base(css), ".sedeTitulo")).not.toMatch(/margin-top/);
   });
 
   it("sem a foto: o título à esquerda e a sede à direita, sem o fio nem o recuo do lado da foto", () => {

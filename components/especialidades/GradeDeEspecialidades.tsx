@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Icone, LadrilhoIcone } from "@/components/base/IconeServidor";
+import { Icone } from "@/components/base/IconeServidor";
 import resultados from "@/components/busca/ResultadosDaBusca.module.css";
 import styles from "@/components/especialidades/GradeDeEspecialidades.module.css";
-import { especialidadesComMedico, iconeDaEspecialidade, nomeComQuebras } from "@/lib/especialidades";
+import { especialidadesComMedico, nomeComQuebras } from "@/lib/especialidades";
 import { contagem } from "@/lib/formato";
 import type { EspecialidadeComContagem } from "@/lib/dados/tipos";
 
@@ -12,7 +12,7 @@ import type { EspecialidadeComContagem } from "@/lib/dados/tipos";
     busca.
   - Embaixo, um cartão por especialidade com médico, em ordem alfabética
     (`especialidadesComMedico`).
-  - Cada cartão tem o ícone num ladrilho, o nome, "N médicos" e a seta.
+  - Cada cartão tem o nome, "N médicos" e a seta.
   - O cartão inteiro leva à página da especialidade, pelo link do nome,
     esticado em CSS.
 
@@ -43,7 +43,6 @@ export function GradeDeEspecialidades({
       <ul className={styles.grade}>
         {itens.map((e) => (
           <li key={e.slug} className={styles.cartao} data-cartao-de-especialidade="">
-            <LadrilhoIcone nome={iconeDaEspecialidade(e.slug)} />
             <h3 className={styles.nome} data-nome="">
               <Link href={`/medicos/${e.slug}`}>{nomeComQuebras(e.nome)}</Link>
             </h3>

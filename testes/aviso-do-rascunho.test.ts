@@ -27,7 +27,6 @@ function textoNaTela(rascunho: RascunhoLegal) {
     createElement(PaginaDeTexto, {
       conteudo: conteudoDoRascunho(rascunho, true),
       volta: VOLTA_INICIO,
-      icone: "documento",
     }),
   );
   return html

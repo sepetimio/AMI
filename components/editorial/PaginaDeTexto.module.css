@@ -2,9 +2,9 @@
   O modelo de página de texto, transcrito do desenho aprovado
   (docs/desenho-aprovado/associacao/seja-associado.html: `.faixa-branca`,
   `.leitura-grade`, `.coluna`, `.coluna > * + *`, `.coluna .atualizado`,
-  `.atualizado i`, `.coluna h2`, `.coluna h3`, `.coluna h2 + *`,
-  `.coluna p`, `.coluna ul` e o ponto da lista, `.coluna .falta`,
-  `.quadro`, `.quadro > i`, `.coluna .quadro p`,
+  `.coluna h2`, `.coluna h3`, `.coluna h2 + *`, `.coluna p`,
+  `.coluna ul` e o ponto da lista, `.coluna .falta`, `.quadro`,
+  `.coluna .quadro p`,
   `.coluna .quadro .quadro-titulo`, `.quadro-titulo + p`, `.chamada` e o
   que vem dentro dele, e os @media de 1180, 980 e 700px). O índice é de
   IndiceNestaPagina.module.css.
@@ -28,10 +28,6 @@
   fim da notícia (quem assina e o aviso de saúde). Os cinco primeiros
   valem também para as páginas de texto, quando o texto do Studio os
   tiver.
-
-  O relógio da data é `inline-block`: a camada base do Tailwind faz todo
-  `svg` virar bloco, e ele cairia numa linha acima do texto; no desenho,
-  ele é um `<i>`, que já fica na linha.
 
   Os seletores começam por `.coluna`, como no desenho: assim o que vale
   para um parágrafo comum (`.coluna p`) não passa por cima da data, do
@@ -72,14 +68,6 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--color-ink-400);
-}
-
-.atualizado svg {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  vertical-align: -2px;
-  margin-right: 6px;
 }
 
 .coluna h2 {
@@ -256,20 +244,10 @@
 }
 
 .quadro {
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
-  column-gap: 14px;
   padding: 20px 24px 22px;
   border-radius: 16px;
   background: var(--color-surface-fundo);
   border: 1px solid var(--color-line);
-}
-
-.quadro > svg {
-  width: 22px;
-  height: 22px;
-  margin-top: 1px;
-  color: var(--color-ami-green-600);
 }
 
 .coluna .quadro p {
@@ -289,23 +267,12 @@
 }
 
 /* O quadro de chamada "Fale com a AMI", no fim da coluna de Seja
-   associado (components/associacao/FaleComAmi.tsx). O ladrilho é o global
-   (`.ladrilho-icone--pequeno`, 44px), branco sobre o fundo da página. */
+   associado (components/associacao/FaleComAmi.tsx). */
 .coluna .chamada {
   margin-top: 40px;
   padding: 28px;
   border-radius: 18px;
   background: var(--color-canvas);
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  column-gap: 16px;
-}
-
-.chamada :global(.ladrilho-icone) {
-  background: var(--color-surface);
-  box-shadow:
-    0 1px 2px rgba(16, 24, 40, 0.05),
-    inset 0 0 0 1px rgba(16, 24, 40, 0.06);
 }
 
 .coluna .chamada h3 {
@@ -322,7 +289,6 @@
 }
 
 .chamada .acoes {
-  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -336,11 +302,11 @@
 /* O fim da notícia (components/editorial/AutorDaNoticia.tsx): quem assina,
    com "Ver perfil" quando há perfil, e o aviso de saúde. Mora aqui, e não
    na folha da notícia, porque vive dentro da coluna de leitura e as regras
-   dele precisam valer sobre as da coluna (`.coluna p`). O ladrilho é o
-   global (`.ladrilho-icone--pequeno`, 44px). */
+   dele precisam valer sobre as da coluna (`.coluna p`). Sem ícone: o
+   nome começa na borda da coluna, e o botão fica à direita. */
 .coluna .autorFim {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   column-gap: 16px;
   align-items: center;
   margin-top: 56px;
@@ -430,14 +396,7 @@
   }
 
   .quadro {
-    grid-template-columns: 20px minmax(0, 1fr);
-    column-gap: 12px;
     padding: 16px 16px 18px;
-  }
-
-  .quadro > svg {
-    width: 20px;
-    height: 20px;
   }
 
   .coluna .quadro p {
@@ -451,14 +410,6 @@
   .coluna .chamada {
     margin-top: 32px;
     padding: 20px;
-    grid-template-columns: 40px minmax(0, 1fr);
-    column-gap: 14px;
-  }
-
-  .chamada :global(.ladrilho-icone) {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
   }
 
   .coluna .chamada h3 {
@@ -516,25 +467,12 @@
   }
 
   .coluna .autorFim {
-    grid-template-columns: 40px minmax(0, 1fr);
-    column-gap: 14px;
+    grid-template-columns: minmax(0, 1fr);
     margin-top: 40px;
     padding-top: 22px;
   }
 
-  .autorFim :global(.ladrilho-icone) {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-  }
-
-  .autorFim :global(.ladrilho-icone) svg {
-    width: 21px;
-    height: 21px;
-  }
-
   .autorFim .autorAcoes {
-    grid-column: 1 / -1;
     margin-top: 16px;
   }
 

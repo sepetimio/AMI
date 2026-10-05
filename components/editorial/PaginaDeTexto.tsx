@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import paginas from "@/app/(site)/encontre.module.css";
-import type { NomeIcone } from "@/components/base/IconeServidor";
 import { FaixaDoTexto } from "@/components/editorial/FaixaDoTexto";
 import { FaixaCurta } from "@/components/layout/FaixaCurta";
 import type { ConteudoDaPagina, VoltaDaPagina } from "@/lib/paginaDeTexto";
@@ -10,7 +9,7 @@ import type { ConteudoDaPagina, VoltaDaPagina } from "@/lib/paginaDeTexto";
   editorial, Benefícios e os três textos legais (privacidade, cookies e
   termos de uso).
   - A faixa verde curta (components/layout/FaixaCurta.tsx), com o link de
-    volta (`volta`), o título, o resumo e o ícone da página.
+    volta (`volta`), o título e o resumo.
   - O corpo numa faixa branca de ponta a ponta, em coluna de leitura de
     680px, com a data de atualização, o quadro de aviso, quando há, o texto
     e o índice "Nesta página" (components/editorial/FaixaDoTexto.tsx).
@@ -41,17 +40,15 @@ import type { ConteudoDaPagina, VoltaDaPagina } from "@/lib/paginaDeTexto";
 export function PaginaDeTexto({
   conteudo,
   volta,
-  icone,
   children,
 }: {
   conteudo: ConteudoDaPagina;
   volta: VoltaDaPagina;
-  icone: NomeIcone;
   children?: ReactNode;
 }) {
   return (
     <div className={paginas.pagina}>
-      <FaixaCurta volta={volta} titulo={conteudo.titulo} texto={conteudo.resumo} icone={icone} />
+      <FaixaCurta volta={volta} titulo={conteudo.titulo} texto={conteudo.resumo} />
       <FaixaDoTexto
         rotulo="Texto da página"
         atualizadoEm={conteudo.atualizadoEm}

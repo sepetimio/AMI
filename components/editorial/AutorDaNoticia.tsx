@@ -1,14 +1,13 @@
 import Link from "next/link";
-import { Icone, LadrilhoIcone } from "@/components/base/IconeServidor";
+import { Icone } from "@/components/base/IconeServidor";
 import styles from "@/components/editorial/PaginaDeTexto.module.css";
 import { assinaturaDoAutor } from "@/lib/noticias";
 import type { Autor } from "@/lib/sanity/tipos";
 
 /*
-  O fim da notícia, no fim da coluna de leitura: quem assina (o
-  estetoscópio, "Por {autor}" e "MÉDICO · CRM/UF n") com o botão "Ver
-  perfil" quando o autor tem perfil no diretório, e o aviso de saúde que o
-  site já publicava.
+  O fim da notícia, no fim da coluna de leitura: quem assina ("Por
+  {autor}" e "MÉDICO · CRM/UF n") com o botão "Ver perfil" quando o autor
+  tem perfil no diretório, e o aviso de saúde que o site já publicava.
 
   O CSS mora na folha da página de texto (PaginaDeTexto.module.css,
   `.autorFim`), porque o bloco vive dentro da coluna e as regras dele
@@ -20,7 +19,6 @@ export function AutorDaNoticia({ autor }: { autor: Autor }) {
   return (
     <>
       <div className={styles.autorFim}>
-        <LadrilhoIcone nome="estetoscopio" pequeno />
         <div>
           <p className={styles.autorNome}>{`Por ${assinatura.nome}`}</p>
           <p className={styles.autorCrm}>{assinatura.registro}</p>

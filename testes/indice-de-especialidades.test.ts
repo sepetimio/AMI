@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { Icon } from "@phosphor-icons/react";
-import { Baby, Heartbeat, Stethoscope } from "@phosphor-icons/react/dist/ssr";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import estilosPagina from "@/app/(site)/encontre.module.css";
 import estilosBusca from "@/components/busca/FaixaDaBusca.module.css";
 import estilosResultados from "@/components/busca/ResultadosDaBusca.module.css";
@@ -42,7 +42,7 @@ const HTML = await htmlDe(await pagina.default());
 /* Cada cartão, do `<li` ao `</li>`. */
 const cartoes = [...HTML.matchAll(/<li [^>]*data-cartao-de-especialidade=""[\s\S]*?<\/li>/g)].map((m) => m[0]);
 const desenho = (Componente: Icon, size: number) =>
-  renderToString(createElement(Componente, { size, weight: "duotone", className: "", "aria-hidden": "true" }));
+  renderToString(createElement(Componente, { size, weight: "regular", className: "", "aria-hidden": "true" }));
 
 describe("o índice de especialidades", () => {
   it("abre com a faixa verde de ponta a ponta, no invólucro de coluna e ritmo, sem Cabeceira nem trilha", () => {
@@ -103,21 +103,29 @@ describe("o índice de especialidades", () => {
     expect(cartoes).toHaveLength(5);
   });
 
-  it("cada cartão: o ladrilho com o ícone, o nome, a contagem e a seta", () => {
-    const cardio = cartoes[1];
-    expect(cardio).toMatch(new RegExp(`^<li class="${estilosGrade.cartao}" data-cartao-de-especialidade="">`));
-    expect(cardio).toContain(`<span class="ladrilho-icone" aria-hidden="true">${desenho(Heartbeat, 28)}</span>`);
-    expect(cardio).toContain(
-      `<h3 class="${estilosGrade.nome}" data-nome=""><a href="/medicos/cardiologia">Cardiologia</a></h3>`,
+  it("cada cartão: o nome abre o cartão, depois a contagem e a seta", () => {
+    expect(cartoes[1]).toBe(
+      `<li class="${estilosGrade.cartao}" data-cartao-de-especialidade="">` +
+        `<h3 class="${estilosGrade.nome}" data-nome=""><a href="/medicos/cardiologia">Cardiologia</a></h3>` +
+        `<p class="${estilosGrade.pe}"><span class="${estilosGrade.conta}" data-contagem="">3 médicos</span>` +
+        `<span class="${estilosGrade.seta}" aria-hidden="true">${desenho(ArrowRight, 20)}</span></p></li>`,
     );
-    expect(cardio).toContain(`<span class="${estilosGrade.conta}" data-contagem="">3 médicos</span>`);
-    expect(cardio).toMatch(new RegExp(`<span class="${estilosGrade.seta}" aria-hidden="true"><svg`));
   });
 
-  it("a contagem concorda; o ícone vem da tabela, e quem não está nela fica com o estetoscópio", () => {
+  it("nenhum ladrilho: o único ícone de cada cartão é a seta do pé", () => {
+    expect(HTML).not.toContain("ladrilho-icone");
+    for (const [i, c] of cartoes.entries()) {
+      expect(c.match(/<svg/g), `cartão ${i + 1}`).toHaveLength(1);
+      expect(c, `cartão ${i + 1}`).toContain(
+        `<span class="${estilosGrade.seta}" aria-hidden="true">${desenho(ArrowRight, 20)}</span>`,
+      );
+      expect(c, `cartão ${i + 1}`).toMatch(/^<li [^>]*><h3 /);
+    }
+  });
+
+  it("a contagem concorda com o número", () => {
     expect(cartoes[3]).toContain(">1 médico<");
-    expect(cartoes[4]).toContain(desenho(Baby, 28));
-    expect(cartoes[0]).toContain(desenho(Stethoscope, 28));
+    expect(cartoes[4]).toContain(">3 médicos<");
   });
 
   it("os dois blocos da página, na ordem", () => {
@@ -216,12 +224,17 @@ describe("o CSS da grade de especialidades", () => {
     expect(regra(base(css), ".cartao:hover .seta")).toMatch(/border-color: var\(--color-line-strong\);/);
   });
 
-  it("no celular: cartões compactos, ladrilho de 40px e a frase curta da ordem", () => {
+  it("no celular: cartões compactos e a frase curta da ordem", () => {
     expect(regra(cel(), ".cartao")).toMatch(/padding: 16px 16px 14px;/);
-    expect(regra(cel(), ".cartao :global(.ladrilho-icone)")).toMatch(/width: 40px;/);
     expect(regra(cel(), ".nome")).toMatch(/font-size: 17px;/);
     expect(regra(base(css), ".ordemCurta")).toMatch(/display: none;/);
     expect(regra(cel(), ".ordemLonga")).toMatch(/display: none;/);
     expect(regra(cel(), ".ordemCurta")).toMatch(/display: inline;/);
+  });
+
+  it("sem ladrilho: nenhuma regra dele, e o nome abre o cartão, sem espaço em cima", () => {
+    expect(css).not.toContain("ladrilho");
+    expect(regra(base(css), ".nome")).not.toMatch(/margin/);
+    expect(regra(cel(), ".nome")).not.toMatch(/margin/);
   });
 });

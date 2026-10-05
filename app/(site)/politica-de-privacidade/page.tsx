@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PaginaDeTexto } from "@/components/editorial/PaginaDeTexto";
-import { conteudoDaPagina, iconeDaPagina, VOLTA_INICIO } from "@/lib/paginaDeTexto";
+import { conteudoDaPagina, VOLTA_INICIO } from "@/lib/paginaDeTexto";
 import { PRIVACIDADE } from "@/lib/rascunhosLegais";
 import { paginaPorSlug } from "@/lib/sanity/consultas";
 
@@ -46,5 +46,5 @@ export default async function PaginaPrivacidade() {
   const conteudo = conteudoDaPagina(await paginaPorSlug(SLUG), PRIVACIDADE, true);
   if (!conteudo) notFound();
 
-  return <PaginaDeTexto conteudo={conteudo} volta={VOLTA_INICIO} icone={iconeDaPagina(SLUG)} />;
+  return <PaginaDeTexto conteudo={conteudo} volta={VOLTA_INICIO} />;
 }

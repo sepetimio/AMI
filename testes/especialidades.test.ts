@@ -1,29 +1,8 @@
-import { createElement } from "react";
-import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import type { Icon } from "@phosphor-icons/react";
-import {
-  Baby,
-  Bone,
-  Brain,
-  ChatsCircle,
-  Drop,
-  DropHalf,
-  Ear,
-  Eye,
-  ForkKnife,
-  GenderFemale,
-  Hand,
-  HandPalm,
-  Heartbeat,
-  Stethoscope,
-} from "@phosphor-icons/react/dist/ssr";
 import type { PortableTextBlock } from "@portabletext/react";
-import { Icone } from "@/components/base/IconeServidor";
+import * as modulo from "@/lib/especialidades";
 import {
-  ICONE_PADRAO,
   especialidadesComMedico,
-  iconeDaEspecialidade,
   linhaDeApoioDoIndice,
   mesDeAno,
   nomeComQuebras,
@@ -38,45 +17,9 @@ import type { TextoDeEspecialidade } from "@/lib/sanity/tipos";
   (docs/superpowers/specs/2026-10-03-especialidades-design.md).
 */
 
-describe("o ícone de cada especialidade", () => {
-  /* A tabela da spec, seção 1.4, escrita aqui de novo, do slug ao componente
-     Phosphor: comparar o desenho que sai com o do componente é o que pega
-     dois ícones trocados de lugar. */
-  const TABELA: [string, Icon][] = [
-    ["cardiologia", Heartbeat],
-    ["clinica-medica", Stethoscope],
-    ["dermatologia", HandPalm],
-    ["endocrinologia", DropHalf],
-    ["gastroenterologia", ForkKnife],
-    ["ginecologia-e-obstetricia", GenderFemale],
-    ["neurologia", Brain],
-    ["oftalmologia", Eye],
-    ["ortopedia-e-traumatologia", Bone],
-    ["otorrinolaringologia", Ear],
-    ["pediatria", Baby],
-    ["psiquiatria", ChatsCircle],
-    ["reumatologia", Hand],
-    ["urologia", Drop],
-  ];
-  const desenho = (Componente: Icon) =>
-    renderToString(
-      createElement(Componente, { size: 20, weight: "duotone", className: "", "aria-hidden": "true" }),
-    );
-
-  it("cada especialidade da tabela desenha o ícone dela, em duotone", () => {
-    for (const [slug, Componente] of TABELA) {
-      const nosso = renderToString(createElement(Icone, { nome: iconeDaEspecialidade(slug), duotone: true }));
-      expect(nosso, slug).toBe(desenho(Componente));
-    }
-  });
-
-  it("especialidade sem ícone na tabela, inclusive uma nova, fica com o estetoscópio", () => {
-    expect(ICONE_PADRAO).toBe("estetoscopio");
-    /* "constructor" e "toString" existem em todo objeto comum do JavaScript:
-       uma tabela feita de objeto devolveria uma função, e não um ícone. */
-    for (const slug of ["angiologia", "medicina-do-trabalho", "", "constructor", "toString"]) {
-      expect(iconeDaEspecialidade(slug), slug).toBe(ICONE_PADRAO);
-    }
+describe("nenhum ícone por especialidade", () => {
+  it("o módulo não escolhe ícone: nem a função, nem o padrão", () => {
+    expect(Object.keys(modulo).filter((nome) => /icone/i.test(nome))).toEqual([]);
   });
 });
 
