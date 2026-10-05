@@ -86,7 +86,7 @@ Valem para toda tarefa.
 
 ---
 
-### Tarefa 1: As fotos de antes e as faixas do topo
+### Task 1: As fotos de antes e as faixas do topo
 
 **Arquivos:**
 - Modificar:
@@ -148,7 +148,7 @@ Valem para toda tarefa.
 
 ---
 
-### Tarefa 2: Home, A Associação e as páginas de texto
+### Task 2: Home, A Associação e as páginas de texto
 
 **Arquivos:**
 - Modificar:
@@ -200,7 +200,7 @@ Valem para toda tarefa.
 
 ---
 
-### Tarefa 3: Especialidades, contato e o autor da notícia
+### Task 3: Especialidades, contato e o autor da notícia
 
 **Arquivos:**
 - Modificar:
@@ -237,7 +237,7 @@ Valem para toda tarefa.
 
 ---
 
-### Tarefa 4: Limpeza, trava da regra, auditoria e fotos de depois
+### Task 4: Limpeza, trava da regra, auditoria e fotos de depois
 
 **Arquivos:**
 - Modificar:
