@@ -5,7 +5,6 @@ import type { Icon } from "@phosphor-icons/react";
 import {
   ArrowRight,
   ArrowUpRight,
-  ChatsCircle,
   Clock,
   DeviceMobile,
   Handshake,
@@ -25,6 +24,7 @@ import { canaisDeContato } from "@/lib/paginaDeContato";
 import { tituloDePagina } from "@/lib/seo/metadados";
 import { fonte } from "@/testes/apoio";
 import { base, bloco, regra, semNotas } from "@/testes/css";
+import { topoSemAVolta } from "@/testes/renderizar";
 
 /*
   O contato (/contato): os três canais, a sede com o fecho e a página de
@@ -234,12 +234,14 @@ describe("a página /contato", () => {
     }
   });
 
-  it("a faixa: CONTATO, Fale com a AMI, a frase e a conversa no ladrilho", async () => {
+  it("a faixa: CONTATO, Fale com a AMI e a frase, sem ícone", async () => {
     const { html } = await pagina("true");
     expect(html).toContain('data-coluna="">Contato</span>');
     expect(html).toContain(">Fale com a AMI</h1>");
     expect(html).toContain(">Pelo telefone, pelo Instagram ou na sede, no Centro de Imperatriz.</p>");
-    expect(html).toContain(desenho(ChatsCircle, 84, "duotone"));
+    for (const chave of ["true", "false"]) {
+      expect(topoSemAVolta((await pagina(chave)).html), chave).not.toContain("<svg");
+    }
   });
 
   it("a sede fecha a página e é faixa: o rodapé emenda nela", async () => {

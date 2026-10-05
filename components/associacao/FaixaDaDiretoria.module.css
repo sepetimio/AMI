@@ -1,13 +1,13 @@
 /*
   A pílula do mandato na faixa verde da diretoria, transcrita do desenho
   aprovado (docs/desenho-aprovado/associacao/diretoria.html:
-  `.a-entrar-pilula`, `.a-entrar-pilula i`, `.a-entrar-pilula em`, e o
-  @media de 700px).
+  `.a-entrar-pilula`, `.a-entrar-pilula em` e o @media de 700px), só com
+  o texto.
 
   É moldura "a entrar": sai só no modo demonstração. As duas cores claras
   sobre o verde não têm token; o relatório do desenho mediu 8,61:1
   ("Gestão", #DDE7D6) e 6,42:1 ("(período a entrar)", #B9C6B2). O fio
-  tracejado é o lima translúcido, como o vidro do ladrilho.
+  tracejado é o lima translúcido.
 */
 
 .pilula {
@@ -22,12 +22,6 @@
   font-size: 13px;
   font-weight: 600;
   color: #DDE7D6;
-}
-
-.pilula svg {
-  width: 16px;
-  height: 16px;
-  color: var(--color-ami-lima-400);
 }
 
 .pilula em {

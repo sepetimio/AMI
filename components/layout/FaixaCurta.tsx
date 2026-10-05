@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Icone, type NomeIcone } from "@/components/base/IconeServidor";
+import { Icone } from "@/components/base/IconeServidor";
 import busca from "@/components/busca/FaixaDaBusca.module.css";
 import faixa from "@/components/layout/FaixaCurta.module.css";
 import type { VoltaDaPagina } from "@/lib/paginaDeTexto";
@@ -19,17 +19,13 @@ import type { VoltaDaPagina } from "@/lib/paginaDeTexto";
   - O título e o resumo.
   - `children` entra logo depois do resumo: a pílula do mandato, na
     diretoria; quem assina, na notícia aberta.
-  - À direita, o ícone da página num ladrilho de vidro, que some no
-    celular. Sem `icone`, sem ladrilho: a notícia aberta precisa da largura
-    para o título.
   - `className` vai no fim da classe da faixa, para a página que põe
     regras suas sobre ela.
 
   Sem campo de busca, sem `Cabeceira` e sem trilha.
 
   O CSS é o da faixa da busca (components/busca/FaixaDaBusca.module.css) e
-  o próprio (FaixaCurta.module.css): texto à esquerda e o ladrilho à
-  direita.
+  o próprio (FaixaCurta.module.css): o texto numa coluna só.
 
   - `data-abertura`: a barra do pé do celular aparece quando esta faixa sai
     da tela (components/layout/BarraDoPe.tsx).
@@ -43,13 +39,11 @@ export function FaixaCurta({
   rotulo,
   titulo,
   texto,
-  icone,
   className,
   children,
 }: AltoDaFaixa & {
   titulo: string;
   texto: string;
-  icone?: NomeIcone;
   className?: string;
   children?: ReactNode;
 }) {
@@ -79,12 +73,6 @@ export function FaixaCurta({
         <p className={busca.texto}>{texto}</p>
         {children}
       </div>
-
-      {icone ? (
-        <div className={faixa.selo} aria-hidden="true">
-          <Icone nome={icone} duotone tamanho={84} />
-        </div>
-      ) : null}
     </section>
   );
 }

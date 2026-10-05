@@ -1,4 +1,3 @@
-import { Icone } from "@/components/base/IconeServidor";
 import styles from "@/components/associacao/FaixaDaAssociacao.module.css";
 import busca from "@/components/busca/FaixaDaBusca.module.css";
 import { AMI } from "@/lib/ami";
@@ -8,9 +7,10 @@ import { numerosDaAssociacao } from "@/lib/associacao";
   A faixa verde de ponta a ponta que abre A Associação (/associacao):
   - o rótulo, o título com o ano de fundação (`AMI.fundadaEm`) e o
     parágrafo de apresentação;
-  - à direita, os três números da home: anos, médicos e especialidades
-    (`numerosDaAssociacao`, lib/associacao.ts), sem a contagem animada da
-    home, que lá serve para chamar o olho logo abaixo do carrossel.
+  - à direita, os três números da home, cada um com o número e o rótulo:
+    anos, médicos e especialidades (`numerosDaAssociacao`,
+    lib/associacao.ts), sem a contagem animada da home, que lá serve para
+    chamar o olho logo abaixo do carrossel.
 
   Sem `Cabeceira` e sem trilha.
 
@@ -52,10 +52,7 @@ export function FaixaDaAssociacao({
 
       <ul className={styles.numeros} aria-label="A AMI em números">
         {numerosDaAssociacao({ anos, medicos, especialidades }).map((n) => (
-          <li key={n.icone}>
-            <span className={styles.vidro} aria-hidden="true">
-              <Icone nome={n.icone} duotone />
-            </span>
+          <li key={n.rotulo}>
             <span className={styles.grande}>{n.valor}</span>
             <span className={styles.rotulo}>{n.rotulo}</span>
           </li>

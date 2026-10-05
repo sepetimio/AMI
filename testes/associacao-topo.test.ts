@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { Icon } from "@phosphor-icons/react";
-import { ArrowUpRight, Heartbeat, MapPin, Phone, SealCheck, Stethoscope } from "@phosphor-icons/react/dist/ssr";
+import { ArrowUpRight, MapPin, Phone } from "@phosphor-icons/react/dist/ssr";
 import type { PortableTextBlock } from "@portabletext/react";
 import { FaixaDaAssociacao } from "@/components/associacao/FaixaDaAssociacao";
 import estilosFaixa from "@/components/associacao/FaixaDaAssociacao.module.css";
@@ -14,6 +14,7 @@ import estilosAssocie from "@/components/home/SejaAssociado.module.css";
 import { TEXTO_INSTITUCIONAL, quemEhAmi } from "@/lib/molduras";
 import { fonte } from "@/testes/apoio";
 import { base, bloco, regra, semNotas } from "@/testes/css";
+import { topoSemAVolta } from "@/testes/renderizar";
 
 /*
   Os dois blocos de cima de A Associação, no HTML de servidor: a faixa verde
@@ -66,16 +67,17 @@ describe("a faixa verde de A Associação", () => {
     );
   });
 
-  it("à direita, os três números da home, cada um com o ícone num ladrilho de vidro", () => {
+  it("à direita, os três números da home, cada um só com o número e o rótulo", () => {
     expect(html).toContain(`<ul class="${estilosFaixa.numeros}" aria-label="A AMI em números">`);
     const numeros = [...html.matchAll(/<li>([\s\S]*?)<\/li>/g)].map((m) => m[1]);
     expect(numeros.map(tela)).toEqual(["51 anos de AMI", "24 médicos no diretório", "14 especialidades"]);
     expect(numeros[0]).toBe(
-      `<span class="${estilosFaixa.vidro}" aria-hidden="true">${desenho(SealCheck, 20, "duotone")}</span>` +
-        `<span class="${estilosFaixa.grande}">51</span><span class="${estilosFaixa.rotulo}">anos de AMI</span>`,
+      `<span class="${estilosFaixa.grande}">51</span><span class="${estilosFaixa.rotulo}">anos de AMI</span>`,
     );
-    expect(numeros[1]).toContain(desenho(Stethoscope, 20, "duotone"));
-    expect(numeros[2]).toContain(desenho(Heartbeat, 20, "duotone"));
+  });
+
+  it("nenhum ícone na faixa", () => {
+    expect(topoSemAVolta(html)).not.toContain("<svg");
   });
 });
 
@@ -234,14 +236,19 @@ describe("o CSS da faixa verde", () => {
     expect(regra(base(css), ".inst h1 + p")).toMatch(/max-width: 31em;/);
   });
 
-  it("três colunas com fio; no celular, uma fileira de três, sem ícone", () => {
+  it("três colunas com fio; no celular, uma fileira de três", () => {
     expect(regra(base(css), ".numeros")).toMatch(/grid-template-columns: repeat\(3, auto\);/);
     expect(regra(base(css), ".numeros li")).toMatch(/border-left: 1px solid rgba\(255, 255, 255, 0\.16\);/);
     expect(regra(base(css), ".grande")).toMatch(/font-size: 48px;/);
     expect(regra(base(css), ".rotulo")).toMatch(/color: #DDE7D6;/);
-    expect(regra(cel(), ".vidro")).toMatch(/display: none;/);
     expect(regra(cel(), ".grande")).toMatch(/font-size: 32px;/);
     expect(regra(cel(), ".numeros")).toMatch(/border-top: 1px solid rgba\(255, 255, 255, 0\.16\);/);
+  });
+
+  it("o número abre a coluna, sem espaço em cima, e nenhuma regra de ladrilho nem de ícone", () => {
+    expect(regra(base(css), ".grande")).toMatch(/margin: 0 0 8px;/);
+    expect(css).not.toContain(".vidro");
+    expect(css).not.toContain("svg");
   });
 });
 

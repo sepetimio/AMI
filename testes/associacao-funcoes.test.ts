@@ -113,11 +113,11 @@ describe("a diretoria em destaque", () => {
 });
 
 describe("os números da faixa verde", () => {
-  it("anos, médicos e especialidades, com o ícone e o rótulo da home", () => {
+  it("anos, médicos e especialidades, com o rótulo da home", () => {
     expect(numerosDaAssociacao({ anos: 51, medicos: 24, especialidades: 14 })).toEqual([
-      { icone: "selo", valor: 51, rotulo: "anos de AMI" },
-      { icone: "estetoscopio", valor: 24, rotulo: "médicos no diretório" },
-      { icone: "batimento", valor: 14, rotulo: "especialidades" },
+      { valor: 51, rotulo: "anos de AMI" },
+      { valor: 24, rotulo: "médicos no diretório" },
+      { valor: 14, rotulo: "especialidades" },
     ]);
   });
 

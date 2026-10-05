@@ -3,18 +3,20 @@
   de cada especialidade, a diretoria e as páginas de texto. Transcrita do
   desenho aprovado da especialidade
   (docs/desenho-aprovado/especialidades/especialidade.html: `.esp-topo`,
-  `.esp-topo h1`, `.esp-topo .texto`, `.esp-selo`, `.esp-selo i`, e os
-  @media de 980 e 700px), que A Associação repete (`.busca-topo.esp-topo`).
-  O link de volta é o `.link-de-volta` global (app/globals.css), o mesmo do
-  perfil.
+  `.esp-topo h1`, `.esp-topo .texto` e os @media de 980 e 700px), que A
+  Associação repete (`.busca-topo.esp-topo`). O link de volta é o
+  `.link-de-volta` global (app/globals.css), o mesmo do perfil.
 
   O resto da faixa é o da busca (components/busca/FaixaDaBusca.module.css:
   `.faixa`, `.sobre`, `.titulo`, `.texto`). O link de volta tem a cor do
   rótulo dela (`.sobre`).
 
-  Sem campo de busca. À direita, o ícone da página num ladrilho de vidro,
-  alinhado à borda direita do texto. As duas colunas ficam até o celular,
-  onde o ícone sai e a faixa fica curta.
+  Sem campo de busca. O texto fica numa coluna só, em toda largura.
+
+  No tablet, o parágrafo não passa da faixa menos 156px, a largura que ele
+  tem desde o desenho aprovado: sem esse limite, entre 701 e 803px ele
+  alargaria até os 34em. No celular, volta aos 34em, e quem limita é a
+  largura da tela.
 
   O parágrafo quebra com o `text-wrap: pretty` do `.texto` da busca.
 
@@ -23,13 +25,10 @@
   - `.especialidade[data-faixa]` pesa mais que `.faixa`;
   - `.especialidade h1` e `.especialidade h1 + p` pesam mais que `.titulo`
     e `.texto`.
-
-  O vidro do ladrilho é branco translúcido e a sombra é preta: nenhum dos
-  dois tem tom.
 */
 
 .especialidade[data-faixa] {
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .especialidade h1 {
@@ -40,43 +39,14 @@
   max-width: 34em;
 }
 
-.selo {
-  display: grid;
-  place-items: center;
-  width: 168px;
-  height: 168px;
-  border-radius: 40px;
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.03) 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
-    0 24px 60px rgba(0, 0, 0, 0.22);
-  color: var(--color-ami-lima-400);
-}
-
-.selo svg {
-  width: 84px;
-  height: 84px;
-}
-
 @media (max-width: 980px) {
-  .selo {
-    width: 128px;
-    height: 128px;
-    border-radius: 32px;
-  }
-
-  .selo svg {
-    width: 64px;
-    height: 64px;
+  .especialidade h1 + p {
+    max-width: min(34em, 100% - 156px);
   }
 }
 
 @media (max-width: 700px) {
-  .especialidade[data-faixa] {
-    grid-template-columns: 1fr;
-  }
-
-  .selo {
-    display: none;
+  .especialidade h1 + p {
+    max-width: 34em;
   }
 }

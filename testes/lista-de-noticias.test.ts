@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Icon } from "@phosphor-icons/react";
-import { ArrowLeft, Newspaper } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import estilosPagina from "@/app/(site)/encontre.module.css";
 import { CartaoNoticia } from "@/components/editorial/CartaoNoticia";
 import { ListaDeNoticias } from "@/components/editorial/ListaDeNoticias";
@@ -19,7 +19,7 @@ import type { ResumoNoticia } from "@/lib/sanity/tipos";
 import { tituloDePagina } from "@/lib/seo/metadados";
 import { fonte } from "@/testes/apoio";
 import { base, bloco, regra, semNotas } from "@/testes/css";
-import { htmlDe } from "@/testes/renderizar";
+import { htmlDe, topoSemAVolta } from "@/testes/renderizar";
 
 /*
   A lista de notícias (/noticias): o destaque, o cartão, a grade nos
@@ -292,14 +292,16 @@ describe("a página /noticias", () => {
     expect(html.match(/<h1\b/g)).toHaveLength(1);
   });
 
-  it("a faixa: NOTÍCIAS, o título, a frase e o jornal no ladrilho", async () => {
+  it("a faixa: NOTÍCIAS, o título e a frase, sem ícone", async () => {
     const { html } = await pagina("true");
     expect(html).toContain('data-coluna="">Notícias</span>');
     expect(html).toContain(">Notícias da AMI</h1>");
     expect(html).toContain(
       ">Comunicados, eventos e notas da associação. Cada texto é assinado por um médico, com o número de inscrição no CRM.</p>",
     );
-    expect(html).toContain(desenho(Newspaper, 84, "duotone"));
+    for (const chave of ["true", "false"]) {
+      expect(topoSemAVolta((await pagina(chave)).html), chave).not.toContain("<svg");
+    }
   });
 
   it("pede no máximo 20 notícias ao Sanity", async () => {

@@ -2,27 +2,24 @@
   A faixa verde e a capa da notícia aberta, transcritas do desenho
   aprovado (docs/desenho-aprovado/noticias-contato/noticia.html:
   `.materia-topo`, `.materia-topo h1`, `.materia-topo .texto`,
-  `.assinatura` e o que vem dentro dela, `.ladrilho-vidro`, `.capa-materia`,
-  e o @media de 700px).
+  `.assinatura` e o que vem dentro dela, `.capa-materia` e o @media de
+  700px).
 
-  A faixa é a faixa curta (components/layout/FaixaCurta.tsx), sem o
-  ladrilho à direita: o título de uma notícia tem até 110 caracteres e
-  precisa da largura. Por isso o título é menor que o das outras faixas
-  (de 34 a 50px, até 24 caracteres por linha), e a grade tem uma coluna
-  só.
+  A faixa é a faixa curta (components/layout/FaixaCurta.tsx), de uma
+  coluna só. O título de uma notícia tem até 110 caracteres, então ele é
+  menor que o das outras faixas (de 34 a 50px, até 24 caracteres por
+  linha).
 
   As regras daqui valem sobre as da faixa curta e da busca qualquer que
   seja a ordem em que as folhas chegam ao navegador:
-  - `.materia[data-faixa][data-abertura]` (classe e dois atributos) pesa
-    mais que `.especialidade[data-faixa]`;
   - `.materia[data-faixa] h1` e `.materia[data-faixa] h1 + p` pesam mais
     que `.especialidade h1`, `.especialidade h1 + p`, `.titulo` e `.texto`.
 
-  A assinatura, embaixo de um fio claro: o estetoscópio num ladrilho de
-  vidro, "Por {autor}" (com o link do perfil, sublinhado claro) e a linha
-  "MÉDICO · CRM/UF n · data", em caixa alta. O vidro e o fio são branco
-  translúcido, sem tom. #DDE7D6, a linha do CRM, é a cor dos rótulos dos
-  números de A Associação (components/associacao/FaixaDaAssociacao.module.css).
+  A assinatura, embaixo de um fio claro: "Por {autor}" (com o link do
+  perfil, sublinhado claro) e a linha "MÉDICO · CRM/UF n · data", em caixa
+  alta. O fio é branco translúcido, sem tom. #DDE7D6, a linha do CRM, é a
+  cor dos rótulos dos números de A Associação
+  (components/associacao/FaixaDaAssociacao.module.css).
 
   A capa: em 16:9, na largura dos painéis, com o canto dos painéis. O
   recorte é o do CDN, pelo ponto de interesse (`capaDaNoticia`,
@@ -30,10 +27,6 @@
   chega. #DDE2E0, atrás dela, é o cinza do retrato do médico
   (components/diretorio/FotoDoMedico.module.css).
 */
-
-.materia[data-faixa][data-abertura] {
-  grid-template-columns: minmax(0, 1fr);
-}
 
 .materia[data-faixa] h1 {
   max-width: 24ch;
@@ -48,29 +41,9 @@
 }
 
 .assinatura {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  column-gap: 14px;
-  align-items: center;
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.vidro {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.03) 100%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
-  color: var(--color-ami-lima-400);
-}
-
-.vidro svg {
-  width: 23px;
-  height: 23px;
 }
 
 .nome {
@@ -130,21 +103,8 @@
   }
 
   .assinatura {
-    grid-template-columns: 40px minmax(0, 1fr);
-    column-gap: 12px;
     margin-top: 22px;
     padding-top: 18px;
-  }
-
-  .vidro {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-  }
-
-  .vidro svg {
-    width: 21px;
-    height: 21px;
   }
 
   .nome {

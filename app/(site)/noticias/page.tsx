@@ -24,8 +24,7 @@ export const metadata: Metadata = {
 /*
   A lista de notícias (item "Notícias" do menu), como no desenho aprovado
   (docs/desenho-aprovado/noticias-contato/noticias.html):
-  - a faixa verde curta, com o rótulo, o título, a frase e o jornal no
-    ladrilho;
+  - a faixa verde curta, com o rótulo, o título e a frase;
   - a lista: a mais recente em destaque e as outras em cartões, no arranjo
     da home para poucas notícias; sem notícia, as molduras da home na
     demonstração, ou a frase de lista vazia fora dela (`listaDeNoticias`,
@@ -62,7 +61,6 @@ export default async function PaginaNoticias() {
           rotulo="Notícias"
           titulo="Notícias da AMI"
           texto="Comunicados, eventos e notas da associação. Cada texto é assinado por um médico, com o número de inscrição no CRM."
-          icone="jornal"
         />
         <ListaDeNoticias lista={lista} />
       </div>

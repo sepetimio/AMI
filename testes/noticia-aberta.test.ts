@@ -14,14 +14,13 @@ import estilosLista from "@/components/editorial/Noticias.module.css";
 import { OutrasNoticias } from "@/components/editorial/OutrasNoticias";
 import estilosTexto from "@/components/editorial/PaginaDeTexto.module.css";
 import estilosHome from "@/components/editorial/UltimasNoticias.module.css";
-import estilosFaixa from "@/components/layout/FaixaCurta.module.css";
 import { tamanhoDosCartoes } from "@/lib/arranjo-das-noticias";
 import { SIZES_DA_CAPA, arranjoDasOutras, capaDaNoticia } from "@/lib/noticias";
 import type { Noticia, ResumoNoticia } from "@/lib/sanity/tipos";
 import { tituloDePagina } from "@/lib/seo/metadados";
 import { fonte } from "@/testes/apoio";
 import { base, bloco, regra, semNotas } from "@/testes/css";
-import { htmlDe } from "@/testes/renderizar";
+import { htmlDe, topoSemAVolta } from "@/testes/renderizar";
 
 /*
   A notícia aberta (/noticias/[slug]): a faixa com a assinatura, a capa, o
@@ -150,11 +149,13 @@ afterEach(() => {
 describe("a faixa da notícia", () => {
   const html = () => renderToString(createElement(FaixaDaNoticia, { noticia: JORNADA }));
 
-  it("a faixa curta com a classe da notícia, sem o ladrilho à direita", () => {
+  it("a faixa curta com a classe da notícia, sem ícone fora do link de volta, nem na assinatura", () => {
     expect(html()).toMatch(
       new RegExp(`^<section data-bloco="topo" data-faixa="" data-abertura="" [^>]*class="textura-verde [^"]* ${estilos.materia}">`),
     );
-    expect(html()).not.toContain(estilosFaixa.selo);
+    expect(topoSemAVolta(html())).not.toContain("<svg");
+    const sem = renderToString(createElement(FaixaDaNoticia, { noticia: COMUNICADO }));
+    expect(topoSemAVolta(sem)).not.toContain("<svg");
   });
 
   it("← NOTÍCIAS, o título e o resumo", () => {
@@ -163,9 +164,9 @@ describe("a faixa da notícia", () => {
     expect(html()).toContain(`>${JORNADA.resumo}</p>`);
   });
 
-  it("embaixo do fio, a assinatura: o estetoscópio no vidro, Por e o link do perfil, MÉDICO · CRM e a data", () => {
+  it("embaixo do fio, a assinatura: Por e o link do perfil, MÉDICO · CRM e a data", () => {
     expect(html()).toContain(
-      `<div class="${estilos.assinatura}"><span class="${estilos.vidro}" aria-hidden="true">${desenho(Stethoscope, 20, "duotone")}</span>` +
+      `<div class="${estilos.assinatura}">` +
         `<div><p class="${estilos.nome}">Por <a href="/medico/rafael-coelho">Rafael Coelho</a></p>` +
         `<p class="${estilos.meta}">MÉDICO · CRM/MA 10137<span class="${estilos.ponto}"> · </span>` +
         `<time dateTime="2026-09-18T09:00:00-03:00">18 de setembro de 2026</time></p></div></div></div></section>`,
@@ -368,8 +369,10 @@ describe("o CSS da notícia aberta", () => {
   const css = semNotas(fonte("../components/editorial/NoticiaAberta.module.css"));
   const cel = () => bloco(css, "@media (max-width: 700px)");
 
-  it("uma coluna só, sem a do ladrilho, valendo sobre a regra da faixa da especialidade", () => {
-    expect(regra(base(css), ".materia[data-faixa][data-abertura]")).toMatch(/grid-template-columns: minmax\(0, 1fr\);/);
+  it("a coluna é a da faixa curta, e a assinatura não tem coluna de ícone", () => {
+    expect(css).not.toContain("grid-template-columns");
+    expect(css).not.toContain(".vidro");
+    expect(css).not.toContain("svg");
   });
 
   it("o título menor que o das outras faixas: de 34 a 50px, até 24 caracteres; 30px no celular", () => {

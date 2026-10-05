@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Icone } from "@/components/base/IconeServidor";
 import styles from "@/components/editorial/NoticiaAberta.module.css";
 import { FaixaCurta } from "@/components/layout/FaixaCurta";
 import { dataPorExtenso } from "@/lib/formato";
@@ -9,8 +8,7 @@ import type { Noticia } from "@/lib/sanity/tipos";
 /*
   A faixa verde que abre a notícia: a faixa curta
   (components/layout/FaixaCurta.tsx), com "← NOTÍCIAS", o título e o
-  resumo, sem o ladrilho à direita e com o título menor
-  (NoticiaAberta.module.css, `.materia`).
+  resumo, com o título menor (NoticiaAberta.module.css, `.materia`).
 
   Embaixo de um fio, a assinatura: "Por {autor}", com o link do perfil
   quando o autor tem um no diretório, e "MÉDICO · CRM/UF n" com a data de
@@ -25,9 +23,6 @@ export function FaixaDaNoticia({ noticia }: { noticia: Noticia }) {
   return (
     <FaixaCurta volta={VOLTA_NOTICIAS} titulo={noticia.titulo} texto={noticia.resumo} className={styles.materia}>
       <div className={styles.assinatura}>
-        <span className={styles.vidro} aria-hidden="true">
-          <Icone nome="estetoscopio" duotone />
-        </span>
         <div>
           <p className={styles.nome}>
             {assinatura.perfil ? (

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { FaleComAmi } from "@/components/associacao/FaleComAmi";
 import { PaginaDeTexto } from "@/components/editorial/PaginaDeTexto";
 import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
-import { conteudoDaPagina, iconeDaPagina, VOLTA_ASSOCIACAO } from "@/lib/paginaDeTexto";
+import { conteudoDaPagina, VOLTA_ASSOCIACAO } from "@/lib/paginaDeTexto";
 import { RASCUNHOS_DE_ASSOCIACAO } from "@/lib/rascunhosLegais";
 import { paginaPorSlug } from "@/lib/sanity/consultas";
 import { slugsDePaginasSobAssociacao } from "@/lib/sanity/paginas";
@@ -81,7 +81,7 @@ export default async function SubpaginaDaAssociacao({ params }: Props) {
   if (!conteudo) notFound();
 
   return (
-    <PaginaDeTexto conteudo={conteudo} volta={VOLTA_ASSOCIACAO} icone={iconeDaPagina(pagina)}>
+    <PaginaDeTexto conteudo={conteudo} volta={VOLTA_ASSOCIACAO}>
       {pagina === "seja-associado" ? <FaleComAmi /> : null}
     </PaginaDeTexto>
   );

@@ -64,7 +64,7 @@ export function diretoriaEmDestaque(diretoria: Diretor[]): Diretor[] {
   return diretoria.slice(0, LIMITE_DA_DIRETORIA_EM_DESTAQUE);
 }
 
-export type NumeroDaAssociacao = { icone: NomeIcone; valor: number; rotulo: string };
+export type NumeroDaAssociacao = { valor: number; rotulo: string };
 
 /** Os três números da home, na faixa verde de A Associação: anos, médicos e especialidades. */
 export function numerosDaAssociacao(n: {
@@ -73,14 +73,12 @@ export function numerosDaAssociacao(n: {
   especialidades: number;
 }): NumeroDaAssociacao[] {
   return [
-    { icone: "selo", valor: n.anos, rotulo: n.anos === 1 ? "ano de AMI" : "anos de AMI" },
+    { valor: n.anos, rotulo: n.anos === 1 ? "ano de AMI" : "anos de AMI" },
     {
-      icone: "estetoscopio",
       valor: n.medicos,
       rotulo: n.medicos === 1 ? "médico no diretório" : "médicos no diretório",
     },
     {
-      icone: "batimento",
       valor: n.especialidades,
       rotulo: n.especialidades === 1 ? "especialidade" : "especialidades",
     },

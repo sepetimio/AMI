@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { Icon } from "@phosphor-icons/react";
-import { ArrowLeft, CaretDown, UsersThree } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, CaretDown } from "@phosphor-icons/react/dist/ssr";
 import estilosBusca from "@/components/busca/FaixaDaBusca.module.css";
 import { IndiceNestaPagina, IndiceRecolhido } from "@/components/editorial/IndiceNestaPagina";
 import estilosIndice from "@/components/editorial/IndiceNestaPagina.module.css";
@@ -12,6 +12,7 @@ import { ancorasUnicas } from "@/lib/nestaPagina";
 import { VOLTA_ASSOCIACAO, VOLTA_INICIO } from "@/lib/paginaDeTexto";
 import { fonte, semComentarios } from "@/testes/apoio";
 import { base, bloco, regra, semNotas } from "@/testes/css";
+import { topoSemAVolta } from "@/testes/renderizar";
 
 /*
   A faixa verde curta (a diretoria e as páginas de texto) e o índice "Nesta
@@ -40,7 +41,6 @@ describe("a faixa curta", () => {
         volta: VOLTA_ASSOCIACAO,
         titulo: "Diretoria da AMI",
         texto: "Quem responde pela associação.",
-        icone: "pessoas",
       },
       createElement("p", { className: "extra" }, "Logo depois do texto"),
     ),
@@ -67,7 +67,7 @@ describe("a faixa curta", () => {
     expect(tela(dentro)).toBe("A Associação");
 
     const legal = renderToString(
-      createElement(FaixaCurta, { volta: VOLTA_INICIO, titulo: "Termos de uso", texto: "x", icone: "documento" }),
+      createElement(FaixaCurta, { volta: VOLTA_INICIO, titulo: "Termos de uso", texto: "x" }),
     );
     expect(tela(/<a [^>]*href="\/"[^>]*>[\s\S]*?<\/a>/.exec(legal)![0])).toBe("Início");
   });
@@ -80,10 +80,9 @@ describe("a faixa curta", () => {
     );
   });
 
-  it("à direita, o ícone da página no ladrilho de vidro, fora do leitor de tela", () => {
-    expect(html).toContain(
-      `<div class="${estilosFaixa.selo}" aria-hidden="true">${desenho(UsersThree, 84, "duotone")}</div></section>`,
-    );
+  it("nenhum ícone fora do link de volta: a faixa termina na coluna do texto", () => {
+    expect(topoSemAVolta(html)).not.toContain("<svg");
+    expect(html).toMatch(/<\/p><\/div><\/section>$/);
   });
 });
 
