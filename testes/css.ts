@@ -34,6 +34,18 @@ export function regra(css: string, seletor: string): string {
   throw new Error(`falta a regra ${seletor}`);
 }
 
+/** O corpo de toda regra `seletor { ... }` com o seletor começando a linha, na ordem em que aparecem. Vazio, se não há nenhuma. */
+export function regras(css: string, seletor: string): string[] {
+  const alvo = `${seletor} {`;
+  const corpos: string[] = [];
+  for (let k = css.indexOf(alvo); k > -1; k = css.indexOf(alvo, k + 1)) {
+    if (css.slice(css.lastIndexOf("\n", k - 1) + 1, k).trim() === "") {
+      corpos.push(css.slice(k, css.indexOf("}", k)));
+    }
+  }
+  return corpos;
+}
+
 /** O CSS fora de qualquer @media: o que vale no computador. */
 export function base(css: string): string {
   let saida = "";

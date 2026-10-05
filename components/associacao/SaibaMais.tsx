@@ -11,10 +11,10 @@ import type { Atalho } from "@/lib/associacao";
   lib/associacao.ts).
 
   O atalho de uma página que existe leva a ela pelo cartão inteiro (o link
-  do título, esticado em CSS). O de uma página que ainda não existe, que só
-  sai na demonstração, não é link, e leva a etiqueta "texto a entrar"
-  (`data-a-entrar`), com um espaço antes dela: sem ele, o leitor de tela lê
-  "Estatutotexto a entrar".
+  do título, esticado em CSS), e a seta no pé é a do link. O de uma página
+  que ainda não existe, que só sai na demonstração, não é link e não tem a
+  seta: leva a etiqueta "texto a entrar" (`data-a-entrar`), com um espaço
+  antes dela: sem ele, o leitor de tela lê "Estatutotexto a entrar".
 
   Marcas para a auditoria visual: `data-atalho`, `data-nome` e `data-seta`.
 */
@@ -51,9 +51,11 @@ export function SaibaMais({ atalhos }: { atalhos: Atalho[] }) {
             </h3>
             <p className={`${grade.pe} ${styles.pe}`}>
               <span className={`${grade.conta} ${styles.frase}`}>{a.frase}</span>
-              <span className={`${grade.seta} ${styles.seta}`} aria-hidden="true" data-seta="">
-                <Icone nome="seta" />
-              </span>
+              {a.aEntrar ? null : (
+                <span className={`${grade.seta} ${styles.seta}`} aria-hidden="true" data-seta="">
+                  <Icone nome="seta" />
+                </span>
+              )}
             </p>
           </li>
         ))}

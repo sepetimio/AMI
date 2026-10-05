@@ -19,7 +19,7 @@ import { SIZES_DA_CAPA, arranjoDasOutras, capaDaNoticia } from "@/lib/noticias";
 import type { Noticia, ResumoNoticia } from "@/lib/sanity/tipos";
 import { tituloDePagina } from "@/lib/seo/metadados";
 import { fonte } from "@/testes/apoio";
-import { base, bloco, regra, semNotas } from "@/testes/css";
+import { base, bloco, regra, regras, semNotas } from "@/testes/css";
 import { htmlDe, topoSemAVolta } from "@/testes/renderizar";
 
 /*
@@ -382,8 +382,11 @@ describe("o CSS da notícia aberta", () => {
   it("a coluna é a da faixa curta, e a assinatura não tem coluna de ícone", () => {
     /* Nenhuma regra na própria faixa: a grade é a da FaixaCurta. */
     expect(css).not.toMatch(/^\s*\.materia\[data-faixa\](?:\[[^\]]*\])*\s*\{/m);
-    expect(regra(base(css), ".assinatura")).not.toContain("grid-template-columns");
-    expect(regra(cel(), ".assinatura")).not.toContain("grid-template-columns");
+    for (const [onde, trecho] of [["computador", base(css)], ["celular", cel()]] as const) {
+      const todas = regras(trecho, ".assinatura");
+      expect(todas.length, onde).toBeGreaterThan(0);
+      for (const r of todas) expect(r, onde).not.toContain("grid-template-columns");
+    }
     expect(css).not.toContain(".vidro");
     expect(css).not.toContain("svg");
   });

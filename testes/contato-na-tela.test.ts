@@ -257,9 +257,12 @@ describe("a página /contato", () => {
     }
   });
 
-  it("nenhum ladrilho de ícone na página, nas duas chaves", async () => {
+  it("os únicos svg da página são os dos cinco botões e links: Ligar, Ligar, Abrir o Instagram, Como chegar e Seja associado", async () => {
     for (const chave of ["true", "false"]) {
-      expect((await pagina(chave)).html, chave).not.toContain("ladrilho-icone");
+      const { html } = await pagina(chave);
+      const emLink = [...html.matchAll(/<a [^>]*>[\s\S]*?<\/a>/g)].reduce((n, m) => n + (m[0].match(/<svg/g)?.length ?? 0), 0);
+      expect(html.match(/<svg/g), chave).toHaveLength(5);
+      expect(emLink, chave).toBe(5);
     }
   });
 

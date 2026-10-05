@@ -139,15 +139,17 @@ describe("Saiba mais", () => {
     expect(cartoes[2]).toContain(">Política editorial<!-- --> <span");
   });
 
-  it("nenhum ladrilho: o único ícone de cada atalho é a seta do pé", () => {
-    expect(html).not.toContain("ladrilho-icone");
-    for (const [i, c] of cartoes.entries()) {
-      const svgs = c.match(/<svg/g) ?? [];
-      expect(svgs, `atalho ${i + 1}`).toHaveLength(1);
-      expect(c, `atalho ${i + 1}`).toContain(
-        `<span class="${estilosEsp.seta} ${estilos.seta}" aria-hidden="true" data-seta="">${desenho(ArrowRight, 20, "regular")}</span>`,
-      );
+  it("o único ícone é a seta do atalho que leva a uma página: o atalho a entrar, sem link, sai sem svg", () => {
+    expect(cartoes[0].match(/<svg/g)).toHaveLength(1);
+    expect(cartoes[0]).toContain(
+      `<span class="${estilosEsp.seta} ${estilos.seta}" aria-hidden="true" data-seta="">${desenho(ArrowRight, 20, "regular")}</span>`,
+    );
+    for (const c of cartoes.slice(1)) {
+      expect(c).toContain("data-a-entrar");
+      expect(c).not.toContain("<svg");
+      expect(c).not.toContain("data-seta");
     }
+    expect(html.match(/<svg/g)).toHaveLength(1);
   });
 
   it("o texto do título, como o leitor de tela lê: o nome e a etiqueta separados por espaço", () => {
@@ -226,10 +228,16 @@ describe("a página A Associação", () => {
     expect(html.match(/ data-a-entrar="/g)).toHaveLength(7);
   });
 
-  it("nenhum ladrilho de ícone na página, nos dois modos", async () => {
-    for (const chave of ["true", "false"]) {
+  it("os únicos svg da página são os de botão e link: dentro de um link, na seta de um atalho com link ou no Ver perfil do cartão", async () => {
+    const esperado = { true: 9, false: 8 };
+    for (const chave of ["true", "false"] as const) {
       const { html } = await pagina(chave);
-      expect(html, chave).not.toContain("ladrilho-icone");
+      const total = html.match(/<svg/g)?.length ?? 0;
+      const emLink = [...html.matchAll(/<a [^>]*>[\s\S]*?<\/a>/g)].reduce((n, m) => n + (m[0].match(/<svg/g)?.length ?? 0), 0);
+      const setaDeAtalho = html.match(/data-seta=""><svg/g)?.length ?? 0;
+      const verPerfil = html.match(/<span class="botao [^"]*" aria-hidden="true" data-ligar="">Ver perfil[^<]*(?:<!-- -->)? ?<svg/g)?.length ?? 0;
+      expect(total, chave).toBe(esperado[chave]);
+      expect(emLink + setaDeAtalho + verPerfil, chave).toBe(total);
     }
   });
 
