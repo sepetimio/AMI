@@ -95,14 +95,6 @@
   box-shadow: var(--shadow-erguido);
 }
 
-.atalhos .atalho[data-a-entrar]:hover .seta {
-  border-color: var(--color-line);
-}
-
-.atalhos .atalho[data-a-entrar]:hover .seta svg {
-  transform: none;
-}
-
 .fecho {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
