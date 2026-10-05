@@ -13,7 +13,6 @@ describe("os canais de contato", () => {
     expect(canaisDeContato()).toEqual([
       {
         chave: "fixo",
-        icone: "telefone",
         rotulo: "Telefone da sede",
         dado: "(99) 3524-3716",
         longo: false,
@@ -27,7 +26,6 @@ describe("os canais de contato", () => {
       },
       {
         chave: "celular",
-        icone: "celular",
         rotulo: "Celular",
         dado: "(99) 98802-0205",
         longo: false,
@@ -41,7 +39,6 @@ describe("os canais de contato", () => {
       },
       {
         chave: "instagram",
-        icone: "instagram",
         rotulo: "Instagram",
         dado: "@associacaomedicadeimperatriz",
         longo: true,

@@ -52,12 +52,6 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-/* O título abre o cartão, sem o espaço que a grade do índice deixa em cima
-   dele. */
-.atalho .nome {
-  margin-top: 0;
-}
-
 .atalho .pe {
   align-items: flex-end;
   /* O pé é o `p` do desenho: a frase herda dele a quebra sem palavra

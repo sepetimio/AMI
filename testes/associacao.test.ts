@@ -327,7 +327,11 @@ describe("o CSS dos blocos de baixo", () => {
 
   it("sem ladrilho: nenhuma regra dele, e o título abre o cartão, sem espaço em cima", () => {
     expect(css).not.toContain("ladrilho");
-    expect(regra(base(css), ".atalho .nome")).toMatch(/margin-top: 0;/);
+    /* O título do atalho é o `.nome` da grade do índice, que já abre o
+       cartão sem espaço em cima: aqui, nenhuma regra para desfazer isso. */
+    const grade = semNotas(fonte("../components/especialidades/GradeDeEspecialidades.module.css"));
+    expect(regra(base(grade), ".nome")).not.toMatch(/margin/);
+    expect(base(css)).not.toContain(".atalho .nome {");
   });
 
   it("o fecho em duas colunas, uma do tablet para baixo", () => {

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { SIZES_DA_SEDE } from "@/components/associacao/QuemSomos";
 import quem from "@/components/associacao/QuemSomos.module.css";
 import { Fotografia } from "@/components/base/Fotografia";
-import { Icone, LadrilhoIcone } from "@/components/base/IconeServidor";
+import { Icone } from "@/components/base/IconeServidor";
 import styles from "@/components/contato/Contato.module.css";
 import associe from "@/components/home/SejaAssociado.module.css";
 import { AMI, linkDoMapaDaAmi } from "@/lib/ami";
@@ -58,7 +58,6 @@ export function SedeDaAmi({ demonstracao }: { demonstracao: boolean }) {
           <p className={styles.texto}>{`No ${e.bairro} de ${e.cidade}, na ${e.logradouro}.`}</p>
 
           <div className={quem.sede}>
-            <LadrilhoIcone nome="comoChegar" pequeno />
             <div>
               <h3 className={quem.sedeTitulo}>{AMI.razaoSocial}</h3>
               <address className={quem.endereco}>
@@ -79,11 +78,8 @@ export function SedeDaAmi({ demonstracao }: { demonstracao: boolean }) {
 
           {demonstracao ? (
             <div className={`${quem.sede} ${styles.horario}`} data-a-entrar="horário de atendimento">
-              <LadrilhoIcone nome="horario" pequeno />
-              <div>
-                <h3 className={quem.sedeTitulo}>Horário de atendimento</h3>
-                <p className={styles.falta}>Horário de atendimento da sede a entrar.</p>
-              </div>
+              <h3 className={quem.sedeTitulo}>Horário de atendimento</h3>
+              <p className={styles.falta}>Horário de atendimento da sede a entrar.</p>
             </div>
           ) : null}
         </div>
@@ -103,7 +99,6 @@ export function SedeDaAmi({ demonstracao }: { demonstracao: boolean }) {
       <div className={styles.separa} aria-hidden="true"></div>
 
       <div className={styles.fecho} data-coluna="">
-        <LadrilhoIcone nome="parceria" pequeno />
         <p>
           <strong>Médico interessado em se associar?</strong> A página Seja associado diz quem pode se
           associar e como fazer isso.

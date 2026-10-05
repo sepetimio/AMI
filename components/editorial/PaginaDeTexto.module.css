@@ -302,11 +302,11 @@
 /* O fim da notícia (components/editorial/AutorDaNoticia.tsx): quem assina,
    com "Ver perfil" quando há perfil, e o aviso de saúde. Mora aqui, e não
    na folha da notícia, porque vive dentro da coluna de leitura e as regras
-   dele precisam valer sobre as da coluna (`.coluna p`). O ladrilho é o
-   global (`.ladrilho-icone--pequeno`, 44px). */
+   dele precisam valer sobre as da coluna (`.coluna p`). Sem ícone: o
+   nome começa na borda da coluna, e o botão fica à direita. */
 .coluna .autorFim {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   column-gap: 16px;
   align-items: center;
   margin-top: 56px;
@@ -467,25 +467,12 @@
   }
 
   .coluna .autorFim {
-    grid-template-columns: 40px minmax(0, 1fr);
-    column-gap: 14px;
+    grid-template-columns: minmax(0, 1fr);
     margin-top: 40px;
     padding-top: 22px;
   }
 
-  .autorFim :global(.ladrilho-icone) {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-  }
-
-  .autorFim :global(.ladrilho-icone) svg {
-    width: 21px;
-    height: 21px;
-  }
-
   .autorFim .autorAcoes {
-    grid-column: 1 / -1;
     margin-top: 16px;
   }
 

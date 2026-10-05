@@ -533,9 +533,9 @@
   }
   info.fileirasDeNoticias = fileirasDeNoticias.size;
 
-  /* 18. Os canais do contato: em cada fileira, o ícone, o rótulo e o dado
-     começando na mesma linha, e o botão terminando na mesma linha. Do
-     tablet para baixo cada canal é uma fileira. */
+  /* 18. Os canais do contato: em cada fileira, o rótulo e o dado começando
+     na mesma linha, e o botão terminando na mesma linha. Do tablet para
+     baixo cada canal é uma fileira. */
   const fileirasDeCanais = new Map();
   for (const c of document.querySelectorAll("[data-canal]")) {
     if (R(c).height === 0) continue;
@@ -543,14 +543,13 @@
     if (!fileirasDeCanais.has(topo)) fileirasDeCanais.set(topo, []);
     const acao = c.querySelector("[data-acao]");
     fileirasDeCanais.get(topo).push({
-      icone: decimo(topoAbs(c.querySelector(".ladrilho-icone"))),
       rotulo: decimo(topoAbs(c.querySelector("[data-rotulo]"))),
       dado: decimo(topoAbs(c.querySelector("[data-dado]"))),
       botao: decimo(topoAbs(acao) + R(acao).height),
     });
   }
   for (const [topo, cs] of fileirasDeCanais) {
-    for (const medida of ["icone", "rotulo", "dado", "botao"]) {
+    for (const medida of ["rotulo", "dado", "botao"]) {
       const xs = cs.map((c) => c[medida]);
       if (espalha(xs) > 0.5)
         problemas.push(`canais com ${medida} desalinhado na fileira de ${topo}px: ${xs.join("/")}`);

@@ -94,6 +94,24 @@ img.fotografia {
   grid-template-columns: 1fr;
 }
 
+/* No computador, a introdução ocupa duas linhas, e os cartões só a
+   primeira. Numa linha só, os cartões esticavam até a altura da
+   introdução, quando ela é mais alta (a da home, com o parágrafo), e
+   sobrava branco no pé deles. Assim, a primeira linha tem a altura do
+   cartão mais alto, e a segunda leva o que a introdução tem a mais: o
+   bloco fica da mesma altura, e os cartões, iguais entre si e sem sobra.
+   Do tablet para baixo a introdução é uma linha inteira, em cima. */
+@media (min-width: 981px) {
+  .quem {
+    grid-template-rows: auto 1fr;
+    row-gap: 0;
+  }
+
+  .quem > .intro {
+    grid-row: span 2;
+  }
+}
+
 .intro {
   padding: 4px 24px 0 0;
 }

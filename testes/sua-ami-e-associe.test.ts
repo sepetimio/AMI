@@ -351,6 +351,16 @@ describe("o CSS de Seja associado", () => {
     expect(regra(cel, ".cartao")).toMatch(/padding: 16px 18px;/);
   });
 
+  it("no computador, a introducao ocupa duas linhas e os cartoes so a primeira: ficam da altura do mais alto, sem sobra no pe", () => {
+    const larga = media(CSS_ASSOCIE, "@media (min-width: 981px)");
+    expect(regra(larga, ".quem")).toMatch(/grid-template-rows: auto 1fr;/);
+    expect(regra(larga, ".quem")).toMatch(/row-gap: 0;/);
+    expect(regra(larga, ".quem > .intro")).toMatch(/grid-row: span 2;/);
+    /* Do tablet para baixo a introducao vira uma linha inteira: a regra nao
+       pode valer la. */
+    expect(media(CSS_ASSOCIE, "@media (max-width: 980px)")).not.toContain("grid-row");
+  });
+
   it("sem coluna nem regra de ladrilho: o titulo abre o cartao, sem espaco em cima", () => {
     expect(CSS_ASSOCIE).not.toContain("ladrilho");
     const cel = media(CSS_ASSOCIE, "@media (max-width: 700px)");
