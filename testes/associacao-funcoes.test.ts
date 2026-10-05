@@ -23,27 +23,24 @@ const ESTATUTO = "/associacao/estatuto";
 const EDITORIAL = "/associacao/politica-editorial";
 
 describe("os atalhos de Saiba mais", () => {
-  it("na demonstração, os três, na ordem; o que não existe vai como texto a entrar", () => {
+  it("na demonstração, os três, na ordem, sem ícone; o que não existe vai como texto a entrar", () => {
     expect(atalhosDoSaibaMais(true, [SEJA])).toEqual([
       {
         titulo: "Seja associado",
         frase: "Quem pode se associar à AMI e como fazer isso.",
         caminho: SEJA,
-        icone: "parceria",
         aEntrar: false,
       },
       {
         titulo: "Estatuto",
         frase: "As regras que organizam a associação.",
         caminho: ESTATUTO,
-        icone: "pergaminho",
         aEntrar: true,
       },
       {
         titulo: "Política editorial",
         frase: "Como o site escolhe, apura e revisa o que publica.",
         caminho: EDITORIAL,
-        icone: "artigo",
         aEntrar: true,
       },
     ]);

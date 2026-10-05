@@ -1,12 +1,7 @@
-import { createElement } from "react";
-import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import type { Icon } from "@phosphor-icons/react";
-import { Article, Cookie, FileText, Handshake, Scroll, ShieldCheck } from "@phosphor-icons/react/dist/ssr";
 import type { PortableTextBlock } from "@portabletext/react";
-import { Icone } from "@/components/base/IconeServidor";
+import * as modelo from "@/lib/paginaDeTexto";
 import {
-  ICONE_DE_PAGINA_PADRAO,
   MARCA_PROVISORIA,
   VOLTA_ASSOCIACAO,
   VOLTA_INICIO,
@@ -16,7 +11,6 @@ import {
   conteudoDaPagina,
   conteudoDoRascunho,
   conteudoDoSanity,
-  iconeDaPagina,
   paragrafoDoRascunho,
 } from "@/lib/paginaDeTexto";
 import { COOKIES, PRIVACIDADE, SEJA_ASSOCIADO, TERMOS, type RascunhoLegal } from "@/lib/rascunhosLegais";
@@ -24,8 +18,8 @@ import type { PaginaInstitucional } from "@/lib/sanity/tipos";
 
 /*
   O que o modelo de página de texto decide, em funções puras: o link de
-  volta, o ícone de cada página, o rascunho em código transformado em texto
-  rico (o mesmo formato do Studio) e qual dos dois textos a página mostra.
+  volta, o rascunho em código transformado em texto rico (o mesmo formato
+  do Studio) e qual dos dois textos a página mostra.
   O desenho de cada bloco é testado por renderização em
   testes/modelo-de-texto.test.ts.
 */
@@ -49,33 +43,9 @@ describe("o link de volta", () => {
   });
 });
 
-describe("o ícone de cada página", () => {
-  /* A lista da spec, seção 3.1, escrita aqui de novo, do slug ao componente
-     Phosphor: comparar o desenho que sai com o do componente é o que pega
-     dois ícones trocados de lugar. */
-  const TABELA: [string, Icon][] = [
-    ["seja-associado", Handshake],
-    ["estatuto", Scroll],
-    ["politica-editorial", Article],
-    ["politica-de-privacidade", ShieldCheck],
-    ["politica-de-cookies", Cookie],
-    ["termos-de-uso", FileText],
-  ];
-  const desenho = (Componente: Icon) =>
-    renderToString(createElement(Componente, { size: 84, weight: "duotone", className: "", "aria-hidden": "true" }));
-
-  it("cada página da lista desenha o ícone dela, em duotone", () => {
-    for (const [slug, Componente] of TABELA) {
-      const nosso = renderToString(createElement(Icone, { nome: iconeDaPagina(slug), duotone: true, tamanho: 84 }));
-      expect(nosso, slug).toBe(desenho(Componente));
-    }
-  });
-
-  it("página fora da lista (Benefícios, uma nova) fica com o documento", () => {
-    expect(ICONE_DE_PAGINA_PADRAO).toBe("documento");
-    for (const slug of ["beneficios", "", "constructor", "toString"]) {
-      expect(iconeDaPagina(slug), slug).toBe(ICONE_DE_PAGINA_PADRAO);
-    }
+describe("nenhum ícone por página", () => {
+  it("o modelo não escolhe ícone: nem a função, nem o padrão", () => {
+    expect(Object.keys(modelo).filter((nome) => /icone/i.test(nome))).toEqual([]);
   });
 });
 

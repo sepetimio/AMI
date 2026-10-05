@@ -44,16 +44,12 @@
 }
 
 .sede {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  column-gap: 16px;
   margin-top: 36px;
   padding-top: 28px;
   border-top: 1px solid var(--color-line);
 }
 
 .sedeTitulo {
-  margin-top: 1px;
   font-family: var(--font-corpo);
   font-size: 16px;
   font-weight: 700;
@@ -71,7 +67,6 @@
 }
 
 .acoes {
-  grid-column: 2;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -100,21 +95,8 @@
 
 @media (max-width: 700px) {
   .sede {
-    grid-template-columns: 40px minmax(0, 1fr);
-    column-gap: 14px;
     margin-top: 24px;
     padding-top: 22px;
-  }
-
-  .sede :global(.ladrilho-icone) {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-  }
-
-  .sede :global(.ladrilho-icone) svg {
-    width: 21px;
-    height: 21px;
   }
 
   .endereco {
@@ -122,7 +104,6 @@
   }
 
   .acoes {
-    grid-column: 1 / -1;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;

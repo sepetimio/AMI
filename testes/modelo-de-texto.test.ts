@@ -100,12 +100,9 @@ describe("o modelo, renderizado", () => {
     );
   });
 
-  it("a data por extenso, com o relógio, no alto da coluna", () => {
-    expect(html).toMatch(
-      new RegExp(
-        `<article class="${estilos.coluna}" data-coluna=""><p class="${estilos.atualizado}"><svg[^]*?</svg>Atualizado em <time dateTime="2026-09-10T12:00:00Z">10 de setembro de 2026</time></p>`,
-        "i",
-      ),
+  it("a data por extenso, sem relógio, no alto da coluna", () => {
+    expect(html).toContain(
+      `<article class="${estilos.coluna}" data-coluna=""><p class="${estilos.atualizado}">Atualizado em <time dateTime="2026-09-10T12:00:00Z">10 de setembro de 2026</time></p>`,
     );
   });
 
@@ -172,12 +169,10 @@ describe("o modelo, renderizado", () => {
     );
   });
 
-  it("com aviso: o quadro cinza, com o ícone, o título e o texto, antes do texto", () => {
+  it("com aviso: o quadro cinza, só com o título e o texto, antes do texto", () => {
     const comAviso = componente({ ...CONTEUDO, aviso: { titulo: "Esta página é provisória", texto: "Texto do aviso." } });
-    expect(comAviso).toMatch(
-      new RegExp(
-        `<div class="${estilos.quadro}" role="note"><svg[^]*?</svg><div><p class="${estilos.quadroTitulo}">Esta página é provisória</p><p>Texto do aviso.</p></div></div><h2 id="secao-capitulo-um">`,
-      ),
+    expect(comAviso).toContain(
+      `<div class="${estilos.quadro}" role="note"><p class="${estilos.quadroTitulo}">Esta página é provisória</p><p>Texto do aviso.</p></div><h2 id="secao-capitulo-um">`,
     );
   });
 
@@ -230,6 +225,19 @@ describe("as páginas legais", () => {
     for (const qual of ["privacidade", "termos", "cookies"] as const) {
       for (const chave of ["true", "false"]) {
         expect(topoSemAVolta(await legal(qual, chave)), `${qual} ${chave}`).not.toContain("<svg");
+      }
+    }
+  });
+
+  it("a data e o quadro de aviso sem ícone, nas três e nos dois modos", async () => {
+    for (const qual of ["privacidade", "termos", "cookies"] as const) {
+      for (const chave of ["true", "false"]) {
+        const html = await legal(qual, chave);
+        const data = new RegExp(`<p class="${estilos.atualizado}">[\\s\\S]*?</p>`).exec(html)?.[0];
+        const aviso = /<div [^>]*role="note">[\s\S]*?<\/div>/.exec(html)?.[0];
+        expect(data, `${qual} ${chave}`).toMatch(/^<p [^>]*>Atualizado em <time /);
+        expect(aviso, `${qual} ${chave}`).toBeDefined();
+        expect(aviso, `${qual} ${chave}`).not.toContain("<svg");
       }
     }
   });
@@ -354,8 +362,10 @@ describe("o CSS da página de texto", () => {
     expect(regra(base(css), ".coluna p,\n.coluna li")).not.toMatch(/text-wrap/);
   });
 
-  it("o relógio da data fica na linha do texto, e não num bloco acima dele", () => {
-    expect(regra(base(css), ".atualizado svg")).toMatch(/display: inline-block;/);
+  it("nenhuma regra de ícone na data nem no quadro: o texto começa na borda dele", () => {
+    expect(css).not.toMatch(/\.atualizado svg|\.quadro > svg/);
+    expect(regra(base(css), ".quadro")).not.toMatch(/grid/);
+    expect(regra(cel(), ".quadro")).not.toMatch(/grid/);
   });
 
   it("o quadro de aviso é cinza neutro, sem tom quente", () => {

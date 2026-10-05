@@ -1,6 +1,6 @@
 /*
   Os números da AMI, transcritos do desenho aprovado
-  (docs/desenho-aprovado/home-aprovada.html: `.numeros`, `.numero`, `.icone`,
+  (docs/desenho-aprovado/home-aprovada.html: `.numeros`, `.numero`,
   `.numero .grande`, `.numero .rot`, `.numero p`, `.numero .botao-linha`, as
   variantes `.numeros.aberta` e os @media de 980 e 700px).
 
@@ -50,19 +50,6 @@
   padding-right: var(--m);
 }
 
-/* Na versão aberta o ladrilho é branco, com fio e sombra curtos, para não
-   sumir no fundo da página. Ao passar o mouse ele dá um pulo; a sombra fica
-   (a regra da versão aberta, no desenho, vence a do mouse). */
-.numero :global(.ladrilho-icone) {
-  background: var(--color-surface);
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), inset 0 0 0 1px rgba(16, 24, 40, 0.06);
-  transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
-}
-
-.numero:hover :global(.ladrilho-icone) {
-  transform: translateY(-3px) rotate(-6deg);
-}
-
 .grande {
   font-family: var(--font-titulo);
   font-weight: 500;
@@ -70,7 +57,7 @@
   font-size: 48px;
   line-height: 1;
   color: var(--color-ami-green-800);
-  margin: 24px 0 8px;
+  margin: 0 0 8px;
   /* Algarismos de largura igual: durante a contagem o número não balança. */
   font-variant-numeric: tabular-nums;
 }
@@ -151,20 +138,9 @@
     display: none;
   }
 
-  .numero :global(.ladrilho-icone) {
-    width: 36px;
-    height: 36px;
-    border-radius: 11px;
-  }
-
-  .numero :global(.ladrilho-icone) svg {
-    width: 20px;
-    height: 20px;
-  }
-
   .grande {
     font-size: 32px;
-    margin: 14px 0 4px;
+    margin: 0 0 4px;
   }
 
   .rotulo {

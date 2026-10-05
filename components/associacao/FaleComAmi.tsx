@@ -1,4 +1,4 @@
-import { Icone, LadrilhoIcone } from "@/components/base/IconeServidor";
+import { Icone } from "@/components/base/IconeServidor";
 import styles from "@/components/editorial/PaginaDeTexto.module.css";
 import { AMI, hrefTelefone, linkDoMapaDaAmi } from "@/lib/ami";
 
@@ -32,7 +32,6 @@ export function FaleComAmi() {
 
   return (
     <div className={styles.chamada} data-fale-com-ami="">
-      <LadrilhoIcone nome="chamada" pequeno />
       <div>
         <h3>Fale com a AMI</h3>
         <p>{`Pelo telefone ou na sede, no ${AMI.endereco.bairro} de ${AMI.endereco.cidade}.`}</p>

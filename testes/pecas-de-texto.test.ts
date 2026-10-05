@@ -152,14 +152,21 @@ describe("o corpo em faixa branca", () => {
     expect(html).not.toContain("Atualizado em");
   });
 
-  it("com ela, a data por extenso no alto da coluna", () => {
+  it("com ela, a data por extenso no alto da coluna, sem relógio", () => {
     const html = renderToString(
       createElement(FaixaDoTexto, { rotulo: "x", atualizadoEm: "2026-09-20T13:00:00Z", corpo: CORPO }),
     );
-    expect(html).toMatch(
-      new RegExp(
-        `<article class="${estilos.coluna}" data-coluna=""><p class="${estilos.atualizado}"><svg[^]*?</svg>Atualizado em <time dateTime="2026-09-20T13:00:00Z">20 de setembro de 2026</time></p>`,
-      ),
+    expect(html).toContain(
+      `<article class="${estilos.coluna}" data-coluna=""><p class="${estilos.atualizado}">Atualizado em <time dateTime="2026-09-20T13:00:00Z">20 de setembro de 2026</time></p>`,
+    );
+  });
+
+  it("com aviso, o quadro só com o título e o texto, sem ícone", () => {
+    const html = renderToString(
+      createElement(FaixaDoTexto, { rotulo: "x", aviso: { titulo: "Aviso", texto: "Texto do aviso." }, corpo: CORPO }),
+    );
+    expect(html).toContain(
+      `<div class="${estilos.quadro}" role="note"><p class="${estilos.quadroTitulo}">Aviso</p><p>Texto do aviso.</p></div>`,
     );
   });
 

@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Icon } from "@phosphor-icons/react";
-import { ArrowRight, Article, Handshake, Scroll } from "@phosphor-icons/react/dist/ssr";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import estilosPagina from "@/app/(site)/encontre.module.css";
 import { DiretoriaEmDestaque } from "@/components/associacao/DiretoriaEmDestaque";
 import { FechoAssocie } from "@/components/associacao/FechoAssocie";
@@ -118,10 +118,13 @@ describe("Saiba mais", () => {
     expect(cartoes).toHaveLength(3);
   });
 
-  it("o atalho da página que existe: ladrilho, título com o link, frase e seta", () => {
-    expect(cartoes[0]).toMatch(new RegExp(`^<li class="${estilosEsp.cartao} ${estilos.atalho}" data-atalho="">`));
-    expect(cartoes[0]).toContain(`<span class="ladrilho-icone" aria-hidden="true">${desenho(Handshake, 28, "duotone")}</span>`);
-    expect(cartoes[0]).toContain(`<h3 class="${estilosEsp.nome} ${estilos.nome}" data-nome=""><a href="/associacao/seja-associado">Seja associado</a></h3>`);
+  it("o atalho da página que existe: o título com o link abre o cartão, depois a frase e a seta", () => {
+    expect(cartoes[0]).toMatch(
+      new RegExp(
+        `^<li class="${estilosEsp.cartao} ${estilos.atalho}" data-atalho="">` +
+          `<h3 class="${estilosEsp.nome} ${estilos.nome}" data-nome=""><a href="/associacao/seja-associado">Seja associado</a></h3>`,
+      ),
+    );
     expect(cartoes[0]).toContain(
       `<p class="${estilosEsp.pe} ${estilos.pe}"><span class="${estilosEsp.conta} ${estilos.frase}">Quem pode se associar à AMI e como fazer isso.</span>` +
         `<span class="${estilosEsp.seta} ${estilos.seta}" aria-hidden="true" data-seta="">${desenho(ArrowRight, 20, "regular")}</span></p>`,
@@ -129,12 +132,22 @@ describe("Saiba mais", () => {
   });
 
   it("a página que ainda não existe: sem link, com a etiqueta texto a entrar", () => {
-    expect(cartoes[1]).toMatch(/^<li [^>]*data-atalho="" data-a-entrar="">/);
-    expect(cartoes[1]).toContain(desenho(Scroll, 28, "duotone"));
+    expect(cartoes[1]).toMatch(/^<li [^>]*data-atalho="" data-a-entrar=""><h3 /);
     expect(cartoes[1]).toContain(`data-nome="">Estatuto<!-- --> <span class="${estilos.etiqueta}">texto a entrar</span></h3>`);
     expect(cartoes[1]).not.toContain("<a ");
-    expect(cartoes[2]).toContain(desenho(Article, 28, "duotone"));
+    expect(cartoes[2]).toMatch(/^<li [^>]*data-atalho="" data-a-entrar=""><h3 /);
     expect(cartoes[2]).toContain(">Política editorial<!-- --> <span");
+  });
+
+  it("nenhum ladrilho: o único ícone de cada atalho é a seta do pé", () => {
+    expect(html).not.toContain("ladrilho-icone");
+    for (const [i, c] of cartoes.entries()) {
+      const svgs = c.match(/<svg/g) ?? [];
+      expect(svgs, `atalho ${i + 1}`).toHaveLength(1);
+      expect(c, `atalho ${i + 1}`).toContain(
+        `<span class="${estilosEsp.seta} ${estilos.seta}" aria-hidden="true" data-seta="">${desenho(ArrowRight, 20, "regular")}</span>`,
+      );
+    }
   });
 
   it("o texto do título, como o leitor de tela lê: o nome e a etiqueta separados por espaço", () => {
@@ -211,6 +224,13 @@ describe("a página A Associação", () => {
     expect(html.match(/texto a entrar</g)).toHaveLength(2);
     /* Cada moldura leva a marca: a apresentação, a foto, os três cartões e os dois atalhos. */
     expect(html.match(/ data-a-entrar="/g)).toHaveLength(7);
+  });
+
+  it("nenhum ladrilho de ícone na página, nos dois modos", async () => {
+    for (const chave of ["true", "false"]) {
+      const { html } = await pagina(chave);
+      expect(html, chave).not.toContain("ladrilho-icone");
+    }
   });
 
   it("fora da demonstração, sem o Studio: nenhuma moldura, sem Princípios e sem Saiba mais (sobraria só Seja associado)", async () => {
@@ -297,9 +317,17 @@ describe("o CSS dos blocos de baixo", () => {
     expect(regra(base(css), ".atalhos .atalho[data-a-entrar]:hover")).toMatch(/transform: none;/);
   });
 
-  it("no celular, cada atalho numa linha: ícone, título com a frase embaixo, e a seta", () => {
-    expect(regra(cel(), ".atalhos .atalho")).toMatch(/grid-template-columns: 40px minmax\(0, 1fr\) 28px;/);
+  it("no celular, cada atalho numa linha: o título com a frase embaixo, e a seta", () => {
+    expect(regra(cel(), ".atalhos .atalho")).toMatch(/grid-template-columns: minmax\(0, 1fr\) 28px;/);
     expect(regra(cel(), ".atalho .pe")).toMatch(/display: contents;/);
+    expect(regra(cel(), ".atalho .nome")).toMatch(/grid-column: 1;/);
+    expect(regra(cel(), ".atalho .frase")).toMatch(/grid-column: 1;/);
+    expect(regra(cel(), ".atalho .seta")).toMatch(/grid-column: 2;/);
+  });
+
+  it("sem ladrilho: nenhuma regra dele, e o título abre o cartão, sem espaço em cima", () => {
+    expect(css).not.toContain("ladrilho");
+    expect(regra(base(css), ".atalho .nome")).toMatch(/margin-top: 0;/);
   });
 
   it("o fecho em duas colunas, uma do tablet para baixo", () => {

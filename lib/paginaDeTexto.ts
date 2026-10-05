@@ -1,5 +1,4 @@
 import type { PortableTextBlock } from "@portabletext/react";
-import type { NomeIcone } from "@/components/base/IconeServidor";
 import { ancorasUnicas, type ItemDoIndice } from "@/lib/nestaPagina";
 import type { AvisoDoRascunho, RascunhoLegal } from "@/lib/rascunhosLegais";
 import type { PaginaInstitucional } from "@/lib/sanity/tipos";
@@ -8,7 +7,6 @@ import type { PaginaInstitucional } from "@/lib/sanity/tipos";
   O que o modelo de página de texto decide, em funções puras
   (testes/paginas-de-texto.test.ts):
   - o link de volta da faixa verde;
-  - o ícone de cada página;
   - o rascunho em código transformado em texto rico, o mesmo formato do
     Studio, para um componente só desenhar os dois
     (components/editorial/CorpoDoTexto.tsx);
@@ -24,27 +22,6 @@ export const VOLTA_ASSOCIACAO: VoltaDaPagina = { href: "/associacao", rotulo: "A
 
 /** As páginas legais, que o rodapé de toda página linka, voltam ao início. */
 export const VOLTA_INICIO: VoltaDaPagina = { href: "/", rotulo: "Início" };
-
-/** O ícone da página sem ícone próprio: Benefícios, ou uma nova. */
-export const ICONE_DE_PAGINA_PADRAO: NomeIcone = "documento";
-
-/*
-  O ícone de cada página de texto, pelo slug, como a spec escolheu
-  (Phosphor, duotone). É um `Map`, e não um objeto: num objeto,
-  "constructor" e "toString" existiriam como chave.
-*/
-const ICONES_DAS_PAGINAS = new Map<string, NomeIcone>([
-  ["seja-associado", "parceria"],
-  ["estatuto", "pergaminho"],
-  ["politica-editorial", "artigo"],
-  ["politica-de-privacidade", "escudo"],
-  ["politica-de-cookies", "biscoito"],
-  ["termos-de-uso", "documento"],
-]);
-
-export function iconeDaPagina(slug: string): NomeIcone {
-  return ICONES_DAS_PAGINAS.get(slug) ?? ICONE_DE_PAGINA_PADRAO;
-}
 
 /**
  * A marca do que falta num rascunho, no começo do parágrafo. É a mesma do

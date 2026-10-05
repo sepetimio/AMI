@@ -1,7 +1,5 @@
 import type { PortableTextBlock } from "@portabletext/react";
-import type { NomeIcone } from "@/components/base/IconeServidor";
 import type { Diretor } from "@/lib/dados/diretoria";
-import { iconeDaPagina } from "@/lib/paginaDeTexto";
 
 /*
   O que a página A Associação (/associacao) decide, em funções puras
@@ -23,7 +21,6 @@ export type Atalho = {
   titulo: string;
   frase: string;
   caminho: string;
-  icone: NomeIcone;
   /** A página ainda não existe: o atalho só sai na demonstração, com "texto a entrar". */
   aEntrar: boolean;
 };
@@ -51,7 +48,7 @@ export function atalhosDoSaibaMais(demonstracao: boolean, existentes: readonly s
     const caminho = `/associacao/${c.slug}`;
     const existe = existentes.includes(caminho);
     if (!existe && !demonstracao) continue;
-    atalhos.push({ titulo: c.titulo, frase: c.frase, caminho, icone: iconeDaPagina(c.slug), aEntrar: !existe });
+    atalhos.push({ titulo: c.titulo, frase: c.frase, caminho, aEntrar: !existe });
   }
   return atalhos.length >= MINIMO_DE_ATALHOS ? atalhos : [];
 }
