@@ -1,6 +1,7 @@
 import { groupProblems, validateSchema } from "@sanity/schema/_internal";
 import { describe, expect, it } from "vitest";
 import { tipos } from "@/sanity/schemas";
+import { fonte, semComentarios } from "@/testes/apoio";
 
 /*
   A anotação de link é a única regra dos dois schemas que precisa ser
@@ -11,6 +12,7 @@ import { tipos } from "@/sanity/schemas";
 type Espiao = {
   chamou: string[];
   uri?: { scheme?: string[]; allowRelative?: boolean };
+  custom?: (v: unknown) => unknown;
 };
 
 function espiarValidacaoDoLink(nomeDoTipo: string): Espiao {
@@ -41,6 +43,11 @@ function espiarValidacaoDoLink(nomeDoTipo: string): Espiao {
     uri(opcoes: { scheme?: string[]; allowRelative?: boolean }) {
       espiao.chamou.push("uri");
       espiao.uri = opcoes;
+      return regra;
+    },
+    custom(f: (v: unknown) => unknown) {
+      espiao.chamou.push("custom");
+      espiao.custom = f;
       return regra;
     },
   };
@@ -422,6 +429,19 @@ describe("anotação de link do texto rico", () => {
         scheme: ["http", "https", "tel", "mailto"],
         allowRelative: true,
       });
+    });
+
+    it(`${nome} recusa no Studio o endereço sem /, #, https://, mailto: ou tel:`, () => {
+      const { custom } = espiarValidacaoDoLink(nome);
+      expect(custom).toBeTypeOf("function");
+      expect(custom?.("diretoria")).toBe("O endereço precisa começar com /, #, https://, mailto: ou tel:.");
+      expect(custom?.("/associacao/diretoria")).toBe(true);
+    });
+
+    it(`${nome} chama enderecoDeLinkAceito`, () => {
+      const schema = semComentarios(fonte(`../sanity/schemas/${nome}.ts`));
+      expect(schema).toContain("enderecoDeLinkAceito(v)");
+      expect(schema).toContain('from "../../lib/sanity/link"');
     });
   }
 });

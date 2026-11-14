@@ -1,4 +1,5 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
+import { enderecoDeLinkAceito } from "../../lib/sanity/link";
 
 /*
   Notícia do blog da AMI.
@@ -119,13 +120,18 @@ export const noticia = defineType({
                       política editorial é justamente o que mais se linka.
                       Esta lista é a mesma da anotação de link padrão do
                       próprio Sanity, escrita aqui porque só declarando
-                      `uri()` explicitamente ela troca a base.
+                      `uri()` explicitamente ela troca a base. O `custom`
+                      fecha o que o `uri()` deixa passar: "diretoria" sem
+                      barra e "//x" agora são recusados no Studio.
                     */
                     validation: (r) =>
-                      r.required().uri({
-                        scheme: ["http", "https", "tel", "mailto"],
-                        allowRelative: true,
-                      }),
+                      r
+                        .required()
+                        .uri({
+                          scheme: ["http", "https", "tel", "mailto"],
+                          allowRelative: true,
+                        })
+                        .custom((v) => enderecoDeLinkAceito(v)),
                   }),
                 ],
               },
