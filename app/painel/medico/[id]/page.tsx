@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { FormularioMedico } from "@/components/painel/FormularioMedico";
 import { BlocoEspecialidades } from "@/components/painel/BlocoEspecialidades";
 import { BlocoLocais } from "@/components/painel/BlocoLocais";
-import { oQueFalta } from "@/lib/painel/medico";
+import { oQueFalta, temBioDeVerdade } from "@/lib/painel/medico";
 import { medicoPorId } from "@/lib/painel/consultas";
 import {
   catalogoDeEspecialidades,
@@ -41,7 +41,7 @@ export default async function PaginaDeEdicao({
   const falta = oQueFalta({
     temEspecialidade: medico.especialidade !== null,
     temEndereco: medico.bairros.length > 0,
-    temBio: Boolean(medico.bio),
+    temBio: temBioDeVerdade(medico.bio),
   });
 
   return (

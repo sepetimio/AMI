@@ -1,3 +1,4 @@
+import { bioNaTela } from "@/lib/encontre";
 import { UFS } from "@/lib/importador/tipos";
 
 /*
@@ -151,4 +152,14 @@ export function oQueFalta(m: {
   if (!m.temEndereco) falta.push("sem endereço");
   if (!m.temBio) falta.push("sem biografia");
   return falta;
+}
+
+/*
+  Se a biografia é de verdade.
+
+  Texto vazio, só espaços ou com a marca de provisório não aparece no perfil
+  público, então no painel também conta como biografia que falta.
+*/
+export function temBioDeVerdade(bio: string | null | undefined): boolean {
+  return bioNaTela(bio, false) !== null;
 }

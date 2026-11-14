@@ -153,3 +153,11 @@ describe("o formulário de edição", () => {
     expect(form.toLowerCase()).toMatch(/google|indexad/);
   });
 });
+
+describe("a página de edição do médico", () => {
+  it("decide a biografia por temBioDeVerdade, e não por Boolean(medico.bio)", () => {
+    const pagina = semComentarios(fonte("../app/painel/medico/[id]/page.tsx"));
+    expect(pagina).toContain("temBio: temBioDeVerdade(medico.bio)");
+    expect(pagina).not.toContain("Boolean(medico.bio)");
+  });
+});

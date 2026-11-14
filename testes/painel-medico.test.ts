@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { oQueFalta, validarMedico, type CamposDoMedico } from "@/lib/painel/medico";
+import { oQueFalta, temBioDeVerdade, validarMedico, type CamposDoMedico } from "@/lib/painel/medico";
 
 function campos(p: Partial<CamposDoMedico> = {}): CamposDoMedico {
   return {
@@ -141,5 +141,19 @@ describe("oQueFalta", () => {
     expect(oQueFalta({ temEspecialidade: true, temEndereco: true, temBio: false })).toEqual([
       "sem biografia",
     ]);
+  });
+});
+
+describe("temBioDeVerdade", () => {
+  it("vazio, espaços e a marca de provisório não contam como biografia", () => {
+    expect(temBioDeVerdade(null)).toBe(false);
+    expect(temBioDeVerdade(undefined)).toBe(false);
+    expect(temBioDeVerdade("")).toBe(false);
+    expect(temBioDeVerdade("   ")).toBe(false);
+    expect(temBioDeVerdade("[PROVISÓRIO] Biografia de Fulano")).toBe(false);
+  });
+
+  it("texto de verdade conta", () => {
+    expect(temBioDeVerdade("Clínico em Imperatriz.")).toBe(true);
   });
 });
