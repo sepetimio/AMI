@@ -32,9 +32,11 @@ export function hrefSeguro(href: unknown): string | null {
 
 export function ehLinkInterno(href: string): boolean {
   /*
-    Só a barra inicial conta como interno, e "//" fica de fora: "//ami.org.br"
-    é endereço protocol-relative, ou seja, outro site, e passá-lo ao `<Link>`
-    do Next faria o roteador tentar navegar para uma rota que não existe.
+    Só a barra inicial conta como interno. "//" e "/\" ficam de fora:
+    "//ami.org.br" é endereço protocol-relative, ou seja, outro site, e o
+    navegador lê a barra invertida como barra, então "/\ami.org.br" é o mesmo
+    caso. Passá-los ao `<Link>` do Next faria o roteador tentar navegar para
+    uma rota que não existe.
 
     O resto vai para `<a>` por razões distintas, todas terminando no mesmo
     lugar. `mailto:` e `tel:` não são navegação: quem os intercepta com o
@@ -44,5 +46,22 @@ export function ehLinkInterno(href: string): boolean {
     contra o endereço atual de um jeito que o `<Link>` não reproduz, então a
     âncora comum é a que se comporta como a secretaria espera.
   */
-  return href.startsWith("/") && !href.startsWith("//");
+  return href.startsWith("/") && !href.startsWith("//") && !href.startsWith("/\\");
+}
+
+/*
+  Valida o endereço de um link no Studio.
+
+  Devolve `true` quando aceita, ou a mensagem de erro. Vazio e valor que não
+  é texto passam: quem cobra o vazio é o `required()`. Aceita o que
+  `hrefSeguro` aceita, menos "//" e "/\", que apontam para outro site.
+*/
+const MENSAGEM_DE_ENDERECO = "O endereço precisa começar com /, #, https://, mailto: ou tel:.";
+
+export function enderecoDeLinkAceito(href: unknown): true | string {
+  if (typeof href !== "string") return true;
+  const limpo = href.trim();
+  if (/^(https?:|mailto:|tel:|#)/i.test(limpo)) return true;
+  if (limpo.startsWith("/") && limpo[1] !== "/" && limpo[1] !== "\\") return true;
+  return MENSAGEM_DE_ENDERECO;
 }

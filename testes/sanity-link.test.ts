@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ehLinkInterno, hrefSeguro } from "@/lib/sanity/link";
+import { ehLinkInterno, enderecoDeLinkAceito, hrefSeguro } from "@/lib/sanity/link";
 
 describe("hrefSeguro", () => {
   it("aceita http, https, mailto, tel, o caminho do site e a âncora", () => {
@@ -79,8 +79,48 @@ describe("ehLinkInterno", () => {
     expect(ehLinkInterno("//ami.org.br/estatuto")).toBe(false);
   });
 
+  it("não confunde barra seguida de barra invertida com caminho interno", () => {
+    /* O navegador trata a barra invertida como barra e lê "/\\x" como "//x":
+       outro site. */
+    expect(ehLinkInterno("/\\x")).toBe(false);
+    expect(ehLinkInterno("/\\\\x")).toBe(false);
+  });
+
+  it("aceita a raiz e o caminho do site", () => {
+    expect(ehLinkInterno("/")).toBe(true);
+    expect(ehLinkInterno("/associacao/diretoria")).toBe(true);
+  });
+
+  it("recusa âncora, e-mail e endereço de outro site", () => {
+    expect(ehLinkInterno("#a")).toBe(false);
+    expect(ehLinkInterno("mailto:a@b")).toBe(false);
+    expect(ehLinkInterno("https://x")).toBe(false);
+  });
+
   it("manda âncora e relativo sem barra para a âncora comum", () => {
     expect(ehLinkInterno("#fontes")).toBe(false);
     expect(ehLinkInterno("diretoria")).toBe(false);
+  });
+});
+
+describe("enderecoDeLinkAceito", () => {
+  const MENSAGEM = "O endereço precisa começar com /, #, https://, mailto: ou tel:.";
+
+  it("recusa com a mensagem o que não começa certo", () => {
+    for (const href of ["diretoria", "//x.com", "/\\x.com", "javascript:alert(1)"]) {
+      expect(enderecoDeLinkAceito(href), href).toBe(MENSAGEM);
+    }
+  });
+
+  it("aceita caminho, âncora, http(s) em qualquer caixa, e-mail e telefone", () => {
+    for (const href of ["/associacao", "#topo", "https://a.b", "HTTPS://a.b", "mailto:a@b.c", "tel:+5599", "  /associacao  "]) {
+      expect(enderecoDeLinkAceito(href), href).toBe(true);
+    }
+  });
+
+  it("deixa o vazio para o required()", () => {
+    expect(enderecoDeLinkAceito(undefined)).toBe(true);
+    expect(enderecoDeLinkAceito(null)).toBe(true);
+    expect(enderecoDeLinkAceito(42)).toBe(true);
   });
 });
