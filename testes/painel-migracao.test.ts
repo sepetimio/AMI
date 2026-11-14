@@ -277,3 +277,41 @@ describe("supabase/testes-rls.sql", () => {
     expect(sql, "não fala por uma conta sem perfil").toContain("ninguem_uuid");
   });
 });
+
+describe("0007_fotos.sql", () => {
+  const sql = semComentariosSql(fonte("../supabase/migrations/0007_fotos.sql")).toLowerCase();
+
+  it("tem uma política só, e ela é de inserção", () => {
+    expect([...sql.matchAll(/create\s+policy/g)]).toHaveLength(1);
+    expect([...sql.matchAll(/\bfor\s+insert\b/g)]).toHaveLength(1);
+  });
+
+  it("não concede leitura, alteração nem remoção", () => {
+    expect(sql).not.toMatch(/\bfor\s+(select|update|delete|all)\b/);
+  });
+
+  it("não tem grant, truncate, drop table nem desliga a segurança de linha", () => {
+    expect(sql).not.toMatch(/\bgrant\b/);
+    expect(sql).not.toMatch(/\btruncate\b/);
+    expect(sql).not.toMatch(/\bdrop\s+table\b/);
+    expect(sql).not.toMatch(/disable\s+row\s+level\s+security/);
+  });
+
+  it("cria o bucket público com os dois tipos de imagem", () => {
+    expect(sql).toMatch(/insert\s+into\s+storage\.buckets/);
+    expect(sql).toMatch(/values\s*\(\s*'fotos-medicos'\s*,\s*'fotos-medicos'\s*,\s*true\s*,/);
+    expect(sql).toContain("'image/webp'");
+    expect(sql).toContain("'image/jpeg'");
+  });
+
+  it("a política exige o bucket e o admin", () => {
+    const politica = sql.slice(sql.indexOf("create policy"));
+    expect(politica).toContain("eh_admin()");
+    expect(politica).toContain("bucket_id = 'fotos-medicos'");
+  });
+
+  it("o único drop é o da própria política", () => {
+    const drops = [...sql.matchAll(/\bdrop\b[^;]*/g)].map((m) => m[0].trim());
+    expect(drops).toEqual(["drop policy if exists admin_envia_foto on storage.objects"]);
+  });
+});
