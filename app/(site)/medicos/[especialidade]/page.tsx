@@ -16,10 +16,11 @@ import { sobreDaEspecialidade } from "@/lib/especialidades";
 import { textoDaEspecialidade } from "@/lib/sanity/consultas";
 import { comoItensDeLista, itemList } from "@/lib/seo/jsonld";
 import { descricaoEspecialidade, tituloEspecialidade } from "@/lib/seo/metadados";
+import { URL_DO_SITE } from "@/lib/site";
 
 export const revalidate = 3600;
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const SITE = URL_DO_SITE;
 
 /* No Next 16, params é Promise e precisa de await. Nada aqui lê
    `searchParams`: ler a querystring, mesmo só nos metadados, faz a página

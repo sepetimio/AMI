@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { fonteCorpo, fonteRegistro, fonteTitulo } from "@/lib/fontes";
+import { URL_DO_SITE } from "@/lib/site";
 import "./globals.css";
 
-/* O endereço final entra em NEXT_PUBLIC_SITE_URL. metadataBase é o que
+/* O endereço vem de lib/site.ts. metadataBase é o que
    transforma caminhos relativos em URL absoluta no canonical e no Open Graph. */
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  ),
+  metadataBase: new URL(URL_DO_SITE),
   /*
     Sem `template`. Os títulos vêm de lib/seo/metadados.ts, que já termina
     cada um com "| AMI" e mede o resultado contra o limite de 60 caracteres.

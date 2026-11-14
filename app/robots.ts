@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
 import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
+import { URL_DO_SITE } from "@/lib/site";
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const SITE = URL_DO_SITE;
 
 /*
   Trava de release: o seed inventa 24 médicos com CRM plausível, publicados

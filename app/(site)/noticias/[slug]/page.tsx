@@ -11,10 +11,11 @@ import { LIMITE_DE_OUTRAS, capaDaNoticia, outrasNoticias } from "@/lib/noticias"
 import { listarNoticias, noticiaPorSlug, slugsDeNoticias } from "@/lib/sanity/consultas";
 import { newsArticle } from "@/lib/seo/jsonld";
 import { tituloDePagina } from "@/lib/seo/metadados";
+import { URL_DO_SITE } from "@/lib/site";
 
 export const revalidate = 3600;
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const SITE = URL_DO_SITE;
 
 type Props = { params: Promise<{ slug: string }> };
 

@@ -16,10 +16,11 @@ import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
 import { moldurasDaHome, TEXTO_INSTITUCIONAL } from "@/lib/molduras";
 import { bannersAtivos } from "@/lib/sanity/banners";
 import { listarEmpresasParceiras, listarNoticias } from "@/lib/sanity/consultas";
+import { URL_DO_SITE } from "@/lib/site";
 
 export const revalidate = 3600;
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const SITE = URL_DO_SITE;
 
 export async function generateMetadata(): Promise<Metadata> {
   /* Não soma as contagens por especialidade: quem tem duas especialidades
