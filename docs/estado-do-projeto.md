@@ -718,6 +718,34 @@ achou:
 
 ---
 
+## Rumo à publicação (14/11/2026)
+
+O que entrou nesta rodada, em frases curtas:
+
+1. **Painel, biografia.** A biografia "[PROVISÓRIO]" agora conta como "sem biografia", igual ao
+   site.
+2. **Links.** `/site.com` não conta mais como link interno. Os campos de link do Studio recusam
+   um endereço como `diretoria` e avisam que precisa começar com `/`, `#`, `https://`,
+   `mailto:` ou `tel:`.
+3. **Diretoria.** A pílula mostra "Gestão 2025–2027" assim que `mandato_inicio` e
+   `mandato_fim` estiverem preenchidas na tabela `diretoria`. O período vem do primeiro
+   diretor, na ordem da hierarquia, que tem as duas datas (a presidência vem primeiro). Sem
+   datas, tudo igual.
+4. **Endereço do site.** `lib/site.ts` (`URL_DO_SITE`) usa, nesta ordem,
+   `NEXT_PUBLIC_SITE_URL`, depois `https://` mais `VERCEL_PROJECT_PRODUCTION_URL`, depois
+   `http://localhost:3000`.
+5. **Fotos dos médicos.** A migração `supabase/migrations/0007_fotos.sql` cria o espaço público
+   `fotos-medicos` (1 MB, WebP ou JPEG) e uma só permissão, a de admin enviar. Não há remoção:
+   tirar a foto só a limpa do perfil. No painel, cada médico ganhou o bloco **Foto**, com
+   **Escolher foto** e **Remover foto**. O navegador recorta em retrato 4:5 e comprime (numa
+   conferência real, uma foto de 4000 × 3000, 2,1 MB, virou 800 × 1000, WebP de 133 KB). O
+   envio de verdade espera o cliente rodar a 0007. Antes disso, o painel avisa que o
+   armazenamento não foi ligado.
+6. **Dois guias novos:** [`como-ligar-as-fotos.md`](como-ligar-as-fotos.md) e
+   [`como-publicar-na-vercel.md`](como-publicar-na-vercel.md).
+
+---
+
 ## Pendências do cliente, todas juntas
 
 Tudo o que só o cliente ou a AMI podem fazer, em ordem. Os passos 1 a 6 pedem a conta do
@@ -765,26 +793,33 @@ conteúdo. O botão de criar documento novo fica no alto da lista; no fim, clica
     a um advogado de direito médico. O texto revisado entra como no passo 3, com **Endereço**
     `politica-de-privacidade`, `termos-de-uso` e `politica-de-cookies`; publicado, ele
     substitui o rascunho e o aviso some.
+15. **Rodar a migração 0007 das fotos.** Passo a passo em
+    [`como-ligar-as-fotos.md`](como-ligar-as-fotos.md). Até lá, o painel não envia foto.
+16. **Criar a conta na Vercel e publicar o site.** Passo a passo em
+    [`como-publicar-na-vercel.md`](como-publicar-na-vercel.md). A AMI decide antes se o plano
+    Hobby, de uso não comercial, serve ou se é o caso do Pro.
+17. **Preencher `mandato_inicio` e `mandato_fim` da diretoria**, na tabela `diretoria` (ver o
+    passo 12). Preenchidas, a pílula passa a mostrar a gestão.
 
 ## Próximos passos de código
 
 Não dependem do cliente:
 
-1. **A foto do médico pelo painel.** Todo médico terá foto; hoje o site mostra as iniciais. O
+1. **FEITO (14/11/2026) — A foto do médico pelo painel.** Todo médico terá foto; hoje o site mostra as iniciais. O
    envio pelo painel depende do armazenamento de arquivos do Supabase, que ainda não está
    configurado.
-2. **Ler o mandato da diretoria.** O banco já tem `mandato_inicio` e `mandato_fim`, vazias.
+2. **FEITO (14/11/2026) — Ler o mandato da diretoria.** O banco já tem `mandato_inicio` e `mandato_fim`, vazias.
    Preenchidas, a pílula da faixa da diretoria vira "Gestão 2025–2027"; falta decidir de qual
    linha sai o período (a da presidência, por exemplo).
 3. **"Mais antigas" na lista de notícias**, quando a AMI passar de 20 notícias publicadas.
 4. **O horário, o e-mail e o WhatsApp no contato**, quando a AMI responder os passos 9 a 11
    acima: não há campo para eles no Studio. O dado entra em `lib/ami.ts`, e o canal, em
    `lib/paginaDeContato.ts`.
-5. **O painel e a biografia provisória.** O painel do médico conta como preenchida uma
+5. **FEITO (14/11/2026) — O painel e a biografia provisória.** O painel do médico conta como preenchida uma
    biografia marcada "[PROVISÓRIO]" (`lib/painel/medico.ts`, `temBio`), enquanto o site a
    trata como texto que falta. Só afeta os perfis de demonstração; vale acertar antes de
    carregar os médicos de verdade.
-6. **Links do Studio, dois acertos pequenos.** Um link escrito como `/site.com` passa como
+6. **FEITO (14/11/2026) — Links do Studio, dois acertos pequenos.** Um link escrito como `/site.com` passa como
    link interno e o navegador o leva a outro site (`lib/sanity/link.ts`); só quem edita no
    Studio consegue escrever um assim. E o Studio aceita um endereço como `diretoria`, sem
    barra, que o site mostra como texto sem link, sem avisar quem edita: o campo deveria exigir
