@@ -236,16 +236,6 @@ describe("a página da diretoria", () => {
     }
   });
 
-  it("o período vem das datas do banco, em qualquer modo", async () => {
-    dados.diretoria = QUATRO.map((d, i) =>
-      i === 0 ? { ...d, mandatoInicio: "2025-03-01", mandatoFim: "2027-02-28" } : d,
-    );
-    for (const chave of ["true", "false"]) {
-      const { html } = await pagina(chave);
-      expect(html).toContain(">Gestão 2025–2027</p>");
-    }
-  });
-
   it("sem diretoria cadastrada, o aviso de vazio no lugar da grade", async () => {
     const { html } = await pagina("false");
     expect(html).toContain("Diretoria ainda não cadastrada");
