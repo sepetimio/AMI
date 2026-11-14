@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   listarDiretoria,
   ordenarDiretoria,
+  periodoDaGestao,
   resolverCrmDoDiretor,
   type Diretor,
 } from "@/lib/dados/diretoria";
@@ -93,6 +94,8 @@ const D = (p: Partial<Diretor>): Diretor => ({
   crmUf: null,
   medico: true,
   foto: null,
+  mandatoInicio: null,
+  mandatoFim: null,
   ...p,
 });
 
@@ -267,5 +270,55 @@ describe("listarDiretoria", () => {
       expect(diretor.crmUf).toBeNull();
       expect(diretor.slugDoPerfil).toBeNull();
     });
+  });
+});
+
+describe("periodoDaGestao", () => {
+  it("usa as datas do primeiro da ordem, mesmo com a lista fora de ordem", () => {
+    const fora = [
+      D({ id: 2, ordem: 20, mandatoInicio: "2023-01-01", mandatoFim: "2025-01-01" }),
+      D({ id: 1, ordem: 10, mandatoInicio: "2025-01-01", mandatoFim: "2027-12-31" }),
+    ];
+    expect(periodoDaGestao(fora)).toBe("2025–2027");
+  });
+
+  it("pula quem não tem as duas datas", () => {
+    const lista = [
+      D({ id: 1, ordem: 10 }),
+      D({ id: 3, ordem: 30, mandatoInicio: "2024-03-01", mandatoFim: "2026-02-28" }),
+    ];
+    expect(periodoDaGestao(lista)).toBe("2024–2026");
+  });
+
+  it("só o início, ou só o fim, não basta", () => {
+    expect(periodoDaGestao([D({ mandatoInicio: "2025-01-01" })])).toBeNull();
+    expect(periodoDaGestao([D({ mandatoFim: "2027-01-01" })])).toBeNull();
+  });
+
+  it("data que não existe conta como ausente", () => {
+    expect(periodoDaGestao([D({ mandatoInicio: "2025-13-01", mandatoFim: "2027-01-01" })])).toBeNull();
+    expect(periodoDaGestao([D({ mandatoInicio: "2025-02-30", mandatoFim: "2027-01-01" })])).toBeNull();
+    expect(periodoDaGestao([D({ mandatoInicio: "2025-1-1", mandatoFim: "2027-01-01" })])).toBeNull();
+  });
+
+  it("anos iguais viram só o ano", () => {
+    expect(periodoDaGestao([D({ mandatoInicio: "2026-01-01", mandatoFim: "2026-12-31" })])).toBe("2026");
+  });
+
+  it("lista vazia dá nulo", () => {
+    expect(periodoDaGestao([])).toBeNull();
+  });
+});
+
+describe("a leitura das datas do mandato", () => {
+  it("pede as duas colunas e as devolve cruas", async () => {
+    consulta.linhas = [
+      { id: 1, nome: "A", cargo: "P", ordem: 10, crm: "1", crm_uf: "MA", medico: true, mandato_inicio: "2025-03-01", mandato_fim: "2027-02-28", profissional: null },
+    ];
+    const [d] = await listarDiretoria();
+    expect(consulta.selecionado).toContain("mandato_inicio");
+    expect(consulta.selecionado).toContain("mandato_fim");
+    expect(d.mandatoInicio).toBe("2025-03-01");
+    expect(d.mandatoFim).toBe("2027-02-28");
   });
 });

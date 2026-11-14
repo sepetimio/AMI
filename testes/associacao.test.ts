@@ -59,6 +59,8 @@ function diretor(id: number): Diretor {
     crmUf: "MA",
     medico: true,
     foto: null,
+    mandatoInicio: null,
+    mandatoFim: null,
   };
 }
 const SEIS = [1, 2, 3, 4, 5, 6].map(diretor);

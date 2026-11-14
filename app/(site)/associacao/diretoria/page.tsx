@@ -3,7 +3,7 @@ import paginas from "@/app/(site)/encontre.module.css";
 import { FaixaDaDiretoria } from "@/components/associacao/FaixaDaDiretoria";
 import { EstadoVazio } from "@/components/base/EstadoVazio";
 import { GradeDeDiretores } from "@/components/diretorio/GradeDeDiretores";
-import { listarDiretoria } from "@/lib/dados/diretoria";
+import { listarDiretoria, periodoDaGestao } from "@/lib/dados/diretoria";
 import { DADOS_DEMONSTRACAO } from "@/lib/demonstracao";
 import { tituloDePagina } from "@/lib/seo/metadados";
 
@@ -22,8 +22,8 @@ const IMEDIATOS = 4;
 
 /*
   A diretoria da AMI:
-  - a faixa verde curta, com a volta para A Associação e, só no modo
-    demonstração, a pílula do mandato;
+  - a faixa verde curta, com a volta para A Associação e a pílula da
+    gestão (o período vem do banco; sem ele, só no modo demonstração);
   - os cartões de diretor na grade da busca, na ordem da AMI.
 
   Os nomes, cargos e CRMs vêm da tabela `diretoria` do banco
@@ -40,7 +40,10 @@ export default async function PaginaDiretoria() {
 
   return (
     <div className={paginas.pagina}>
-      <FaixaDaDiretoria demonstracao={DADOS_DEMONSTRACAO} />
+      <FaixaDaDiretoria
+        demonstracao={DADOS_DEMONSTRACAO}
+        periodo={periodoDaGestao(diretoria)}
+      />
 
       <section data-bloco="diretoria" aria-labelledby="membros-titulo">
         <h2 id="membros-titulo" className="sr-only">

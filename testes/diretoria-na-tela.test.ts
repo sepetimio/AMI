@@ -26,7 +26,10 @@ import { htmlDe, topoSemAVolta } from "@/testes/renderizar";
 
 const dados = vi.hoisted(() => ({ diretoria: [] as Diretor[] }));
 
-vi.mock("@/lib/dados/diretoria", () => ({ listarDiretoria: async () => dados.diretoria }));
+vi.mock("@/lib/dados/diretoria", async (importarOriginal) => ({
+  ...(await importarOriginal<typeof import("@/lib/dados/diretoria")>()),
+  listarDiretoria: async () => dados.diretoria,
+}));
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -47,6 +50,8 @@ function diretor(p: Partial<Diretor> = {}): Diretor {
     crmUf: "MA",
     medico: true,
     foto: null,
+    mandatoInicio: null,
+    mandatoFim: null,
     ...p,
   };
 }
@@ -129,8 +134,8 @@ describe("a grade de diretores", () => {
 });
 
 describe("a faixa da diretoria", () => {
-  const demo = renderToString(createElement(FaixaDaDiretoria, { demonstracao: true }));
-  const real = renderToString(createElement(FaixaDaDiretoria, { demonstracao: false }));
+  const demo = renderToString(createElement(FaixaDaDiretoria, { demonstracao: true, periodo: null }));
+  const real = renderToString(createElement(FaixaDaDiretoria, { demonstracao: false, periodo: null }));
 
   it("a faixa curta: volta à associação, o título e a frase, sem ícone fora do link de volta", () => {
     for (const html of [demo, real]) {
@@ -150,6 +155,17 @@ describe("a faixa da diretoria", () => {
   it("fora dela, sem a pílula", () => {
     expect(real).not.toContain("data-a-entrar");
     expect(real).not.toContain("Gestão");
+  });
+
+  it("com o período, a pílula real nas duas chaves, sem moldura nem texto a entrar", () => {
+    for (const demonstracao of [true, false]) {
+      const html = renderToString(createElement(FaixaDaDiretoria, { demonstracao, periodo: "2025–2027" }));
+      expect(html).toContain(`<p class="${estilosFaixa.pilula}">Gestão 2025–2027</p></div>`);
+      expect(html).not.toContain("data-a-entrar");
+      expect(html).not.toContain("a entrar");
+      expect(html).not.toContain("<em>");
+      expect(topoSemAVolta(html)).not.toContain("<svg");
+    }
   });
 });
 
@@ -210,6 +226,26 @@ describe("a página da diretoria", () => {
     expect(fora).not.toContain("PROVISÓRIO");
   });
 
+  it("o período vem das datas do banco, em qualquer modo", async () => {
+    dados.diretoria = QUATRO.map((d, i) =>
+      i === 0 ? { ...d, mandatoInicio: "2025-03-01", mandatoFim: "2027-02-28" } : d,
+    );
+    for (const chave of ["true", "false"]) {
+      const { html } = await pagina(chave);
+      expect(html).toContain(">Gestão 2025–2027</p>");
+    }
+  });
+
+  it("o período vem das datas do banco, em qualquer modo", async () => {
+    dados.diretoria = QUATRO.map((d, i) =>
+      i === 0 ? { ...d, mandatoInicio: "2025-03-01", mandatoFim: "2027-02-28" } : d,
+    );
+    for (const chave of ["true", "false"]) {
+      const { html } = await pagina(chave);
+      expect(html).toContain(">Gestão 2025–2027</p>");
+    }
+  });
+
   it("sem diretoria cadastrada, o aviso de vazio no lugar da grade", async () => {
     const { html } = await pagina("false");
     expect(html).toContain("Diretoria ainda não cadastrada");
@@ -256,11 +292,15 @@ describe("o CSS do cartão de diretor", () => {
 describe("o CSS da pílula do mandato", () => {
   const css = semNotas(fonte("../components/associacao/FaixaDaDiretoria.module.css"));
 
-  it("tracejada em lima, com o texto claro do desenho", () => {
+  it("fio contínuo em lima, com o texto claro do desenho", () => {
     const r = regra(base(css), ".pilula");
-    expect(r).toMatch(/border: 1px dashed rgba\(168, 212, 112, 0\.5\);/);
+    expect(r).toMatch(/border: 1px solid rgba\(168, 212, 112, 0\.5\);/);
     expect(r).toMatch(/color: #DDE7D6;/);
     expect(regra(base(css), ".pilula em")).toMatch(/color: #B9C6B2;/);
+  });
+
+  it("só a moldura a entrar fica tracejada", () => {
+    expect(regra(base(css), ".pilula[data-a-entrar]")).toMatch(/border-style: dashed;/);
   });
 
   it("nenhuma regra para ícone dentro da pílula", () => {

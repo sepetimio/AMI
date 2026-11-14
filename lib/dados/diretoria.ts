@@ -28,6 +28,9 @@ export type Diretor = {
      numa linha que já vem do banco. */
   medico: boolean;
   foto: string | null;
+  /* Datas cruas da coluna `date`, no formato "2025-03-01". */
+  mandatoInicio: string | null;
+  mandatoFim: string | null;
 };
 
 /*
@@ -43,6 +46,31 @@ export function ordenarDiretoria(lista: Diretor[]): Diretor[] {
   return [...lista].sort(
     (a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome, "pt-BR"),
   );
+}
+
+/* Data real no formato "2025-03-01": o formato certo e um dia que existe. */
+function anoDeDataValida(texto: string | null): number | null {
+  if (!texto || !/^\d{4}-\d{2}-\d{2}$/.test(texto)) return null;
+  const [ano, mes, dia] = texto.split("-").map(Number);
+  const data = new Date(Date.UTC(ano, mes - 1, dia));
+  const confere =
+    data.getUTCFullYear() === ano && data.getUTCMonth() === mes - 1 && data.getUTCDate() === dia;
+  return confere ? ano : null;
+}
+
+/*
+  O período da gestão, como "2025–2027", lido do mandato de quem vem
+  primeiro na ordem da AMI e tem as duas datas. Anos iguais viram só o ano.
+  Sem ninguém com as duas datas, devolve `null`: nada é inventado.
+*/
+export function periodoDaGestao(diretores: Diretor[]): string | null {
+  for (const d of ordenarDiretoria(diretores)) {
+    const inicio = anoDeDataValida(d.mandatoInicio);
+    const fim = anoDeDataValida(d.mandatoFim);
+    if (inicio === null || fim === null) continue;
+    return inicio === fim ? String(inicio) : `${inicio}–${fim}`;
+  }
+  return null;
 }
 
 /*
@@ -100,7 +128,7 @@ export function resolverCrmDoDiretor(
 }
 
 const SELECAO = `
-  id, nome, cargo, ordem, crm, crm_uf, medico,
+  id, nome, cargo, ordem, crm, crm_uf, medico, mandato_inicio, mandato_fim,
   profissional:profissional_id ( slug, crm, crm_uf, foto )
 `;
 
@@ -131,6 +159,8 @@ export const listarDiretoria = cache(async (): Promise<Diretor[]> => {
       crmUf,
       medico: d.medico,
       foto: p?.foto ?? null,
+      mandatoInicio: d.mandato_inicio,
+      mandatoFim: d.mandato_fim,
     };
   });
 
