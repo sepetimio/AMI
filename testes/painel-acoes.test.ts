@@ -127,3 +127,16 @@ describe("alternarPublicacao", () => {
     expect(posInvalida).toBeGreaterThan(posEscrita);
   });
 });
+
+describe("o armazenamento de fotos", () => {
+  it("nenhuma ação do painel chama .remove(", () => {
+    /*
+      `.remove(` é a remoção do Storage. A migração 0007 não dá política de
+      remoção, mas o código também não deve tentar: remover a foto só limpa
+      a coluna.
+    */
+    for (const caminho of ACOES) {
+      expect(semComentarios(fonte(caminho)), caminho).not.toMatch(/\.remove\s*\(/);
+    }
+  });
+});
