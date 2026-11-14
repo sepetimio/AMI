@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { createElement } from "react";
+import { renderToString } from "react-dom/server";
+import { BlocoFoto } from "@/components/painel/BlocoFoto";
 import {
   BUCKET_DAS_FOTOS,
   LIMITE_DA_FOTO,
@@ -7,6 +10,7 @@ import {
   mensagemDoErroDeEnvio,
   tipoDaFoto,
 } from "@/lib/painel/foto";
+import { recorteRetrato } from "@/lib/painel/recorte";
 import { fonte, semComentarios } from "@/testes/apoio";
 
 const JPEG = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0, 0, 0, 0, 0]);
@@ -171,5 +175,84 @@ describe("as ações da foto, lidas como código", () => {
 
   it("o arquivo não chama .remove(", () => {
     expect(codigo).not.toMatch(/\.remove\s*\(/);
+  });
+});
+
+describe("recorteRetrato", () => {
+  it("paisagem: corta dos lados, pelo centro", () => {
+    expect(recorteRetrato(4000, 3000)).toEqual({
+      sx: 800, sy: 0, sLargura: 2400, sAltura: 3000, largura: 800, altura: 1000, pequena: false,
+    });
+  });
+
+  it("retrato 3:4: corta em cima e embaixo", () => {
+    expect(recorteRetrato(3000, 4000)).toEqual({
+      sx: 0, sy: 125, sLargura: 3000, sAltura: 3750, largura: 800, altura: 1000, pequena: false,
+    });
+  });
+
+  it("800x1000 exato: sem deslocamento", () => {
+    expect(recorteRetrato(800, 1000)).toEqual({
+      sx: 0, sy: 0, sLargura: 800, sAltura: 1000, largura: 800, altura: 1000, pequena: false,
+    });
+  });
+
+  it("foto pequena: não amplia e avisa", () => {
+    expect(recorteRetrato(300, 300)).toEqual({
+      sx: 30, sy: 0, sLargura: 240, sAltura: 300, largura: 240, altura: 300, pequena: true,
+    });
+  });
+
+  it("400x500 exato não é pequena", () => {
+    expect(recorteRetrato(400, 500).pequena).toBe(false);
+    expect(recorteRetrato(399, 500).pequena).toBe(true);
+  });
+
+  it("só devolve inteiros", () => {
+    const r = recorteRetrato(1001, 777);
+    for (const v of Object.values(r)) if (typeof v === "number") expect(Number.isInteger(v)).toBe(true);
+  });
+});
+
+describe("BlocoFoto (renderização)", () => {
+  const medico = { medicoId: 7, nome: "Ana Souza" };
+
+  it("com foto: a imagem, o Remover foto e o input com o accept exato", () => {
+    const html = renderToString(
+      createElement(BlocoFoto, { ...medico, foto: "https://x.test/7/a.webp" }),
+    );
+    expect(html).toMatch(/<img[^>]*src="https:\/\/x\.test\/7\/a\.webp"/);
+    expect(html).toContain("Remover foto");
+    expect(html).toContain("Escolher foto");
+    expect(html).toContain('accept="image/jpeg,image/png,image/webp"');
+    expect(html).toContain("JPG, PNG ou WebP. O painel recorta no formato retrato do site, pelo centro.");
+    expect(html).toContain('aria-live="polite"');
+  });
+
+  it("sem foto: as iniciais e nenhum Remover foto", () => {
+    const html = renderToString(createElement(BlocoFoto, { ...medico, foto: null }));
+    expect(html).toContain(">AS<");
+    expect(html).not.toContain("Remover foto");
+    expect(html).not.toContain("<img");
+    expect(html).toContain("Escolher foto");
+  });
+
+  it("nenhum svg no bloco", () => {
+    for (const foto of [null, "https://x.test/a.webp"]) {
+      expect(renderToString(createElement(BlocoFoto, { ...medico, foto }))).not.toContain("<svg");
+    }
+  });
+});
+
+describe("a página de edição", () => {
+  it("monta o BlocoFoto depois do formulário e antes das especialidades", () => {
+    const pagina = fonte("../app/painel/medico/[id]/page.tsx");
+    const f = pagina.indexOf("<FormularioMedico");
+    const b = pagina.indexOf("<BlocoFoto");
+    const e = pagina.indexOf("<BlocoEspecialidades");
+    expect(f).toBeGreaterThan(-1);
+    expect(b).toBeGreaterThan(f);
+    expect(e).toBeGreaterThan(b);
+    expect(pagina).toContain("foto={medico.foto}");
   });
 });

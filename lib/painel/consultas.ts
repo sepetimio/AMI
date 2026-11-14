@@ -77,11 +77,12 @@ export type MedicoDoPainel = MedicoNaLista & {
   associadoAmi: boolean;
   situacao: string;
   verificadoEm: string | null;
+  foto: string | null;
 };
 
 const SELECAO_COMPLETA = `
   id, slug, nome, crm, crm_uf, publicado, bio, telemedicina, associado_ami,
-  situacao, verificado_em,
+  situacao, verificado_em, foto,
   profissional_especialidade ( principal, especialidade ( nome ) ),
   atendimento ( local ( bairro ( nome ) ) )
 `;
@@ -109,6 +110,7 @@ export async function medicoPorId(
     associadoAmi: l.associado_ami,
     situacao: l.situacao,
     verificadoEm: l.verificado_em,
+    foto: l.foto ?? null,
   };
 }
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FormularioMedico } from "@/components/painel/FormularioMedico";
+import { BlocoFoto } from "@/components/painel/BlocoFoto";
 import { BlocoEspecialidades } from "@/components/painel/BlocoEspecialidades";
 import { BlocoLocais } from "@/components/painel/BlocoLocais";
 import { oQueFalta, temBioDeVerdade } from "@/lib/painel/medico";
@@ -67,6 +68,8 @@ export default async function PaginaDeEdicao({
       ) : null}
 
       <FormularioMedico medico={medico} />
+
+      <BlocoFoto medicoId={medico.id} nome={medico.nome} foto={medico.foto} />
 
       <BlocoEspecialidades
         medicoId={medico.id}
